@@ -1,0 +1,195 @@
+interface RoomMemory {
+    storage_list ? : Id < AnyStorageStructure > [];
+    tower_list ? : Id < StructureTower > [];
+    spawn_list ? : Id < StructureSpawn > [];
+    total_energy ? : number;
+    total_maxenergy ? : number;
+    container_mode ? : boolean;
+    link_mode ? : boolean;
+    mine_harvestable ? : boolean;
+    sites_total_progressleft ? : number;
+    danger_mode ? : boolean;
+}
+interface CreepMemory {
+    role: string;
+    source_name ? : string;
+    harvesting ? : boolean;
+    home_room_name ? : string;
+    external_room_name ? : string;
+    rooms_forwardpath ? : string[];
+    names_forwardpath ? : string[];
+    rooms_backwardpath ? : string[];
+    names_backwardpath ? : string[];
+    transfer_target ? : string;
+    waiting ? : boolean;
+	cost ?: number;
+}
+interface SpawnMemory {
+    spawning_time ? : number;
+	can_suicide ? : boolean;
+}
+interface conf_towers {
+    [key: string]: {
+        pos: number[];
+        finished ? : boolean;
+        id ? : Id < StructureTower > ;
+        RCL ? : number;
+    }
+}
+interface conf_sources {
+    [key: string]: {
+        id: Id < Source > ;
+    }
+}
+interface conf_containers {
+    [key: string]: {
+        pos: number[];
+        id?: Id < StructureContainer > ;
+        RCL ? : number;
+        finished ? : boolean;
+    }
+}
+interface conf_links {
+    [key: string]: {
+        pos: number[];
+        id: Id < StructureLink > ;
+        RCL ? : number;
+        finished ? : boolean;
+    }
+}
+interface conf_mine {
+    id: Id < Mineral > ;
+    type ? : string;
+    density ? : number;
+}
+interface conf_init {
+    [key: string]: {
+        number: number;
+    }
+}
+interface conf_preference {
+    container: string;
+    points: number;
+}
+interface conf_carriers {
+    [key: string]: {
+        number: number;
+        preferences: conf_preference[];
+    }
+}
+interface conf_upgraders {
+    locations: number[][];
+    commuting_time: number;
+}
+interface conf_harvesters {
+    [key: string]: {
+        commuting_time: number;
+    }
+}
+interface conf_external_rooms {
+    [key: string]: {
+        controller: {
+            reserve: boolean;
+            path_time: number;
+            rooms_forwardpath: string[];
+            names_forwardpath: string[];
+            rooms_backwardpath: string[];
+            names_backwardpath: string[];
+        }
+        sources: {
+            [key: string]: {
+                id: Id < Source > ;
+                harvest_pos: number[];
+                reserve: boolean;
+                single_distance: number;
+                n_carry: number;
+                n_carrier: number;
+                carry_end: {
+                    "type": string;
+                    "name": string;
+                };
+                rooms_forwardpath: string[];
+                names_forwardpath: string[];
+                rooms_backwardpath: string[];
+                names_backwardpath: string[];
+                harvester_name ? : string;
+                transfer_target_id ? : Id < AnyStoreStructure > ;
+            }
+        }
+    }
+}
+interface room_conf {
+    towers: conf_towers;
+    sources: conf_sources;
+    mine: conf_mine;
+    containers: conf_containers;
+    links: conf_links;
+    link_transfer_gap: number;
+    link_transfer_amount: number;
+    init: conf_init;
+    carriers: conf_carriers;
+    upgraders: conf_upgraders;
+    harvesters: conf_harvesters;
+    max_transfer: number;
+    stay_pos: number[];
+    external_rooms: conf_external_rooms;
+    wall_strength: number;
+	[key: string]: any;
+}
+interface Memory {
+    creeps: {
+        [name: string]: CreepMemory
+    };
+    powerCreeps: {
+        [name: string]: PowerCreepMemory
+    };
+    flags: {
+        [name: string]: FlagMemory
+    };
+    rooms: {
+        [name: string]: RoomMemory
+    };
+    spawns: {
+        [name: string]: SpawnMemory
+    };
+    rooms_conf: {
+        [key: string]: room_conf
+    };
+    controlled_rooms ? : string[];
+    help_list ? : any;
+    username ? : any
+    performance_mode ? : boolean;
+    advanced_mode ? : boolean;
+    debug_mode ? : boolean;
+    rerunning ? : boolean;
+}
+type Structure_Wall_Rampart = StructureWall | StructureRampart;
+interface invader_type {
+	level: number;
+	name: string;
+	boost: boolean;
+}
+interface type_room_list_room {
+	room_name: string;
+	connected_rooms: {
+		[key: string]: {
+			[key: string]: {
+				exit: number[];
+				standpoint: number[];
+			};
+		};
+	};
+};
+interface type_room_list_rooms {
+	[key: string]: type_room_list_room
+};
+interface type_spawn_json {
+	rolename: string;
+	creepname: string;
+	body: BodyPartConstant[];
+	cost: number;
+	memory: any;
+	affordable: boolean;
+	[key: string]: any;
+}
+type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage

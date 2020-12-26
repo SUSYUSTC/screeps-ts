@@ -1,0 +1,112 @@
+var mymath = require('./mymath');
+
+interface type_allowed_body_numbers {
+	[key: string]: number[][];
+}
+const allowed_numbers: type_allowed_body_numbers = {
+    'small_close': [
+        [1, 0, 0]
+    ],
+	'small_far': [
+		[0, 1, 0]
+	],
+	'big_close': [
+		[2, 0, 0],
+		[1, 0, 1]
+	],
+	'big_far': [
+		[0, 1, 1]
+	]
+}
+
+function _get_one_invader_type(creep: Creep): null | invader_type {
+    if (!(creep.owner.username == 'Invader')) {
+        return null;
+    }
+    if (creep.body.length == 10) {
+        var level = 1;
+		var body_index = 8;
+	}
+	else if (creep.body.length == 50) {
+		var level = 2;
+		var body_index = 47;
+	}
+	else {
+		throw Error("Undefined body number of invader");
+	}
+	var bodyname = creep.body[body_index].type;
+	if (bodyname == ATTACK) {
+		var name = 'melee';
+	} else if (bodyname == RANGED_ATTACK) {
+		var name = 'ranged';
+	} else if (bodyname == HEAL) {
+		var name = 'healer';
+	} else {
+		throw Error("Undefined body type of invader");
+	}
+	if ("boost" in creep.body[8]) {
+		var boost = true;
+	} else {
+		var boost = false;
+	}
+	return {
+		"level": level,
+		"name": name,
+		"boost": boost
+	};
+}
+
+function get_defense_type(room: Room): number | string | null {
+    var enemies = room.find(FIND_HOSTILE_CREEPS)
+	if (enemies.length == 0){
+		return null;
+	}
+    var types = enemies.map((e) => _get_one_invader_type(e));
+	console.log(JSON.stringify(types));
+    if (mymath.any(types.map((e) => (e == null)))) {
+        return -1;
+    }
+	if (mymath.any(types.map((e) => e.level !== 1))) {
+		return -2;
+	}
+	var names = types.map((e) => e.name);
+	var n_melee = names.filter((e) => e == 'melee').length;
+	var n_ranged = names.filter((e) => e == 'ranged').length;
+	var n_healer = names.filter((e) => e == 'healer').length;
+	var numbers = [n_melee, n_ranged, n_healer];
+	for (var allowed_name in allowed_numbers) {
+		for (var allowed_number of allowed_numbers[allowed_name]) {
+			if (mymath.array_equal(numbers, allowed_number)) {
+				return allowed_name;
+			}
+		}
+	}
+	return -2;
+}
+
+function defend(creep: Creep) {
+    var enemies = creep.room.find(FIND_HOSTILE_CREEPS);
+    if (enemies.length == 0) {
+        var creeps = creep.room.find(FIND_MY_CREEPS);
+        creeps = creeps.filter((e) => e.hits < e.hitsMax);
+        if (creeps.length == 0) {
+            return;
+        }
+        var distance = creeps.map((e) => creep.pos.getRangeTo(e.pos));
+        var argmin = mymath.argmin(distance);
+        creep.heal(creeps[argmin]);
+        creep.moveTo(creeps[argmin]);
+        return;
+    }
+    var distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
+    var argmin = mymath.argmin(distance)
+    var target = enemies[argmin];
+    creep.moveTo(target);
+    if (creep.attack(target) == ERR_NOT_IN_RANGE) {
+        creep.heal(creep);
+    }
+    creep.rangedAttack(target);
+}
+
+module.exports.defend = defend;
+module.exports.get_defense_type = get_defense_type;
