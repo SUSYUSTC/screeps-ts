@@ -1,8 +1,8 @@
 //screeps
-var mymath = require('./mymath');
-var basic_job = require('./basic_job')
-var config = require('./config')
-require('./includes')
+import * as _ from "lodash";
+import * as mymath from "./mymath";
+import * as basic_job from "./basic_job";
+import * as config from "./config";
 //var visual_options={visualizePathStyle: {stroke: '#ffffff'}};
 
 interface type_work_result {
@@ -41,7 +41,7 @@ function assign_work(creep: Creep): type_work_result{
 	return { type: types[argmax], id: ids[argmax]};
 }
 
-function init_work(creep: Creep) {
+export function init_work(creep: Creep) {
     determine_stage(creep);
     if (creep.memory.harvesting) {
         creep.say("IH")
@@ -74,4 +74,3 @@ function init_work(creep: Creep) {
         }
     }
 }
-module.exports.init_work = init_work;

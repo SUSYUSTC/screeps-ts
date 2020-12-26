@@ -23,7 +23,7 @@ var bridges = [{
     'coor_same': 30,
 	'name': 'left'
 }]
-var rooms: type_room_list_rooms = {};
+export var rooms: type_room_list_rooms = {};
 for (var bridge of bridges) {
     if (bridge.type == 'H') {
         var rooms_name = bridge.axis_diff.map(e => e + bridge.axis_same);
@@ -46,4 +46,3 @@ for (var bridge of bridges) {
 		rooms[room_name].connected_rooms[rooms_name[j]][bridge.name]={"exit": exits[i], 'standpoint': standpoints[i]};
 	}
 }
-module.exports.rooms = rooms;

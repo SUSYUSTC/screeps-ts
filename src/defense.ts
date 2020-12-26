@@ -1,4 +1,4 @@
-var mymath = require('./mymath');
+import * as mymath from "./mymath";
 
 interface type_allowed_body_numbers {
 	[key: string]: number[][];
@@ -56,7 +56,7 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
 	};
 }
 
-function get_defense_type(room: Room): number | string | null {
+export function get_defense_type(room: Room): number | string | null {
     var enemies = room.find(FIND_HOSTILE_CREEPS)
 	if (enemies.length == 0){
 		return null;
@@ -84,7 +84,7 @@ function get_defense_type(room: Room): number | string | null {
 	return -2;
 }
 
-function defend(creep: Creep) {
+export function defend(creep: Creep) {
     var enemies = creep.room.find(FIND_HOSTILE_CREEPS);
     if (enemies.length == 0) {
         var creeps = creep.room.find(FIND_MY_CREEPS);
@@ -108,5 +108,3 @@ function defend(creep: Creep) {
     creep.rangedAttack(target);
 }
 
-module.exports.defend = defend;
-module.exports.get_defense_type = get_defense_type;

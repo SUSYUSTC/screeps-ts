@@ -1,14 +1,14 @@
 Memory.performance_mode = true;
 Memory.advanced_mode = true;
 Memory.debug_mode = true;
-var layout = require('./layout');
-var creepjobs = require('./creepjobs');
-var mymath = require('./mymath');
-var spawning = require('./spawning');
-var towers = require('./towers');
-var links = require('./links')
-require('./external_room');
-var main_func = require('./main_func');
+import * as _ from "lodash";
+import * as layout from "./layout";
+import * as creepjobs from "./creepjobs";
+import * as mymath from "./mymath";
+import * as spawning from "./spawning";
+import * as towers from "./towers";
+import * as links from "./links";
+import * as main_func from "./main_func";
 Memory.rerunning = true;
 
 module.exports.loop = function() {

@@ -1,12 +1,12 @@
-var mymath = require('./mymath');
-var spawning_func = require('./spawning_func')
-var spawning_init = require('./spawning_init')
-var defence = require('./defend');
-require('./spawning_init')
+import * as _ from "lodash";
+import * as mymath from "./mymath";
+import * as spawning_func from "./spawning_func";
+import * as spawning_init from "./spawning_init";
+import * as defense from "./defense";
 
-function spawn(spawn: StructureSpawn) {
+export function spawn(spawn: StructureSpawn) {
 	console.log(spawn.memory.spawning_time);
-	console.log(defence.get_defense_type(spawn.room));
+	console.log(defense.get_defense_type(spawn.room));
     if (spawn.room.memory.danger_mode) {
         return;
     }
@@ -28,13 +28,13 @@ function spawn(spawn: StructureSpawn) {
     var info_source: any = {};
     for (var source_name of sources_name) {
         let creeps = room_creeps.filter((creep) => creep.memory.source_name == source_name);
-        let harvesters = creeps.filter((e) => e.memory.role == 'harvester' && e.ticksToLive >= conf.harvester[source_name].commuting_time + 18);
-        let carriers = creeps.filter((e) => e.memory.role == 'carrier' && e.ticksToLive >= Math.ceil(conf.carrier[source_name].number * 4.5) + 10);
+        let harvesters = creeps.filter((e) => e.memory.role == 'harvester' && e.ticksToLive >= conf.harvesters[source_name].commuting_time + 18);
+        let carriers = creeps.filter((e) => e.memory.role == 'carrier' && e.ticksToLive >= Math.ceil(conf.carriers[source_name].number * 4.5) + 10);
         let n_harvesters = harvesters.length;
         let n_carrys = spawning_func.get_nbody(carriers, 'carry')
 		let max_carry = 0;
         if (!spawn.room.memory.link_mode) {
-            max_carry = conf.carrier[source_name].number;
+            max_carry = conf.carriers[source_name].number;
         }
         info_source[source_name] = {
             n_carrys: n_carrys.toString() + "/" + max_carry.toString(),
@@ -83,9 +83,9 @@ function spawn(spawn: StructureSpawn) {
         }
     }
 	if (!spawn.room.memory.link_mode) {
-		let storage_carriers = room_creeps.filter((e) => e.memory.role == 'carrier' && e.memory.source_name == 'storage' && e.ticksToLive >= Math.ceil(conf.carrier[source_name].number * 4.5) + 10);
+		let storage_carriers = room_creeps.filter((e) => e.memory.role == 'carrier' && e.memory.source_name == 'storage' && e.ticksToLive >= Math.ceil(conf.carriers[source_name].number * 4.5) + 10);
 		if (storage_carriers.length < added_upgraders) {
-			let max_carry = conf.carrier.storage.number;
+			let max_carry = conf.carriers.storage.number;
             let added_memory = {
                 "source_name": "storage"
             };
@@ -110,7 +110,7 @@ function spawn(spawn: StructureSpawn) {
     if (spawn.room.memory.total_maxenergy >= 1200) {
         upgrader_spawning_time = 42;
     }
-    var upgraders = room_creeps.filter((e) => e.memory.role == 'upgrader' && e.ticksToLive >= conf.upgrader.commuting_time + upgrader_spawning_time);
+    var upgraders = room_creeps.filter((e) => e.memory.role == 'upgrader' && e.ticksToLive >= conf.upgraders.commuting_time + upgrader_spawning_time);
     var builders = room_creeps.filter((e) => e.memory.role == 'builder' && e.ticksToLive >= 50);
     var transferers = room_creeps.filter((e) => e.memory.role == 'transferer' && e.ticksToLive >= 150);
     var mineharvesters = room_creeps.filter((e) => e.memory.role == 'mineharvester' && e.ticksToLive >= 50);
@@ -316,4 +316,3 @@ function spawn(spawn: StructureSpawn) {
         }
     }
 }
-module.exports.spawn = spawn;

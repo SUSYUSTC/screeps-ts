@@ -9,6 +9,9 @@ interface RoomMemory {
     mine_harvestable ? : boolean;
     sites_total_progressleft ? : number;
     danger_mode ? : boolean;
+    invaded_external_rooms ? : {
+        [key: string]: string
+    };
 }
 interface CreepMemory {
     role: string;
@@ -22,11 +25,11 @@ interface CreepMemory {
     names_backwardpath ? : string[];
     transfer_target ? : string;
     waiting ? : boolean;
-	cost ?: number;
+    cost ? : number;
 }
 interface SpawnMemory {
     spawning_time ? : number;
-	can_suicide ? : boolean;
+    can_suicide ? : boolean;
 }
 interface conf_towers {
     [key: string]: {
@@ -41,14 +44,15 @@ interface conf_sources {
         id: Id < Source > ;
     }
 }
-interface conf_containers {
+interface conf_structures < T > {
     [key: string]: {
         pos: number[];
-        id?: Id < StructureContainer > ;
+        id ? : Id < T > ;
         RCL ? : number;
         finished ? : boolean;
     }
 }
+/*
 interface conf_links {
     [key: string]: {
         pos: number[];
@@ -57,9 +61,20 @@ interface conf_links {
         finished ? : boolean;
     }
 }
+interface conf_containers {
+    [key: string]: {
+        pos: number[];
+        id: Id < StructureContainer > ;
+        RCL ? : number;
+        finished ? : boolean;
+    }
+}
+ */
+type conf_links = conf_structures < StructureLink > ;
+type conf_containers = conf_structures < StructureContainer > ;
 interface conf_mine {
     id: Id < Mineral > ;
-    type ? : string;
+    type ? : ResourceConstant;
     density ? : number;
 }
 interface conf_init {
@@ -113,7 +128,7 @@ interface conf_external_rooms {
                 rooms_backwardpath: string[];
                 names_backwardpath: string[];
                 harvester_name ? : string;
-                transfer_target_id ? : Id < AnyStoreStructure > ;
+                transfer_target_id ? : Id < AnyStorageStructure > ;
             }
         }
     }
@@ -134,7 +149,6 @@ interface room_conf {
     stay_pos: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
-	[key: string]: any;
 }
 interface Memory {
     creeps: {
@@ -165,31 +179,31 @@ interface Memory {
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
-	level: number;
-	name: string;
-	boost: boolean;
+    level: number;
+    name: string;
+    boost: boolean;
 }
 interface type_room_list_room {
-	room_name: string;
-	connected_rooms: {
-		[key: string]: {
-			[key: string]: {
-				exit: number[];
-				standpoint: number[];
-			};
-		};
-	};
+    room_name: string;
+    connected_rooms: {
+        [key: string]: {
+            [key: string]: {
+                exit: number[];
+                standpoint: number[];
+            };
+        };
+    };
 };
 interface type_room_list_rooms {
-	[key: string]: type_room_list_room
+    [key: string]: type_room_list_room
 };
 interface type_spawn_json {
-	rolename: string;
-	creepname: string;
-	body: BodyPartConstant[];
-	cost: number;
-	memory: any;
-	affordable: boolean;
-	[key: string]: any;
+    rolename: string;
+    creepname: string;
+    body: BodyPartConstant[];
+    cost: number;
+    memory: any;
+    affordable: boolean;
+    [key: string]: any;
 }
-type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage
+type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal

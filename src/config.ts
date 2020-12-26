@@ -328,7 +328,7 @@ room_W7N9.external_rooms = {
 };
 */
 
-function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
+export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
     if (room_name == 'W7N3') {
         return pos1.getRangeTo(pos2);
     } else if (room_name == 'W7N9') {
@@ -347,4 +347,3 @@ Memory.rooms_conf = {
 };
 Memory.help_list = {};
 Memory.username = 'SUSYUSTC';
-module.exports.distance_metric = distance_metric;

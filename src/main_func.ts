@@ -1,5 +1,8 @@
-var mymath = require('./mymath');
-function clear_creep() {
+import * as defense from "./defense";
+import * as mymath from "./mymath";
+import * as _ from 'lodash';
+
+export function clear_creep() {
     for (var name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
@@ -8,23 +11,23 @@ function clear_creep() {
     }
 }
 
-function set_room_memory(room_name: string) {
+export function set_room_memory(room_name: string) {
     var room = Game.rooms[room_name];
     var structures = room.find(FIND_MY_STRUCTURES);
-	var temp_exts = _.filter(structures, (structure) => structure.structureType == "extension");
+    var temp_exts = _.filter(structures, (structure) => structure.structureType == "extension");
     var temp_spawns = _.filter(structures, (structure) => structure.structureType == "spawn");
-	var temp_towers = _.filter(structures, (structure) => structure.structureType == "tower");
-	var exts = temp_exts.map((e) => <StructureExtension> e);
-	var spawns = temp_spawns.map((e) => <StructureSpawn> e);
-	var towers = temp_towers.map((e) => <StructureTower> e);
-	//towers: StructureTower[] = towers.map((e) => <StructureTower> <Structure> e);
-	//towers = <StructureTower[]> <Structure[]> temp_towers;
-	//var towers = _.filter(structures, (structure) => StructureTower.prototype.isPrototypeof(structure));
-	room.memory.storage_list = spawns.map((e) => <Id<AnyStorageStructure>> e.id).concat(exts.map((e) => <Id<AnyStorageStructure>> e.id));
+    var temp_towers = _.filter(structures, (structure) => structure.structureType == "tower");
+    var exts = temp_exts.map((e) => < StructureExtension > e);
+    var spawns = temp_spawns.map((e) => < StructureSpawn > e);
+    var towers = temp_towers.map((e) => < StructureTower > e);
+    //towers: StructureTower[] = towers.map((e) => <StructureTower> <Structure> e);
+    //towers = <StructureTower[]> <Structure[]> temp_towers;
+    //var towers = _.filter(structures, (structure) => StructureTower.prototype.isPrototypeof(structure));
+    room.memory.storage_list = spawns.map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.map((e) => < Id < AnyStorageStructure >> e.id));
     room.memory.tower_list = towers.map((e) => e.id);
     room.memory.spawn_list = spawns.map((e) => e.id);
 
-	var spawn_energies = spawns.map((e) => e.store.getUsedCapacity("energy"));
+    var spawn_energies = spawns.map((e) => e.store.getUsedCapacity("energy"));
     var spawn_maxenergies = spawns.map((e) => e.store.getUsedCapacity("energy"));
     var spawn_totalenergy = mymath.array_sum(spawn_energies);
     var spawn_totalmaxenergy = mymath.array_sum(spawn_maxenergies);
@@ -37,9 +40,9 @@ function set_room_memory(room_name: string) {
     room.memory.total_energy = total_energy;
     room.memory.total_maxenergy = total_maxenergy;
     for (var spawn of spawns) {
-		if (!("spawning_time" in spawn.memory)) {
-			spawn.memory.spawning_time = 0;
-		}
+        if (!("spawning_time" in spawn.memory)) {
+            spawn.memory.spawning_time = 0;
+        }
         spawn.memory.spawning_time += 1;
     }
 
@@ -89,7 +92,13 @@ function set_room_memory(room_name: string) {
             conf_external.harvester_name = creepname;
         }
     }
+    if (!("invaded_external_rooms" in room.memory)) {
+        room.memory.invaded_external_rooms = {}
+    }
+	for (var external_room_name in conf.external_rooms) {
+		if (external_room_name in Game.rooms) {
+			defense.get_defense_type(Game.rooms[external_room_name]);
+		}
+	}
 }
 
-module.exports.clear_creep = clear_creep;
-module.exports.set_room_memory = set_room_memory;

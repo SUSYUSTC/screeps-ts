@@ -1,6 +1,6 @@
-var external_room = require('./external_room')
+import * as external_room from "./external_room"
 
-function claim_controller(creep: Creep, room_name: string) {
+export function claim_controller(creep: Creep, room_name: string) {
     if (creep.room.name !== room_name) {
         let output = external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);
     } else {
@@ -12,4 +12,3 @@ function claim_controller(creep: Creep, room_name: string) {
         }
     }
 }
-module.exports.claim_controller = claim_controller;

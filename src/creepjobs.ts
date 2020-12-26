@@ -1,9 +1,9 @@
-var role_init = require('./role_init');
-var basic_job = require('./basic_job');
-var defence = require('./defence');
-var external_room = require('./external_room');
-//var myfunc = require('myfunc');
-function creepjob(creep: Creep) {
+import * as _ from "lodash"
+import * as role_init from "./role_init";
+import * as basic_job from "./basic_job";
+import * as defense from "./defense";
+import * as external_room from "./external_room";
+export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
     }
@@ -19,7 +19,7 @@ function creepjob(creep: Creep) {
         role_init.init_work(creep);
     } else if (creep.memory.role == 'defender') {
         creep.say("D");
-        defence.defend(creep);
+        defense.defend(creep);
     } else if (creep.memory.role == 'external_init') {
         creep.say("E");
         var output = external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.names_forwardpath);
@@ -29,7 +29,7 @@ function creepjob(creep: Creep) {
     } else {
         var rolename = creep.memory.role;
         var link_mode = creep.room.memory.link_mode;
-        var conf_linkcontainers = (link_mode ? conf.links : conf.containers);
+		var conf_linkcontainers: conf_structures <StructureLink | StructureContainer> = <conf_structures<StructureLink | StructureContainer>>(link_mode ? conf.links : conf.containers);
         if ((rolename == 'carrier') && (creep.memory.source_name == 'storage')) {
             var source_name = creep.memory.source_name;
 			var linkcontainer_source = <AnyStorageStructure> creep.room.storage;
@@ -240,10 +240,9 @@ function creepjob(creep: Creep) {
                     creep.suicide();
                 }
             } else {
-                var prefered_container = basic_job.preferred_container(creep, conf_linkcontainers, conf.carriers[source_name].preferences);
+				var prefered_container = basic_job.preferred_container(creep, <conf_containers> conf_linkcontainers, conf.carriers[source_name].preferences);
                 basic_job.transfer_energy(creep, prefered_container);
             }
         }
     }
 }
-module.exports.creepjob = creepjob;

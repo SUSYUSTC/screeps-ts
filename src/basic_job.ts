@@ -1,10 +1,12 @@
+import * as _ from "lodash";
+import * as mymath from "./mymath";
+import * as config from "./config";
+
 var vision_options: any = {
     visualizePathStyle: {}
 };
-var config = require('./config')
-var mymath = require('./mymath')
 
-function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydistance = false) {
+export function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydistance = false) {
     var metric = config.distance_metric;
     if (obj_list.length == 0) {
         return 1;
@@ -23,7 +25,7 @@ function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydistance =
     return 0;
 }
 
-function charge_all(creep: Creep, doaction: boolean = true) {
+export function charge_all(creep: Creep, doaction: boolean = true) {
     var store_list: AnyStorageStructure[] = creep.room.memory.storage_list.map((id) => Game.getObjectById(id));
     if (store_list.length > 0) {
         store_list = store_list.filter((e) => e.store.getFreeCapacity("energy") > 0);
@@ -47,14 +49,14 @@ function charge_all(creep: Creep, doaction: boolean = true) {
     return 1;
 }
 
-function harvest_source(creep: Creep, source: Source) {
+export function harvest_source(creep: Creep, source: Source | Mineral) {
     var output = creep.harvest(source);
     if (output == ERR_NOT_IN_RANGE) {
         movetopos(creep, source.pos);
     }
 }
 
-function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lower_limit: number = 0, sourcetype: ResourceConstant = "energy") {
+export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lower_limit: number = 0, sourcetype: ResourceConstant = "energy") {
     if (creep.ticksToLive <= 30) {
         return 10;
     }
@@ -68,7 +70,7 @@ function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lower_lim
     return 0;
 }
 
-function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, sourcetype: ResourceConstant = "energy") {
+export function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, sourcetype: ResourceConstant = "energy") {
     var output = creep.transfer(structure, sourcetype);
     if (output == ERR_NOT_IN_RANGE) {
         movetopos(creep, structure.pos);
@@ -76,14 +78,14 @@ function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, s
     }
     return 0;
 }
-function upgrade_controller(creep: Creep, controller: StructureController) {
+export function upgrade_controller(creep: Creep, controller: StructureController) {
     var output = creep.upgradeController(controller);
     if (output == ERR_NOT_IN_RANGE) {
         movetopos(creep, controller.pos);
     }
 }
 
-function build_structure(creep: Creep): number {
+export function build_structure(creep: Creep): number {
     var metric = config.distance_metric;
     var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
     if (targets.length) {
@@ -97,7 +99,7 @@ function build_structure(creep: Creep): number {
     }
     return 1;
 }
-function select_linkcontainer (creep: Creep, min_energy: number = 0, allow_link: boolean = true): AnyStorageStructure | null {
+export function select_linkcontainer (creep: Creep, min_energy: number = 0, allow_link: boolean = true): AnyStorageStructure | null {
     var metric = config.distance_metric;
     if (allow_link) {
         var allowed_structures = ['container', 'link', 'storage', 'terminal'];
@@ -116,7 +118,7 @@ function select_linkcontainer (creep: Creep, min_energy: number = 0, allow_link:
     var arg = mymath.argmin(distances);
     return structures[arg];
 }
-const preferred_container = (creep: Creep, containers: conf_containers, preferences: conf_preference[]) => {
+export function preferred_container (creep: Creep, containers: conf_containers, preferences: conf_preference[]) {
     var finished_preferences = preferences.filter((e) => containers[e.container].finished);
     var containers_obj: StructureContainer[] = finished_preferences.map((e) => Game.getObjectById(containers[e.container].id));
     var containers_energies = containers_obj.map((e) => e.store.getUsedCapacity("energy"));
@@ -126,7 +128,7 @@ const preferred_container = (creep: Creep, containers: conf_containers, preferen
     return containers_obj[arg];
 }
 
-const ask_for_renew = (creep: Creep) => {
+export function ask_for_renew (creep: Creep) {
 	var metric = config.distance_metric;
 	var spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
     var distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
@@ -139,7 +141,7 @@ const ask_for_renew = (creep: Creep) => {
     }
 }
 
-const movetopos = (creep: Creep, pos: RoomPosition, plot: boolean = false) => {
+export function movetopos (creep: Creep, pos: RoomPosition, plot: boolean = false) {
     if (plot) {
         creep.moveTo(pos.x, pos.y, {
             reusePath: 2,
@@ -151,7 +153,7 @@ const movetopos = (creep: Creep, pos: RoomPosition, plot: boolean = false) => {
         });
     }
 }
-const movetoposexceptoccupied = (creep: Creep, poses: RoomPosition[]) => {
+export function movetoposexceptoccupied (creep: Creep, poses: RoomPosition[]) {
     for (var pos of poses) {
         if (creep.pos.x == pos.x && creep.pos.y == pos.y) {
             return 2;
@@ -164,6 +166,7 @@ const movetoposexceptoccupied = (creep: Creep, poses: RoomPosition[]) => {
     }
     return 1;
 }
+/*
 module.exports.charge_list = charge_list;
 module.exports.charge_all = charge_all;
 module.exports.harvest_source = harvest_source;
@@ -176,3 +179,4 @@ module.exports.preferred_container = preferred_container;
 module.exports.ask_for_renew = ask_for_renew;
 module.exports.movetopos = movetopos;
 module.exports.movetoposexceptoccupied = movetoposexceptoccupied;
+ */

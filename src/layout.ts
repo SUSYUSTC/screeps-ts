@@ -1,6 +1,7 @@
 console.log("Running module layout");
-var mymath = require('./mymath');
-require('./config');
+import * as _ from "lodash";
+import * as mymath from "./mymath";
+import * as config from "./config";
 
 type allowed_structure_types = STRUCTURE_LINK | STRUCTURE_CONTAINER | STRUCTURE_TOWER;
 
@@ -23,7 +24,7 @@ function create_structure(room_name: string, pos: RoomPosition, structuretype: a
     return [typ, id];
 }
 
-function update_structure_info(room_name: string, structuretype: allowed_structure_types) {
+export function update_structure_info(room_name: string, structuretype: allowed_structure_types) {
     var room = Game.rooms[room_name];
     var key: string = ( < string > structuretype) + "s";
     var conf = Memory.rooms_conf[room_name][key];
@@ -46,4 +47,3 @@ function update_structure_info(room_name: string, structuretype: allowed_structu
     }
 };
 
-module.exports.update_structure_info = update_structure_info;

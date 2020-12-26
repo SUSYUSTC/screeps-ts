@@ -1,4 +1,5 @@
-var mymath = require('mymath');
+import * as _ from "lodash";
+import * as mymath from "./mymath";
 
 function returnbody(n_work: number, n_carry: number, n_move: number): BodyPartConstant[] {
     var body: BodyPartConstant[] = [];
@@ -87,13 +88,6 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
 const getbody_transferer = (options: any): BodyPartConstant[] => {
     return returnbody(0, 4, 2);
 }
-const get_nbody = (creeps: Creep[] , bodyname: BodyPartConstant): number => {
-    if (creeps.length == 0) {
-        return 0;
-    }
-    let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
-    return n;
-}
 const get_cost = (body: BodyPartConstant[]): number => {
     let n_work = body.filter((e) => e == 'work').length;
     let n_carry = body.filter((e) => e == 'carry').length;
@@ -105,8 +99,10 @@ const get_cost = (body: BodyPartConstant[]): number => {
     return n_work * 100 + n_carry * 50 + n_move * 50 + n_claim * 600 + n_attack * 80 + n_tough * 10 + n_heal * 250;
 }
 
-interface type_getbody{
-	[key: string]: {(options: any): BodyPartConstant[]};
+interface type_getbody {
+    [key: string]: {
+        (options: any): BodyPartConstant[]
+    };
 };
 const getbody_list: type_getbody = {
     'external_init': getbody_external_init,
@@ -121,7 +117,14 @@ const getbody_list: type_getbody = {
     'transferer': getbody_transferer
 }
 
-function prepare_role(rolename: string, energy: number, added_memory: any, options: any, added_json: any) {
+export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {
+    if (creeps.length == 0) {
+        return 0;
+    }
+    let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
+    return n;
+}
+export function prepare_role(rolename: string, energy: number, added_memory: any, options: any, added_json: any) {
     var rolename = rolename;
     var creepname = rolename + Game.time;
     var body = getbody_list[rolename](options);
@@ -149,7 +152,7 @@ function prepare_role(rolename: string, energy: number, added_memory: any, optio
     return json;
 }
 
-function spawn_json(spawn: StructureSpawn, json: type_spawn_json) {
+export function spawn_json(spawn: StructureSpawn, json: type_spawn_json) {
     if (Memory.debug_mode) {
         console.log("Spawning " + json.rolename);
     }
@@ -160,7 +163,3 @@ function spawn_json(spawn: StructureSpawn, json: type_spawn_json) {
         memory: json.memory
     });
 }
-
-module.exports.get_nbody = get_nbody;
-module.exports.prepare_role = prepare_role;
-module.exports.spawn_json = spawn_json;

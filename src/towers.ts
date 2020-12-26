@@ -1,5 +1,6 @@
-mymath = require('mymath')
-const attack_all = (room_name: string) => {
+import * as _ from "lodash";
+import * as mymath from "./mymath";
+export function attack_all (room_name: string) {
 	var room = Game.rooms[room_name]
     var enemies = room.find(FIND_HOSTILE_CREEPS);
     var structures = room.find(FIND_STRUCTURES);
@@ -14,7 +15,7 @@ const attack_all = (room_name: string) => {
     }
     return 1;
 }
-const heal_all = (room_name: string) => {
+export function heal_all (room_name: string){
 	var room = Game.rooms[room_name]
     var creeps = room.find(FIND_MY_CREEPS);
     for (var creep of creeps) {
@@ -27,7 +28,7 @@ const heal_all = (room_name: string) => {
     }
     return 1;
 }
-const repair_all = (room_name: string) => {
+export function repair_all (room_name: string){
 	var room = Game.rooms[room_name]
     var conf = Memory.rooms_conf[room.name];
     var structures = room.find(FIND_STRUCTURES);
@@ -78,6 +79,3 @@ const repair_all = (room_name: string) => {
         }
     }
 }
-module.exports.attack_all = attack_all;
-module.exports.heal_all = heal_all;
-module.exports.repair_all = repair_all;
