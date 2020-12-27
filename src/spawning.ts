@@ -351,7 +351,7 @@ export function spawn(spawn: StructureSpawn) {
         let defenders_type = defenders.map((e) => e.memory.defender_type);
         for (var defense_type of defense_types) {
             let fightable_defender_types = available_defense_types.filter((e) => Memory.defender_responsible_types[e].list.includes(defense_type));
-            if ( defenders.length == 0 || mymath.any(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
+            if (mymath.all(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
                 let costs = fightable_defender_types.map((e) => Memory.defender_responsible_types[e].cost);
                 let argmin = mymath.argmin(costs);
                 let json = get_defender_json(spawn, fightable_defender_types[argmin]);

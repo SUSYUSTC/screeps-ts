@@ -102,8 +102,8 @@ export function set_room_memory(room_name: string) {
 		if (external_room_name in Game.rooms) {
 			var defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
 			if (defense_type !== ''){
+				room.memory.invaded_external_rooms[external_room_name] = defense_type;
 				if (!(external_room_name in room.memory.invaded_external_rooms)) {
-					room.memory.invaded_external_rooms[external_room_name] = defense_type;
 					spawns.forEach((e) => e.memory.spawning_time = -5);
 				}
 			}
@@ -113,6 +113,9 @@ export function set_room_memory(room_name: string) {
 				}
 			}
 		}
+	}
+	if (Object.keys(room.memory.invaded_external_rooms).length > 0) {
+		console.log("Home room:", room.name, "Invaded rooms:", JSON.stringify(room.memory.invaded_external_rooms));
 	}
 }
 

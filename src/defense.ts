@@ -72,13 +72,11 @@ export function get_defense_type(room: Room): string {
         return "";
     }
     var types = enemies.map((e) => _get_one_invader_type(e));
-    console.log(JSON.stringify(types));
     if (mymath.any(types.map((e) => (e == null)))) {
 		var components = enemies.map((e) => analyze_component(e));
 		var n_total_attack = mymath.array_sum(components.map((e) => e.n_attack));
 		var n_total_rangedattack = mymath.array_sum(components.map((e) => e.n_rangedattack));
 		var n_total_heal = mymath.array_sum(components.map((e) => e.n_rangedattack));
-		console.log("attack:", n_total_attack, "rangegattack", n_total_rangedattack, "heal", n_total_heal);
 		if (n_total_attack + n_total_rangedattack > 0) {
 			return "user";
 		}
