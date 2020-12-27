@@ -31,32 +31,30 @@ export function creepjob(creep: Creep) {
         if (Object.keys(invaded_rooms).length == 0 && creep.memory.home_room_name == creep.room.name) {
             return;
         }
-		if (creep.memory.hasOwnProperty("defending_room")) {
-			if (invaded_rooms.hasOwnProperty(creep.memory.defending_room)) {
-				if (invaded_rooms.hasOwnProperty(creep.room.name)) {
-					defense.defend(creep);
-				} else {
-					let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
-					external_room.movethroughrooms(creep, conf_controller.rooms_forwardpath, conf_controller.names_forwardpath);
-				}
-			}
-			else {
-				if (creep.room.name == creep.memory.home_room_name) {
-					delete creep.memory.defending_room;
-				}
-				else {
-					let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
-					external_room.movethroughrooms(creep, conf_controller.rooms_backwardpath, conf_controller.names_backwardpath);
-				}
-			}
+        if (creep.memory.hasOwnProperty("defending_room")) {
+            if (invaded_rooms.hasOwnProperty(creep.memory.defending_room)) {
+                if (invaded_rooms.hasOwnProperty(creep.room.name)) {
+                    defense.defend(creep);
+                } else {
+                    let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
+                    external_room.movethroughrooms(creep, conf_controller.rooms_forwardpath, conf_controller.names_forwardpath);
+                }
+            } else {
+                if (creep.room.name == creep.memory.home_room_name) {
+                    delete creep.memory.defending_room;
+                } else {
+                    let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
+                    external_room.movethroughrooms(creep, conf_controller.rooms_backwardpath, conf_controller.names_backwardpath);
+                }
+            }
         } else {
-			if (creep.room.name !== creep.memory.home_room_name) {
-				throw Error("External defender without defending room");
-			}
+            if (creep.room.name !== creep.memory.home_room_name) {
+                throw Error("External defender without defending room");
+            }
             let responsible_rooms = Object.keys(invaded_rooms).filter((e) => defender_responsible_types[creep.memory.defender_type].includes(invaded_rooms[e]));
-			if (responsible_rooms.length > 0) {
-				creep.memory.defending_room = responsible_rooms[0];
-			}
+            if (responsible_rooms.length > 0) {
+                creep.memory.defending_room = responsible_rooms[0];
+            }
         }
     } else if (creep.memory.role == 'external_init') {
         creep.say("E");
@@ -66,13 +64,15 @@ export function creepjob(creep: Creep) {
         }
     } else {
         var rolename = creep.memory.role;
-        var link_mode = creep.room.memory.link_mode;
+        var link_modes = creep.room.memory.link_modes;
         var conf_linkcontainers: conf_structures < StructureLink | StructureContainer > = < conf_structures < StructureLink | StructureContainer >> (link_mode ? conf.links : conf.containers);
         if ((rolename == 'carrier') && (creep.memory.source_name == 'storage')) {
+            var link_mode = link_modes.includes('CT') && link_modes.includes('MAIN');
             var source_name = creep.memory.source_name;
             var linkcontainer_source = < AnyStorageStructure > creep.room.storage;
         } else if (['harvester', 'carrier'].includes(rolename)) {
             var source_name = creep.memory.source_name;
+            var link_mode = link_modes.includes('CT') && link_modes.includes(source_name);
             var source_id = conf.sources[source_name].id;
             var source = Game.getObjectById(source_id);
             var conf_linkcontainer_source = conf_linkcontainers[source_name];
@@ -126,7 +126,7 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'externalcarrier') {
             creep.say("EC")
-			if (!creep.memory.hasOwnProperty("waiting")) {
+            if (!creep.memory.hasOwnProperty("waiting")) {
                 creep.memory.waiting = false;
             }
             if (creep.store.getFreeCapacity("energy") == 0) {
@@ -186,7 +186,8 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'upgrader') {
             creep.say("U")
-            var locations = conf.upgraders.locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
+            let conf_locations = (link_mode ? conf.upgraders.locations.link : conf.upgraders.locations.container);
+            var locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
             if (basic_job.movetoposexceptoccupied(creep, locations) == 0) {
                 return;
             }
@@ -290,6 +291,27 @@ export function creepjob(creep: Creep) {
             } else {
                 let prefered_container = basic_job.preferred_container(creep, < conf_containers > conf_linkcontainers, conf.carriers[source_name].preferences);
                 basic_job.transfer_energy(creep, prefered_container);
+            }
+        } else if (creep.memory.role == 'maincarrier') {
+            creep.say("MC");
+            if (creep.memory.maincarrier_type == 'MAIN') {
+                let conf_maincarrier = conf.maincarriers.MAIN;
+                let pos = conf_maincarrier.pos;
+                if (creep.pos.x !== pos[0] || creep.pos.y !== pos[1]) {
+                    creep.moveTo(pos[0], pos[1], {
+                        maxRooms: 0
+                    });
+                    return;
+                }
+                let link_id = conf.links[conf_maincarrier.link_name].id;
+                let link = Game.getObjectById(link_id);
+                let link_energy = link.store.getUsedCapacity("energy")
+                let creep_energy = creep.store.getUsedCapacity("energy")
+                if (link_energy < conf_maincarrier.link_amount) {
+                    creep.withdraw(creep.room.storage, "energy");
+					creep.transfer(link, "energy", Math.min(conf_maincarrier.link_amount-link_energy, creep_energy));
+                    return;
+                }
             }
         }
     }

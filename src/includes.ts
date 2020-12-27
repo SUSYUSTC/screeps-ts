@@ -5,11 +5,13 @@ interface RoomMemory {
     total_energy ? : number;
     total_maxenergy ? : number;
     container_mode ? : boolean;
-    link_mode ? : boolean;
     mine_harvestable ? : boolean;
     sites_total_progressleft ? : number;
     danger_mode ? : boolean;
-	invaded_external_rooms ? : {[key: string]: string};
+    link_modes ? : string[];
+    invaded_external_rooms ? : {
+        [key: string]: string
+    };
 }
 interface CreepMemory {
     role: string;
@@ -24,8 +26,9 @@ interface CreepMemory {
     transfer_target ? : string;
     waiting ? : boolean;
     cost ? : number;
-	defender_type ?: string;
-	defending_room ?: string;
+    defender_type ? : string;
+    defending_room ? : string;
+    maincarrier_type ? : string;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -50,6 +53,8 @@ interface conf_structures < T > {
         id ? : Id < T > ;
         RCL ? : number;
         finished ? : boolean;
+        source ? : boolean;
+        amount ? : number;
     }
 }
 /*
@@ -93,12 +98,25 @@ interface conf_carriers {
     }
 }
 interface conf_upgraders {
-    locations: number[][];
+    locations: {
+        "link": number[][],
+        "container": number[][]
+    };
     commuting_time: number;
 }
 interface conf_harvesters {
     [key: string]: {
         commuting_time: number;
+    }
+}
+interface conf_maincarriers {
+    "MAIN": {
+        pos: number[];
+        n_carry: number;
+        link_name: string;
+		link_amount: number;
+        storage : boolean;
+        terminal : boolean;
     }
 }
 interface conf_external_rooms {
@@ -145,6 +163,7 @@ interface room_conf {
     carriers: conf_carriers;
     upgraders: conf_upgraders;
     harvesters: conf_harvesters;
+    maincarriers: conf_maincarriers;
     max_transfer: number;
     stay_pos: number[];
     external_rooms: conf_external_rooms;
@@ -185,23 +204,23 @@ interface invader_type {
 }
 interface type_room_list_bridge {
     type: string;
-	rooms: string[];
-	coor_same: number;
-	name: string;
+    rooms: string[];
+    coor_same: number;
+    name: string;
 };
 interface type_room_list_graph {
-	[key: string]: {
-		[key: string]: number;
-	}
+    [key: string]: {
+        [key: string]: number;
+    }
 };
 interface type_room_list_room {
     room_name: string;
     connected_rooms: {
-		[key: string]: { // room_name
-			[key: string]: { // bridge_name
+        [key: string]: { // room_name
+            [key: string]: { // bridge_name
                 exit: number[];
                 standpoint: number[];
-				index: number;
+                index: number;
             };
         };
     };

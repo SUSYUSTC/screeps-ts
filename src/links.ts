@@ -2,16 +2,23 @@ import * as mymath from "./mymath";
 export function work(room_name: string) {
 	var room=Game.rooms[room_name];
     var conf = Memory.rooms_conf[room_name];
-	if (!conf.hasOwnProperty("links") || !room.memory.link_mode) {
+	if (!conf.hasOwnProperty("links")) {
 		return;
 	}
-    var links_name = Object.keys(conf.links).filter((e) => conf.links[e].finished);
-    var links = links_name.map((e) => Game.getObjectById(conf.links[e].id));
-    var links_energies = links.map((e) => e.store.getUsedCapacity("energy"));
-    var argmax = mymath.argmax(links_energies)
-    var argmin = mymath.argmin(links_energies)
-	var gap=links_energies[argmax]-links_energies[argmin];
+	var sources_name = room.memory.link_modes.filter((e) => conf.links[e].source)
+	var sinks_name = room.memory.link_modes.filter((e) => !conf.links[e].source)
+	var sources = sources_name.map((e) => Game.getObjectById(conf.links[e].id));
+	sources = sources.filter((e) => e.cooldown == 0);
+	var sinks = sinks_name.map((e) => Game.getObjectById(conf.links[e].id));
+	if (sources.length == 0 || sinks.length == 0) {
+		return;
+	}
+    var sources_energies = sources.map((e) => e.store.getUsedCapacity("energy"));
+    var sinks_energies = sinks.map((e) => e.store.getUsedCapacity("energy"));
+    var argsource = mymath.argmax(sources_energies)
+    var argsink = mymath.argmin(sinks_energies)
+	var gap=sources_energies[argsource]-sinks_energies[argsink];
 	if (gap>conf.link_transfer_gap) {
-		links[argmax].transferEnergy(links[argmin], conf.link_transfer_amount);
+		sources[argsource].transferEnergy(sinks[argsink], conf.link_transfer_amount);
 	}
 }

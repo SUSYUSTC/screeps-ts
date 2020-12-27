@@ -79,6 +79,12 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     let n_work = 0;
     return returnbody(n_work, n_carry, n_move);
 }
+const getbody_maincarrier = (options: any): BodyPartConstant[] => {
+    let n_carry = options.max_parts;
+    let n_move = 1;
+	let n_work = 0;
+    return returnbody(n_work, n_carry, n_move);
+}
 const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
     return returnbody(0, options.n_carry, options.n_carry);
 }
@@ -111,6 +117,7 @@ const getbody_list: type_getbody = {
     'externalharvester': getbody_externalharvester,
     'carrier': getbody_carrier,
     'externalcarrier': getbody_externalcarrier,
+	'maincarrier': getbody_maincarrier,
     'reserver': getbody_reserver,
     'builder': getbody_builder,
     'upgrader': getbody_upgrader,

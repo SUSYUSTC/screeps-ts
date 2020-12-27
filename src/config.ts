@@ -46,19 +46,24 @@ var room_W7N3_containers: conf_containers = {
 
 //room_W7N3.init_charge
 var room_W7N3_link_transfer_gap: number = 400;
-var room_W7N3_link_transfer_amount: number = 240;
+var room_W7N3_link_transfer_amount: number = 400;
 var room_W7N3_links: conf_links = {
-    /*
-        "S1": {
-            "pos": [15, 18]
-        },
-        "S2": {
-            "pos": [36, 32]
-        },
-        "CT": {
-            "pos": [17, 26]
-        }
-    */
+	/*
+	"S1": {
+		"pos": [15, 18]
+	},
+	"S2": {
+		"pos": [36, 32]
+	},
+	 */
+	"CT": {
+		"pos": [35, 20],
+		"source": false,
+	},
+	"MAIN": {
+		"pos": [33, 13],
+		"source": true,
+	}
 }
 
 var room_W7N3_carrier_preference_S1: conf_preference[] = [{
@@ -101,13 +106,27 @@ var room_W7N3_carriers: conf_carriers = {
 }
 
 var room_W7N3_upgraders: conf_upgraders = {
-    "locations": [
-        [36, 20],
-        [35, 20],
-        [34, 20],
-        [35, 19],
-        [34, 19]
-    ],
+    "locations": {
+        "link": [
+            [36, 21],
+            [35, 21],
+            [34, 21],
+            [36, 20],
+            [35, 20],
+            [36, 19],
+            [34, 19],
+            [35, 19]
+        ],
+        "container": [
+            [36, 20],
+            [35, 20],
+            [36, 19],
+            [34, 19],
+            [35, 20],
+            [35, 19]
+        ]
+
+    },
     "commuting_time": 30
 }
 
@@ -119,7 +138,16 @@ var room_W7N3_harvesters: conf_harvesters = {
         "commuting_time": 10
     }
 }
-
+var room_W7N3_maincarriers: conf_maincarriers = {
+	"MAIN": {
+		"pos": [33,12],
+		"n_carry": 4,
+		"link_name": "MAIN",
+		"link_amount": 600,
+		"storage": true,
+		"terminal": true
+	}
+}
 
 var room_W7N3_max_transfer: number = 4
 var room_W7N3_stay_pos: number[] = [48, 4];
@@ -184,10 +212,11 @@ var room_W7N3: room_conf = {
     carriers: room_W7N3_carriers,
     upgraders: room_W7N3_upgraders,
     harvesters: room_W7N3_harvesters,
+	maincarriers: room_W7N3_maincarriers,
     max_transfer: room_W7N3_max_transfer,
     stay_pos: room_W7N3_stay_pos,
     external_rooms: room_W7N3_external_rooms,
-	wall_strength: room_W7N3_wall_strength
+    wall_strength: room_W7N3_wall_strength
 };
 
 /*

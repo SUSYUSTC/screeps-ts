@@ -62,9 +62,9 @@ export function set_room_memory(room_name: string) {
     }
     var conf = Memory.rooms_conf[room_name];
     var containers_mode = ['S1', 'S2', 'CT'].map((e) => (conf.containers.hasOwnProperty(e)) && conf.containers[e].finished);
-    var links_mode = ['S1', 'S2', 'CT'].map((e) => (conf.links.hasOwnProperty(e)) && conf.links[e].finished);
+	var links_mode = Object.keys(conf.links).filter((e) => conf.links[e].finished);
     room.memory.container_mode = mymath.all(containers_mode);
-    room.memory.link_mode = mymath.all(links_mode);
+    room.memory.link_modes = links_mode;
     if (conf.hasOwnProperty("mine")) {
         var mine = Game.getObjectById(conf.mine.id);
         var exist_extrator = mine.pos.lookFor("structure").filter((e) => e.structureType == 'extractor').length > 0;
