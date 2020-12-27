@@ -137,6 +137,7 @@ var room_W7N3_maincarriers: conf_maincarriers = {
 
 var room_W7N3_max_transfer: number = 4
 var room_W7N3_stay_pos: number[] = [48, 4];
+var room_W7N3_safe_pos: number[] = [30, 8];
 var room_W7N3_wall_strength = 0;
 
 var room_W7N3_external_rooms: conf_external_rooms = {
@@ -201,6 +202,7 @@ var room_W7N3: room_conf = {
     maincarriers: room_W7N3_maincarriers,
     max_transfer: room_W7N3_max_transfer,
     stay_pos: room_W7N3_stay_pos,
+    safe_pos: room_W7N3_safe_pos,
     external_rooms: room_W7N3_external_rooms,
     wall_strength: room_W7N3_wall_strength
 };
@@ -366,37 +368,37 @@ Memory.defender_responsible_types = {
     'small_close': {
         "list": ['small_close'],
         "body": {
-            TOUGH: 5,
-            MOVE: 4,
-            ATTACK: 3
+            "tough": 5,
+            "move": 4,
+            "attack": 3
         },
 		"cost": -1
     },
     'big_close': {
         "list": ['small_close', 'big_close'],
         "body": {
-            TOUGH: 7,
-            MOVE: 6,
-            ATTACK: 5
+            "tough": 7,
+            "move": 6,
+            "attack": 5
         },
 		"cost": -1
     },
     'small_far': {
         "list": ['small_far'],
         "body": {
-            TOUGH: 4,
-            MOVE: 4,
-            RANGED_ATTACK: 4
+            "tough": 4,
+            "move": 4,
+            "ranged_attack": 4
         },
 		"cost": -1
     },
     'big_far': {
         "list": ['small_far', 'big_far', 'small_close', 'big_close'],
         "body": {
-            TOUGH: 10,
-            MOVE: 10,
-            ATTACK: 6,
-            RANGED_ATTACK: 4
+            "tough": 10,
+            "move": 10,
+            "attack": 6,
+            "ranged_attack": 4
         },
 		"cost": -1
     },

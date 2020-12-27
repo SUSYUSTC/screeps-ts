@@ -69,18 +69,3 @@ export function array_equal(arr1: any[], arr2: any[]): boolean {
     }
 }
 
-/*
-module.exports.array_sum = array_sum;
-module.exports.array_ele = array_ele;
-module.exports.array_ele_plus = array_ele_plus;
-module.exports.array_ele_minus = array_ele_minus;
-module.exports.array_ele_multiply = array_ele_multiply;
-module.exports.array_ele_divide = array_ele_divide;
-module.exports.argmin = argmin;
-module.exports.argmax = argmax;
-module.exports.range = range;
-module.exports.all = all;
-module.exports.any = any;
-module.exports.where = where;
-module.exports.array_equal = array_equal;
- */

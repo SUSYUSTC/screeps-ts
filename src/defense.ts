@@ -1,4 +1,5 @@
 import * as mymath from "./mymath";
+import * as functions from "./functions"
 
 interface type_allowed_body_numbers {
     [key: string]: number[][];
@@ -53,7 +54,7 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
     } else {
         throw Error("Undefined body type of invader");
     }
-    if (creep.body[8].hasOwnProperty("boost")) {
+    if ("boost" in creep.body[8]) {
         var boost = true;
     } else {
         var boost = false;
@@ -116,14 +117,14 @@ export function defend(creep: Creep) {
         let distance = creeps.map((e) => creep.pos.getRangeTo(e.pos));
         let argmin = mymath.argmin(distance);
         creep.heal(creeps[argmin]);
-		creep.moveTo(creeps[argmin], {maxRooms: 0});
+		creep.moveTo(creeps[argmin], {maxRooms: 0, reusePath: 0, costCallback: functions.avoid_exits});
         return;
     }
 	var enemy_types = enemies.map((e) => analyze_component(e));
 	let distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
 	let argmin = mymath.argmin(distance)
 	let target = enemies[argmin];
-	creep.moveTo(target, {maxRooms: 0});
+	creep.moveTo(target, {maxRooms: 0, reusePath: 0, costCallback: functions.avoid_exits});
     if (creep.attack(target) == ERR_NOT_IN_RANGE) {
         creep.heal(creep);
     }

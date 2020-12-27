@@ -163,10 +163,12 @@ interface room_conf {
     maincarriers: conf_maincarriers;
     max_transfer: number;
     stay_pos: number[];
+    safe_pos: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
 }
-type type_body_components= {[key: BodyPartConstant]: number};
+type type_body_components= {[key in BodyPartConstant] ?: number};
+//type type_body_components= Record<BodyPartConstant, number>;
 interface type_defender_responsible_types {
     [key: string]: {
         list: string[];

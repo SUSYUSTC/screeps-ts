@@ -1,20 +1,29 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 
-const body_cost: {[key in BodyPartConstant]: number} = {
-	[TOUGH]: 10, [MOVE]: 50, [CARRY]: 50, [WORK]: 100, [ATTACK]: 80, [RANGED_ATTACK]: 150, [HEAL]: 250, [CLAIM]: 600
+const body_cost: {
+    [key in BodyPartConstant]: number
+} = {
+    "tough": 10,
+    "move": 50,
+    "carry": 50,
+    "work": 100,
+    "attack": 80,
+    "ranged_attack": 150,
+    "heal": 250,
+    "claim": 600
 }
 
 function returnbody(n_work: number, n_carry: number, n_move: number): BodyPartConstant[] {
     var body: BodyPartConstant[] = [];
     for (var i = 0; i < n_work; ++i) {
-        body.push(WORK)
+        body.push("work")
     }
     for (var i = 0; i < n_carry; ++i) {
-        body.push(CARRY)
+        body.push("carry")
     }
     for (var i = 0; i < n_move; ++i) {
-        body.push(MOVE)
+        body.push("move")
     }
     return body;
 }
@@ -22,8 +31,8 @@ function returnbody(n_work: number, n_carry: number, n_move: number): BodyPartCo
 export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
     var body: BodyPartConstant[] = [];
     for (var temp_bodyname in list) {
-		let bodyname=<keyof type_body_components> temp_bodyname;
-		for (var i = 0; i < list[bodyname]; i++) {
+        let bodyname = < keyof type_body_components > temp_bodyname;
+        for (var i = 0; i < list[bodyname]; i++) {
             body.push(bodyname);
         }
     }
@@ -33,36 +42,8 @@ const getbody_external_init = () => {
     return returnbody(2, 2, 2);
 }
 const getbody_defender = (options: any): BodyPartConstant[] => {
-    if (options.name == 'small_close') {
-		//cost: 490
-        return fullreturnbody({
-            TOUGH: 5,
-            MOVE: 4,
-            ATTACK: 3,
-        });
-    } else if (options.name == 'big_close') {
-		//cost: 750
-        return fullreturnbody({
-            TOUGH: 7,
-            MOVE: 6,
-            ATTACK: 5,
-        });
-    } else if (options.name == 'small_far') {
-		//cost: 840
-        return fullreturnbody({
-            TOUGH: 4,
-            MOVE: 4,
-            RANGED_ATTACK: 4,
-        });
-    } else if (options.name == 'big_far') {
-		//cost: 1680
-        return fullreturnbody({
-            TOUGH: 10,
-            MOVE: 10,
-			ATTACK: 6,
-            RANGED_ATTACK: 4,
-        });
-    }
+    var bodyinfo = Memory.defender_responsible_types[options.defender_type].body;
+    return fullreturnbody(bodyinfo);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
     if (options.link_mode) {
@@ -146,12 +127,12 @@ const getbody_list: type_getbody = {
     'reserver': getbody_reserver,
     'builder': getbody_builder,
     'upgrader': getbody_upgrader,
-	'transferer': getbody_transferer,
-	'defender': getbody_defender
+    'transferer': getbody_transferer,
+    'defender': getbody_defender
 }
 
-export function get_cost (body: BodyPartConstant[]): number {
-	return mymath.array_sum(body.map((e) => body_cost[e]));
+export function get_cost(body: BodyPartConstant[]): number {
+    return mymath.array_sum(body.map((e) => body_cost[e]));
 }
 
 export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {

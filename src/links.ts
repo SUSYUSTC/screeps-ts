@@ -2,7 +2,7 @@ import * as mymath from "./mymath";
 export function work(room_name: string) {
 	var room=Game.rooms[room_name];
     var conf = Memory.rooms_conf[room_name];
-	if (!conf.hasOwnProperty("links")) {
+	if (!("links" in conf)) {
 		return;
 	}
 	var sources_name = room.memory.link_modes.filter((e) => conf.links[e].source)

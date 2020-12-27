@@ -26,15 +26,15 @@ function create_structure(room_name: string, pos: RoomPosition, structuretype: a
 
 export function update_structure_info(room_name: string, structuretype: allowed_structure_types) {
     var room = Game.rooms[room_name];
-    var key: string = ( < string > structuretype) + "s";
+    var key: string = structuretype + "s";
     var conf = Memory.rooms_conf[room_name][key];
     for (var structure_name in conf) {
-        if (conf[structure_name].hasOwnProperty("RCL") && room.controller.level < conf[structure_name].RCL) {
+        if (("RCL" in conf[structure_name]) && room.controller.level < conf[structure_name].RCL) {
             continue;
         }
-        var xy = conf[structure_name].pos;
-        var pos = room.getPositionAt(xy[0], xy[1]);
-        var temp = create_structure(room_name, pos, structuretype);
+        let xy = conf[structure_name].pos;
+        let pos = room.getPositionAt(xy[0], xy[1]);
+        let temp = create_structure(room_name, pos, structuretype);
         if (temp == null) {
             conf[structure_name].exists = false;
             conf[structure_name].finished = false;

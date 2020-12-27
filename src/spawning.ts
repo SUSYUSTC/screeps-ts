@@ -9,7 +9,7 @@ function get_defender_json(spawn: StructureSpawn, typename: string): type_spawn_
         "home_room_name": spawn.room.name,
         "defender_type": typename
     };
-    let options = {};
+    let options = {"defender_type": typename};
     let priority = 120;
     let added_json = {
         "priority": priority,
@@ -88,7 +88,7 @@ export function spawn(spawn: StructureSpawn) {
         }
     }
     var added_upgraders = 0;
-    if (spawn.room.hasOwnProperty("storage")) {
+    if ("storage" in spawn.room) {
         for (var bar of [200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000]) {
             if (spawn.room.storage.store["energy"] > bar) {
                 added_upgraders += 1;
@@ -256,7 +256,7 @@ export function spawn(spawn: StructureSpawn) {
     //reservers, externalharvesters, externalcarriers
     var info_external: any = {}
     for (var external_room_name in conf.external_rooms) {
-        if (spawn.room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
+        if (external_room_name in spawn.room.memory.invaded_external_rooms) {
             info_external[external_room_name] = "Invaded!";
             continue;
         }
@@ -267,7 +267,7 @@ export function spawn(spawn: StructureSpawn) {
         let n_needed_reservers = 0;
         if (reserve) {
             n_needed_reservers = 1;
-            if (Game.rooms.hasOwnProperty(external_room_name)) {
+            if (external_room_name in Game.rooms) {
                 if ("reservation" in Game.rooms[external_room_name].controller) {
                     var reservation = Game.rooms[external_room_name].controller.reservation;
                     if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
@@ -351,7 +351,7 @@ export function spawn(spawn: StructureSpawn) {
         let defenders_type = defenders.map((e) => e.memory.defender_type);
         for (var defense_type of defense_types) {
             let fightable_defender_types = available_defense_types.filter((e) => Memory.defender_responsible_types[e].list.includes(defense_type));
-            if (mymath.any(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
+            if ( defenders.length == 0 || mymath.any(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
                 let costs = fightable_defender_types.map((e) => Memory.defender_responsible_types[e].cost);
                 let argmin = mymath.argmin(costs);
                 let json = get_defender_json(spawn, fightable_defender_types[argmin]);

@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
+import * as external_room from "./external_room";
 
 var vision_options: any = {
     visualizePathStyle: {}
@@ -168,17 +169,11 @@ export function movetoposexceptoccupied (creep: Creep, poses: RoomPosition[]) {
     }
     return 1;
 }
-/*
-module.exports.charge_list = charge_list;
-module.exports.charge_all = charge_all;
-module.exports.harvest_source = harvest_source;
-module.exports.withdraw_energy = withdraw_energy;
-module.exports.transfer_energy = transfer_energy;
-module.exports.upgrade_controller = upgrade_controller;
-module.exports.build_structure = build_structure;
-module.exports.select_linkcontainer = select_linkcontainer;
-module.exports.preferred_container = preferred_container;
-module.exports.ask_for_renew = ask_for_renew;
-module.exports.movetopos = movetopos;
-module.exports.movetoposexceptoccupied = movetoposexceptoccupied;
- */
+export function external_flee(creep: Creep, safe_pos: number[]) {
+	if (creep.room.name == creep.memory.home_room_name){
+		creep.moveTo(safe_pos[0], safe_pos[1]);
+	}
+	else{
+		external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);
+	}
+}

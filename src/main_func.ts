@@ -38,7 +38,7 @@ export function set_room_memory(room_name: string) {
     room.memory.total_energy = total_energy;
     room.memory.total_maxenergy = total_maxenergy;
     for (var spawn of spawns) {
-        if (!spawn.memory.hasOwnProperty("spawning_time")) {
+        if (!("spawning_time" in spawn.memory)) {
             spawn.memory.spawning_time = 0;
         }
         spawn.memory.spawning_time += 1;
@@ -61,14 +61,14 @@ export function set_room_memory(room_name: string) {
         room.memory.danger_mode = false;
     }
     var conf = Memory.rooms_conf[room_name];
-    var containers_mode = ['S1', 'S2', 'CT'].map((e) => (conf.containers.hasOwnProperty(e)) && conf.containers[e].finished);
+    var containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
 	var links_mode = Object.keys(conf.links).filter((e) => conf.links[e].finished);
     room.memory.container_mode = mymath.all(containers_mode);
     room.memory.link_modes = links_mode;
-    if (conf.hasOwnProperty("mine")) {
+    if ("mine" in conf) {
         var mine = Game.getObjectById(conf.mine.id);
         var exist_extrator = mine.pos.lookFor("structure").filter((e) => e.structureType == 'extractor').length > 0;
-        room.memory.mine_harvestable = (exist_extrator && conf.containers.hasOwnProperty("MINE") && conf.containers.MINE.finished);
+        room.memory.mine_harvestable = (exist_extrator && ("MINE" in conf.containers) && conf.containers.MINE.finished);
         conf.mine.density = mine.density;
         conf.mine.type = mine.mineralType;
     }
@@ -95,19 +95,20 @@ export function set_room_memory(room_name: string) {
             conf_external.harvester_name = creepname;
         }
     }
-    if (!room.memory.hasOwnProperty("invaded_external_rooms")) {
+    if (!("invaded_external_rooms" in room.memory)) {
 		room.memory.invaded_external_rooms = {};
     }
 	for (var external_room_name in conf.external_rooms) {
-		if (Game.rooms.hasOwnProperty(external_room_name)) {
+		if (external_room_name in Game.rooms) {
 			var defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
 			if (defense_type !== ''){
-				if (!room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
+				if (!(external_room_name in room.memory.invaded_external_rooms)) {
 					room.memory.invaded_external_rooms[external_room_name] = defense_type;
+					spawns.forEach((e) => e.memory.spawning_time = -5);
 				}
 			}
 			if (defense_type == ''){
-				if (room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
+				if (external_room_name in room.memory.invaded_external_rooms) {
 					delete room.memory.invaded_external_rooms[external_room_name];
 				}
 			}

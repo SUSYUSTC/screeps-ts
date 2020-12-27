@@ -10,7 +10,7 @@ interface type_work_result {
 	id: Id<any>;
 }
 function determine_stage(creep: Creep) {
-	if (!creep.memory.hasOwnProperty("harvesting")) {
+	if (!("harvesting" in creep.memory)) {
 		creep.memory.harvesting = true;
 	}
 	if (!creep.memory.harvesting && creep.store["energy"] == 0) {
