@@ -411,9 +411,53 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                 "names_forwardpath": ['default'],
                 "rooms_backwardpath": ['E15N59', 'E15N58'],
                 "names_backwardpath": ['default'],
-            }
-        }
-    }
+            },
+        },
+    },
+    "E14N59": {
+        "controller": {
+            "reserve": true,
+            "path_time": 52,
+            "rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
+            "names_forwardpath": ['default'],
+            "rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
+            "names_backwardpath": ['default'],
+        },
+        "sources": {
+            "S1": {
+                "id": < Id < Source >> "5bbcadb89099fc012e637b19",
+                "harvest_pos": [34, 43],
+                "reserve": true,
+                "single_distance": 70,
+                "n_carry": 10,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": ""
+                },
+				"rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
+				"names_forwardpath": ['default'],
+				"rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
+				"names_backwardpath": ['default'],
+            },
+            "S2": {
+                "id": < Id < Source >> "5bbcadb89099fc012e637b18",
+                "harvest_pos": [12, 34],
+                "reserve": true,
+                "single_distance": 70,
+                "n_carry": 12,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": "",
+                },
+				"rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
+				"names_forwardpath": ['default'],
+				"rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
+				"names_backwardpath": ['default'],
+            },
+        },
+    },
 };
 var room_E15N58: room_conf = {
     towers: room_E15N58_towers,
