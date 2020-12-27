@@ -61,7 +61,7 @@ export function spawn(spawn: StructureSpawn) {
                 "link_mode": link_mode,
                 "max_energy": spawn.room.memory.total_maxenergy
             };
-            let priority = (n_carrys > 0 ? 81 : 101);
+            let priority = (n_carrys > 0 ? 101 : 81);
             let added_json = {
                 "priority": priority,
                 "require_full": false
@@ -78,7 +78,7 @@ export function spawn(spawn: StructureSpawn) {
                 "max_energy": spawn.room.memory.total_maxenergy,
                 "max_parts": max_carry
             };
-            let priority = (n_harvesters > 0 ? 80 : 100);
+            let priority = (n_harvesters > 0 ? 100 : 80);
             let added_json = {
                 "priority": priority,
                 "require_full": false
@@ -268,8 +268,8 @@ export function spawn(spawn: StructureSpawn) {
         if (reserve) {
             n_needed_reservers = 1;
             if (external_room_name in Game.rooms) {
-                if ("reservation" in Game.rooms[external_room_name].controller) {
-                    var reservation = Game.rooms[external_room_name].controller.reservation;
+                if (Object.keys(Game.rooms[external_room_name].controller).includes("reservation")) {
+                    let reservation = Game.rooms[external_room_name].controller.reservation;
                     if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
                         n_needed_reservers = 2;
                     }
@@ -313,7 +313,7 @@ export function spawn(spawn: StructureSpawn) {
                     "names_backwardpath": conf_external.names_backwardpath,
                 };
                 let options = conf_external;
-                let priority = (externalcarriers.length > 0 ? 21 : 31);
+                let priority = (externalcarriers.length > 0 ? 31 : 21);
                 let added_json = {
                     "priority": priority,
                     "require_full": true
@@ -333,7 +333,7 @@ export function spawn(spawn: StructureSpawn) {
                     "names_backwardpath": conf_external.names_backwardpath,
                 };
                 let options = conf_external;
-                let priority = (externalharvesters.length > 0 ? 20 : 30);
+                let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {
                     "priority": priority,
                     "require_full": true
