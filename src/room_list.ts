@@ -1,3 +1,5 @@
+//screeps
+
 import * as mymath from "./mymath"
 export interface RoomList_interface {
 	bridges: type_room_list_bridge[];
@@ -47,25 +49,56 @@ class RoomList implements RoomList_interface {
 		this.rooms = this.rooms_from_bridge(bridges);
 	}
 }
+
 export var bridges: type_room_list_bridge[] = [{
-	'type': 'H',
-	'rooms': ['W7N3', 'W6N3'],
-	'coor_same': 13,
-	'name': 'default'
+    'type': 'H',
+	'rooms': ['E16N58', 'E17N58'],
+    'coor_same': 25,
+	'name': 'default',
 }, {
-	'type': 'H',
-	'rooms': ['W8N3', 'W7N3'],
-	'coor_same': 14,
-	'name': 'default'
+    'type': 'H',
+	'rooms': ['E15N57', 'E16N57'],
+    'coor_same': 9,
+	'name': 'default',
 }, {
-	'type': 'V',
-	'rooms': ['W7N4', 'W7N3'],
-    'coor_same': 37,
-    'name': 'right'
+    'type': 'H',
+	'rooms': ['E16N57', 'E17N57'],
+    'coor_same': 7,
+	'name': 'default',
+}, {
+    'type': 'H',
+	'rooms': ['E14N59', 'E15N59'],
+    'coor_same': 33,
+	'name': 'default',
+}, {
+    'type': 'H',
+	'rooms': ['E14N58', 'E15N58'],
+    'coor_same': 24,
+	'name': 'default',
+}, {
+    'type': 'H',
+	'rooms': ['E14N57', 'E15N57'],
+    'coor_same': 19,
+	'name': 'default',
 }, {
     'type': 'V',
-    'rooms': ['W7N4', 'W7N3'],
-    'coor_same': 30,
-    'name': 'left'
+	'rooms': ['E16N58', 'E16N57'],
+    'coor_same': 38,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E15N58', 'E15N57'],
+    'coor_same': 44,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E15N59', 'E15N58'],
+    'coor_same': 12,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N58', 'E14N57'],
+    'coor_same': 16,
+	'name': 'default',
 }]
 export var room_list = new RoomList(bridges);
