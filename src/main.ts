@@ -1,6 +1,7 @@
 Memory.performance_mode = true;
 Memory.advanced_mode = true;
 Memory.debug_mode = true;
+import * as config from "./config"
 import * as _ from "lodash";
 import * as creepjobs from "./creepjobs";
 import * as mymath from "./mymath";

@@ -5,17 +5,17 @@ import * as spawning_init from "./spawning_init";
 import * as defense from "./defense";
 
 function get_defender_json(spawn: StructureSpawn, typename: string): type_spawn_json {
-	let added_memory = {
-		"home_room_name": spawn.room.name,
-		"type": typename
-	};
-	let options = {};
-	let priority = 120;
-	let added_json = {
-		"priority": priority,
-	};
-	let json = spawning_func.prepare_role("defender", spawn.room.memory.total_energy, added_memory, options, added_json);
-	return json;
+    let added_memory = {
+        "home_room_name": spawn.room.name,
+        "defender_type": typename
+    };
+    let options = {};
+    let priority = 120;
+    let added_json = {
+        "priority": priority,
+    };
+    let json = spawning_func.prepare_role("defender", spawn.room.memory.total_energy, added_memory, options, added_json);
+    return json;
 }
 export function spawn(spawn: StructureSpawn) {
     if (spawn.room.memory.danger_mode) {
@@ -34,7 +34,7 @@ export function spawn(spawn: StructureSpawn) {
         }
         return;
     }
-	var link_modes = spawn.room.memory.link_modes;
+    var link_modes = spawn.room.memory.link_modes;
 
     var jsons: type_spawn_json[] = [];
     var info_source: any = {};
@@ -44,8 +44,8 @@ export function spawn(spawn: StructureSpawn) {
         let carriers = creeps.filter((e) => e.memory.role == 'carrier' && e.ticksToLive >= Math.ceil(conf.carriers[source_name].number * 4.5) + 10);
         let n_harvesters = harvesters.length;
         let n_carrys = spawning_func.get_nbody(carriers, 'carry')
-		let max_carry = 0;
-		let link_mode = link_modes.includes('CT') && link_modes.includes(source_name);
+        let max_carry = 0;
+        let link_mode = link_modes.includes('CT') && link_modes.includes(source_name);
         if (!link_mode) {
             max_carry = conf.carriers[source_name].number;
         }
@@ -95,10 +95,10 @@ export function spawn(spawn: StructureSpawn) {
             }
         }
     }
-	if (!(link_modes.includes('CT') && link_modes.includes('MAIN'))) {
-		let storage_carriers = room_creeps.filter((e) => e.memory.role == 'carrier' && e.memory.source_name == 'storage' && e.ticksToLive >= Math.ceil(conf.carriers[source_name].number * 4.5) + 10);
-		if (storage_carriers.length < added_upgraders) {
-			let max_carry = conf.carriers.storage.number;
+    if (!(link_modes.includes('CT') && link_modes.includes('MAIN'))) {
+        let storage_carriers = room_creeps.filter((e) => e.memory.role == 'carrier' && e.memory.source_name == 'storage' && e.ticksToLive >= Math.ceil(conf.carriers[source_name].number * 4.5) + 10);
+        if (storage_carriers.length < added_upgraders) {
+            let max_carry = conf.carriers.storage.number;
             let added_memory = {
                 "source_name": "storage"
             };
@@ -114,12 +114,12 @@ export function spawn(spawn: StructureSpawn) {
             };
             let json = spawning_func.prepare_role("carrier", spawn.room.memory.total_energy, added_memory, options, added_json);
             jsons.push(json);
-		}
-		info_source["storage"] = {
-			n_carriers: storage_carriers.length + "/" + added_upgraders,
-		};
-	}
-	var upgrader_spawning_time = 21;
+        }
+        info_source["storage"] = {
+            n_carriers: storage_carriers.length + "/" + added_upgraders,
+        };
+    }
+    var upgrader_spawning_time = 21;
     if (spawn.room.memory.total_maxenergy >= 1200) {
         upgrader_spawning_time = 42;
     }
@@ -128,16 +128,18 @@ export function spawn(spawn: StructureSpawn) {
     var transferers = room_creeps.filter((e) => e.memory.role == 'transferer' && e.ticksToLive >= 150);
     var mineharvesters = room_creeps.filter((e) => e.memory.role == 'mineharvester' && e.ticksToLive >= 50);
     var maincarriers = room_creeps.filter((e) => e.memory.role == 'maincarrier' && e.ticksToLive >= 50);
-	var maincarriers_MAIN = maincarriers.filter((e) => e.memory.maincarrier_type == 'MAIN');
+    var maincarriers_MAIN = maincarriers.filter((e) => e.memory.maincarrier_type == 'MAIN');
     var n_upgrades = spawning_func.get_nbody(upgraders, 'work')
     var n_builds = spawning_func.get_nbody(builders, 'work')
     var n_transfers = spawning_func.get_nbody(transferers, 'carry')
     var n_mineharvests = spawning_func.get_nbody(mineharvesters, 'work')
-	var n_maincarriers_MAIN = maincarriers_MAIN.length;
+    var n_maincarriers_MAIN = maincarriers_MAIN.length;
     var n_builds_needed = Math.min(6, Math.ceil(spawn.room.memory.sites_total_progressleft / 2000));
-	var n_mineharvests_needed=0;
+    var n_mineharvests_needed = 0;
     if (spawn.room.memory.mine_harvestable) {
-		var density2number: {[key:string]: number} = {}
+        var density2number: {
+            [key: string]: number
+        } = {}
         density2number[DENSITY_LOW] = 2;
         density2number[DENSITY_MODERATE] = 5;
         density2number[DENSITY_HIGH] = 9;
@@ -145,18 +147,20 @@ export function spawn(spawn: StructureSpawn) {
         var n_mineharvests_needed = density2number[conf.mine.density];
     };
     var max_build = 3;
-    var max_upgrade = 18 + added_upgraders*10;
+    var max_upgrade = 18 + added_upgraders * 10;
     var max_transfer = conf.max_transfer;
-	var n_maincarriers_MAIN_needed = 0;
-	if (link_modes.includes('CT') && link_modes.includes('MAIN')) {
-		n_maincarriers_MAIN_needed = 1;
-	}
+    var n_maincarriers_MAIN_needed = 0;
+    if (link_modes.includes('CT') && link_modes.includes('MAIN')) {
+        n_maincarriers_MAIN_needed = 1;
+    }
     var info_home = {
         n_upgrades: n_upgrades + "/" + max_upgrade,
         n_builds: n_builds + "/" + n_builds_needed,
         n_transfers: n_transfers + "/" + max_transfer,
         n_mineharvests: n_mineharvests + "/" + n_mineharvests_needed,
-		n_maincarriers: {MAIN: n_maincarriers_MAIN + "/" + n_maincarriers_MAIN_needed},
+        n_maincarriers: {
+            MAIN: n_maincarriers_MAIN + "/" + n_maincarriers_MAIN_needed
+        },
     };
     if (n_transfers < max_transfer) {
         let added_memory = {};
@@ -210,8 +214,10 @@ export function spawn(spawn: StructureSpawn) {
         let json = spawning_func.prepare_role("upgrader", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
     }
-	if (n_maincarriers_MAIN < n_maincarriers_MAIN_needed) {
-        let added_memory = {"maincarrier_type": "MAIN"};
+    if (n_maincarriers_MAIN < n_maincarriers_MAIN_needed) {
+        let added_memory = {
+            "maincarrier_type": "MAIN"
+        };
         let options = {
             "max_parts": conf.maincarriers.MAIN.n_carry
         };
@@ -222,7 +228,7 @@ export function spawn(spawn: StructureSpawn) {
         };
         let json = spawning_func.prepare_role("maincarrier", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
-	}
+    }
 
     /*
     if (Object.keys(Memory.help_list).includes(spawn.room.name)) {
@@ -247,13 +253,13 @@ export function spawn(spawn: StructureSpawn) {
     }
 	*/
 
-	//reservers, externalharvesters, externalcarriers
+    //reservers, externalharvesters, externalcarriers
     var info_external: any = {}
     for (var external_room_name in conf.external_rooms) {
-		if (spawn.room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
-			info_external[external_room_name] = "Invaded!";
-			continue;
-		}
+        if (spawn.room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
+            info_external[external_room_name] = "Invaded!";
+            continue;
+        }
         info_external[external_room_name] = {};
         let conf_external = conf.external_rooms[external_room_name].controller;
         let reserve = conf_external.reserve;
@@ -261,16 +267,15 @@ export function spawn(spawn: StructureSpawn) {
         let n_needed_reservers = 0;
         if (reserve) {
             n_needed_reservers = 1;
-			if (Game.rooms.hasOwnProperty(external_room_name)) {
-				if ("reservation" in Game.rooms[external_room_name].controller) {
-					var reservation = Game.rooms[external_room_name].controller.reservation;
-					if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
-						n_needed_reservers = 2;
-					}
-				}
-				else {
-					n_needed_reservers = 2;
-				}
+            if (Game.rooms.hasOwnProperty(external_room_name)) {
+                if ("reservation" in Game.rooms[external_room_name].controller) {
+                    var reservation = Game.rooms[external_room_name].controller.reservation;
+                    if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
+                        n_needed_reservers = 2;
+                    }
+                } else {
+                    n_needed_reservers = 2;
+                }
             }
         }
         if (reservers.length < n_needed_reservers) {
@@ -339,30 +344,22 @@ export function spawn(spawn: StructureSpawn) {
             info_external[external_room_name][source_name].n_carriers = externalcarriers.length + "/" + conf_external.n_carrier;
         }
     }
-	if (Object.keys(spawn.room.memory.invaded_external_rooms).length > 0) {
-		let defense_types = Object.values(spawn.room.memory.invaded_external_rooms);
-		let defenders = _.filter(Game.creeps, (e) => e.memory.role == 'defender' && e.memory.home_room_name == spawn.room.name);
-		let defender_types: {[key: string]: number} = {}
-		for (var type of ["big_close", "small_close", "big_far", "small_far"]) {
-			defender_types[type] = defenders.filter((e) => e.memory.defender_type == type).length;
-		}
-		if (defense_types.includes("big_close") && defender_types["big_close"] == 0) {
-			jsons.push(get_defender_json(spawn, "big_close"));
-			return;
-		}
-		else if (defense_types.includes("small_close") && defender_types["big_close"] == 0 && defender_types["small_close"] == 0) {
-			jsons.push(get_defender_json(spawn, "small_close"));
-			return;
-		}
-		if (defense_types.includes("big_far") && defender_types["big_far"] == 0) {
-			jsons.push(get_defender_json(spawn, "big_far"));
-			return;
-		}
-		else if (defense_types.includes("small_far") && defender_types["big_far"] == 0 && defender_types["small_far"] == 0) {
-			jsons.push(get_defender_json(spawn, "small_far"));
-			return;
-		}
-	}
+    if (Object.keys(spawn.room.memory.invaded_external_rooms).length > 0) {
+        let available_defense_types = Object.keys(Memory.defender_responsible_types);
+        let defense_types = Object.values(spawn.room.memory.invaded_external_rooms);
+        let defenders = _.filter(Game.creeps, (e) => e.memory.role == 'defender' && e.memory.home_room_name == spawn.room.name);
+        let defenders_type = defenders.map((e) => e.memory.defender_type);
+        for (var defense_type of defense_types) {
+            let fightable_defender_types = available_defense_types.filter((e) => Memory.defender_responsible_types[e].list.includes(defense_type));
+            if (mymath.any(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
+                let costs = fightable_defender_types.map((e) => Memory.defender_responsible_types[e].cost);
+                let argmin = mymath.argmin(costs);
+                let json = get_defender_json(spawn, fightable_defender_types[argmin]);
+                jsons.push(json);
+                break;
+            }
+        }
+    }
     if (Memory.debug_mode) {
         console.log(spawn.room.name, JSON.stringify(info_source))
         console.log(spawn.room.name, JSON.stringify(info_home))
@@ -372,7 +369,7 @@ export function spawn(spawn: StructureSpawn) {
         console.log(spawn.name, "Spawning list: ", jsons.map((e) => [e.rolename, e.cost, e.priority]));
     }
     if (spawn.spawning) {
-		spawn.memory.spawning_time = -5;
+        spawn.memory.spawning_time = -5;
         return;
     }
     if (jsons.length >= 1) {

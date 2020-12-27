@@ -3,14 +3,6 @@ import * as role_init from "./role_init";
 import * as basic_job from "./basic_job";
 import * as defense from "./defense";
 import * as external_room from "./external_room";
-var defender_responsible_types: {
-    [key: string]: string[]
-} = {
-    'small_close': ['small_close'],
-    'big_close': ['small_close', 'big_close'],
-    'small_far': ['small_far'],
-    'big_far': ['small_far', 'big_far'],
-}
 export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
@@ -31,7 +23,7 @@ export function creepjob(creep: Creep) {
         if (Object.keys(invaded_rooms).length == 0 && creep.memory.home_room_name == creep.room.name) {
             return;
         }
-        if (creep.memory.hasOwnProperty("defending_room")) {
+        if ("defending_room" in creep.memory) {
             if (invaded_rooms.hasOwnProperty(creep.memory.defending_room)) {
                 if (invaded_rooms.hasOwnProperty(creep.room.name)) {
                     defense.defend(creep);
@@ -51,7 +43,7 @@ export function creepjob(creep: Creep) {
             if (creep.room.name !== creep.memory.home_room_name) {
                 throw Error("External defender without defending room");
             }
-            let responsible_rooms = Object.keys(invaded_rooms).filter((e) => defender_responsible_types[creep.memory.defender_type].includes(invaded_rooms[e]));
+            let responsible_rooms = Object.keys(invaded_rooms).filter((e) => Memory.defender_responsible_types[creep.memory.defender_type].includes(invaded_rooms[e]));
             if (responsible_rooms.length > 0) {
                 creep.memory.defending_room = responsible_rooms[0];
             }
@@ -82,9 +74,6 @@ export function creepjob(creep: Creep) {
             }
             var linkcontainer_source = < AnyStorageStructure > Game.getObjectById(conf_linkcontainer_source.id);
         }
-        if (['carrier', 'upgrader', 'builder', 'transferer'].includes(rolename)) {
-            var linkcontainer_controller = Game.getObjectById(conf_linkcontainers.CT.id)
-        }
         if (creep.memory.role == 'harvester') {
             creep.say("H")
             if (!link_mode && basic_job.movetoposexceptoccupied(creep, [linkcontainer_source.pos]) == 0) {
@@ -108,6 +97,10 @@ export function creepjob(creep: Creep) {
             basic_job.harvest_source(creep, mine);
         } else if (creep.memory.role == 'externalharvester') {
             creep.say("EH")
+			if (creep.hits < creep.hitsMax) {
+                external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);
+				return;
+			}
             let conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name]
             if (creep.room.name !== creep.memory.external_room_name) {
                 external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.names_forwardpath);
@@ -126,6 +119,10 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'externalcarrier') {
             creep.say("EC")
+			if (creep.hits < creep.hitsMax) {
+                external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);
+				return;
+			}
             if (!creep.memory.hasOwnProperty("waiting")) {
                 creep.memory.waiting = false;
             }
@@ -175,6 +172,10 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'reserver') {
             creep.say("R")
+			if (creep.hits < creep.hitsMax) {
+                external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);
+				return;
+			}
             if (creep.room.name !== creep.memory.external_room_name) {
                 external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.names_forwardpath);
             } else {
@@ -186,15 +187,32 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'upgrader') {
             creep.say("U")
-            let conf_locations = (link_mode ? conf.upgraders.locations.link : conf.upgraders.locations.container);
-            var locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
+            let link_mode = link_modes.includes('CT');
+            let conf_locations = conf.upgraders.locations;
+            let locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
             if (basic_job.movetoposexceptoccupied(creep, locations) == 0) {
                 return;
             }
+			let container = Game.getObjectById(conf.containers.CT.id);
+			let container_energy=container.store.getUsedCapacity("energy")
+			let use_link = false;
+			let link;
+			if (link_mode) {
+				link = Game.getObjectById(conf.links.CT.id);
+				let link_energy=link.store.getUsedCapacity("energy");
+				if (link_energy> container_energy) {
+					use_link=true;
+				}
+			}
             if (creep.store["energy"] == 0 && creep.ticksToLive >= 10) {
                 if (!creep.room.memory.danger_mode) {
                     var lower_limit = (link_mode ? 100 : 800);
-                    basic_job.withdraw_energy(creep, linkcontainer_controller, lower_limit);
+					if(use_link) {
+						basic_job.withdraw_energy(creep, link, lower_limit);
+					}
+					else {
+						basic_job.withdraw_energy(creep, container, lower_limit);
+					}
                 }
             } else {
                 basic_job.upgrade_controller(creep, creep.room.controller);

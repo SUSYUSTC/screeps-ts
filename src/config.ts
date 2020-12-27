@@ -48,22 +48,22 @@ var room_W7N3_containers: conf_containers = {
 var room_W7N3_link_transfer_gap: number = 400;
 var room_W7N3_link_transfer_amount: number = 400;
 var room_W7N3_links: conf_links = {
-	/*
-	"S1": {
-		"pos": [15, 18]
-	},
-	"S2": {
-		"pos": [36, 32]
-	},
-	 */
-	"CT": {
-		"pos": [35, 20],
-		"source": false,
-	},
-	"MAIN": {
-		"pos": [33, 13],
-		"source": true,
-	}
+    /*
+    "S1": {
+    	"pos": [15, 18]
+    },
+    "S2": {
+    	"pos": [36, 32]
+    },
+     */
+    "CT": {
+        "pos": [35, 20],
+        "source": false,
+    },
+    "MAIN": {
+        "pos": [33, 13],
+        "source": true,
+    }
 }
 
 var room_W7N3_carrier_preference_S1: conf_preference[] = [{
@@ -106,27 +106,13 @@ var room_W7N3_carriers: conf_carriers = {
 }
 
 var room_W7N3_upgraders: conf_upgraders = {
-    "locations": {
-        "link": [
-            [36, 21],
-            [35, 21],
-            [34, 21],
-            [36, 20],
-            [35, 20],
-            [36, 19],
-            [34, 19],
-            [35, 19]
-        ],
-        "container": [
-            [36, 20],
-            [35, 20],
-            [36, 19],
-            [34, 19],
-            [35, 20],
-            [35, 19]
-        ]
-
-    },
+    "locations": [
+        [36, 20],
+        [34, 20],
+        [36, 19],
+        [34, 19],
+        [35, 19]
+    ],
     "commuting_time": 30
 }
 
@@ -139,14 +125,14 @@ var room_W7N3_harvesters: conf_harvesters = {
     }
 }
 var room_W7N3_maincarriers: conf_maincarriers = {
-	"MAIN": {
-		"pos": [33,12],
-		"n_carry": 4,
-		"link_name": "MAIN",
-		"link_amount": 600,
-		"storage": true,
-		"terminal": true
-	}
+    "MAIN": {
+        "pos": [33, 12],
+        "n_carry": 4,
+        "link_name": "MAIN",
+        "link_amount": 600,
+        "storage": true,
+        "terminal": true
+    }
 }
 
 var room_W7N3_max_transfer: number = 4
@@ -212,7 +198,7 @@ var room_W7N3: room_conf = {
     carriers: room_W7N3_carriers,
     upgraders: room_W7N3_upgraders,
     harvesters: room_W7N3_harvesters,
-	maincarriers: room_W7N3_maincarriers,
+    maincarriers: room_W7N3_maincarriers,
     max_transfer: room_W7N3_max_transfer,
     stay_pos: room_W7N3_stay_pos,
     external_rooms: room_W7N3_external_rooms,
@@ -376,3 +362,46 @@ Memory.rooms_conf = {
 };
 Memory.help_list = {};
 Memory.username = 'SUSYUSTC';
+Memory.defender_responsible_types = {
+    'small_close': {
+        "list": ['small_close'],
+        "body": {
+            TOUGH: 5,
+            MOVE: 4,
+            ATTACK: 3
+        },
+		"cost": -1
+    },
+    'big_close': {
+        "list": ['small_close', 'big_close'],
+        "body": {
+            TOUGH: 7,
+            MOVE: 6,
+            ATTACK: 5
+        },
+		"cost": -1
+    },
+    'small_far': {
+        "list": ['small_far'],
+        "body": {
+            TOUGH: 4,
+            MOVE: 4,
+            RANGED_ATTACK: 4
+        },
+		"cost": -1
+    },
+    'big_far': {
+        "list": ['small_far', 'big_far', 'small_close', 'big_close'],
+        "body": {
+            TOUGH: 10,
+            MOVE: 10,
+            ATTACK: 6,
+            RANGED_ATTACK: 4
+        },
+		"cost": -1
+    },
+};
+import * as spawning_func from "./spawning_func"
+for (var name in Memory.defender_responsible_types) {
+	Memory.defender_responsible_types[name].cost = spawning_func.get_cost(spawning_func.fullreturnbody(Memory.defender_responsible_types[name].body));
+}

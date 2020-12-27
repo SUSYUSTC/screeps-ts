@@ -108,20 +108,21 @@ export function get_defense_type(room: Room): string {
 export function defend(creep: Creep) {
     var enemies = creep.room.find(FIND_HOSTILE_CREEPS);
     if (enemies.length == 0) {
-        var creeps = creep.room.find(FIND_MY_CREEPS);
+        let creeps = creep.room.find(FIND_MY_CREEPS);
         creeps = creeps.filter((e) => e.hits < e.hitsMax);
         if (creeps.length == 0) {
             return;
         }
-        var distance = creeps.map((e) => creep.pos.getRangeTo(e.pos));
-        var argmin = mymath.argmin(distance);
+        let distance = creeps.map((e) => creep.pos.getRangeTo(e.pos));
+        let argmin = mymath.argmin(distance);
         creep.heal(creeps[argmin]);
 		creep.moveTo(creeps[argmin], {maxRooms: 0});
         return;
     }
-    var distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
-    var argmin = mymath.argmin(distance)
-    var target = enemies[argmin];
+	var enemy_types = enemies.map((e) => analyze_component(e));
+	let distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
+	let argmin = mymath.argmin(distance)
+	let target = enemies[argmin];
 	creep.moveTo(target, {maxRooms: 0});
     if (creep.attack(target) == ERR_NOT_IN_RANGE) {
         creep.heal(creep);

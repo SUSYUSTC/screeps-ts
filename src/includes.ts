@@ -98,10 +98,7 @@ interface conf_carriers {
     }
 }
 interface conf_upgraders {
-    locations: {
-        "link": number[][],
-        "container": number[][]
-    };
+    locations: number[][];
     commuting_time: number;
 }
 interface conf_harvesters {
@@ -114,9 +111,9 @@ interface conf_maincarriers {
         pos: number[];
         n_carry: number;
         link_name: string;
-		link_amount: number;
-        storage : boolean;
-        terminal : boolean;
+        link_amount: number;
+        storage: boolean;
+        terminal: boolean;
     }
 }
 interface conf_external_rooms {
@@ -169,6 +166,14 @@ interface room_conf {
     external_rooms: conf_external_rooms;
     wall_strength: number;
 }
+type type_body_components= {[key: BodyPartConstant]: number};
+interface type_defender_responsible_types {
+    [key: string]: {
+        list: string[];
+        body: type_body_components;
+		cost: number;
+    };
+}
 interface Memory {
     creeps: {
         [name: string]: CreepMemory
@@ -195,6 +200,7 @@ interface Memory {
     advanced_mode ? : boolean;
     debug_mode ? : boolean;
     rerunning ? : boolean;
+    defender_responsible_types ? : type_defender_responsible_types;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
