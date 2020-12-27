@@ -15,10 +15,10 @@ export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
     }
-    if (!('role' in creep.memory)) {
+    if (!creep.memory.hasOwnProperty("role")) {
         return;
     }
-    if ("home_room_name" in creep.memory) {
+    if (creep.memory.hasOwnProperty("home_room_name")) {
         var conf = Memory.rooms_conf[creep.memory.home_room_name];
     } else {
         var conf = Memory.rooms_conf[creep.room.name];
@@ -31,9 +31,9 @@ export function creepjob(creep: Creep) {
         if (Object.keys(invaded_rooms).length == 0 && creep.memory.home_room_name == creep.room.name) {
             return;
         }
-        if ("defending_room" in creep.memory) {
-			if (creep.memory.defending_room in invaded_rooms){
-				if (creep.room.name in invaded_rooms) {
+		if (creep.memory.hasOwnProperty("defending_room")) {
+			if (invaded_rooms.hasOwnProperty(creep.memory.defending_room)) {
+				if (invaded_rooms.hasOwnProperty(creep.room.name)) {
 					defense.defend(creep);
 				} else {
 					let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
@@ -117,7 +117,7 @@ export function creepjob(creep: Creep) {
                 }
                 var source = Game.getObjectById(conf_external.id);
                 basic_job.harvest_source(creep, source);
-                if ("transfer_target" in creep.memory) {
+                if (creep.memory.hasOwnProperty("transfer_target")) {
                     let transfer_target = Game.creeps[creep.memory.transfer_target];
                     creep.transfer(transfer_target, "energy");
                     delete creep.memory.transfer_target;
@@ -126,7 +126,7 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'externalcarrier') {
             creep.say("EC")
-            if (!("waiting" in creep.memory)) {
+			if (!creep.memory.hasOwnProperty("waiting")) {
                 creep.memory.waiting = false;
             }
             if (creep.store.getFreeCapacity("energy") == 0) {

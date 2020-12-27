@@ -96,7 +96,7 @@ var room_W7N3_carriers: conf_carriers = {
     },
     "storage": {
         "preferences": room_W7N3_carrier_preference_storage,
-        "number": 6
+        "number": 4
     },
 }
 
@@ -140,8 +140,8 @@ var room_W7N3_external_rooms: conf_external_rooms = {
                 "id": < Id < Source >> "c44207728e621fc",
                 "harvest_pos": [13, 31],
                 "reserve": true,
-                "single_distance": 34,
-                "n_carry": 8,
+                "single_distance": 29,
+                "n_carry": 6,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -156,9 +156,9 @@ var room_W7N3_external_rooms: conf_external_rooms = {
                 "id": < Id < Source >> "80d207728e6597b",
                 "harvest_pos": [40, 45],
                 "reserve": true,
-                "single_distance": 20,
-                "n_carry": 5,
-                "n_carrier": 2,
+                "single_distance": 15,
+                "n_carry": 6,
+                "n_carrier": 1,
                 "carry_end": {
                     "type": "storage",
                     "name": ""

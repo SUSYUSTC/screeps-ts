@@ -29,7 +29,7 @@ export function update_structure_info(room_name: string, structuretype: allowed_
     var key: string = ( < string > structuretype) + "s";
     var conf = Memory.rooms_conf[room_name][key];
     for (var structure_name in conf) {
-        if (("RCL" in conf[structure_name]) && room.controller.level < conf[structure_name].RCL) {
+        if (conf[structure_name].hasOwnProperty("RCL") && room.controller.level < conf[structure_name].RCL) {
             continue;
         }
         var xy = conf[structure_name].pos;

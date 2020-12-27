@@ -53,7 +53,7 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
     } else {
         throw Error("Undefined body type of invader");
     }
-    if ("boost" in creep.body[8]) {
+    if (creep.body[8].hasOwnProperty("boost")) {
         var boost = true;
     } else {
         var boost = false;

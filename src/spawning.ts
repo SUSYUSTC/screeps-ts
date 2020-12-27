@@ -86,7 +86,7 @@ export function spawn(spawn: StructureSpawn) {
         }
     }
     var added_upgraders = 0;
-    if ("storage" in spawn.room) {
+    if (spawn.room.hasOwnProperty("storage")) {
         for (var bar of [200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000]) {
             if (spawn.room.storage.store["energy"] > bar) {
                 added_upgraders += 1;
@@ -227,7 +227,7 @@ export function spawn(spawn: StructureSpawn) {
 	//reservers, externalharvesters, externalcarriers
     var info_external: any = {}
     for (var external_room_name in conf.external_rooms) {
-		if (external_room_name in spawn.room.memory.invaded_external_rooms) {
+		if (spawn.room.memory.invaded_external_rooms.hasOwnProperty(external_room_name)) {
 			info_external[external_room_name] = "Invaded!";
 			continue;
 		}
@@ -238,7 +238,7 @@ export function spawn(spawn: StructureSpawn) {
         let n_needed_reservers = 0;
         if (reserve) {
             n_needed_reservers = 1;
-            if ((external_room_name in Game.rooms) && ("reservation" in Game.rooms[external_room_name].controller)) {
+            if (Game.rooms.hasOwnProperty(external_room_name) && Game.rooms[external_room_name].controller.hasOwnProperty("reservation")) {
                 var reservation = Game.rooms[external_room_name].controller.reservation;
                 if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
                     n_needed_reservers = 2;

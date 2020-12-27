@@ -24,13 +24,13 @@ class RoomList implements RoomList_interface {
 				let j = 1 - i;
 				let rooms_name = bridge.rooms;
 				let room_name = rooms_name[i]
-				if (!(room_name in rooms)) {
+				if (!rooms.hasOwnProperty(room_name)) {
 					rooms[room_name] = {
 						"room_name": room_name,
 						"connected_rooms": {}
 					}
 				}
-				if (!(rooms_name[j] in rooms[room_name].connected_rooms)) {
+				if (!rooms[room_name].connected_rooms.hasOwnProperty(rooms_name[j])) {
 					rooms[room_name].connected_rooms[rooms_name[j]] = {}
 				}
 				rooms[room_name].connected_rooms[rooms_name[j]][bridge.name] = {
