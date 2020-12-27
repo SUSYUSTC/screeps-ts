@@ -1,5 +1,6 @@
 import * as defense from "./defense";
 import * as mymath from "./mymath";
+import * as layout from "./layout";
 import * as _ from 'lodash';
 
 export function clear_creep() {
@@ -20,19 +21,16 @@ export function set_room_memory(room_name: string) {
     var exts = temp_exts.map((e) => < StructureExtension > e);
     var spawns = temp_spawns.map((e) => < StructureSpawn > e);
     var towers = temp_towers.map((e) => < StructureTower > e);
-    //towers: StructureTower[] = towers.map((e) => <StructureTower> <Structure> e);
-    //towers = <StructureTower[]> <Structure[]> temp_towers;
-    //var towers = _.filter(structures, (structure) => StructureTower.prototype.isPrototypeof(structure));
     room.memory.storage_list = spawns.map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.map((e) => < Id < AnyStorageStructure >> e.id));
     room.memory.tower_list = towers.map((e) => e.id);
     room.memory.spawn_list = spawns.map((e) => e.id);
 
     var spawn_energies = spawns.map((e) => e.store.getUsedCapacity("energy"));
-    var spawn_maxenergies = spawns.map((e) => e.store.getUsedCapacity("energy"));
+    var spawn_maxenergies = spawns.map((e) => e.store.getCapacity("energy"));
     var spawn_totalenergy = mymath.array_sum(spawn_energies);
     var spawn_totalmaxenergy = mymath.array_sum(spawn_maxenergies);
     var ext_energies = exts.map((e) => e.store.getUsedCapacity("energy"));
-    var ext_maxenergies = exts.map((e) => e.store.getUsedCapacity("energy"));
+    var ext_maxenergies = exts.map((e) => e.store.getCapacity("energy"));
     var ext_totalenergy = mymath.array_sum(ext_energies);
     var ext_totalmaxenergy = mymath.array_sum(ext_maxenergies);
     var total_energy = spawn_totalenergy + ext_totalenergy;
@@ -45,6 +43,11 @@ export function set_room_memory(room_name: string) {
         }
         spawn.memory.spawning_time += 1;
     }
+	if (room.memory.total_maxenergy >= 550) {
+		layout.update_structure_info(room_name, "container");
+		layout.update_structure_info(room_name, "tower");
+		layout.update_structure_info(room_name, "link");
+	}
 
     var sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     var sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
@@ -93,11 +96,21 @@ export function set_room_memory(room_name: string) {
         }
     }
     if (!("invaded_external_rooms" in room.memory)) {
-        room.memory.invaded_external_rooms = {}
+		room.memory.invaded_external_rooms = {};
     }
 	for (var external_room_name in conf.external_rooms) {
 		if (external_room_name in Game.rooms) {
-			defense.get_defense_type(Game.rooms[external_room_name]);
+			var defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
+			if (defense_type !== ''){
+				if (!(external_room_name in room.memory.invaded_external_rooms)) {
+					room.memory.invaded_external_rooms[external_room_name] = defense_type;
+				}
+			}
+			if (defense_type == ''){
+				if (external_room_name in room.memory.invaded_external_rooms) {
+					delete room.memory.invaded_external_rooms[external_room_name];
+				}
+			}
 		}
 	}
 }

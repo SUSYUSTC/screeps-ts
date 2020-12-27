@@ -20,7 +20,7 @@ export function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydis
     var arg_max = mymath.argmax(sort_list);
     var obj_max = obj_list[arg_max];
     if (creep.transfer(obj_max, "energy") == ERR_NOT_IN_RANGE) {
-        creep.moveTo(obj_max);
+		creep.moveTo(obj_max, {maxRooms: 0});
     }
     return 0;
 }
@@ -137,7 +137,7 @@ export function ask_for_renew (creep: Creep) {
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
-        creep.moveTo(closest_spawn);
+        creep.moveTo(closest_spawn, {maxRooms: 0});
     }
 }
 
@@ -145,11 +145,13 @@ export function movetopos (creep: Creep, pos: RoomPosition, plot: boolean = fals
     if (plot) {
         creep.moveTo(pos.x, pos.y, {
             reusePath: 2,
-            visualizePathStyle: {}
+            visualizePathStyle: {},
+			maxRooms: 0
         });
     } else {
         creep.moveTo(pos.x, pos.y, {
-            reusePath: 2
+            reusePath: 2,
+			maxRooms: 0
         });
     }
 }

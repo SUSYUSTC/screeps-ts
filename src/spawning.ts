@@ -4,9 +4,20 @@ import * as spawning_func from "./spawning_func";
 import * as spawning_init from "./spawning_init";
 import * as defense from "./defense";
 
+function get_defender_json(spawn: StructureSpawn, typename: string): type_spawn_json {
+	let added_memory = {
+		"home_room_name": spawn.room.name,
+		"type": typename
+	};
+	let options = {};
+	let priority = 110;
+	let added_json = {
+		"priority": priority,
+	};
+	let json = spawning_func.prepare_role("defender", spawn.room.memory.total_energy, added_memory, options, added_json);
+	return json;
+}
 export function spawn(spawn: StructureSpawn) {
-	console.log(spawn.memory.spawning_time);
-	console.log(defense.get_defense_type(spawn.room));
     if (spawn.room.memory.danger_mode) {
         return;
     }
@@ -213,8 +224,13 @@ export function spawn(spawn: StructureSpawn) {
     }
 	*/
 
+	//reservers, externalharvesters, externalcarriers
     var info_external: any = {}
     for (var external_room_name in conf.external_rooms) {
+		if (external_room_name in spawn.room.memory.invaded_external_rooms) {
+			info_external[external_room_name] = "Invaded!";
+			continue;
+		}
         info_external[external_room_name] = {};
         let conf_external = conf.external_rooms[external_room_name].controller;
         let reserve = conf_external.reserve;
@@ -295,6 +311,30 @@ export function spawn(spawn: StructureSpawn) {
             info_external[external_room_name][source_name].n_carriers = externalcarriers.length.toString() + "/" + conf_external.n_carrier.toString();
         }
     }
+	if (Object.keys(spawn.room.memory.invaded_external_rooms).length > 0) {
+		let defense_types = Object.values(spawn.room.memory.invaded_external_rooms);
+		let defenders = _.filter(Game.creeps, (e) => e.memory.role == 'defender' && e.memory.home_room_name == spawn.room.name);
+		let defender_types: {[key: string]: number} = {}
+		for (var type of ["big_close", "small_close", "big_far", "small_far"]) {
+			defender_types[type] = defenders.filter((e) => e.memory.defender_type == type).length;
+		}
+		if (defense_types.includes("big_close") && defender_types["big_close"] == 0) {
+			jsons.push(get_defender_json(spawn, "big_close"));
+			return;
+		}
+		else if (defense_types.includes("small_close") && defender_types["big_close"] == 0 && defender_types["small_close"] == 0) {
+			jsons.push(get_defender_json(spawn, "small_close"));
+			return;
+		}
+		if (defense_types.includes("big_far") && defender_types["big_far"] == 0) {
+			jsons.push(get_defender_json(spawn, "big_far"));
+			return;
+		}
+		else if (defense_types.includes("small_far") && defender_types["big_far"] == 0 && defender_types["small_far"] == 0) {
+			jsons.push(get_defender_json(spawn, "small_far"));
+			return;
+		}
+	}
     if (Memory.debug_mode) {
         console.log(spawn.room.name, JSON.stringify(info_source))
         console.log(spawn.room.name, JSON.stringify(info_home))

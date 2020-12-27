@@ -57,17 +57,17 @@ export function init_work(creep: Creep) {
         if (type == 'charge') {
             creep.say("IT")
             if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
-                creep.moveTo(obj);
+				creep.moveTo(obj, {maxRooms: 0});
             }
         } else if (type == 'build') {
             creep.say("IB")
             if (creep.build(obj) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(obj);
+				creep.moveTo(obj, {maxRooms: 0});
             }
         } else if (type == 'upgrade') {
             creep.say("IU")
             if (creep.upgradeController(obj) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(obj);
+				creep.moveTo(obj, {maxRooms: 0});
             }
         } else {
             throw Error("Wrong type");

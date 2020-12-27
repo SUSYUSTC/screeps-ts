@@ -9,9 +9,7 @@ interface RoomMemory {
     mine_harvestable ? : boolean;
     sites_total_progressleft ? : number;
     danger_mode ? : boolean;
-    invaded_external_rooms ? : {
-        [key: string]: string
-    };
+	invaded_external_rooms ? : {[key: string]: string};
 }
 interface CreepMemory {
     role: string;
@@ -26,6 +24,8 @@ interface CreepMemory {
     transfer_target ? : string;
     waiting ? : boolean;
     cost ? : number;
+	defender_type ?: string;
+	defending_room ?: string;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -183,19 +183,31 @@ interface invader_type {
     name: string;
     boost: boolean;
 }
+interface type_room_list_bridge {
+    type: string;
+	rooms: string[];
+	coor_same: number;
+	name: string;
+};
+interface type_room_list_graph {
+	[key: string]: {
+		[key: string]: number;
+	}
+};
 interface type_room_list_room {
     room_name: string;
     connected_rooms: {
-        [key: string]: {
-            [key: string]: {
+		[key: string]: { // room_name
+			[key: string]: { // bridge_name
                 exit: number[];
                 standpoint: number[];
+				index: number;
             };
         };
     };
 };
 interface type_room_list_rooms {
-    [key: string]: type_room_list_room
+    [key: string]: type_room_list_room;
 };
 interface type_spawn_json {
     rolename: string;
@@ -205,5 +217,13 @@ interface type_spawn_json {
     memory: any;
     affordable: boolean;
     [key: string]: any;
-}
-type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal
+};
+type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal;
+interface type_creep_components {
+    n_move: number;
+    n_work: number;
+    n_carry: number;
+    n_attack: number;
+    n_rangedattack: number;
+    n_heal: number;
+};

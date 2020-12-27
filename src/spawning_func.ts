@@ -163,3 +163,4 @@ export function spawn_json(spawn: StructureSpawn, json: type_spawn_json) {
         memory: json.memory
     });
 }
+
