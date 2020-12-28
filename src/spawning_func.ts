@@ -53,11 +53,7 @@ const getbody_harvester = (options: any): BodyPartConstant[] => {
     }
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
-    if (options.max_parts > 7) {
-        return returnbody(options.max_parts, 0, 2);
-    } else {
-        return returnbody(options.max_parts, 0, 1);
-    }
+	return returnbody(20, 0, 5);
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
     if (options.reserve) {

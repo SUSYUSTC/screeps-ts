@@ -81,6 +81,7 @@ interface conf_mine {
     id: Id < Mineral > ;
     type ? : ResourceConstant;
     density ? : number;
+	amount ? : number;
 }
 interface conf_init {
     [key: string]: {

@@ -71,6 +71,7 @@ export function set_room_memory(room_name: string) {
         room.memory.mine_harvestable = (exist_extrator && ("MINE" in conf.containers) && conf.containers.MINE.finished);
         conf.mine.density = mine.density;
         conf.mine.type = mine.mineralType;
+		conf.mine.amount = mine.mineralAmount;
     }
 
     for (var external_room_name in conf.external_rooms) {

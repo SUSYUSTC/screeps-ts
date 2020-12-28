@@ -132,20 +132,14 @@ export function spawn(spawn: StructureSpawn) {
     var n_upgrades = spawning_func.get_nbody(upgraders, 'work')
     var n_builds = spawning_func.get_nbody(builders, 'work')
     var n_transfers = spawning_func.get_nbody(transferers, 'carry')
-    var n_mineharvests = spawning_func.get_nbody(mineharvesters, 'work')
+    var n_mineharvesters = mineharvesters.length;
     var n_maincarriers_MAIN = maincarriers_MAIN.length;
     var n_builds_needed = Math.min(6, Math.ceil(spawn.room.memory.sites_total_progressleft / 2000));
-    var n_mineharvests_needed = 0;
-    if (spawn.room.memory.mine_harvestable) {
-        var density2number: {
-            [key: string]: number
-        } = {}
-        density2number[DENSITY_LOW] = 2;
-        density2number[DENSITY_MODERATE] = 5;
-        density2number[DENSITY_HIGH] = 9;
-        density2number[DENSITY_ULTRA] = 12;
-        var n_mineharvests_needed = density2number[conf.mine.density];
-    };
+	if (conf.mine.amount > 0) {
+		var n_mineharvesters_needed = 1;
+	} else {
+		var n_mineharvesters_needed = 0;
+	}
     var max_build = 3;
     var max_upgrade = 18 + added_upgraders * 10;
     var max_transfer = conf.max_transfer;
@@ -157,7 +151,7 @@ export function spawn(spawn: StructureSpawn) {
         n_upgrades: n_upgrades + "/" + max_upgrade,
         n_builds: n_builds + "/" + n_builds_needed,
         n_transfers: n_transfers + "/" + max_transfer,
-        n_mineharvests: n_mineharvests + "/" + n_mineharvests_needed,
+        n_mineharvesters: n_mineharvesters + "/" + n_mineharvesters_needed,
         n_maincarriers: {
             MAIN: n_maincarriers_MAIN + "/" + n_maincarriers_MAIN_needed
         },
@@ -187,12 +181,10 @@ export function spawn(spawn: StructureSpawn) {
         let json = spawning_func.prepare_role("builder", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
     }
-    if (n_mineharvests_needed > 0 && n_mineharvests == 0) {
+    if (n_mineharvesters_needed > 0 && n_mineharvesters == 0) {
         let added_memory = {};
-        let options = {
-            "max_parts": n_mineharvests_needed
-        };
-        let priority = 25;
+        let options = {};
+        let priority = 1;
         let added_json = {
             "priority": priority,
             "require_full": true
