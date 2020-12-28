@@ -12,6 +12,7 @@ interface RoomMemory {
     invaded_external_rooms ? : {
         [key: string]: string
     };
+	lack_energy ? : boolean;
 }
 interface CreepMemory {
     role: string;

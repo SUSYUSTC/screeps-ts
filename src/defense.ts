@@ -68,6 +68,9 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
 
 export function get_defense_type(room: Room): string {
     var enemies = room.find(FIND_HOSTILE_CREEPS)
+	var enemy_types = enemies.map((e) => analyze_component(e));
+	var argattacker = mymath.range(enemy_types.length).filter((i) => (enemy_types[i].n_attack+ enemy_types[i].n_rangedattack + enemy_types[i].n_heal) > 0);
+	enemies = argattacker.map((i) => enemies[i]);
     if (enemies.length == 0) {
         return "";
     }

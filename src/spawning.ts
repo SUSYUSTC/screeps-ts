@@ -89,7 +89,7 @@ export function spawn(spawn: StructureSpawn) {
     }
     var added_upgraders = 0;
     if ("storage" in spawn.room) {
-        for (var bar of [200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000]) {
+        for (var bar of [100000]) {
             if (spawn.room.storage.store["energy"] > bar) {
                 added_upgraders += 1;
             }
@@ -158,7 +158,9 @@ export function spawn(spawn: StructureSpawn) {
     };
     if (n_transfers < max_transfer) {
         let added_memory = {};
-        let options = {};
+		let options = {
+			"max_parts": max_transfer,
+		};
         let priority = (n_transfers > 0 ? 60 : 150);
         let added_json = {
             "priority": priority,
@@ -176,7 +178,7 @@ export function spawn(spawn: StructureSpawn) {
         let priority = 2;
         let added_json = {
             "priority": priority,
-            "require_full": true
+            "require_full": true && spawn.room.memory.lack_energy,
         };
         let json = spawning_func.prepare_role("builder", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
@@ -187,7 +189,7 @@ export function spawn(spawn: StructureSpawn) {
         let priority = 1;
         let added_json = {
             "priority": priority,
-            "require_full": true
+            "require_full": true && spawn.room.memory.lack_energy,
         };
         let json = spawning_func.prepare_role("mineharvester", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
@@ -201,7 +203,7 @@ export function spawn(spawn: StructureSpawn) {
         let priority = 0;
         let added_json = {
             "priority": priority,
-            "require_full": true
+            "require_full": true && spawn.room.memory.lack_energy,
         };
         let json = spawning_func.prepare_role("upgrader", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
@@ -283,7 +285,7 @@ export function spawn(spawn: StructureSpawn) {
             let priority = 10;
             let added_json = {
                 "priority": priority,
-                "require_full": true
+                "require_full": true && spawn.room.memory.lack_energy,
             };
             let json = spawning_func.prepare_role("reserver", spawn.room.memory.total_energy, added_memory, options, added_json);
             jsons.push(json);
@@ -308,7 +310,7 @@ export function spawn(spawn: StructureSpawn) {
                 let priority = (externalcarriers.length > 0 ? 31 : 21);
                 let added_json = {
                     "priority": priority,
-                    "require_full": true
+                    "require_full": true && spawn.room.memory.lack_energy,
                 };
                 let json = spawning_func.prepare_role("externalharvester", spawn.room.memory.total_energy, added_memory, options, added_json);
                 jsons.push(json);
@@ -328,7 +330,7 @@ export function spawn(spawn: StructureSpawn) {
                 let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {
                     "priority": priority,
-                    "require_full": true
+                    "require_full": true && spawn.room.memory.lack_energy,
                 };
                 let json = spawning_func.prepare_role("externalcarrier", spawn.room.memory.total_energy, added_memory, options, added_json);
                 jsons.push(json);
@@ -342,6 +344,9 @@ export function spawn(spawn: StructureSpawn) {
         let defenders = _.filter(Game.creeps, (e) => e.memory.role == 'defender' && e.memory.home_room_name == spawn.room.name);
         let defenders_type = defenders.map((e) => e.memory.defender_type);
         for (var defense_type of defense_types) {
+			if (defense_type == 'user' ) {
+				continue;
+			}
             let fightable_defender_types = available_defense_types.filter((e) => Memory.defender_responsible_types[e].list.includes(defense_type));
             if (mymath.all(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
                 let costs = fightable_defender_types.map((e) => Memory.defender_responsible_types[e].cost);

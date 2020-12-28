@@ -145,7 +145,7 @@ var room_E16N58_maincarriers: conf_maincarriers = {
     }
 }
 
-var room_E16N58_max_transfer: number = 4
+var room_E16N58_max_transfer: number = 8
 var room_E16N58_stay_pos: number[] = [32, 29];
 var room_E16N58_safe_pos: number[] = [34, 33];
 var room_E16N58_wall_strength = 0;
@@ -231,7 +231,7 @@ var room_E16N58: room_conf = {
 
 var room_E15N58_towers: conf_towers = {
     "T1": {
-        "pos": [30, 21],
+        "pos": [24, 13],
         "RCL": 3,
     },
     "T2": {
@@ -365,7 +365,7 @@ var room_E15N58_maincarriers: conf_maincarriers = {
     }
 }
 
-var room_E15N58_max_transfer: number = 4
+var room_E15N58_max_transfer: number = 8
 var room_E15N58_stay_pos: number[] = [25, 16];
 var room_E15N58_safe_pos: number[] = [20, 21];
 var room_E15N58_wall_strength = 20000;

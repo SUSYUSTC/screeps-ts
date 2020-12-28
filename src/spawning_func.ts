@@ -53,7 +53,7 @@ const getbody_harvester = (options: any): BodyPartConstant[] => {
     }
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
-	return returnbody(20, 0, 5);
+    return returnbody(20, 0, 5);
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
     if (options.reserve) {
@@ -105,7 +105,10 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
     return [CLAIM, MOVE]
 }
 const getbody_transferer = (options: any): BodyPartConstant[] => {
-    return returnbody(0, 4, 2);
+    let n_work = 0;
+    let n_carry = options.max_parts;
+    let n_move = Math.ceil(n_carry / 2);
+    return returnbody(n_work, n_carry, n_move);
 }
 interface type_getbody {
     [key: string]: {

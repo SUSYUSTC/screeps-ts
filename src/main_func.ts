@@ -118,5 +118,11 @@ export function set_room_memory(room_name: string) {
 	if (Object.keys(room.memory.invaded_external_rooms).length > 0) {
 		console.log("Home room:", room.name, "Invaded rooms:", JSON.stringify(room.memory.invaded_external_rooms));
 	}
+	if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
+		room.memory.lack_energy = false;
+	}
+	else {
+		room.memory.lack_energy = true;
+	}
 }
 
