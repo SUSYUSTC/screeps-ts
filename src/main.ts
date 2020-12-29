@@ -12,6 +12,7 @@ import * as main_func from "./main_func";
 Memory.rerunning = true;
 
 module.exports.loop = function() {
+	console.log("Beginning of tick", Game.time);
     main_func.clear_creep();
     for (var room_name of Memory.controlled_rooms) {
         var room = Game.rooms[room_name];

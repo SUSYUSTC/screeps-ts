@@ -43,11 +43,11 @@ export function set_room_memory(room_name: string) {
         }
         spawn.memory.spawning_time += 1;
     }
-	if (room.memory.total_maxenergy >= 550) {
-		layout.update_structure_info(room_name, "container");
-		layout.update_structure_info(room_name, "tower");
-		layout.update_structure_info(room_name, "link");
-	}
+    if (room.memory.total_maxenergy >= 550) {
+        layout.update_structure_info(room_name, "container");
+        layout.update_structure_info(room_name, "tower");
+        layout.update_structure_info(room_name, "link");
+    }
 
     var sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     var sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
@@ -62,7 +62,7 @@ export function set_room_memory(room_name: string) {
     }
     var conf = Memory.rooms_conf[room_name];
     var containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
-	var links_mode = Object.keys(conf.links).filter((e) => conf.links[e].finished);
+    var links_mode = Object.keys(conf.links).filter((e) => conf.links[e].finished);
     room.memory.container_mode = mymath.all(containers_mode);
     room.memory.link_modes = links_mode;
     if ("mine" in conf) {
@@ -71,7 +71,7 @@ export function set_room_memory(room_name: string) {
         room.memory.mine_harvestable = (exist_extrator && ("MINE" in conf.containers) && conf.containers.MINE.finished);
         conf.mine.density = mine.density;
         conf.mine.type = mine.mineralType;
-		conf.mine.amount = mine.mineralAmount;
+        conf.mine.amount = mine.mineralAmount;
     }
 
     for (var external_room_name in conf.external_rooms) {
@@ -96,52 +96,40 @@ export function set_room_memory(room_name: string) {
             conf_external.harvester_name = creepname;
         }
     }
-    if (!("invaded_external_rooms" in room.memory)) {
-		room.memory.invaded_external_rooms = {};
+    if (!("external_room_status" in room.memory)) {
+        room.memory.external_room_status = {};
     }
-    if (!("reserved_external_rooms" in room.memory)) {
-		room.memory.reserved_external_rooms = {};
-    }
-    if (!("invader_core_existing_external_rooms" in room.memory)) {
-		room.memory.invader_code_existing_rooms = [];
-    }
-	for (var external_room_name in conf.external_rooms) {
-		if (external_room_name in Game.rooms) {
-			let external_room = Game.rooms[external_room_name];
-			let defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
-			if (defense_type !== ''){
-				room.memory.invaded_external_rooms[external_room_name] = defense_type;
-				if (!(external_room_name in room.memory.invaded_external_rooms)) {
-					spawns.forEach((e) => e.memory.spawning_time = -5);
-				}
-			}
-			if (defense_type == ''){
-				if (external_room_name in room.memory.invaded_external_rooms) {
-					delete room.memory.invaded_external_rooms[external_room_name];
-				}
-			}
-			let reserved;
-			if (external_room.controller.reservation !== undefined && external_room.controller.reservation.username != Memory.username) {
-				room.memory.reserved_external_rooms[external_room_name] = external_room.controller.reservation.username;
-			}
-			else {
-				if (external_room_name in room.memory.reserved_external_rooms) {
-					delete room.memory.reserved_external_rooms[external_room_name];
-				}
-			}
+    for (var external_room_name in conf.external_rooms) {
+		if (!(external_room_name in room.memory.external_room_status)) {
+            room.memory.external_room_status[external_room_name] = {
+                "defense_type": '',
+                "reserver": '',
+                "invader_core_existance": false,
+                "safe": true,
+            }
 		}
-	}
-	if (Object.keys(room.memory.invaded_external_rooms).length > 0) {
-		console.log("Home room:", room.name, "Invaded rooms:", JSON.stringify(room.memory.invaded_external_rooms));
-	}
-	if (Object.keys(room.memory.reserved_external_rooms).length > 0) {
-		console.log("Home room:", room.name, "Reserved rooms:", JSON.stringify(room.memory.reserved_external_rooms));
-	}
-	if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
-		room.memory.lack_energy = false;
-	}
-	else {
-		room.memory.lack_energy = true;
-	}
+        if (external_room_name in Game.rooms) {
+            let external_room = Game.rooms[external_room_name];
+            let defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
+            let reserver;
+            if (external_room.controller.reservation !== undefined) {
+                reserver = external_room.controller.reservation.username;
+            } else {
+                reserver = '';
+            }
+            let invader_core_existance = Game.rooms[external_room_name].find(FIND_STRUCTURES).filter((e) => e.structureType == 'invaderCore').length > 0;
+            room.memory.external_room_status[external_room_name] = {
+                "defense_type": defense_type,
+                "reserver": reserver,
+                "invader_core_existance": invader_core_existance,
+                "safe": (defense_type == '') && (reserver == Memory.username) && !invader_core_existance,
+            }
+        }
+    }
+	console.log(room.name, JSON.stringify(room.memory.external_room_status))
+    if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
+        room.memory.lack_energy = false;
+    } else {
+        room.memory.lack_energy = true;
+    }
 }
-

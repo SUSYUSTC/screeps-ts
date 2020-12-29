@@ -82,6 +82,11 @@ export var bridges: type_room_list_bridge[] = [{
 	'name': 'default',
 }, {
     'type': 'V',
+	'rooms': ['E17N59', 'E17N58'],
+    'coor_same': 23,
+	'name': 'default',
+}, {
+    'type': 'V',
 	'rooms': ['E16N58', 'E16N57'],
     'coor_same': 38,
 	'name': 'default',

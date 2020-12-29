@@ -148,9 +148,37 @@ var room_E16N58_maincarriers: conf_maincarriers = {
 var room_E16N58_max_transfer: number = 8
 var room_E16N58_stay_pos: number[] = [32, 29];
 var room_E16N58_safe_pos: number[] = [34, 33];
-var room_E16N58_wall_strength = 0;
+var room_E16N58_wall_strength = 200000;
 
 var room_E16N58_external_rooms: conf_external_rooms = {
+    "E17N59": {
+        "controller": {
+            "reserve": true,
+            "path_time": 82,
+            "rooms_forwardpath": ['E16N58', 'E17N58', 'E17N59'],
+            "names_forwardpath": ['default', 'default'],
+            "rooms_backwardpath": ['E17N59', 'E17N58', 'E16N58'],
+            "names_backwardpath": ['default', 'default'],
+        },
+        "sources": {
+            "S1": {
+                "id": < Id < Source >> "5bbcade89099fc012e6381cd",
+                "harvest_pos": [7, 44],
+                "reserve": true,
+                "single_distance": 74,
+                "n_carry": 18,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": "",
+                },
+				"rooms_forwardpath": ['E16N58', 'E17N58', 'E17N59'],
+				"names_forwardpath": ['default', 'default'],
+				"rooms_backwardpath": ['E17N59', 'E17N58', 'E16N58'],
+				"names_backwardpath": ['default', 'default'],
+            },
+        },
+    },
     "E17N58": {
         "controller": {
             "reserve": true,
@@ -166,7 +194,7 @@ var room_E16N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [4, 21],
                 "reserve": true,
                 "single_distance": 28,
-                "n_carry": 7,
+                "n_carry": 6,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",

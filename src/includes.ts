@@ -1,3 +1,12 @@
+type type_external_room_status = {
+	[key: string]: { // room_name
+		"defense_type": string;
+		"reserver": string;
+		"invader_core_existance": boolean;
+		"safe": boolean;
+	}
+}
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker";
 interface RoomMemory {
     storage_list ? : Id < AnyStorageStructure > [];
     tower_list ? : Id < StructureTower > [];
@@ -9,17 +18,11 @@ interface RoomMemory {
     sites_total_progressleft ? : number;
     danger_mode ? : boolean;
     link_modes ? : string[];
-    invaded_external_rooms ? : {
-        [key: string]: string
-    };
-    reserved_external_rooms ? : {
-        [key: string]: string
-    };
-    invader_code_existing_rooms ? : []
 	lack_energy ? : boolean;
+	external_room_status ? : type_external_room_status;
 }
 interface CreepMemory {
-    role: string;
+    role: type_creep_role;
     source_name ? : string;
     harvesting ? : boolean;
     home_room_name ? : string;
@@ -260,4 +263,3 @@ interface type_creep_components {
     n_rangedattack: number;
     n_heal: number;
 };
-type type_creep_role = "harvester" | "carrier";

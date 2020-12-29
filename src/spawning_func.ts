@@ -156,7 +156,7 @@ export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {
     let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
     return n;
 }
-export function prepare_role(rolename: string, energy: number, added_memory: any, options: any, added_json: any) {
+export function prepare_role(rolename: type_creep_role, energy: number, added_memory: any, options: any, added_json: any) {
     var rolename = rolename;
     var creepname = rolename + Game.time;
     var body = getbody_list[rolename](options);
