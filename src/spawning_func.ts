@@ -45,6 +45,13 @@ const getbody_defender = (options: any): BodyPartConstant[] => {
     var bodyinfo = Memory.defender_responsible_types[options.defender_type].body;
     return fullreturnbody(bodyinfo);
 }
+const getbody_invader_core_attacker = (options: any): BodyPartConstant[] => {
+    var bodyinfo = {
+        "move": 5,
+        "attack": 10
+    };
+    return fullreturnbody(bodyinfo);
+}
 const getbody_harvester = (options: any): BodyPartConstant[] => {
     if (options.link_mode) {
         return returnbody(5, 1, 1);
@@ -92,6 +99,12 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     let n_work = 0;
     return returnbody(n_work, n_carry, n_move);
 }
+const getbody_specialcarrier = (options: any): BodyPartConstant[] => {
+    let n_carry = 4;
+    let n_move = 2;
+    let n_work = 0;
+    return returnbody(n_work, n_carry, n_move);
+}
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
     let n_move = 1;
@@ -123,11 +136,13 @@ const getbody_list: type_getbody = {
     'carrier': getbody_carrier,
     'externalcarrier': getbody_externalcarrier,
     'maincarrier': getbody_maincarrier,
+    'specialcarrier': getbody_specialcarrier,
     'reserver': getbody_reserver,
     'builder': getbody_builder,
     'upgrader': getbody_upgrader,
     'transferer': getbody_transferer,
-    'defender': getbody_defender
+	'defender': getbody_defender,
+	'invader_core_attacker': getbody_invader_core_attacker,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {

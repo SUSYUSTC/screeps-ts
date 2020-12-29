@@ -9,7 +9,9 @@ function get_defender_json(spawn: StructureSpawn, typename: string): type_spawn_
         "home_room_name": spawn.room.name,
         "defender_type": typename
     };
-    let options = {"defender_type": typename};
+    let options = {
+        "defender_type": typename
+    };
     let priority = 120;
     let added_json = {
         "priority": priority,
@@ -127,19 +129,23 @@ export function spawn(spawn: StructureSpawn) {
     var builders = room_creeps.filter((e) => e.memory.role == 'builder' && e.ticksToLive >= 50);
     var transferers = room_creeps.filter((e) => e.memory.role == 'transferer' && e.ticksToLive >= 150);
     var mineharvesters = room_creeps.filter((e) => e.memory.role == 'mineharvester' && e.ticksToLive >= 50);
+    var specialcarriers = room_creeps.filter((e) => e.memory.role == 'specialcarrier' && e.ticksToLive >= 50);
     var maincarriers = room_creeps.filter((e) => e.memory.role == 'maincarrier' && e.ticksToLive >= 50);
     var maincarriers_MAIN = maincarriers.filter((e) => e.memory.maincarrier_type == 'MAIN');
     var n_upgrades = spawning_func.get_nbody(upgraders, 'work')
     var n_builds = spawning_func.get_nbody(builders, 'work')
     var n_transfers = spawning_func.get_nbody(transferers, 'carry')
     var n_mineharvesters = mineharvesters.length;
+    var n_specialcarriers = specialcarriers.length;
     var n_maincarriers_MAIN = maincarriers_MAIN.length;
     var n_builds_needed = Math.min(6, Math.ceil(spawn.room.memory.sites_total_progressleft / 2000));
-	if (conf.mine.amount > 0) {
-		var n_mineharvesters_needed = 1;
-	} else {
-		var n_mineharvesters_needed = 0;
-	}
+    if (conf.mine.amount > 0) {
+        var n_mineharvesters_needed = 1;
+        var n_specialcarriers_needed = 1;
+    } else {
+        var n_mineharvesters_needed = 0;
+        var n_specialcarriers_needed = 0;
+    }
     var max_build = 3;
     var max_upgrade = 18 + added_upgraders * 10;
     var max_transfer = conf.max_transfer;
@@ -152,15 +158,16 @@ export function spawn(spawn: StructureSpawn) {
         n_builds: n_builds + "/" + n_builds_needed,
         n_transfers: n_transfers + "/" + max_transfer,
         n_mineharvesters: n_mineharvesters + "/" + n_mineharvesters_needed,
+        n_specialcarriers: n_specialcarriers + "/" + n_specialcarriers_needed,
         n_maincarriers: {
             MAIN: n_maincarriers_MAIN + "/" + n_maincarriers_MAIN_needed
         },
     };
     if (n_transfers < max_transfer) {
         let added_memory = {};
-		let options = {
-			"max_parts": max_transfer,
-		};
+        let options = {
+            "max_parts": max_transfer,
+        };
         let priority = (n_transfers > 0 ? 60 : 150);
         let added_json = {
             "priority": priority,
@@ -192,6 +199,17 @@ export function spawn(spawn: StructureSpawn) {
             "require_full": true && spawn.room.memory.lack_energy,
         };
         let json = spawning_func.prepare_role("mineharvester", spawn.room.memory.total_energy, added_memory, options, added_json);
+        jsons.push(json);
+    }
+    if (n_specialcarriers_needed > 0 && n_specialcarriers == 0) {
+        let added_memory = {};
+        let options = {};
+        let priority = -1;
+        let added_json = {
+            "priority": priority,
+            "require_full": true && spawn.room.memory.lack_energy,
+        };
+        let json = spawning_func.prepare_role("specialcarrier", spawn.room.memory.total_energy, added_memory, options, added_json);
         jsons.push(json);
     }
     var container = Game.getObjectById(conf.containers.CT.id);
@@ -250,26 +268,34 @@ export function spawn(spawn: StructureSpawn) {
     //reservers, externalharvesters, externalcarriers
     var info_external: any = {}
     for (var external_room_name in conf.external_rooms) {
+		info_external[external_room_name] = {"status": ""};
+		let invaded = false;
+		let reserved = false;
         if (external_room_name in spawn.room.memory.invaded_external_rooms) {
-            info_external[external_room_name] = "Invaded!";
-            continue;
+            info_external[external_room_name].status += "Invaded! ";
+			invaded = true;
         }
+        if (external_room_name in spawn.room.memory.reserved_external_rooms) {
+            info_external[external_room_name].status += "Reserved! ";
+			reserved = true;
+        }
+		if (invaded) {
+			continue;
+		}
         info_external[external_room_name] = {};
         let conf_external = conf.external_rooms[external_room_name].controller;
         let reserve = conf_external.reserve;
-        let reservers = _.filter(Game.creeps, (e) => e.memory.role == 'reserver' && e.memory.external_room_name == external_room_name && e.memory.home_room_name == spawn.room.name);
+		let reservers = _.filter(Game.creeps, (e) => e.memory.role == 'reserver' && e.memory.external_room_name == external_room_name && e.memory.home_room_name == spawn.room.name && e.ticksToLive > conf_external.path_time);
         let n_needed_reservers = 0;
         if (reserve) {
-            n_needed_reservers = 1;
+            n_needed_reservers = 2;
             if (external_room_name in Game.rooms) {
-                if (Object.keys(Game.rooms[external_room_name].controller).includes("reservation")) {
+                if (Game.rooms[external_room_name].controller.reservation !== undefined) {
                     let reservation = Game.rooms[external_room_name].controller.reservation;
-                    if (reservation.username == Memory.username && reservation.ticksToEnd < 1000) {
-                        n_needed_reservers = 2;
+					if (reservation.username == Memory.username && reservation.ticksToEnd > 1000) {
+                        n_needed_reservers = 1;
                     }
-                } else {
-                    n_needed_reservers = 2;
-                }
+				}
             }
         }
         if (reservers.length < n_needed_reservers) {
@@ -282,7 +308,7 @@ export function spawn(spawn: StructureSpawn) {
                 "names_backwardpath": conf_external.names_backwardpath,
             };
             let options = {};
-            let priority = 10;
+            let priority = 40;
             let added_json = {
                 "priority": priority,
                 "require_full": true && spawn.room.memory.lack_energy,
@@ -291,11 +317,16 @@ export function spawn(spawn: StructureSpawn) {
             jsons.push(json);
         }
         info_external[external_room_name].n_reservers = reservers.length + "/" + n_needed_reservers;
+		if (reserved) {
+			continue;
+		}
         for (var source_name in conf.external_rooms[external_room_name].sources) {
             info_external[external_room_name][source_name] = {}
             let conf_external = conf.external_rooms[external_room_name].sources[source_name];
-            let externalharvesters = _.filter(Game.creeps, (e) => e.memory.role == 'externalharvester' && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == spawn.room.name);
-            let externalcarriers = _.filter(Game.creeps, (e) => e.memory.role == 'externalcarrier' && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == spawn.room.name);
+            let externalharvester_spawning_time = (conf_external.n_carry + 8) * 3;
+            let externalcarrier_spawning_time = conf_external.n_carry * 6;
+            let externalharvesters = _.filter(Game.creeps, (e) => e.memory.role == 'externalharvester' && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == spawn.room.name && e.ticksToLive > conf_external.single_distance * 2 + externalharvester_spawning_time);
+            let externalcarriers = _.filter(Game.creeps, (e) => e.memory.role == 'externalcarrier' && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == spawn.room.name && e.ticksToLive > conf_external.single_distance + externalcarrier_spawning_time);
             if (externalharvesters.length == 0) {
                 let added_memory = {
                     "source_name": source_name,
@@ -344,9 +375,9 @@ export function spawn(spawn: StructureSpawn) {
         let defenders = _.filter(Game.creeps, (e) => e.memory.role == 'defender' && e.memory.home_room_name == spawn.room.name);
         let defenders_type = defenders.map((e) => e.memory.defender_type);
         for (var defense_type of defense_types) {
-			if (defense_type == 'user' ) {
-				continue;
-			}
+            if (defense_type == 'user') {
+                continue;
+            }
             let fightable_defender_types = available_defense_types.filter((e) => Memory.defender_responsible_types[e].list.includes(defense_type));
             if (mymath.all(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
                 let costs = fightable_defender_types.map((e) => Memory.defender_responsible_types[e].cost);
@@ -357,6 +388,25 @@ export function spawn(spawn: StructureSpawn) {
             }
         }
     }
+    if (Object.keys(spawn.room.memory.reserved_external_rooms).length > 0) {
+		let reserved_external_rooms = spawn.room.memory.reserved_external_rooms;
+		if (Object.values(reserved_external_rooms).includes("Invader")) {
+			let invader_core_attackers = _.filter(Game.creeps, (e) => e.memory.role == 'invader_core_attacker' && e.memory.home_room_name == spawn.room.name);
+			if (invader_core_attackers.length == 0) {
+                let added_memory = {
+                    "home_room_name": spawn.room.name,
+                };
+				let options = {};
+                let priority = 110;
+                let added_json = {
+                    "priority": priority,
+                    "require_full": true && spawn.room.memory.lack_energy,
+                };
+                let json = spawning_func.prepare_role("invader_core_attacker", spawn.room.memory.total_energy, added_memory, options, added_json);
+                jsons.push(json);
+			}
+		}
+	}
     if (Memory.debug_mode) {
         console.log(spawn.room.name, JSON.stringify(info_source))
         console.log(spawn.room.name, JSON.stringify(info_home))

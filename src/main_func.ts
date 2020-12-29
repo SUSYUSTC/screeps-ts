@@ -99,9 +99,16 @@ export function set_room_memory(room_name: string) {
     if (!("invaded_external_rooms" in room.memory)) {
 		room.memory.invaded_external_rooms = {};
     }
+    if (!("reserved_external_rooms" in room.memory)) {
+		room.memory.reserved_external_rooms = {};
+    }
+    if (!("invader_core_existing_external_rooms" in room.memory)) {
+		room.memory.invader_code_existing_rooms = [];
+    }
 	for (var external_room_name in conf.external_rooms) {
 		if (external_room_name in Game.rooms) {
-			var defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
+			let external_room = Game.rooms[external_room_name];
+			let defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
 			if (defense_type !== ''){
 				room.memory.invaded_external_rooms[external_room_name] = defense_type;
 				if (!(external_room_name in room.memory.invaded_external_rooms)) {
@@ -113,10 +120,22 @@ export function set_room_memory(room_name: string) {
 					delete room.memory.invaded_external_rooms[external_room_name];
 				}
 			}
+			let reserved;
+			if (external_room.controller.reservation !== undefined && external_room.controller.reservation.username != Memory.username) {
+				room.memory.reserved_external_rooms[external_room_name] = external_room.controller.reservation.username;
+			}
+			else {
+				if (external_room_name in room.memory.reserved_external_rooms) {
+					delete room.memory.reserved_external_rooms[external_room_name];
+				}
+			}
 		}
 	}
 	if (Object.keys(room.memory.invaded_external_rooms).length > 0) {
 		console.log("Home room:", room.name, "Invaded rooms:", JSON.stringify(room.memory.invaded_external_rooms));
+	}
+	if (Object.keys(room.memory.reserved_external_rooms).length > 0) {
+		console.log("Home room:", room.name, "Reserved rooms:", JSON.stringify(room.memory.reserved_external_rooms));
 	}
 	if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
 		room.memory.lack_energy = false;

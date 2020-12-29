@@ -12,6 +12,10 @@ interface RoomMemory {
     invaded_external_rooms ? : {
         [key: string]: string
     };
+    reserved_external_rooms ? : {
+        [key: string]: string
+    };
+    invader_code_existing_rooms ? : []
 	lack_energy ? : boolean;
 }
 interface CreepMemory {
@@ -25,11 +29,11 @@ interface CreepMemory {
     rooms_backwardpath ? : string[];
     names_backwardpath ? : string[];
     transfer_target ? : string;
-    waiting ? : boolean;
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
     maincarrier_type ? : string;
+	carrying_mineral ?: boolean;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -256,3 +260,4 @@ interface type_creep_components {
     n_rangedattack: number;
     n_heal: number;
 };
+type type_creep_role = "harvester" | "carrier";

@@ -74,7 +74,7 @@ var room_E16N58_carrier_preference_S1: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "MD",
-    "points": 0,
+    "points": 500,
 }]
 
 var room_E16N58_carrier_preference_S2: conf_preference[] = [{
@@ -82,7 +82,7 @@ var room_E16N58_carrier_preference_S2: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "CT",
-    "points": 500,
+    "points": 1000,
 }]
 
 var room_E16N58_carrier_preference_storage: conf_preference[] = [{
@@ -90,7 +90,7 @@ var room_E16N58_carrier_preference_storage: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "CT",
-    "points": 500,
+    "points": 1000,
 }]
 
 var room_E16N58_init: conf_init = {
@@ -166,7 +166,7 @@ var room_E16N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [4, 21],
                 "reserve": true,
                 "single_distance": 28,
-                "n_carry": 6,
+                "n_carry": 7,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -194,7 +194,7 @@ var room_E16N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [40, 24],
                 "reserve": true,
                 "single_distance": 58,
-                "n_carry": 6,
+                "n_carry": 13,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -295,7 +295,7 @@ var room_E15N58_carrier_preference_S1: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "CT",
-    "points": 300
+    "points": 1000
 }]
 
 var room_E15N58_carrier_preference_S2: conf_preference[] = [{
@@ -303,7 +303,7 @@ var room_E15N58_carrier_preference_S2: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "CT",
-    "points": 0
+    "points": 300,
 }]
 
 var room_E15N58_carrier_preference_storage: conf_preference[] = [{
@@ -311,7 +311,7 @@ var room_E15N58_carrier_preference_storage: conf_preference[] = [{
     "points": 0,
 }, {
     "container": "CT",
-    "points": 0
+    "points": 600
 }]
 
 var room_E15N58_init: conf_init = {
@@ -385,7 +385,7 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [17, 23],
                 "reserve": true,
                 "single_distance": 46,
-                "n_carry": 10,
+                "n_carry": 11,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -401,7 +401,7 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [32, 12],
                 "reserve": true,
                 "single_distance": 60,
-                "n_carry": 12,
+                "n_carry": 14,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -429,7 +429,7 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [34, 43],
                 "reserve": true,
                 "single_distance": 70,
-                "n_carry": 14,
+                "n_carry": 16,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
@@ -445,7 +445,7 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                 "harvest_pos": [12, 34],
                 "reserve": true,
                 "single_distance": 70,
-                "n_carry": 14,
+                "n_carry": 16,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
