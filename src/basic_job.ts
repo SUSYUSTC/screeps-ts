@@ -2,6 +2,14 @@ import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
 import * as external_room from "./external_room";
+import * as functions from "./functions";
+
+var moveoptions = {
+	reusePath: 5,
+	//visualizePathStyle: {},
+	maxRooms: 0,
+	costCallback: functions.avoid_exits,
+};
 
 var vision_options: any = {
     visualizePathStyle: {}
@@ -21,7 +29,7 @@ export function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydis
     var arg_max = mymath.argmax(sort_list);
     var obj_max = obj_list[arg_max];
     if (creep.transfer(obj_max, "energy") == ERR_NOT_IN_RANGE) {
-		creep.moveTo(obj_max, {maxRooms: 0});
+		creep.moveTo(obj_max, moveoptions);
     }
     return 0;
 }
@@ -48,7 +56,7 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
 		obj = store_list[argsort[0]];
 	}
 	if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
-		creep.moveTo(obj, {maxRooms: 0});
+		creep.moveTo(obj, moveoptions);
 	}
 	else {
 		let obj2;
@@ -61,7 +69,7 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
 			}
 		}
 		if (doaction) {
-			creep.moveTo(obj2, {maxRooms: 0});
+			creep.moveTo(obj2, moveoptions);
 		}
 	}
 	return 0;
@@ -70,7 +78,8 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
 export function harvest_source(creep: Creep, source: Source | Mineral) {
     var output = creep.harvest(source);
     if (output == ERR_NOT_IN_RANGE) {
-        movetopos(creep, source.pos);
+		creep.moveTo(source, moveoptions);
+		//movetopos(creep, source.pos);
     }
 }
 
@@ -82,7 +91,8 @@ export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lo
     if (energy >= lower_limit) {
         var output = creep.withdraw(structure, sourcetype, Math.min(energy - lower_limit, creep.store.getFreeCapacity(sourcetype)));
         if (output == ERR_NOT_IN_RANGE) {
-            movetopos(creep, structure.pos);
+			creep.moveTo(structure, moveoptions);
+			//movetopos(creep, structure.pos);
         }
     }
     return 0;
@@ -91,7 +101,8 @@ export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lo
 export function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, sourcetype: ResourceConstant = "energy") {
     var output = creep.transfer(structure, sourcetype);
     if (output == ERR_NOT_IN_RANGE) {
-        movetopos(creep, structure.pos);
+		//movetopos(creep, structure.pos);
+		creep.moveTo(structure, moveoptions);
         return 1;
     }
     return 0;
@@ -99,7 +110,8 @@ export function transfer_energy(creep: Creep, structure: AnyStorageStructure | C
 export function upgrade_controller(creep: Creep, controller: StructureController) {
     var output = creep.upgradeController(controller);
     if (output == ERR_NOT_IN_RANGE) {
-        movetopos(creep, controller.pos);
+		//movetopos(creep, controller.pos);
+		creep.moveTo(controller, moveoptions);
     }
 }
 
@@ -111,7 +123,8 @@ export function build_structure(creep: Creep): number {
         var arg = mymath.argmin(sort_list);
         var target = targets[arg];
         if (creep.build(target) == ERR_NOT_IN_RANGE) {
-            movetopos(creep, target.pos)
+			//movetopos(creep, target.pos)
+			creep.moveTo(target, moveoptions);
         }
         return 0;
     }
@@ -156,7 +169,7 @@ export function ask_for_renew (creep: Creep) {
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
-        creep.moveTo(closest_spawn, {maxRooms: 0});
+        creep.moveTo(closest_spawn, moveoptions);
     }
 }
 
@@ -181,7 +194,8 @@ export function movetoposexceptoccupied (creep: Creep, poses: RoomPosition[]) {
         }
         var obj_list = creep.room.lookAt(pos.x, pos.y);
         if (obj_list.filter((e) => e.type == 'creep').length == 0) {
-            movetopos(creep, pos);
+			creep.moveTo(pos.x, pos.y, moveoptions);
+			//movetopos(creep, pos);
             return 0;
         }
     }
@@ -189,7 +203,7 @@ export function movetoposexceptoccupied (creep: Creep, poses: RoomPosition[]) {
 }
 export function external_flee(creep: Creep, safe_pos: number[]) {
 	if (creep.room.name == creep.memory.home_room_name){
-		creep.moveTo(safe_pos[0], safe_pos[1]);
+		creep.moveTo(safe_pos[0], safe_pos[1], moveoptions);
 	}
 	else{
 		external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.names_backwardpath);

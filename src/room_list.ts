@@ -1,55 +1,6 @@
 //screeps
 
 import * as mymath from "./mymath"
-export interface RoomList_interface {
-	bridges: type_room_list_bridge[];
-	rooms: type_room_list_rooms;
-	rooms_from_bridge(bridges: type_room_list_bridge[]): type_room_list_rooms;
-}
-class RoomList implements RoomList_interface {
-	bridges: type_room_list_bridge[] = [];
-	rooms: type_room_list_rooms = {};
-	rooms_from_bridge(bridges: type_room_list_bridge[]): type_room_list_rooms {
-		var rooms: type_room_list_rooms = {};
-		var exits: number[][];
-		var standpoints: number[][];
-		for (var index of mymath.range(bridges.length)) {
-			var bridge=bridges[index];
-			if (bridge.type == 'H') {
-				exits = [49, 0].map(e => [e, bridge.coor_same]);
-				standpoints = [48, 1].map(e => [e, bridge.coor_same]);
-			} else {
-				exits = [49, 0].map(e => [bridge.coor_same, e]);
-				standpoints = [48, 1].map(e => [bridge.coor_same, e]);
-			}
-			for (var i of [0, 1]) {
-				let j = 1 - i;
-				let rooms_name = bridge.rooms;
-				let room_name = rooms_name[i]
-				if (!(room_name in rooms)) {
-					rooms[room_name] = {
-						"room_name": room_name,
-						"connected_rooms": {}
-					}
-				}
-				if (!(rooms_name[j] in rooms[room_name].connected_rooms)) {
-					rooms[room_name].connected_rooms[rooms_name[j]] = {}
-				}
-				rooms[room_name].connected_rooms[rooms_name[j]][bridge.name] = {
-					"exit": exits[i],
-					'standpoint': standpoints[i],
-					"index": index
-				};
-			}
-		}
-		return rooms;
-	}
-	constructor(bridges: type_room_list_bridge[]) {
-		this.bridges = bridges;
-		this.rooms = this.rooms_from_bridge(bridges);
-	}
-}
-
 export var bridges: type_room_list_bridge[] = [{
     'type': 'H',
 	'rooms': ['E16N58', 'E17N58'],
@@ -106,4 +57,74 @@ export var bridges: type_room_list_bridge[] = [{
     'coor_same': 16,
 	'name': 'default',
 }]
+var room_E16N58_ignore_pos = [
+    [38, 33],
+    [39, 33],
+    [40, 33],
+    [41, 33],
+    [42, 32],
+    [48, 34],
+    [48, 35],
+    [48, 36],
+    [48, 37]
+];
+var room_E15N58_ignore_pos = [
+	[24, 9],
+	[22, 33],
+	[5, 25],
+];
+export var rooms_ignore_pos: type_rooms_ignore_pos = {
+	"E16N58": room_E16N58_ignore_pos,
+	"E15N58": room_E15N58_ignore_pos,
+}
+
+export interface RoomList_interface {
+	bridges: type_room_list_bridge[];
+	rooms: type_room_list_rooms;
+	rooms_from_bridge(bridges: type_room_list_bridge[]): type_room_list_rooms;
+}
+class RoomList implements RoomList_interface {
+	bridges: type_room_list_bridge[] = [];
+	rooms: type_room_list_rooms = {};
+	rooms_from_bridge(bridges: type_room_list_bridge[]): type_room_list_rooms {
+		var rooms: type_room_list_rooms = {};
+		var exits: number[][];
+		var standpoints: number[][];
+		for (var index of mymath.range(bridges.length)) {
+			var bridge=bridges[index];
+			if (bridge.type == 'H') {
+				exits = [49, 0].map(e => [e, bridge.coor_same]);
+				standpoints = [48, 1].map(e => [e, bridge.coor_same]);
+			} else {
+				exits = [49, 0].map(e => [bridge.coor_same, e]);
+				standpoints = [48, 1].map(e => [bridge.coor_same, e]);
+			}
+			for (var i of [0, 1]) {
+				let j = 1 - i;
+				let rooms_name = bridge.rooms;
+				let room_name = rooms_name[i]
+				if (!(room_name in rooms)) {
+					rooms[room_name] = {
+						"room_name": room_name,
+						"connected_rooms": {}
+					}
+				}
+				if (!(rooms_name[j] in rooms[room_name].connected_rooms)) {
+					rooms[room_name].connected_rooms[rooms_name[j]] = {}
+				}
+				rooms[room_name].connected_rooms[rooms_name[j]][bridge.name] = {
+					"exit": exits[i],
+					'standpoint': standpoints[i],
+					"index": index
+				};
+			}
+		}
+		return rooms;
+	}
+	constructor(bridges: type_room_list_bridge[]) {
+		this.bridges = bridges;
+		this.rooms = this.rooms_from_bridge(bridges);
+	}
+}
+
 export var room_list = new RoomList(bridges);

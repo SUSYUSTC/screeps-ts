@@ -147,7 +147,7 @@ var room_E16N58_maincarriers: conf_maincarriers = {
 
 var room_E16N58_max_transfer: number = 8
 var room_E16N58_stay_pos: number[] = [32, 29];
-var room_E16N58_safe_pos: number[] = [34, 33];
+var room_E16N58_safe_pos: number[] = [36, 34];
 var room_E16N58_wall_strength = 200000;
 
 var room_E16N58_external_rooms: conf_external_rooms = {
@@ -172,10 +172,10 @@ var room_E16N58_external_rooms: conf_external_rooms = {
                     "type": "storage",
                     "name": "",
                 },
-				"rooms_forwardpath": ['E16N58', 'E17N58', 'E17N59'],
-				"names_forwardpath": ['default', 'default'],
-				"rooms_backwardpath": ['E17N59', 'E17N58', 'E16N58'],
-				"names_backwardpath": ['default', 'default'],
+                "rooms_forwardpath": ['E16N58', 'E17N58', 'E17N59'],
+                "names_forwardpath": ['default', 'default'],
+                "rooms_backwardpath": ['E17N59', 'E17N58', 'E16N58'],
+                "names_backwardpath": ['default', 'default'],
             },
         },
     },
@@ -221,17 +221,17 @@ var room_E16N58_external_rooms: conf_external_rooms = {
                 "id": < Id < Source >> "5bbcadda9099fc012e637f8f",
                 "harvest_pos": [40, 24],
                 "reserve": true,
-                "single_distance": 58,
-                "n_carry": 13,
+                "single_distance": 60,
+                "n_carry": 14,
                 "n_carrier": 2,
                 "carry_end": {
                     "type": "storage",
                     "name": "",
                 },
-				"rooms_forwardpath": ['E16N58', 'E16N57'],
-				"names_forwardpath": ['default'],
-				"rooms_backwardpath": ['E16N57', 'E16N58'],
-				"names_backwardpath": ['default'],
+                "rooms_forwardpath": ['E16N58', 'E16N57'],
+                "names_forwardpath": ['default'],
+                "rooms_backwardpath": ['E16N57', 'E16N58'],
+                "names_backwardpath": ['default'],
             },
         },
     },
@@ -463,10 +463,10 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                     "type": "storage",
                     "name": ""
                 },
-				"rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
-				"names_forwardpath": ['default', 'default'],
-				"rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
-				"names_backwardpath": ['default', 'default'],
+                "rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
+                "names_forwardpath": ['default', 'default'],
+                "rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
+                "names_backwardpath": ['default', 'default'],
             },
             "S2": {
                 "id": < Id < Source >> "5bbcadb89099fc012e637b18",
@@ -479,10 +479,10 @@ var room_E15N58_external_rooms: conf_external_rooms = {
                     "type": "storage",
                     "name": "",
                 },
-				"rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
-				"names_forwardpath": ['default', 'default'],
-				"rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
-				"names_backwardpath": ['default', 'default'],
+                "rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
+                "names_forwardpath": ['default', 'default'],
+                "rooms_backwardpath": ['E14N59', 'E15N59', 'E15N58'],
+                "names_backwardpath": ['default', 'default'],
             },
         },
     },
@@ -507,7 +507,7 @@ var room_E15N58: room_conf = {
     wall_strength: room_E15N58_wall_strength
 };
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
-	return pos1.getRangeTo(pos2);
+    return pos1.getRangeTo(pos2);
 }
 
 Memory.rooms_conf = {

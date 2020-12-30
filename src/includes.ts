@@ -1,10 +1,10 @@
 type type_external_room_status = {
-	[key: string]: { // room_name
-		"defense_type": string;
-		"reserver": string;
-		"invader_core_existance": boolean;
-		"safe": boolean;
-	}
+    [key: string]: { // room_name
+        "defense_type": string;
+        "reserver": string;
+        "invader_core_existance": boolean;
+        "safe": boolean;
+    }
 }
 type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker";
 interface RoomMemory {
@@ -18,8 +18,8 @@ interface RoomMemory {
     sites_total_progressleft ? : number;
     danger_mode ? : boolean;
     link_modes ? : string[];
-	lack_energy ? : boolean;
-	external_room_status ? : type_external_room_status;
+    lack_energy ? : boolean;
+    external_room_status ? : type_external_room_status;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -36,7 +36,7 @@ interface CreepMemory {
     defender_type ? : string;
     defending_room ? : string;
     maincarrier_type ? : string;
-	carrying_mineral ?: boolean;
+    carrying_mineral ? : boolean;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -89,7 +89,7 @@ interface conf_mine {
     id: Id < Mineral > ;
     type ? : ResourceConstant;
     density ? : number;
-	amount ? : number;
+    amount ? : number;
 }
 interface conf_init {
     [key: string]: {
@@ -176,13 +176,15 @@ interface room_conf {
     external_rooms: conf_external_rooms;
     wall_strength: number;
 }
-type type_body_components= {[key in BodyPartConstant] ?: number};
+type type_body_components = {
+    [key in BodyPartConstant] ? : number
+};
 //type type_body_components= Record<BodyPartConstant, number>;
 interface type_defender_responsible_types {
     [key: string]: {
         list: string[];
         body: type_body_components;
-		cost: number;
+        cost: number;
     };
 }
 interface Memory {
@@ -262,4 +264,7 @@ interface type_creep_components {
     n_attack: number;
     n_rangedattack: number;
     n_heal: number;
+};
+type type_rooms_ignore_pos = {
+    [key: string]: number[][];
 };

@@ -11,7 +11,8 @@ export function movethroughrooms(creep: Creep, rooms_path: string[], names_path:
         throw Error("Contain room not defined in config")
     }
     if (!(rooms_path.includes(creep.room.name))) {
-        throw Error("The current creep is not along the path")
+		console.log(creep.name, "is missing in a unknown room")
+		return;
     }
     var room_info = room_list.room_list.rooms[creep.room.name];
     var arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
