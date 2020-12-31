@@ -152,6 +152,7 @@ var room_E16N58_wall_strength = 200000;
 
 var room_E16N58_external_rooms: conf_external_rooms = {
     "E17N59": {
+        "active": false,
         "controller": {
             "reserve": true,
             "path_time": 82,
@@ -180,6 +181,7 @@ var room_E16N58_external_rooms: conf_external_rooms = {
         },
     },
     "E17N58": {
+        "active": true,
         "controller": {
             "reserve": true,
             "path_time": 70,
@@ -208,6 +210,7 @@ var room_E16N58_external_rooms: conf_external_rooms = {
         },
     },
     "E16N57": {
+        "active": false,
         "controller": {
             "reserve": true,
             "path_time": 58,
@@ -253,7 +256,7 @@ var room_E16N58: room_conf = {
     stay_pos: room_E16N58_stay_pos,
     safe_pos: room_E16N58_safe_pos,
     external_rooms: room_E16N58_external_rooms,
-    wall_strength: room_E16N58_wall_strength
+    wall_strength: room_E16N58_wall_strength,
 };
 
 
@@ -318,6 +321,31 @@ var room_E15N58_links: conf_links = {
     },
 }
 
+var room_E15N58_labs: conf_lab[] = [{
+    "pos": [23, 18],
+    "object": "XLHO2",
+	"body": HEAL,
+}, {
+    "pos": [23, 19],
+    "object": "XGHO2",
+	"body": TOUGH,
+}, {
+    "pos": [24, 19],
+    "object": "XUH2O",
+	"body": ATTACK,
+}, {
+    "pos": [24, 20],
+    "object": "XZHO2",
+	"body": MOVE,
+}, {
+    "pos": [25, 20],
+    "object": "XKHO2",
+	"body": RANGED_ATTACK,
+}, {
+    "pos": [25, 18],
+    "object": "GH2O",
+	"body": WORK,
+}];
 var room_E15N58_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
     "points": 0,
@@ -399,6 +427,7 @@ var room_E15N58_safe_pos: number[] = [20, 21];
 var room_E15N58_wall_strength = 20000;
 var room_E15N58_external_rooms: conf_external_rooms = {
     "E15N59": {
+        "active": true,
         "controller": {
             "reserve": true,
             "path_time": 50,
@@ -443,6 +472,7 @@ var room_E15N58_external_rooms: conf_external_rooms = {
         },
     },
     "E14N59": {
+        "active": true,
         "controller": {
             "reserve": true,
             "path_time": 52,
@@ -487,6 +517,22 @@ var room_E15N58_external_rooms: conf_external_rooms = {
         },
     },
 };
+var room_E15N58_hunting: conf_hunting = {
+    "room_name": "E14N58",
+    "rooms_forwardpath": ["E15N58", "E14N58"],
+    "names_forwardpath": ["default"],
+    "rooms_backwardpath": ["E14N58", "E15N58"],
+    "names_backwardpath": ["default"],
+    "number": 2,
+    "body": {
+        "tough": 5,
+        "move": 25,
+        "attack": 10,
+        "ranged_attack": 8,
+        "heal": 2
+    },
+    "stay_pos": [8, 43],
+}
 var room_E15N58: room_conf = {
     towers: room_E15N58_towers,
     sources: room_E15N58_sources,
@@ -495,6 +541,7 @@ var room_E15N58: room_conf = {
     links: room_E15N58_links,
     link_transfer_gap: room_E15N58_link_transfer_gap,
     link_transfer_amount: room_E15N58_link_transfer_amount,
+	labs: room_E15N58_labs,
     init: room_E15N58_init,
     carriers: room_E15N58_carriers,
     upgraders: room_E15N58_upgraders,
@@ -504,7 +551,8 @@ var room_E15N58: room_conf = {
     stay_pos: room_E15N58_stay_pos,
     safe_pos: room_E15N58_safe_pos,
     external_rooms: room_E15N58_external_rooms,
-    wall_strength: room_E15N58_wall_strength
+    wall_strength: room_E15N58_wall_strength,
+    hunting: room_E15N58_hunting,
 };
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
     return pos1.getRangeTo(pos2);

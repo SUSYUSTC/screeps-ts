@@ -28,8 +28,18 @@ export var bridges: type_room_list_bridge[] = [{
 	'name': 'default',
 }, {
     'type': 'H',
+	'rooms': ['E13N58', 'E14N58'],
+    'coor_same': 36,
+	'name': 'default',
+}, {
+    'type': 'H',
 	'rooms': ['E14N57', 'E15N57'],
     'coor_same': 19,
+	'name': 'default',
+}, {
+    'type': 'H',
+	'rooms': ['E12N57', 'E13N57'],
+    'coor_same': 11,
 	'name': 'default',
 }, {
     'type': 'V',
@@ -56,6 +66,16 @@ export var bridges: type_room_list_bridge[] = [{
 	'rooms': ['E14N58', 'E14N57'],
     'coor_same': 16,
 	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E13N58', 'E13N57'],
+    'coor_same': 26,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E12N57', 'E12N56'],
+    'coor_same': 14,
+	'name': 'default',
 }]
 var room_E16N58_ignore_pos = [
     [38, 33],
@@ -72,6 +92,10 @@ var room_E15N58_ignore_pos = [
 	[24, 9],
 	[22, 33],
 	[5, 25],
+	[26, 20],
+	[25, 19],
+	[24, 18],
+	[23, 17],
 ];
 export var rooms_ignore_pos: type_rooms_ignore_pos = {
 	"E16N58": room_E16N58_ignore_pos,

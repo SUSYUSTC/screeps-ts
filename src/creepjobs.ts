@@ -2,6 +2,7 @@ import * as _ from "lodash"
 import * as role_init from "./role_init";
 import * as basic_job from "./basic_job";
 import * as defense from "./defense";
+import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 var moveoptions = {
@@ -24,6 +25,9 @@ export function creepjob(creep: Creep) {
     }
     if (creep.memory.role == 'init') {
         role_init.init_work(creep);
+	} else if (creep.memory.role == 'hunter') {
+		creep.say("HT")
+		hunting.hunt(creep);
     } else if (creep.memory.role == 'invader_core_attacker') {
         creep.say("A");
         let external_room_status = Game.rooms[creep.memory.home_room_name].memory.external_room_status;
@@ -400,18 +404,16 @@ export function creepjob(creep: Creep) {
                 return;
             }
             let container_capacity = Game.getObjectById(conf.containers.MINE.id).store.getUsedCapacity();
-            if (creep.ticksToLive < 50 && creep.store.getUsedCapacity() == 0) {
+            if (creep.ticksToLive < 150 && creep.store.getUsedCapacity() == 0) {
                 creep.suicide();
             }
-            /*
             if (container_capacity > 1200 && creep.store.getUsedCapacity() == 0) {
             	creep.memory.carrying_mineral = true;
             }
             if (container_capacity < 400 && creep.store.getUsedCapacity() == 0) {
             	creep.memory.carrying_mineral = false;
             }
-             */
-            creep.memory.carrying_mineral = true;
+			//creep.memory.carrying_mineral = true;
             if (("carrying_mineral" in creep.memory) && creep.memory.carrying_mineral) {
                 if (creep.store.getUsedCapacity() == 0) {
                     let mine_container = Game.getObjectById(conf.containers.MINE.id);
@@ -421,6 +423,55 @@ export function creepjob(creep: Creep) {
                 }
                 return;
             }
+			if (!("labs" in conf)) {
+				return;
+			}
+			try {
+				if (("lab_carrying_target_id" in creep.memory) && ("lab_carrying_resource" in creep.memory)) {
+					let lab = Game.getObjectById(creep.memory.lab_carrying_target_id);
+					if (creep.store.getUsedCapacity(creep.memory.lab_carrying_resource) == 0) {
+						if (creep.withdraw(creep.room.terminal, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(creep.room.terminal, moveoptions);
+							return;
+						}
+					}
+					else {
+						if (creep.transfer(lab, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(lab, moveoptions);
+							return;
+						}
+						else {
+							delete creep.memory.lab_carrying_resource;
+							delete creep.memory.lab_carrying_target_id;
+						}
+					}
+				}
+				else {
+					for (let conflab of conf.labs) {
+						let lab = <StructureLab> creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];
+						let mineral_amount = lab.store.getUsedCapacity(conflab.object);
+						let energy_amount = lab.store.getUsedCapacity("energy");
+						if (mineral_amount < 1000) {
+							let terminal_amount = creep.room.terminal.store.getUsedCapacity(conflab.object);
+							if (terminal_amount >= 200) {
+								creep.memory.lab_carrying_target_id = lab.id;
+								creep.memory.lab_carrying_resource = conflab.object;
+								return;
+							}
+						}
+						if (energy_amount < 1000) {
+							let terminal_amount = creep.room.terminal.store.getUsedCapacity("energy");
+							if (terminal_amount >= 200) {
+								creep.memory.lab_carrying_target_id = lab.id;
+								creep.memory.lab_carrying_resource = "energy";
+								return;
+							}
+						}
+					}
+				}
+			} catch (error) {
+				console.log(error);
+			}
         } else if (creep.memory.role == 'maincarrier') {
             creep.say("MC");
             if (creep.memory.maincarrier_type == 'MAIN') {
@@ -435,11 +486,16 @@ export function creepjob(creep: Creep) {
                 let link_energy = link.store.getUsedCapacity("energy")
                 let creep_energy = creep.store.getUsedCapacity("energy")
                 let storage_energy = creep.room.storage.store.getUsedCapacity("energy");
+                let terminal_energy = creep.room.terminal.store.getUsedCapacity("energy");
                 if (link_energy < conf_maincarrier.link_amount && storage_energy > 5000) {
                     creep.withdraw(creep.room.storage, "energy");
                     creep.transfer(link, "energy", Math.min(conf_maincarrier.link_amount - link_energy, creep_energy));
                     return;
                 }
+				else if (terminal_energy < 5000 && storage_energy > 8000) {
+                    creep.withdraw(creep.room.storage, "energy");
+                    creep.transfer(creep.room.terminal, "energy");
+				}
             }
         }
     }

@@ -20,17 +20,6 @@ const allowed_numbers: type_allowed_body_numbers = {
     ]
 }
 
-function analyze_component(creep: Creep): type_creep_components {
-    var bodynames = creep.body.map((e) => e.type);
-	var n_work = mymath.where(bodynames.map((e) => e == WORK)).length;
-	var n_move = mymath.where(bodynames.map((e) => e == MOVE)).length;
-	var n_carry = mymath.where(bodynames.map((e) => e == CARRY)).length;
-	var n_attack = mymath.where(bodynames.map((e) => e == ATTACK)).length;
-	var n_rangedattack = mymath.where(bodynames.map((e) => e == RANGED_ATTACK)).length;
-	var n_heal = mymath.where(bodynames.map((e) => e == HEAL)).length;
-	return {n_work: n_work, n_move: n_move, n_carry: n_carry, n_attack: n_attack, n_rangedattack: n_rangedattack, n_heal: n_heal};
-}
-
 function _get_one_invader_type(creep: Creep): null | invader_type {
     if (!(creep.owner.username == 'Invader')) {
         return null;
@@ -68,7 +57,7 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
 
 export function get_defense_type(room: Room): string {
     var enemies = room.find(FIND_HOSTILE_CREEPS)
-	var enemy_types = enemies.map((e) => analyze_component(e));
+	var enemy_types = enemies.map((e) => functions.analyze_component(e));
 	var argattacker = mymath.range(enemy_types.length).filter((i) => (enemy_types[i].n_attack+ enemy_types[i].n_rangedattack + enemy_types[i].n_heal) > 0);
 	enemies = argattacker.map((i) => enemies[i]);
     if (enemies.length == 0) {
@@ -76,7 +65,7 @@ export function get_defense_type(room: Room): string {
     }
     var types = enemies.map((e) => _get_one_invader_type(e));
     if (mymath.any(types.map((e) => (e == null)))) {
-		var components = enemies.map((e) => analyze_component(e));
+		var components = enemies.map((e) => functions.analyze_component(e));
 		var n_total_attack = mymath.array_sum(components.map((e) => e.n_attack));
 		var n_total_rangedattack = mymath.array_sum(components.map((e) => e.n_rangedattack));
 		var n_total_heal = mymath.array_sum(components.map((e) => e.n_rangedattack));
@@ -121,7 +110,7 @@ export function defend(creep: Creep) {
 		creep.moveTo(creeps[argmin], {maxRooms: 0, reusePath: 0, costCallback: functions.avoid_exits});
         return;
     }
-	var enemy_types = enemies.map((e) => analyze_component(e));
+	var enemy_types = enemies.map((e) => functions.analyze_component(e));
 	let distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
 	let argmin = mymath.argmin(distance)
 	let target = enemies[argmin];

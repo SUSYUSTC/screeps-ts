@@ -41,6 +41,9 @@ export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
 const getbody_external_init = () => {
     return returnbody(2, 2, 2);
 }
+const getbody_hunter = (options: any): BodyPartConstant[] => {
+    return fullreturnbody(options.body);
+}
 const getbody_defender = (options: any): BodyPartConstant[] => {
     var bodyinfo = Memory.defender_responsible_types[options.defender_type].body;
     return fullreturnbody(bodyinfo);
@@ -141,6 +144,7 @@ const getbody_list: type_getbody = {
     'builder': getbody_builder,
     'upgrader': getbody_upgrader,
     'transferer': getbody_transferer,
+	'hunter': getbody_hunter,
 	'defender': getbody_defender,
 	'invader_core_attacker': getbody_invader_core_attacker,
 }
@@ -184,14 +188,19 @@ export function prepare_role(rolename: type_creep_role, energy: number, added_me
     return json;
 }
 
-export function spawn_json(spawn: StructureSpawn, json: type_spawn_json) {
+export function spawn_json(room_name: string, json: type_spawn_json) {
+	let room = Game.rooms[room_name];
+	let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
     if (Memory.debug_mode) {
         console.log("Spawning " + json.rolename);
     }
-    if (spawn.memory.spawning_time < 0) {
-        return;
-    }
-    spawn.spawnCreep(json.body, json.creepname, {
-        memory: json.memory
-    });
+	for (let spawn of spawns) {
+		if (spawn.memory.spawning_time < 0) {
+			continue;
+		}
+		spawn.spawnCreep(json.body, json.creepname, {
+			memory: json.memory
+		});
+		return;
+	}
 }

@@ -6,7 +6,7 @@ type type_external_room_status = {
         "safe": boolean;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter";
 interface RoomMemory {
     storage_list ? : Id < AnyStorageStructure > [];
     tower_list ? : Id < StructureTower > [];
@@ -37,6 +37,8 @@ interface CreepMemory {
     defending_room ? : string;
     maincarrier_type ? : string;
     carrying_mineral ? : boolean;
+	lab_carrying_target_id ? : Id<AnyStorageStructure>;
+	lab_carrying_resource ? : ResourceConstant;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -91,6 +93,11 @@ interface conf_mine {
     density ? : number;
     amount ? : number;
 }
+interface conf_lab {
+	pos: number[];
+	object: MineralBoostConstant;
+	body: BodyPartConstant;
+}
 interface conf_init {
     [key: string]: {
         number: number;
@@ -127,6 +134,7 @@ interface conf_maincarriers {
 }
 interface conf_external_rooms {
     [key: string]: {
+		active: boolean;
         controller: {
             reserve: boolean;
             path_time: number;
@@ -157,6 +165,16 @@ interface conf_external_rooms {
         }
     }
 }
+interface conf_hunting {
+	room_name: string;
+	number: number;
+	rooms_forwardpath: string[];
+	names_forwardpath: string[];
+	rooms_backwardpath: string[];
+	names_backwardpath: string[];
+	body: type_body_components;
+	stay_pos: number[];
+}
 interface room_conf {
     towers: conf_towers;
     sources: conf_sources;
@@ -175,6 +193,8 @@ interface room_conf {
     safe_pos: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
+	labs ? : conf_lab[];
+	hunting ?: conf_hunting;
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -256,7 +276,7 @@ interface type_spawn_json {
     affordable: boolean;
     [key: string]: any;
 };
-type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal;
+type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal | StructureLab;
 interface type_creep_components {
     n_move: number;
     n_work: number;

@@ -9,6 +9,7 @@ import * as spawning from "./spawning";
 import * as towers from "./towers";
 import * as links from "./links";
 import * as main_func from "./main_func";
+import * as simpleattacker from "./simple_attacker"
 Memory.rerunning = true;
 
 module.exports.loop = function() {
@@ -29,7 +30,10 @@ module.exports.loop = function() {
         var creep = Game.creeps[name];
         creepjobs.creepjob(creep);
     }
-    for (var name in Game.spawns) {
-		spawning.spawn(Game.spawns[name]);
+    for (var room_name of Memory.controlled_rooms) {
+		spawning.spawn(room_name);
     }
+	if ("test" in Game.creeps) {
+		simpleattacker.simple_attack(Game.creeps["test"], ['E15N58', 'E14N58', 'E13N58', 'E13N57', 'E12N57', 'E12N56'], ['default', 'default', 'default', 'default', 'default'])
+	}
 }
