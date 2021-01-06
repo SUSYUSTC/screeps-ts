@@ -6,17 +6,18 @@ interface type_allowed_body_numbers {
 }
 const allowed_numbers: type_allowed_body_numbers = {
     'small_close': [
-        [1, 0, 0]
+        [1, 0, 0],
     ],
     'small_far': [
-        [0, 1, 0]
+        [0, 1, 0],
     ],
     'big_close': [
         [2, 0, 0],
-        [1, 0, 1]
+        [1, 0, 1],
     ],
     'big_far': [
-        [0, 1, 1]
+        [0, 1, 1],
+        [1, 1, 0],
     ]
 }
 
@@ -94,6 +95,7 @@ export function get_defense_type(room: Room): string {
     if (mymath.any(types.map((e) => e.level !== 1))) {
         throw Error("Unexpected type of invader")
     }
+	return "user"
 }
 
 export function defend(creep: Creep) {

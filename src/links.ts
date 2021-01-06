@@ -19,6 +19,6 @@ export function work(room_name: string) {
     var argsink = mymath.argmin(sinks_energies)
 	var gap=sources_energies[argsource]-sinks_energies[argsink];
 	if (gap>conf.link_transfer_gap) {
-		sources[argsource].transferEnergy(sinks[argsink], conf.link_transfer_amount);
+		sources[argsource].transferEnergy(sinks[argsink]);
 	}
 }

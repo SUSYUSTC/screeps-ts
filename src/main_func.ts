@@ -14,7 +14,7 @@ export function clear_creep() {
 
 export function set_room_memory(room_name: string) {
     var room = Game.rooms[room_name];
-    var structures = room.find(FIND_MY_STRUCTURES);
+    var structures = room.find(FIND_STRUCTURES);
     var temp_exts = _.filter(structures, (structure) => structure.structureType == "extension");
     var temp_spawns = _.filter(structures, (structure) => structure.structureType == "spawn");
     var temp_towers = _.filter(structures, (structure) => structure.structureType == "tower");
@@ -61,6 +61,19 @@ export function set_room_memory(room_name: string) {
         room.memory.danger_mode = false;
     }
     var conf = Memory.rooms_conf[room_name];
+    var temp_walls = _.filter(structures, (e) => (e.structureType == "constructedWall" || e.structureType == "rampart"))
+    var all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
+    var wall_total_rate = conf.wall_rate * all_walls.length;
+	if (all_walls.length > 0 && conf.wall_rate > 0) {
+		if (!("n_needed_wallrepair" in room.memory)) {
+			room.memory.n_needed_wallrepair = 0;
+		}
+		let do_add_wallrepair = (Math.floor(Game.time*wall_total_rate/800) >  Math.floor((Game.time-1)*wall_total_rate/800));
+		if (do_add_wallrepair) {
+			room.memory.n_needed_wallrepair += 1;
+		}
+    }
+
     var containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
     var links_mode = Object.keys(conf.links).filter((e) => conf.links[e].finished);
     room.memory.container_mode = mymath.all(containers_mode);
@@ -90,7 +103,7 @@ export function set_room_memory(room_name: string) {
     }
     for (var creepname in Game.creeps) {
         var creep = Game.creeps[creepname];
-        if (creep.memory.role == 'externalharvester' && creep.memory.home_room_name == room_name) {
+        if (creep.memory.role == 'externalharvester' && creep.memory.home_room_name == room_name && creep.room.name == creep.memory.external_room_name) {
             //console.log(room_name, creep.memory.source_name, JSON.stringify(conf.external_rooms[creep.memory.external_room_name].sources))
             var conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name];
             conf_external.harvester_name = creepname;
@@ -100,14 +113,14 @@ export function set_room_memory(room_name: string) {
         room.memory.external_room_status = {};
     }
     for (var external_room_name in conf.external_rooms) {
-		if (!(external_room_name in room.memory.external_room_status)) {
+        if (!(external_room_name in room.memory.external_room_status)) {
             room.memory.external_room_status[external_room_name] = {
                 "defense_type": '',
                 "reserver": '',
                 "invader_core_existance": false,
                 "safe": true,
             }
-		}
+        }
         if (external_room_name in Game.rooms) {
             let external_room = Game.rooms[external_room_name];
             let defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
@@ -126,7 +139,7 @@ export function set_room_memory(room_name: string) {
             }
         }
     }
-	console.log(room.name, JSON.stringify(room.memory.external_room_status))
+    console.log(room.name, JSON.stringify(room.memory.external_room_status))
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
         room.memory.lack_energy = false;
     } else {

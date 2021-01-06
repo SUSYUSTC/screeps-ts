@@ -19,7 +19,9 @@ interface RoomMemory {
     danger_mode ? : boolean;
     link_modes ? : string[];
     lack_energy ? : boolean;
+	storage_level ? : number;
     external_room_status ? : type_external_room_status;
+	n_needed_wallrepair ? : number;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -37,8 +39,9 @@ interface CreepMemory {
     defending_room ? : string;
     maincarrier_type ? : string;
     carrying_mineral ? : boolean;
-	lab_carrying_target_id ? : Id<AnyStorageStructure>;
-	lab_carrying_resource ? : ResourceConstant;
+    lab_carrying_target_id ? : Id < AnyStorageStructure > ;
+    lab_carrying_resource ? : ResourceConstant;
+	boost_request ? : type_boost_request;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -94,9 +97,10 @@ interface conf_mine {
     amount ? : number;
 }
 interface conf_lab {
-	pos: number[];
-	object: MineralBoostConstant;
-	body: BodyPartConstant;
+    pos: number[];
+    object: MineralBoostConstant;
+    body: BodyPartConstant;
+    effect ? : string;
 }
 interface conf_init {
     [key: string]: {
@@ -116,6 +120,7 @@ interface conf_carriers {
 interface conf_upgraders {
     locations: number[][];
     commuting_time: number;
+	boost_request ? : type_boost_request;
 }
 interface conf_harvesters {
     [key: string]: {
@@ -134,7 +139,7 @@ interface conf_maincarriers {
 }
 interface conf_external_rooms {
     [key: string]: {
-		active: boolean;
+        active: boolean;
         controller: {
             reserve: boolean;
             path_time: number;
@@ -166,14 +171,14 @@ interface conf_external_rooms {
     }
 }
 interface conf_hunting {
-	room_name: string;
-	number: number;
-	rooms_forwardpath: string[];
-	names_forwardpath: string[];
-	rooms_backwardpath: string[];
-	names_backwardpath: string[];
-	body: type_body_components;
-	stay_pos: number[];
+    room_name: string;
+    number: number;
+    rooms_forwardpath: string[];
+    names_forwardpath: string[];
+    rooms_backwardpath: string[];
+    names_backwardpath: string[];
+    body: type_body_components;
+    stay_pos: number[];
 }
 interface room_conf {
     towers: conf_towers;
@@ -191,10 +196,12 @@ interface room_conf {
     max_transfer: number;
     stay_pos: number[];
     safe_pos: number[];
+	storage_bar: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
-	labs ? : conf_lab[];
-	hunting ?: conf_hunting;
+	wall_rate: number;
+    labs ? : conf_lab[];
+    hunting ? : conf_hunting;
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -227,13 +234,13 @@ interface Memory {
         [key: string]: room_conf
     };
     controlled_rooms ? : string[];
-    help_list ? : any;
     username ? : any
     performance_mode ? : boolean;
     advanced_mode ? : boolean;
     debug_mode ? : boolean;
     rerunning ? : boolean;
     defender_responsible_types ? : type_defender_responsible_types;
+    help_list ? : type_help_list;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -288,3 +295,20 @@ interface type_creep_components {
 type type_rooms_ignore_pos = {
     [key: string]: number[][];
 };
+type type_help_list = {
+    [key: string]: {
+        external_room_name: string;
+        rooms_forwardpath: string[];
+        names_forwardpath: string[];
+        sources: {
+            [key: string]: number;
+        }
+        commuting_time: number;
+        body: type_body_components;
+    }
+}
+type type_boost_request = {
+    object ? : MineralBoostConstant;
+    body ? : BodyPartConstant;
+    effect ? : string;
+}

@@ -33,6 +33,16 @@ export var bridges: type_room_list_bridge[] = [{
 	'name': 'default',
 }, {
     'type': 'H',
+	'rooms': ['E13N56', 'E14N56'],
+    'coor_same': 22,
+	'name': 'default',
+}, {
+    'type': 'H',
+	'rooms': ['E13N54', 'E14N54'],
+    'coor_same': 37,
+	'name': 'default',
+}, {
+    'type': 'H',
 	'rooms': ['E14N57', 'E15N57'],
     'coor_same': 19,
 	'name': 'default',
@@ -66,6 +76,51 @@ export var bridges: type_room_list_bridge[] = [{
 	'rooms': ['E14N58', 'E14N57'],
     'coor_same': 16,
 	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N57', 'E14N56'],
+    'coor_same': 14,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N56', 'E14N55'],
+    'coor_same': 2,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E13N56', 'E13N55'],
+    'coor_same': 32,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E13N55', 'E13N54'],
+    'coor_same': 32,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N55', 'E14N54'],
+    'coor_same': 14,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N54', 'E14N53'],
+    'coor_same': 4,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N53', 'E14N52'],
+    'coor_same': 38,
+	'name': 'default',
+}, {
+    'type': 'V',
+	'rooms': ['E14N52', 'E14N51'],
+    'coor_same': 26,
+	'name': 'left',
+}, {
+    'type': 'V',
+	'rooms': ['E14N52', 'E14N51'],
+    'coor_same': 31,
+	'name': 'right',
 }, {
     'type': 'V',
 	'rooms': ['E13N58', 'E13N57'],

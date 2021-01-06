@@ -14,6 +14,7 @@ function not_edge(pos: RoomPosition): boolean {
 export function hunt(creep: Creep) {
     let conf = Memory.rooms_conf[creep.memory.home_room_name];
     let attacked = false;
+    let rangedattacked = false;
     if (!("hunting" in conf)) {
         return;
     }
@@ -40,7 +41,9 @@ export function hunt(creep: Creep) {
                 let argmin_movable = mymath.argmin(distance_movable);
                 moving_target = enermies_movable[argmin_movable];
             }
-            creep.rangedAttack(target);
+			if (creep.rangedAttack(target) == 0) {
+				rangedattacked=true;
+			}
             var total_components: {
                 [key: string]: number
             } = {};
@@ -65,7 +68,9 @@ export function hunt(creep: Creep) {
                         let argmin_structures = mymath.argmin(distance_structures);
                         let closest_structure = structures[argmin_structures];
                         creep.attack(closest_structure);
-                        creep.rangedAttack(closest_structure);
+						if (!rangedattacked) {
+							creep.rangedAttack(closest_structure);
+						}
                     }
                 }
             }

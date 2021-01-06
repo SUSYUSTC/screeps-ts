@@ -38,8 +38,8 @@ export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
     }
     return body;
 }
-const getbody_external_init = () => {
-    return returnbody(2, 2, 2);
+const getbody_external_init = (options:  any) => {
+    return fullreturnbody(options.body);
 }
 const getbody_hunter = (options: any): BodyPartConstant[] => {
     return fullreturnbody(options.body);
@@ -56,7 +56,7 @@ const getbody_invader_core_attacker = (options: any): BodyPartConstant[] => {
     return fullreturnbody(bodyinfo);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
-    if (options.link_mode) {
+    if (options.with_carry) {
         return returnbody(5, 1, 1);
     } else {
         return returnbody(5, 0, 1);
@@ -68,16 +68,19 @@ const getbody_mineharvester = (options: any): BodyPartConstant[] => {
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
     if (options.reserve) {
         var n_work = 5;
-        var n_move = 3;
+        var n_move = 5;
     } else {
         var n_work = 3;
-        var n_move = 2;
+        var n_move = 3;
     }
     var n_carry = options.n_carry;
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_upgrader = (options: any): BodyPartConstant[] => {
-    if (options.max_energy >= 1200) {
+	if (options.max_energy >= 2400) {
+        return returnbody(20, 4, 4);
+	}
+    else if (options.max_energy >= 1200) {
         return returnbody(10, 2, 2);
     } else if (options.max_energy >= 600) {
         return returnbody(5, 1, 1);

@@ -83,13 +83,13 @@ export function harvest_source(creep: Creep, source: Source | Mineral) {
     }
 }
 
-export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, lower_limit: number = 0, sourcetype: ResourceConstant = "energy") {
+export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, left: number = 0, sourcetype: ResourceConstant = "energy") {
     if (creep.ticksToLive <= 30) {
         return 10;
     }
     var energy = structure.store.getUsedCapacity(sourcetype);
-    if (energy >= lower_limit) {
-        var output = creep.withdraw(structure, sourcetype, Math.min(energy - lower_limit, creep.store.getFreeCapacity(sourcetype)));
+    if (energy >= left) {
+        var output = creep.withdraw(structure, sourcetype, Math.min(energy - left, creep.store.getFreeCapacity(sourcetype)));
         if (output == ERR_NOT_IN_RANGE) {
 			creep.moveTo(structure, moveoptions);
 			//movetopos(creep, structure.pos);
@@ -117,7 +117,7 @@ export function upgrade_controller(creep: Creep, controller: StructureController
 
 export function build_structure(creep: Creep): number {
     var metric = config.distance_metric;
-    var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+    var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
     if (targets.length) {
         var sort_list = Array.from(targets, obj => metric(creep.room.name, creep.pos, obj.pos));
         var arg = mymath.argmin(sort_list);
@@ -149,17 +149,44 @@ export function select_linkcontainer (creep: Creep, min_energy: number = 0, allo
     var arg = mymath.argmin(distances);
     return structures[arg];
 }
-export function preferred_container (creep: Creep, containers: conf_containers, preferences: conf_preference[]) {
+export function preferred_container (creep: Creep, containers: conf_containers, preferences: conf_preference[]): StructureContainer | null {
     var finished_preferences = preferences.filter((e) => containers[e.container].finished);
     var containers_obj: StructureContainer[] = finished_preferences.map((e) => Game.getObjectById(containers[e.container].id));
-	containers_obj = containers_obj.filter((e) => e.store.getFreeCapacity("energy") >= 100);
+	//containers_obj = containers_obj.filter((e) => e.store.getFreeCapacity("energy") >= 100);
+    let argfilter = mymath.where(containers_obj.map(function (e) { return e.store.getFreeCapacity("energy") >= 100; }));
+	containers_obj = argfilter.map((e) => containers_obj[e]);
+	finished_preferences = argfilter.map((e) => finished_preferences[e]);
     var containers_energies = containers_obj.map((e) => e.store.getUsedCapacity("energy"));
     var points = finished_preferences.map((e) => e.points);
     var final_scores = mymath.array_ele_plus(containers_energies, points);
-    var arg = mymath.argmin(final_scores);
-    return containers_obj[arg];
+	if (final_scores.length > 0) {
+		var arg = mymath.argmin(final_scores);
+		return containers_obj[arg];
+	}
+	else {
+		return null;
+	}
 }
 
+export function lab_request (creep: Creep, boost_request: type_boost_request, conflabs: conf_lab[]): StructureLab | null {
+	let lab = null;
+	for (let conflab of conflabs) {
+		let match: boolean[] = Object.keys(creep.memory.boost_request).map((e) => conflab[e]==creep.memory.boost_request[e]);
+		if (mymath.all(match)) {
+			lab = <StructureLab> creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];
+		}
+	}
+	return lab;
+}
+
+export function repair_container(creep: Creep) {
+	let containers = creep.pos.lookFor("structure").filter((e) => e.structureType == 'container')
+	if (containers.length > 0 && containers[0].hitsMax - containers[0].hits >= 1000 && creep.store.getUsedCapacity("energy") >= 10) {
+		creep.repair(containers[0]);
+		return 0;
+	}
+	return 1;
+}
 export function ask_for_renew (creep: Creep) {
 	var metric = config.distance_metric;
 	var spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
@@ -188,14 +215,20 @@ export function movetopos (creep: Creep, pos: RoomPosition, plot: boolean = fals
     }
 }
 export function movetoposexceptoccupied (creep: Creep, poses: RoomPosition[]) {
+	let inposition = false;
     for (var pos of poses) {
         if (creep.pos.x == pos.x && creep.pos.y == pos.y) {
-            return 2;
+			inposition=true;
         }
+    }
+    for (var pos of poses) {
         var obj_list = creep.room.lookAt(pos.x, pos.y);
-        if (obj_list.filter((e) => e.type == 'creep').length == 0) {
+		var vacant = (obj_list.filter((e) => e.type == 'creep').length == 0);
+        if (creep.pos.x == pos.x && creep.pos.y == pos.y) {
+			return 2;
+		}
+		if (vacant && !(inposition && creep.pos.getRangeTo(pos) > 1)) {
 			creep.moveTo(pos.x, pos.y, moveoptions);
-			//movetopos(creep, pos);
             return 0;
         }
     }
