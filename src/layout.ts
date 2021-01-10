@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
 
-type allowed_structure_types = STRUCTURE_LINK | STRUCTURE_CONTAINER | STRUCTURE_TOWER;
+type allowed_structure_types = STRUCTURE_LINK | STRUCTURE_CONTAINER | STRUCTURE_TOWER | STRUCTURE_LAB;
 
 function is_potential_structure(e: LookAtResult, structuretype: allowed_structure_types): boolean {
     var is_structure = (e.type == 'structure' && e.structure.structureType == structuretype);
@@ -24,10 +24,8 @@ function create_structure(room_name: string, pos: RoomPosition, structuretype: a
     return [typ, id];
 }
 
-export function update_structure_info(room_name: string, structuretype: allowed_structure_types) {
+export function update_structure_info(room_name: string, structuretype: allowed_structure_types, conf: conf_structures) {
     var room = Game.rooms[room_name];
-    var key: string = structuretype + "s";
-    var conf = Memory.rooms_conf[room_name][key];
     for (var structure_name in conf) {
         if (("RCL" in conf[structure_name]) && room.controller.level < conf[structure_name].RCL) {
             continue;

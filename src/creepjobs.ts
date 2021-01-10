@@ -126,27 +126,39 @@ export function creepjob(creep: Creep) {
         var link_modes = creep.room.memory.link_modes;
         if (creep.memory.role == 'harvester') {
             creep.say("H")
-            let source;
-            let linkcontainer_source;
+            let source_name = creep.memory.source_name;
+            let source_id = conf.sources[source_name].id;
+            let source = Game.getObjectById(source_id);
+            let link_mode = false;
+            let link_source: null | StructureLink = null;
+            let container_source: null | StructureContainer = null;
             if (true) {
-                let source_name = creep.memory.source_name;
-                let source_id = conf.sources[source_name].id;
-                let link_mode = link_modes.includes(source_name);
-                let conf_linkcontainers: conf_structures < StructureLink | StructureContainer > = < conf_structures < StructureLink | StructureContainer >> (link_mode ? conf.links : conf.containers);
-                let conf_linkcontainer_source = conf_linkcontainers[source_name];
-                if (!conf_linkcontainer_source.finished) {
-                    return;
+                link_mode = link_modes.includes(source_name);
+                if (link_mode) {
+                    let conf_link_source = conf.links[source_name];
+                    if (!conf_link_source.finished) {
+                        return
+                    }
+                    link_source = Game.getObjectById(conf_link_source.id);
+                } else {
+                    let conf_container_source = conf.containers[source_name];
+                    if (!conf_container_source.finished) {
+                        return
+                    }
+                    container_source = Game.getObjectById(conf_container_source.id);
                 }
                 let xy = conf.containers[source_name].pos;
                 let pos = creep.room.getPositionAt(xy[0], xy[1]);
                 if (basic_job.movetoposexceptoccupied(creep, [pos]) == 0) {
                     return;
                 }
-                source = Game.getObjectById(source_id);
-                linkcontainer_source = < AnyStorageStructure > Game.getObjectById(conf_linkcontainer_source.id);
             }
             if (creep.ticksToLive < 5) {
-                basic_job.transfer_energy(creep, linkcontainer_source);
+                if (link_mode) {
+                    basic_job.transfer_energy(creep, link_source);
+                } else {
+                    basic_job.transfer_energy(creep, container_source);
+                }
                 return;
             }
             let this_container = Game.getObjectById(conf.containers[creep.memory.source_name].id);
@@ -155,8 +167,8 @@ export function creepjob(creep: Creep) {
                 return;
             }
             basic_job.harvest_source(creep, source);
-            if (creep.store.getFreeCapacity() == 0) {
-                basic_job.transfer_energy(creep, linkcontainer_source);
+            if (link_mode && creep.store.getFreeCapacity() == 0) {
+                basic_job.transfer_energy(creep, link_source);
             }
         } else if (creep.memory.role == 'carrier') {
             creep.say("C")
@@ -346,7 +358,7 @@ export function creepjob(creep: Creep) {
                     use_link = true;
                 }
             }
-			if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity("energy")*0.2 && creep.ticksToLive >= 10) {
+            if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity("energy") * 0.2 && creep.ticksToLive >= 10) {
                 if (!creep.room.memory.danger_mode) {
                     var lower_limit = (link_mode ? 100 : 800);
                     if (use_link) {
@@ -356,7 +368,7 @@ export function creepjob(creep: Creep) {
                     }
                 }
             }
-			basic_job.upgrade_controller(creep, creep.room.controller);
+            basic_job.upgrade_controller(creep, creep.room.controller);
         } else if (creep.memory.role == 'builder') {
             creep.say("B")
             let link_mode = link_modes.includes('CT');
@@ -425,76 +437,80 @@ export function creepjob(creep: Creep) {
             }
         } else if (creep.memory.role == 'specialcarrier') {
             creep.say("SC")
-            if (!creep.room.memory.mine_harvestable) {
-                return;
-            }
-            let container_capacity = Game.getObjectById(conf.containers.MINE.id).store.getUsedCapacity();
-            if (creep.ticksToLive < 150 && creep.store.getUsedCapacity() == 0) {
-                creep.suicide();
-            }
-            if (container_capacity > 1200 && creep.store.getUsedCapacity() == 0) {
-                creep.memory.carrying_mineral = true;
-            }
-            if (container_capacity < 400 && creep.store.getUsedCapacity() == 0) {
-                creep.memory.carrying_mineral = false;
-            }
-            //creep.memory.carrying_mineral = true;
-            if (("carrying_mineral" in creep.memory) && creep.memory.carrying_mineral) {
-                if (creep.store.getUsedCapacity() == 0) {
-                    let mine_container = Game.getObjectById(conf.containers.MINE.id);
-                    basic_job.withdraw_energy(creep, mine_container, 0, conf.mine.type);
-                } else {
-                    basic_job.transfer_energy(creep, creep.room.terminal, conf.mine.type);
+            if (creep.room.memory.mine_harvestable) {
+                let container_capacity = Game.getObjectById(conf.containers.MINE.id).store.getUsedCapacity();
+                if (creep.ticksToLive < 150 && creep.store.getUsedCapacity() == 0) {
+                    creep.suicide();
                 }
-                return;
+                if (container_capacity > 1200 && creep.store.getUsedCapacity() == 0) {
+                    creep.memory.carrying_mineral = true;
+                }
+                if (container_capacity < 400 && creep.store.getUsedCapacity() == 0) {
+                    creep.memory.carrying_mineral = false;
+                }
+                //creep.memory.carrying_mineral = true;
+                if (("carrying_mineral" in creep.memory) && creep.memory.carrying_mineral) {
+                    if (creep.store.getUsedCapacity() == 0) {
+                        let mine_container = Game.getObjectById(conf.containers.MINE.id);
+                        basic_job.withdraw_energy(creep, mine_container, 0, conf.mine.type);
+                    } else {
+                        basic_job.transfer_energy(creep, creep.room.terminal, conf.mine.type);
+                    }
+                    return;
+                }
             }
             if (!("labs" in conf)) {
+                creep.moveTo(conf.stay_pos[0], conf.stay_pos[1])
                 return;
             }
-            try {
-                if (("lab_carrying_target_id" in creep.memory) && ("lab_carrying_resource" in creep.memory)) {
-                    let lab = Game.getObjectById(creep.memory.lab_carrying_target_id);
-                    if (creep.store.getUsedCapacity(creep.memory.lab_carrying_resource) == 0) {
-                        if (creep.withdraw(creep.room.terminal, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(creep.room.terminal, moveoptions);
-                            return;
-                        }
-                    } else {
-                        if (creep.transfer(lab, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(lab, moveoptions);
-                            return;
-                        } else {
-                            delete creep.memory.lab_carrying_resource;
-                            delete creep.memory.lab_carrying_target_id;
-                        }
+            //try {
+            if (("lab_carrying_target_id" in creep.memory) && ("lab_carrying_resource" in creep.memory)) {
+                let lab = Game.getObjectById(creep.memory.lab_carrying_target_id);
+                if (creep.store.getUsedCapacity(creep.memory.lab_carrying_resource) == 0) {
+                    if (creep.withdraw(creep.room.terminal, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(creep.room.terminal, moveoptions);
+                        return;
                     }
                 } else {
-                    for (let conflab of conf.labs) {
-                        let lab = < StructureLab > creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];
-                        let mineral_amount = lab.store.getUsedCapacity(conflab.object);
-                        let energy_amount = lab.store.getUsedCapacity("energy");
-                        if (mineral_amount < 1000) {
-                            let terminal_amount = creep.room.terminal.store.getUsedCapacity(conflab.object);
-                            if (terminal_amount >= 200) {
-                                creep.memory.lab_carrying_target_id = lab.id;
-                                creep.memory.lab_carrying_resource = conflab.object;
-                                return;
-                            }
-                        }
-                        if (energy_amount < 1000) {
-                            let terminal_amount = creep.room.terminal.store.getUsedCapacity("energy");
-                            if (terminal_amount >= 200) {
-                                creep.memory.lab_carrying_target_id = lab.id;
-                                creep.memory.lab_carrying_resource = "energy";
-                                return;
-                            }
+                    if (creep.transfer(lab, creep.memory.lab_carrying_resource) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(lab, moveoptions);
+                        return;
+                    } else {
+                        delete creep.memory.lab_carrying_resource;
+                        delete creep.memory.lab_carrying_target_id;
+                    }
+                }
+            } else {
+                for (let lab_name in conf.labs) {
+                    let conflab = conf.labs[lab_name];
+                    let lab = < StructureLab > creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];
+                    let mineral_amount = lab.store.getUsedCapacity(conflab.object);
+                    let energy_amount = lab.store.getUsedCapacity("energy");
+                    if (mineral_amount < 1000) {
+                        let terminal_amount = creep.room.terminal.store.getUsedCapacity(conflab.object);
+                        if (terminal_amount >= 200) {
+                            creep.memory.lab_carrying_target_id = lab.id;
+                            creep.memory.lab_carrying_resource = conflab.object;
+                            return;
                         }
                     }
-                    creep.moveTo(conf.stay_pos[0], conf.stay_pos[1])
+                    if (energy_amount < 1000) {
+                        let terminal_amount = creep.room.terminal.store.getUsedCapacity("energy");
+                        if (terminal_amount >= 200) {
+                            creep.memory.lab_carrying_target_id = lab.id;
+                            creep.memory.lab_carrying_resource = "energy";
+                            return;
+                        }
+                    }
                 }
-            } catch (error) {
+                creep.moveTo(conf.stay_pos[0], conf.stay_pos[1])
+            }
+            //}
+            /*
+			catch (error) {
                 console.log(error);
             }
+			*/
         } else if (creep.memory.role == 'maincarrier') {
             creep.say("MC");
             if (creep.memory.maincarrier_type == 'MAIN') {
@@ -512,9 +528,18 @@ export function creepjob(creep: Creep) {
                 let storage_leftenergy = creep.room.storage.store.getFreeCapacity("energy");
                 let terminal_energy = creep.room.terminal.store.getUsedCapacity("energy");
                 if (link_energy < conf_maincarrier.link_amount && storage_energy > 5000) {
-                    creep.withdraw(creep.room.storage, "energy");
-                    creep.transfer(link, "energy", Math.min(conf_maincarrier.link_amount - link_energy, creep_energy));
+                    if (creep_energy == 0) {
+                        creep.withdraw(creep.room.storage, "energy");
+                    } else {
+                        creep.transfer(link, "energy", Math.min(conf_maincarrier.link_amount - link_energy, creep_energy));
+                    }
                     return;
+                } else if (link_energy > conf_maincarrier.link_amount) {
+                    if (creep_energy == 0) {
+                        creep.withdraw(link, "energy", Math.min(link_energy - conf_maincarrier.link_amount, creep_energy));
+                    } else {
+                        creep.transfer(creep.room.storage, "energy");
+                    }
                 } else if (terminal_energy < 50000 && storage_energy > 50000) {
                     if (creep_energy == 0) {
                         creep.withdraw(creep.room.storage, "energy");

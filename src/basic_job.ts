@@ -168,9 +168,10 @@ export function preferred_container (creep: Creep, containers: conf_containers, 
 	}
 }
 
-export function lab_request (creep: Creep, boost_request: type_boost_request, conflabs: conf_lab[]): StructureLab | null {
+export function lab_request (creep: Creep, boost_request: type_boost_request, conflabs: conf_lab): StructureLab | null {
 	let lab = null;
-	for (let conflab of conflabs) {
+	for (let labname in conflabs) {
+		let conflab = conflabs[labname];
 		let match: boolean[] = Object.keys(creep.memory.boost_request).map((e) => conflab[e]==creep.memory.boost_request[e]);
 		if (mymath.all(match)) {
 			lab = <StructureLab> creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];

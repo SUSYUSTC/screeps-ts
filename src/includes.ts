@@ -47,60 +47,67 @@ interface SpawnMemory {
     spawning_time ? : number;
     can_suicide ? : boolean;
 }
-interface conf_towers {
-    [key: string]: {
-        pos: number[];
-        finished ? : boolean;
-        id ? : Id < StructureTower > ;
-        RCL ? : number;
-    }
-}
 interface conf_sources {
     [key: string]: {
         id: Id < Source > ;
-    }
-}
-interface conf_structures < T > {
-    [key: string]: {
-        pos: number[];
-        id ? : Id < T > ;
-        RCL ? : number;
-        finished ? : boolean;
-        source ? : boolean;
-        amount ? : number;
-    }
-}
-/*
-interface conf_links {
-    [key: string]: {
-        pos: number[];
-        id: Id < StructureLink > ;
         RCL ? : number;
         finished ? : boolean;
     }
 }
-interface conf_containers {
-    [key: string]: {
-        pos: number[];
-        id: Id < StructureContainer > ;
-        RCL ? : number;
-        finished ? : boolean;
-    }
-}
- */
-type conf_links = conf_structures < StructureLink > ;
-type conf_containers = conf_structures < StructureContainer > ;
 interface conf_mine {
     id: Id < Mineral > ;
     type ? : ResourceConstant;
     density ? : number;
     amount ? : number;
 }
-interface conf_lab {
-    pos: number[];
-    object: MineralBoostConstant;
-    body: BodyPartConstant;
-    effect ? : string;
+interface conf_structures {
+	[key: string]: {
+        pos: number[];
+		id ? : Id < Structure >;
+		exists ? : boolean;
+		finished ? : boolean;
+		RCL ? : number;
+	}
+}
+interface conf_towers extends conf_structures {
+    [key: string]: {
+        pos: number[];
+		id ? : Id < StructureTower >;
+		exists ? : boolean;
+		finished ? : boolean;
+		RCL ? : number;
+    }
+}
+interface conf_links extends conf_structures {
+    [key: string]: {
+        pos: number[];
+		source: boolean;
+        id ? : Id < StructureLink > ;
+		exists ? : boolean;
+        finished ? : boolean;
+        RCL ? : number;
+    }
+}
+interface conf_containers extends conf_structures {
+    [key: string]: {
+        pos: number[];
+        id ? : Id < StructureContainer > ;
+		exists ? : boolean;
+        finished ? : boolean;
+        RCL ? : number;
+    }
+}
+interface conf_lab extends conf_structures {
+	[key: string]: {
+		pos: number[];
+		object: MineralBoostConstant;
+		body: BodyPartConstant;
+		id ? : Id < StructureLab >;
+		exists ? : boolean;
+        finished ? : boolean;
+		effect ? : string;
+		active ? : boolean;
+	}
 }
 interface conf_init {
     [key: string]: {
@@ -200,7 +207,7 @@ interface room_conf {
     external_rooms: conf_external_rooms;
     wall_strength: number;
 	wall_rate: number;
-    labs ? : conf_lab[];
+    labs ? : conf_lab;
     hunting ? : conf_hunting;
 }
 type type_body_components = {

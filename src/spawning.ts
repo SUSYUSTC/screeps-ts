@@ -237,7 +237,7 @@ export function spawn(room_name: string) {
         jsons.push(json);
     }
     let container = Game.getObjectById(conf.containers.CT.id);
-    if (n_upgrades < max_upgrade) {
+	if (n_upgrades < max_upgrade && room.controller.level < 8) {
         let added_memory: any = {};
 		if ("boost_request" in conf.upgraders) {
 			added_memory["boost_request"] = conf.upgraders.boost_request;
