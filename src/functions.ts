@@ -2,28 +2,74 @@
 import * as room_list from "./room_list"
 import * as mymath from "./mymath"
 export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
-    for (var i = 0; i < 50; i++) {
-        costMatrix.set(0, i, 100);
-        costMatrix.set(49, i, 100);
-        costMatrix.set(i, 49, 100);
-        costMatrix.set(i, 0, 100);
+    for (let i = 0; i < 50; i++) {
+        costMatrix.set(0, i, 255);
+        costMatrix.set(49, i, 255);
+        costMatrix.set(i, 49, 255);
+        costMatrix.set(i, 0, 255);
     }
-    for (var _room_name in room_list.rooms_ignore_pos) {
+    for (let _room_name in room_list.rooms_ignore_pos) {
         if (room_name == _room_name) {
             for (let xy of room_list.rooms_ignore_pos[_room_name]) {
                 costMatrix.set(xy[0], xy[1], 1);
             }
         }
     }
-    if (room_name == 'E14N56') {
-        for (var i = 0; i <= 10; i++) {
-            for (var j = 0; j <= 14; j++) {
-                costMatrix.set(i, j, 100);
-            }
-        }
-    }
 }
 
+export function get_costmatrix_road(room_name: string) {
+    let name_of_this_function = "costmatrices"
+    if (Game.tick_cpu[name_of_this_function] == undefined) {
+        Game.tick_cpu[name_of_this_function] = 0
+    }
+    let cpu_used = Game.cpu.getUsed();
+    if (Game.costmatrices == undefined) {
+        Game.costmatrices = {};
+    }
+    if (Game.costmatrices[room_name] == undefined) {
+        if (global.basic_costmatrices == undefined) {
+            global.basic_costmatrices = {};
+        }
+        if (global.basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated) {
+            let costmatrix = new PathFinder.CostMatrix;
+            let terrain = new Room.Terrain(room_name);
+            for (let i = 0; i < 50; i++) {
+                for (let j = 0; j < 50; j++) {
+                    if (terrain.get(i, j) == 0) {
+                        costmatrix.set(i, j, 2);
+                    } else if (terrain.get(i, j) == 1) {
+                        costmatrix.set(i, j, 255);
+                    } else if (terrain.get(i, j) == 2) {
+                        costmatrix.set(i, j, 10);
+                    }
+                }
+            }
+            if (Game.rooms[room_name] !== undefined) {
+                let room = Game.rooms[room_name];
+                let structures = room.find(FIND_STRUCTURES);
+                let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+                structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
+                structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+                sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+                structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== Memory.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            }
+            global.basic_costmatrices[room_name] = costmatrix;
+        }
+        let costmatrix = global.basic_costmatrices[room_name];
+        if (Game.rooms[room_name] !== undefined) {
+            let room = Game.rooms[room_name];
+            let mycreeps = room.find(FIND_MY_CREEPS);
+            mycreeps.filter((e) => !e.memory.movable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            let hostilecreeps = room.find(FIND_HOSTILE_CREEPS);
+            hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            Game.costmatrices[room_name] = costmatrix.clone();
+        } else {
+            Game.costmatrices[room_name] = costmatrix.clone();
+        }
+    }
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+    return Game.costmatrices[room_name];
+}
 export function analyze_component(creep: Creep): type_creep_components {
     var bodynames = creep.body.map((e) => e.type);
     var n_work = mymath.where(bodynames.map((e) => e == WORK)).length;

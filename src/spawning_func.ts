@@ -38,7 +38,7 @@ export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
     }
     return body;
 }
-const getbody_external_init = (options:  any) => {
+const getbody_external_init = (options: any) => {
     return fullreturnbody(options.body);
 }
 const getbody_hunter = (options: any): BodyPartConstant[] => {
@@ -54,6 +54,27 @@ const getbody_invader_core_attacker = (options: any): BodyPartConstant[] => {
         "attack": 10
     };
     return fullreturnbody(bodyinfo);
+}
+const getbody_help_harvester = (options: any) => {
+    return returnbody(5, 1, 5);
+}
+const getbody_help_carrier = (options: any) => {
+    let n_work = 0;
+    let n_carry = options.max_parts;
+    let n_move = options.max_parts;
+    return returnbody(n_work, n_carry, n_move);
+}
+const getbody_help_builder = (options: any) => {
+    let n_work = 8;
+    let n_carry = 8;
+    let n_move = 8;
+    return returnbody(n_work, n_carry, n_move);
+}
+const getbody_wall_repairer = (options: any) => {
+    let n_work = 20;
+    let n_carry = 8;
+    let n_move = 14;
+    return returnbody(n_work, n_carry, n_move);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
     if (options.with_carry) {
@@ -77,15 +98,18 @@ const getbody_externalharvester = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_upgrader = (options: any): BodyPartConstant[] => {
-	if (options.max_energy >= 2400) {
-        return returnbody(20, 4, 4);
-	}
-    else if (options.max_energy >= 1200) {
-        return returnbody(10, 2, 2);
-    } else if (options.max_energy >= 600) {
-        return returnbody(5, 1, 1);
+    if (options.rcl8) {
+        return returnbody(1, 1, 1);
     } else {
-        return returnbody(4, 1, 1);
+        if (options.max_energy >= 2400) {
+            return returnbody(20, 4, 4);
+        } else if (options.max_energy >= 1200) {
+            return returnbody(10, 2, 2);
+        } else if (options.max_energy >= 600) {
+            return returnbody(5, 1, 1);
+        } else {
+            return returnbody(4, 1, 1);
+        }
     }
 }
 const getbody_builder = (options: any): BodyPartConstant[] => {
@@ -95,7 +119,8 @@ const getbody_builder = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_carrier = (options: any): BodyPartConstant[] => {
-    let n_carry = Math.floor(options.max_energy / 150) * 2;
+    let temp_n_move = Math.floor((options.max_energy + 50) / 150);
+    let n_carry = Math.min(options.max_energy / 50 - temp_n_move, temp_n_move*2);
     if (n_carry >= options.max_parts) {
         n_carry = options.max_parts;
     } else if (n_carry >= Math.ceil(options.max_parts / 2)) {
@@ -135,21 +160,24 @@ interface type_getbody {
     };
 };
 const getbody_list: type_getbody = {
-    'external_init': getbody_external_init,
     'harvester': getbody_harvester,
     'mineharvester': getbody_mineharvester,
     'externalharvester': getbody_externalharvester,
+    'help_harvester': getbody_help_harvester,
     'carrier': getbody_carrier,
     'externalcarrier': getbody_externalcarrier,
     'maincarrier': getbody_maincarrier,
     'specialcarrier': getbody_specialcarrier,
+    'help_carrier': getbody_help_carrier,
     'reserver': getbody_reserver,
     'builder': getbody_builder,
+    'help_builder': getbody_help_builder,
     'upgrader': getbody_upgrader,
     'transferer': getbody_transferer,
-	'hunter': getbody_hunter,
-	'defender': getbody_defender,
-	'invader_core_attacker': getbody_invader_core_attacker,
+    'hunter': getbody_hunter,
+    'defender': getbody_defender,
+    'invader_core_attacker': getbody_invader_core_attacker,
+	'wall_repairer': getbody_wall_repairer,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
@@ -192,18 +220,18 @@ export function prepare_role(rolename: type_creep_role, energy: number, added_me
 }
 
 export function spawn_json(room_name: string, json: type_spawn_json) {
-	let room = Game.rooms[room_name];
-	let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
+    let room = Game.rooms[room_name];
+    let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
     if (Memory.debug_mode) {
         console.log("Spawning " + json.rolename);
     }
-	for (let spawn of spawns) {
-		if (spawn.memory.spawning_time < 0) {
-			continue;
-		}
-		spawn.spawnCreep(json.body, json.creepname, {
-			memory: json.memory
-		});
-		return;
-	}
+    for (let spawn of spawns) {
+        if (spawn.memory.spawning_time < 0) {
+            continue;
+        }
+        spawn.spawnCreep(json.body, json.creepname, {
+            memory: json.memory
+        });
+        return;
+    }
 }

@@ -18,7 +18,10 @@ const allowed_numbers: type_allowed_body_numbers = {
     'big_far': [
         [0, 1, 1],
         [1, 1, 0],
-    ]
+	],
+	'two_far': [
+		[0, 2, 0],
+	]
 }
 
 function _get_one_invader_type(creep: Creep): null | invader_type {

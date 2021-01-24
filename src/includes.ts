@@ -6,7 +6,12 @@ type type_external_room_status = {
         "safe": boolean;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter" | "help_harvester" | "help_carrier" | "help_builder" | "wall_repairer"
+type type_stored_path = {
+    path: number[][];
+    target: number[];
+    time_left: number;
+}
 interface RoomMemory {
     storage_list ? : Id < AnyStorageStructure > [];
     tower_list ? : Id < StructureTower > [];
@@ -19,9 +24,14 @@ interface RoomMemory {
     danger_mode ? : boolean;
     link_modes ? : string[];
     lack_energy ? : boolean;
-	storage_level ? : number;
+    storage_level ? : number;
     external_room_status ? : type_external_room_status;
-	n_needed_wallrepair ? : number;
+    n_needed_wallrepair ? : number;
+    n_sites ? : number;
+    ticks_to_spawn_builder ? : number;
+    list_of_structures_id ? : string [];
+    list_of_sites_id ? : string [];
+    objects_updated ? : boolean;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -29,19 +39,19 @@ interface CreepMemory {
     harvesting ? : boolean;
     home_room_name ? : string;
     external_room_name ? : string;
-    rooms_forwardpath ? : string[];
-    names_forwardpath ? : string[];
-    rooms_backwardpath ? : string[];
-    names_backwardpath ? : string[];
     transfer_target ? : string;
+    movable: boolean;
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
     maincarrier_type ? : string;
     carrying_mineral ? : boolean;
-    lab_carrying_target_id ? : Id < AnyStorageStructure > ;
+    lab_carrying_target_id ? : Id < StructureLab > ;
     lab_carrying_resource ? : ResourceConstant;
-	boost_request ? : type_boost_request;
+    lab_carrying_forward ? : boolean;
+    boost_request ? : type_boost_request;
+    stored_path ? : type_stored_path;
+    wall_to_repair ? : Id < Structure_Wall_Rampart > ;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -61,29 +71,29 @@ interface conf_mine {
     amount ? : number;
 }
 interface conf_structures {
-	[key: string]: {
+    [key: string]: {
         pos: number[];
-		id ? : Id < Structure >;
-		exists ? : boolean;
-		finished ? : boolean;
-		RCL ? : number;
-	}
+        id ? : Id < Structure > ;
+        exists ? : boolean;
+        finished ? : boolean;
+        RCL ? : number;
+    }
 }
 interface conf_towers extends conf_structures {
     [key: string]: {
         pos: number[];
-		id ? : Id < StructureTower >;
-		exists ? : boolean;
-		finished ? : boolean;
-		RCL ? : number;
+        id ? : Id < StructureTower > ;
+        exists ? : boolean;
+        finished ? : boolean;
+        RCL ? : number;
     }
 }
 interface conf_links extends conf_structures {
     [key: string]: {
         pos: number[];
-		source: boolean;
+        source: boolean;
         id ? : Id < StructureLink > ;
-		exists ? : boolean;
+        exists ? : boolean;
         finished ? : boolean;
         RCL ? : number;
     }
@@ -92,22 +102,22 @@ interface conf_containers extends conf_structures {
     [key: string]: {
         pos: number[];
         id ? : Id < StructureContainer > ;
-		exists ? : boolean;
+        exists ? : boolean;
         finished ? : boolean;
         RCL ? : number;
     }
 }
 interface conf_lab extends conf_structures {
-	[key: string]: {
-		pos: number[];
-		object: MineralBoostConstant;
-		body: BodyPartConstant;
-		id ? : Id < StructureLab >;
-		exists ? : boolean;
+    [key: string]: {
+        pos: number[];
+        object: MineralBoostConstant;
+        body: BodyPartConstant;
+        id ? : Id < StructureLab > ;
+        exists ? : boolean;
         finished ? : boolean;
-		effect ? : string;
-		active ? : boolean;
-	}
+        effect ? : string;
+        active ? : boolean;
+    }
 }
 interface conf_init {
     [key: string]: {
@@ -127,7 +137,7 @@ interface conf_carriers {
 interface conf_upgraders {
     locations: number[][];
     commuting_time: number;
-	boost_request ? : type_boost_request;
+    boost_request ? : type_boost_request;
 }
 interface conf_harvesters {
     [key: string]: {
@@ -151,9 +161,9 @@ interface conf_external_rooms {
             reserve: boolean;
             path_time: number;
             rooms_forwardpath: string[];
-            names_forwardpath: string[];
+            poses_forwardpath: number[];
             rooms_backwardpath: string[];
-            names_backwardpath: string[];
+            poses_backwardpath: number[];
         }
         sources: {
             [key: string]: {
@@ -168,9 +178,9 @@ interface conf_external_rooms {
                     "name": string;
                 };
                 rooms_forwardpath: string[];
-                names_forwardpath: string[];
+                poses_forwardpath: number[];
                 rooms_backwardpath: string[];
-                names_backwardpath: string[];
+                poses_backwardpath: number[];
                 harvester_name ? : string;
                 transfer_target_id ? : Id < AnyStorageStructure > ;
             }
@@ -181,9 +191,9 @@ interface conf_hunting {
     room_name: string;
     number: number;
     rooms_forwardpath: string[];
-    names_forwardpath: string[];
+    poses_forwardpath: number[];
     rooms_backwardpath: string[];
-    names_backwardpath: string[];
+    poses_backwardpath: number[];
     body: type_body_components;
     stay_pos: number[];
 }
@@ -192,6 +202,7 @@ interface room_conf {
     sources: conf_sources;
     mine: conf_mine;
     containers: conf_containers;
+    extensions ? : number[][];
     links: conf_links;
     link_transfer_gap: number;
     link_transfer_amount: number;
@@ -199,14 +210,18 @@ interface room_conf {
     carriers: conf_carriers;
     upgraders: conf_upgraders;
     harvesters: conf_harvesters;
+    main_link_amount_source: number;
+    main_link_amount_sink: number;
     maincarriers: conf_maincarriers;
     max_transfer: number;
     stay_pos: number[];
     safe_pos: number[];
-	storage_bar: number[];
+    storage_bar: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
-	wall_rate: number;
+    wall_rate: number;
+    max_builder_size: number;
+    max_build_parts: number;
     labs ? : conf_lab;
     hunting ? : conf_hunting;
 }
@@ -304,18 +319,37 @@ type type_rooms_ignore_pos = {
 };
 type type_help_list = {
     [key: string]: {
-        external_room_name: string;
-        rooms_forwardpath: string[];
-        names_forwardpath: string[];
-        sources: {
-            [key: string]: number;
+        [key: string]: {
+            rooms_forwardpath: string[];
+            poses_forwardpath: number[];
+            commuting_distance: number;
+            n_carrys: {
+                [key: string]: number;
+            }
         }
-        commuting_time: number;
-        body: type_body_components;
     }
 }
 type type_boost_request = {
     object ? : MineralBoostConstant;
     body ? : BodyPartConstant;
     effect ? : string;
+}
+
+interface Game {
+    costmatrices: {
+        [key: string]: CostMatrix
+    }
+	tick_cpu ?: {
+		[key: string]: number;
+	}
+}
+
+declare var Game: Game;
+
+declare module NodeJS {
+	interface Global {
+		basic_costmatrices: {
+			[key: string]: CostMatrix;
+		}
+	}
 }

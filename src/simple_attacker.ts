@@ -1,8 +1,8 @@
 import * as external_room from "./external_room"
 import * as mymath from "./mymath"
-export function simple_attack(creep: Creep, rooms_forwardpath: string[], names_forwardpath: string[]) {
+export function simple_attack(creep: Creep, rooms_forwardpath: string[], poses_forwardpath: number[]) {
     if (creep.room.name !== rooms_forwardpath[rooms_forwardpath.length - 1]) {
-        external_room.movethroughrooms(creep, rooms_forwardpath, names_forwardpath);
+        external_room.movethroughrooms(creep, rooms_forwardpath, poses_forwardpath);
     }
     let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
     let attacked = false;
@@ -35,7 +35,7 @@ export function simple_attack(creep: Creep, rooms_forwardpath: string[], names_f
 		creep.heal(creep);
 	}
 }
-export function hard_attack(creep: Creep, rooms_forwardpath: string[], names_forwardpath: string[]) {
+export function hard_attack(creep: Creep, rooms_forwardpath: string[], poses_forwardpath: number[]) {
     let attacked = false;
     let rangedattacked = false;
 	let moved = false;
@@ -43,7 +43,7 @@ export function hard_attack(creep: Creep, rooms_forwardpath: string[], names_for
 		attacked = true;
     }
     if (creep.room.name !== rooms_forwardpath[rooms_forwardpath.length - 1]) {
-        external_room.movethroughrooms(creep, rooms_forwardpath, names_forwardpath);
+        external_room.movethroughrooms(creep, rooms_forwardpath, poses_forwardpath);
     }
     let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
     if (enemies.length > 0) {

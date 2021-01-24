@@ -18,7 +18,8 @@ export function spawn_init(room_name: string, source_name: string, max_creeps: n
 				memory: {
 					source_name: source_name,
 					role: 'init',
-					cost: 200
+					cost: 200,
+					movable: false,
 				}
 			});
 			console.log(spawn.name, "create init creep:" + output);
@@ -35,7 +36,8 @@ export function spawn_init(room_name: string, source_name: string, max_creeps: n
 							memory: {
 								source_name: source_name,
 								role: 'init',
-								cost: amount
+								cost: amount,
+								movable: false,
 							}
 						});
 					}

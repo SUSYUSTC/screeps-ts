@@ -19,7 +19,7 @@ export function hunt(creep: Creep) {
         return;
     }
     if (creep.room.name !== conf.hunting.room_name && creep.hits == creep.hitsMax) {
-        external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.names_forwardpath);
+        external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.poses_forwardpath);
     } else {
         let enermies = creep.room.find(FIND_HOSTILE_CREEPS);
         let dangerous;
@@ -76,7 +76,7 @@ export function hunt(creep: Creep) {
             }
         }
         if (creep.hits <= creep.hitsMax * 0.8 || creep.room.name !== conf.hunting.room_name) {
-            external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.names_backwardpath);
+            external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.poses_backwardpath);
             return;
         }
         if (!dangerous && enermies.length > 0) {
@@ -86,7 +86,7 @@ export function hunt(creep: Creep) {
             return;
         }
         if (others.length < conf.hunting.number - 1) {
-            external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.names_forwardpath);
+            external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.poses_forwardpath);
             return;
         }
         let distance_to_others = others.map((e) => creep.pos.getRangeTo(e));
@@ -111,7 +111,7 @@ export function hunt(creep: Creep) {
                         }
                         return;
                     } else {
-                        external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.names_backwardpath);
+                        external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.poses_backwardpath);
                         return;
                     }
                 } else {

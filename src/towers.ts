@@ -47,7 +47,7 @@ export function repair_all(room_name: string) {
     var distance_array = structures_needrepair.map((structure) => towers.map((tower) => tower.pos.getRangeTo(structure.pos)));
     var tower_index = distance_array.map((array) => mymath.argmin(array));
     var scheduled = towers.map((e) => false);
-    var temp_walls = _.filter(structures, (e) => (e.structureType == "constructedWall" || e.structureType == "rampart"))
+    var temp_walls = _.filter(structures, (e) => ((e.structureType == "constructedWall" && e.hits) || e.structureType == "rampart"))
     var all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
     var walls = all_walls.filter((e) => e.hits < conf.wall_strength);
     var wall_distance_array = walls.map((structure) => towers.map((tower) => tower.pos.getRangeTo(structure.pos)));
