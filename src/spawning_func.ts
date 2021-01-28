@@ -101,8 +101,8 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     if (options.rcl8) {
         return returnbody(1, 1, 1);
     } else {
-        if (options.max_energy >= 2400) {
-            return returnbody(20, 4, 4);
+        if (options.max_energy >= 2200) {
+            return returnbody(18, 4, 4);
         } else if (options.max_energy >= 1200) {
             return returnbody(10, 2, 2);
         } else if (options.max_energy >= 600) {
@@ -138,7 +138,7 @@ const getbody_specialcarrier = (options: any): BodyPartConstant[] => {
 }
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
-    let n_move = 1;
+	let n_move = Math.ceil(options.max_parts/2);
     let n_work = 0;
     return returnbody(n_work, n_carry, n_move);
 }
@@ -146,7 +146,9 @@ const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
     return returnbody(0, options.n_carry, options.n_carry);
 }
 const getbody_reserver = (options: any): BodyPartConstant[] => {
-    return [CLAIM, MOVE]
+	let n_parts = Math.min(options.max_parts, Math.floor(options.max_energy/650));
+	let bodyinfo: type_body_components = {"claim": n_parts, "move": n_parts};
+    return fullreturnbody(bodyinfo);
 }
 const getbody_transferer = (options: any): BodyPartConstant[] => {
     let n_work = 0;

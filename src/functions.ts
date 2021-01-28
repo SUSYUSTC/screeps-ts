@@ -53,9 +53,9 @@ export function get_costmatrix_road(room_name: string) {
                 sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
                 structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== Memory.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             }
-            global.basic_costmatrices[room_name] = costmatrix;
+            global.basic_costmatrices[room_name] = costmatrix.clone();
         }
-        let costmatrix = global.basic_costmatrices[room_name];
+        let costmatrix = global.basic_costmatrices[room_name].clone();
         if (Game.rooms[room_name] !== undefined) {
             let room = Game.rooms[room_name];
             let mycreeps = room.find(FIND_MY_CREEPS);
@@ -86,4 +86,14 @@ export function analyze_component(creep: Creep): type_creep_components {
         n_rangedattack: n_rangedattack,
         n_heal: n_heal
     };
+}
+
+global.visualize_cost = function(room_name: string) {
+	let cost = get_costmatrix_road('E15N58');
+	for (let x = 0; x < 50; x++) {
+		for (let y = 0; y < 50; y++) {
+			Game.rooms.E15N58.visual.text(cost.get(x,y).toString(), x, y);
+		}
+	}
+	return 0;
 }

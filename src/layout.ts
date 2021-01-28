@@ -36,7 +36,7 @@ export function update_structure_info(room_name: string, structuretype: allowed_
         if (temp == null) {
             conf[structure_name].exists = false;
             conf[structure_name].finished = false;
-            return;
+			continue;
         }
         conf[structure_name].exists = true;
         const [typ, id] = temp;

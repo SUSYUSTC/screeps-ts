@@ -4,7 +4,7 @@ function getside(x: number, y: number, x1: number, y1: number, x2: number, y2: n
 }
 
 
-Memory.controlled_rooms = ['E16N58', 'E15N58', 'E14N51', 'E19N53']
+Memory.controlled_rooms = ['E16N58', 'E15N58', 'E14N51', 'E19N53', 'E19N51']
 var room_E16N58_towers: conf_towers = {
     "T1": {
         "pos": [37, 30],
@@ -69,6 +69,7 @@ var room_E16N58_links: conf_links = {
     },
 }
 var room_E16N58_labs: conf_lab = {
+    /*
     'L1': {
         "pos": [27, 22],
         "object": "GH2O",
@@ -76,6 +77,7 @@ var room_E16N58_labs: conf_lab = {
         "effect": "upgrade",
         "active": false,
     },
+	 */
 };
 
 var room_E16N58_carrier_preference_S1: conf_preference[] = [{
@@ -135,10 +137,7 @@ var room_E16N58_upgraders: conf_upgraders = {
         [18, 26],
     ],
     "commuting_time": 21,
-    "boost_request": {
-        "body": WORK,
-        "effect": "upgrade"
-    },
+    "boost_request": false,
 }
 var room_E16N58_harvesters: conf_harvesters = {
     "S1": {
@@ -152,23 +151,26 @@ var room_E16N58_main_link_amount_source = 600;
 var room_E16N58_main_link_amount_sink = 400;
 var room_E16N58_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "pos": [27, 34],
+        "main_pos": [27, 34],
+        "working_zone": [
+            [27, 34]
+        ],
+        "waiting_pos": [26, 34],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E16N58_main_link_amount_source,
         "storage": true,
-        "terminal": true
+        "terminal": false,
     }
 }
 
 var room_E16N58_max_transfer: number = 8
 var room_E16N58_stay_pos: number[] = [32, 29];
+var room_E16N58_mineral_stay_pos: number[] = [23, 39];
 var room_E16N58_safe_pos: number[] = [36, 34];
 var room_E16N58_storage_bar: number[] = [200000];
 var room_E16N58_wall_strength = 200000;
 var room_E16N58_wall_rate = 0;
-var room_E16N58_max_builder_size = 10;
-var room_E16N58_max_build_parts = 10;
 
 var room_E16N58_external_rooms: conf_external_rooms = {
     "E17N59": {
@@ -278,9 +280,8 @@ var room_E16N58: room_conf = {
     maincarriers: room_E16N58_maincarriers,
     max_transfer: room_E16N58_max_transfer,
     stay_pos: room_E16N58_stay_pos,
+    mineral_stay_pos: room_E16N58_mineral_stay_pos,
     safe_pos: room_E16N58_safe_pos,
-    max_builder_size: room_E16N58_max_builder_size,
-    max_build_parts: room_E16N58_max_build_parts,
     storage_bar: room_E16N58_storage_bar,
     external_rooms: room_E16N58_external_rooms,
     wall_strength: room_E16N58_wall_strength,
@@ -349,45 +350,46 @@ var room_E15N58_links: conf_links = {
 }
 
 var room_E15N58_labs: conf_lab = {
-    /*
     'L1': {
-        "pos": [23, 18],
-        "object": "XLHO2",
-        "body": HEAL,
-		"active": false,
+        "pos": [41, 4],
+        "state": "boost",
     },
     'L2': {
-        "pos": [23, 19],
-        "object": "XGHO2",
-        "body": TOUGH,
-		"active": false,
+        "pos": [43, 5],
+		"state": "source1",
     },
     'L3': {
-        "pos": [24, 19],
-        "object": "XUH2O",
-        "body": ATTACK,
-		"active": false,
+        "pos": [43, 6],
+		"state": "source2",
     },
     'L4': {
-        "pos": [24, 20],
-        "object": "XZHO2",
-        "body": MOVE,
-		"active": false,
+        "pos": [41, 5],
+		"state": "react",
     },
     'L5': {
-        "pos": [25, 20],
-        "object": "XKHO2",
-        "body": RANGED_ATTACK,
-		"active": false,
+        "pos": [41, 6],
+		"state": "react",
     },
     'L6': {
-        "pos": [25, 18],
-        "object": "GH2O",
-        "body": WORK,
-        "effect": "upgrade",
-		"active": false,
-    }
-	 */
+        "pos": [42, 6],
+		"state": "react",
+    },
+    'L7': {
+        "pos": [44, 6],
+		"state": "react",
+    },
+    'L8': {
+        "pos": [45, 6],
+		"state": "react",
+    },
+    'L9': {
+        "pos": [45, 5],
+		"state": "react",
+    },
+    'L10': {
+        "pos": [45, 4],
+		"state": "react",
+    },
 };
 var room_E15N58_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
@@ -443,10 +445,6 @@ var room_E15N58_upgraders: conf_upgraders = {
         //[35, 7],
     ],
     "commuting_time": 40,
-    "boost_request": {
-        "body": WORK,
-        "effect": "upgrade"
-    },
 }
 var room_E15N58_harvesters: conf_harvesters = {
     "S1": {
@@ -460,7 +458,14 @@ var room_E15N58_main_link_amount_source = 600;
 var room_E15N58_main_link_amount_sink = 400;
 var room_E15N58_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "pos": [43, 3],
+        "main_pos": [43, 3],
+        "working_zone": [
+            [43, 3],
+            [43, 4],
+            [42, 5],
+            [44, 5]
+        ],
+        "waiting_pos": [43, 2],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E15N58_main_link_amount_source,
@@ -471,12 +476,11 @@ var room_E15N58_maincarriers: conf_maincarriers = {
 
 var room_E15N58_max_transfer: number = 8;
 var room_E15N58_stay_pos: number[] = [42, 15];
+var room_E15N58_mineral_stay_pos: number[] = [7, 18];
 var room_E15N58_safe_pos: number[] = [33, 4];
 var room_E15N58_storage_bar: number[] = [200000];
 var room_E15N58_wall_strength = 20000;
-var room_E15N58_wall_rate = 10;
-var room_E15N58_max_builder_size = 10;
-var room_E15N58_max_build_parts = 10;
+var room_E15N58_wall_rate = 0;
 
 var room_E15N58_external_rooms: conf_external_rooms = {
     "E15N59": {
@@ -588,9 +592,8 @@ var room_E15N58: room_conf = {
     maincarriers: room_E15N58_maincarriers,
     max_transfer: room_E15N58_max_transfer,
     stay_pos: room_E15N58_stay_pos,
+    mineral_stay_pos: room_E15N58_mineral_stay_pos,
     safe_pos: room_E15N58_safe_pos,
-    max_builder_size: room_E15N58_max_builder_size,
-    max_build_parts: room_E15N58_max_build_parts,
     storage_bar: room_E15N58_storage_bar,
     external_rooms: room_E15N58_external_rooms,
     wall_strength: room_E15N58_wall_strength,
@@ -657,12 +660,45 @@ var room_E14N51_links: conf_links = {
     },
 }
 var room_E14N51_labs: conf_lab = {
-    "L1": {
+    'L1': {
         "pos": [14, 31],
-        "object": "GH2O",
-        "body": WORK,
-        "effect": "upgrade",
-        "active": true,
+        "state": "boost",
+    },
+    'L2': {
+        "pos": [12, 29],
+		"state": "source1",
+    },
+    'L3': {
+        "pos": [13, 29],
+		"state": "source2",
+    },
+    'L4': {
+        "pos": [14, 28],
+		"state": "react",
+    },
+    'L5': {
+        "pos": [14, 27],
+		"state": "react",
+    },
+    'L6': {
+        "pos": [13, 27],
+		"state": "react",
+    },
+    'L7': {
+        "pos": [12, 27],
+		"state": "react",
+    },
+    'L8': {
+        "pos": [12, 28],
+		"state": "react",
+    },
+    'L9': {
+        "pos": [12, 30],
+		"state": "react",
+    },
+    'L10': {
+        "pos": [13, 31],
+		"state": "react",
     },
 };
 var room_E14N51_carrier_preference_S1: conf_preference[] = [{
@@ -713,10 +749,6 @@ var room_E14N51_upgraders: conf_upgraders = {
         [13, 32],
     ],
     "commuting_time": 21,
-    "boost_request": {
-        "body": WORK,
-        "effect": "upgrade"
-    },
 }
 var room_E14N51_harvesters: conf_harvesters = {
     "S1": {
@@ -730,7 +762,16 @@ var room_E14N51_main_link_amount_source = 600;
 var room_E14N51_main_link_amount_sink = 400;
 var room_E14N51_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "pos": [16, 29],
+        "main_pos": [16, 29],
+        "working_zone": [
+            [16, 29],
+            [15, 29],
+            [14, 29],
+            [13, 28],
+            [13, 30],
+            [14, 30],
+        ],
+        "waiting_pos": [17, 28],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E14N51_main_link_amount_source,
@@ -741,12 +782,11 @@ var room_E14N51_maincarriers: conf_maincarriers = {
 
 var room_E14N51_max_transfer: number = 8;
 var room_E14N51_stay_pos: number[] = [12, 34];
+var room_E14N51_mineral_stay_pos: number[] = [17, 16];
 var room_E14N51_safe_pos: number[] = [22, 4];
 var room_E14N51_storage_bar: number[] = [100000, 300000, 500000];
 var room_E14N51_wall_strength = 2000;
-var room_E14N51_wall_rate = 10;
-var room_E14N51_max_builder_size = 15;
-var room_E14N51_max_build_parts = 15;
+var room_E14N51_wall_rate = 0;
 
 var room_E14N51_external_rooms: conf_external_rooms = {
     "E14N52": {
@@ -813,9 +853,8 @@ var room_E14N51: room_conf = {
     maincarriers: room_E14N51_maincarriers,
     max_transfer: room_E14N51_max_transfer,
     stay_pos: room_E14N51_stay_pos,
+    mineral_stay_pos: room_E14N51_mineral_stay_pos,
     safe_pos: room_E14N51_safe_pos,
-    max_builder_size: room_E14N51_max_builder_size,
-    max_build_parts: room_E14N51_max_build_parts,
     storage_bar: room_E14N51_storage_bar,
     external_rooms: room_E14N51_external_rooms,
     wall_strength: room_E14N51_wall_strength,
@@ -857,26 +896,30 @@ var room_E19N53_containers: conf_containers = {
         "RCL": 1,
     },
     "MINE": {
-        "pos": [16, 17],
+        "pos": [33, 6],
         "RCL": 6,
     },
 }
-var room_E19N53_extensions: number[][] = [
-    [15, 11],
-    [16, 11],
-    [16, 12],
-    [17, 12],
-    [16, 13],
-    [15, 14],
-    [17, 14],
-    [17, 15],
-    [17, 16],
-    [16, 16],
-];
-
 var room_E19N53_link_transfer_gap: number = 400;
 var room_E19N53_link_transfer_amount: number = 400;
-var room_E19N53_links: conf_links = {}
+var room_E19N53_links: conf_links = {
+    "S1": {
+        "pos": [8, 25],
+        "source": true,
+    },
+    "S2": {
+        "pos": [6, 5],
+        "source": true,
+    },
+    "CT": {
+        "pos": [38, 17],
+        "source": false,
+    },
+    "MAIN": {
+        "pos": [25, 11],
+        "source": true,
+    },
+}
 var room_E19N53_labs: conf_lab = {};
 var room_E19N53_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
@@ -929,7 +972,7 @@ var room_E19N53_upgraders: conf_upgraders = {
         [39, 17],
         [38, 16],
         [37, 17],
-		[38, 17],
+        [38, 17],
     ],
     "commuting_time": 57,
     /*
@@ -951,31 +994,77 @@ var room_E19N53_main_link_amount_source = 600;
 var room_E19N53_main_link_amount_sink = 400;
 var room_E19N53_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "pos": [16, 29],
+        "main_pos": [24, 11],
+        "working_zone": [[24, 11]],
+        "waiting_pos": [24, 10],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E19N53_main_link_amount_source,
         "storage": true,
-        "terminal": true
+        "terminal": true,
     }
 }
 
 var room_E19N53_max_transfer: number = 4
-var room_E19N53_stay_pos: number[] = [21, 11];
-var room_E19N53_safe_pos: number[] = [24, 6];
-var room_E19N53_storage_bar: number[] = [100000, 300000, 500000];
+var room_E19N53_stay_pos: number[] = [24, 9];
+var room_E19N53_mineral_stay_pos: number[] = [33, 7];
+var room_E19N53_safe_pos: number[] = [27, 4];
+var room_E19N53_storage_bar: number[] = [100000, 300000];
 var room_E19N53_wall_strength = 2000;
 var room_E19N53_wall_rate = 0;
-var room_E19N53_max_builder_size = 9;
-var room_E19N53_max_build_parts = 9;
 
-var room_E19N53_external_rooms: conf_external_rooms = {}
+var room_E19N53_external_rooms: conf_external_rooms = {
+    "E19N54": {
+        "active": true,
+        "controller": {
+            "reserve": true,
+            "path_time": 56,
+            "rooms_forwardpath": ['E19N53', 'E19N54'],
+            "poses_forwardpath": [33],
+            "rooms_backwardpath": ['E19N54', 'E19N53'],
+            "poses_backwardpath": [33],
+        },
+        "sources": {
+            "S1": {
+                "id": < Id < Source >> "5bbcae049099fc012e6384ed",
+                "harvest_pos": [34, 21],
+                "reserve": true,
+                "single_distance": 45,
+                "n_carry": 10,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": ""
+                },
+                "rooms_forwardpath": ['E19N53', 'E19N54'],
+                "poses_forwardpath": [33],
+                "rooms_backwardpath": ['E19N54', 'E19N53'],
+                "poses_backwardpath": [33],
+            },
+            "S2": {
+                "id": < Id < Source >> "5bbcae049099fc012e6384ec",
+                "harvest_pos": [21, 12],
+                "reserve": true,
+                "single_distance": 53,
+                "n_carry": 12,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": "",
+                },
+                "rooms_forwardpath": ['E19N53', 'E19N54'],
+                "poses_forwardpath": [33],
+                "rooms_backwardpath": ['E19N54', 'E19N53'],
+                "poses_backwardpath": [33],
+            },
+        },
+    },
+}
 var room_E19N53: room_conf = {
     towers: room_E19N53_towers,
     sources: room_E19N53_sources,
     mine: room_E19N53_mine,
     containers: room_E19N53_containers,
-	extensions: room_E19N53_extensions,
     links: room_E19N53_links,
     link_transfer_gap: room_E19N53_link_transfer_gap,
     link_transfer_amount: room_E19N53_link_transfer_amount,
@@ -989,13 +1078,243 @@ var room_E19N53: room_conf = {
     maincarriers: room_E19N53_maincarriers,
     max_transfer: room_E19N53_max_transfer,
     stay_pos: room_E19N53_stay_pos,
+    mineral_stay_pos: room_E19N53_mineral_stay_pos,
     safe_pos: room_E19N53_safe_pos,
-    max_builder_size: room_E19N53_max_builder_size,
-    max_build_parts: room_E19N53_max_build_parts,
     storage_bar: room_E19N53_storage_bar,
     external_rooms: room_E19N53_external_rooms,
     wall_strength: room_E19N53_wall_strength,
     wall_rate: room_E19N53_wall_rate,
+};
+
+var room_E19N51_towers: conf_towers = {
+    /*
+    "T1": {
+        "pos": [18, 11],
+        "RCL": 3,
+    },
+	 */
+};
+var room_E19N51_sources: conf_sources = {
+    "S1": {
+        "id": < Id < Source >> "5bbcae059099fc012e6384f9",
+    },
+    "S2": {
+        "id": < Id < Source >> "5bbcae059099fc012e6384f8",
+    },
+};
+var room_E19N51_mine: conf_mine = {
+    "id": < Id < Mineral >> "5bbcb37c40062e4259e9443f",
+};
+var room_E19N51_containers: conf_containers = {
+    "S1": {
+        "pos": [23, 17],
+        "RCL": 1,
+    },
+    "S2": {
+        "pos": [24, 10],
+        "RCL": 1,
+    },
+    "MD": {
+        "pos": [18, 16],
+        "RCL": 1,
+    },
+    "CT": {
+        "pos": [17, 21],
+        "RCL": 1,
+    },
+    "MINE": {
+        "pos": [39, 6],
+        "RCL": 6,
+    },
+}
+var room_E19N51_link_transfer_gap: number = 400;
+var room_E19N51_link_transfer_amount: number = 400;
+var room_E19N51_links: conf_links = {
+    "S1": {
+        "pos": [22, 16],
+        "source": true,
+        "RCL": 7,
+    },
+    "S2": {
+        "pos": [25, 10],
+        "source": true,
+        "RCL": 6,
+    },
+    "CT": {
+        "pos": [17, 22],
+        "source": false,
+        "RCL": 5,
+    },
+    "MAIN": {
+        "pos": [25, 21],
+        "source": true,
+        "RCL": 5,
+    },
+}
+var room_E19N51_labs: conf_lab = {};
+var room_E19N51_carrier_preference_S1: conf_preference[] = [{
+    "container": "MD",
+    "points": 300,
+}, {
+    "container": "CT",
+    "points": 0,
+}]
+
+var room_E19N51_carrier_preference_S2: conf_preference[] = [{
+    "container": "MD",
+    "points": 0,
+}, {
+    "container": "CT",
+    "points": 300,
+}]
+
+var room_E19N51_carrier_preference_storage: conf_preference[] = [{
+    "container": "CT",
+    "points": 0,
+}]
+
+var room_E19N51_init: conf_init = {
+    "S1": {
+        "number": 0,
+    },
+    "S2": {
+        "number": 0,
+    },
+}
+
+var room_E19N51_carriers: conf_carriers = {
+    "S1": {
+        "preferences": room_E19N51_carrier_preference_S1,
+        "number": 4,
+    },
+    "S2": {
+        "preferences": room_E19N51_carrier_preference_S2,
+        "number": 6,
+    },
+    "storage": {
+        "preferences": room_E19N51_carrier_preference_storage,
+        "number": 12,
+    },
+}
+
+var room_E19N51_upgraders: conf_upgraders = {
+    "locations": [
+        [16, 22],
+        [16, 21],
+        [17, 21],
+        [18, 22],
+        [17, 22],
+    ],
+    "commuting_time": 12,
+    /*
+    "boost_request": {
+        "body": WORK,
+        "effect": "upgrade"
+    },
+	 */
+}
+var room_E19N51_harvesters: conf_harvesters = {
+    "S1": {
+        "commuting_time": 15,
+    },
+    "S2": {
+        "commuting_time": 24,
+    },
+}
+var room_E19N51_main_link_amount_source = 600;
+var room_E19N51_main_link_amount_sink = 400;
+var room_E19N51_maincarriers: conf_maincarriers = {
+    "MAIN": {
+        "main_pos": [24, 21],
+        "working_zone": [[24, 21]],
+        "waiting_pos": [25, 20],
+        "n_carry": 6,
+        "link_name": "MAIN",
+        "link_amount": room_E19N51_main_link_amount_source,
+        "storage": true,
+        "terminal": false,
+    }
+}
+
+var room_E19N51_max_transfer: number = 4
+var room_E19N51_stay_pos: number[] = [22, 19];
+var room_E19N51_mineral_stay_pos: number[] = [39, 7];
+var room_E19N51_safe_pos: number[] = [27, 23];
+var room_E19N51_storage_bar: number[] = [100000, 300000];
+var room_E19N51_wall_strength = 2000;
+var room_E19N51_wall_rate = 0;
+
+var room_E19N51_external_rooms: conf_external_rooms = {
+    "E19N52": {
+        "active": true,
+        "controller": {
+            "reserve": true,
+            "path_time": 60,
+            "rooms_forwardpath": ['E19N51', 'E19N52'],
+            "poses_forwardpath": [13],
+            "rooms_backwardpath": ['E19N52', 'E19N51'],
+            "poses_backwardpath": [13],
+        },
+        "sources": {
+            "S1": {
+                "id": < Id < Source >> "5bbcae049099fc012e6384f5",
+                "harvest_pos": [36, 27],
+                "reserve": true,
+                "single_distance": 48,
+                "n_carry": 10,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": ""
+                },
+                "rooms_forwardpath": ['E19N51', 'E19N52'],
+                "poses_forwardpath": [29],
+                "rooms_backwardpath": ['E19N52', 'E19N51'],
+                "poses_backwardpath": [29],
+            },
+            "S2": {
+                "id": < Id < Source >> "5bbcae049099fc012e6384f6",
+                "harvest_pos": [46, 43],
+                "reserve": true,
+                "single_distance": 74,
+                "n_carry": 16,
+                "n_carrier": 2,
+                "carry_end": {
+                    "type": "storage",
+                    "name": "",
+                },
+                "rooms_forwardpath": ['E19N51', 'E19N52'],
+                "poses_forwardpath": [29],
+                "rooms_backwardpath": ['E19N52', 'E19N51'],
+                "poses_backwardpath": [29],
+            },
+        },
+    },
+}
+var room_E19N51: room_conf = {
+    towers: room_E19N51_towers,
+    sources: room_E19N51_sources,
+    mine: room_E19N51_mine,
+    containers: room_E19N51_containers,
+    links: room_E19N51_links,
+    link_transfer_gap: room_E19N51_link_transfer_gap,
+    link_transfer_amount: room_E19N51_link_transfer_amount,
+    labs: room_E19N51_labs,
+    init: room_E19N51_init,
+    carriers: room_E19N51_carriers,
+    upgraders: room_E19N51_upgraders,
+    harvesters: room_E19N51_harvesters,
+    main_link_amount_source: room_E19N51_main_link_amount_source,
+    main_link_amount_sink: room_E19N51_main_link_amount_sink,
+    maincarriers: room_E19N51_maincarriers,
+    max_transfer: room_E19N51_max_transfer,
+    stay_pos: room_E19N51_stay_pos,
+    mineral_stay_pos: room_E19N51_mineral_stay_pos,
+    safe_pos: room_E19N51_safe_pos,
+    storage_bar: room_E19N51_storage_bar,
+    external_rooms: room_E19N51_external_rooms,
+    wall_strength: room_E19N51_wall_strength,
+    wall_rate: room_E19N51_wall_rate,
 };
 
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
@@ -1007,21 +1326,22 @@ Memory.rooms_conf = {
     "E16N58": room_E16N58,
     "E14N51": room_E14N51,
     "E19N53": room_E19N53,
+    "E19N51": room_E19N51,
 };
 Memory.help_list = {
-	/*
+    /*
     "E14N51": {
-        "E19N53": {
-            "rooms_forwardpath": ['E14N51', 'E14N52', 'E15N52', 'E16N52', 'E17N52', 'E17N53', 'E18N53', 'E19N53'],
-            "poses_forwardpath": [30, 36, 18, 24, 43, 44, 23],
+        "E19N51": {
+			"rooms_forwardpath": ['E14N51', 'E14N50',  'E15N50', 'E16N50', 'E17N50', 'E18N50', 'E19N50', 'E19N51'],
+			"poses_forwardpath": [22, 16, 16, 16, 16, 16, 11],
             "commuting_distance": 300,
 			"n_carrys": {
-				"S1": 14,
-				"S2": 14,
+				"S1": 2,
+				"S2": 4,
 			}
         }
     }
-	 */
+	*/
 };
 Memory.username = 'SUSYUSTC';
 Memory.defender_responsible_types = {

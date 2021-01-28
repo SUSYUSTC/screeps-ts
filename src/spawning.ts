@@ -66,11 +66,11 @@ export function spawn(room_name: string) {
         };
         if (n_harvesters == 0) {
             let added_memory = {
-                "source_name": source_name
+                "source_name": source_name,
             };
             let options = {
 				"with_carry": (link_mode || (is_container_broken  && room.memory.total_maxenergy >= 600)),
-                "max_energy": room.memory.total_maxenergy
+                "max_energy": room.memory.total_maxenergy,
             };
             let priority = (n_carrys > 0 ? 101 : 81);
             let added_json = {
@@ -87,7 +87,7 @@ export function spawn(room_name: string) {
             let options = {
                 "link_mode": link_mode,
                 "max_energy": room.memory.total_maxenergy,
-                "max_parts": max_carry
+                "max_parts": max_carry,
             };
             let priority = (n_harvesters > 0 ? 100 : 80);
             let added_json = {
@@ -125,12 +125,12 @@ export function spawn(room_name: string) {
 				let options = {
 					"link_mode": true,
 					"max_energy": room.memory.total_maxenergy,
-					"max_parts": max_carry
+					"max_parts": max_carry,
 				};
 				let priority = 85;
 				let added_json = {
 					"priority": priority,
-					"require_full": false
+					"require_full": false,
 				};
 				let json = spawning_func.prepare_role("carrier", room.memory.total_energy, added_memory, options, added_json);
 				jsons.push(json);
@@ -160,10 +160,19 @@ export function spawn(room_name: string) {
     let n_mineharvesters = mineharvesters.length;
     let n_specialcarriers = specialcarriers.length;
     let n_maincarriers_MAIN = maincarriers_MAIN.length;
-    let n_builds_needed = Math.min(conf.max_build_parts, Math.ceil(room.memory.sites_total_progressleft / 2000));
+    let max_build = 6;
+	if (room.storage !== undefined && room.storage.store.getUsedCapacity("energy") > 50000) {
+		if (room.memory.total_maxenergy >= 4000) {
+			max_build = 15;
+		}
+		else if (room.memory.total_maxenergy >= 2300) {
+			max_build = 10;
+		}
+	}
+    let n_builds_needed = Math.min(max_build, Math.ceil(room.memory.sites_total_progressleft / 2000));
     let n_mineharvesters_needed;
     let n_specialcarriers_needed = 0;
-	if (room.controller.level >= 6) {
+	if (room.memory.mine_harvestable) {
 		n_specialcarriers_needed = 1;
 	}
     if (conf.mine.amount > 0 && room.memory.mine_harvestable) {
@@ -171,8 +180,10 @@ export function spawn(room_name: string) {
     } else {
         n_mineharvesters_needed = 0;
     }
-    let max_build = conf.max_builder_size;
-    let max_upgrade = 18 + added_upgraders * 10;
+    let max_upgrade = 18 + added_upgraders * 9;
+	if (room.storage == undefined || room.storage.store.getUsedCapacity("energy") < 5000) {
+		max_upgrade -= n_builds_needed* 3;
+	}
 	if (room.controller.level == 8) {
 		if (room.controller.ticksToDowngrade < 100000) {
 			max_upgrade = 1;
@@ -183,7 +194,7 @@ export function spawn(room_name: string) {
 	}
     let max_transfer = conf.max_transfer;
     let n_maincarriers_MAIN_needed = 0;
-    if (link_modes.includes('CT') && link_modes.includes('MAIN')) {
+    if (link_modes.includes('CT') && link_modes.includes('MAIN') && room.storage !== undefined) {
         n_maincarriers_MAIN_needed = 1;
     }
     let info_home = {
@@ -280,7 +291,7 @@ export function spawn(room_name: string) {
     }
 
     let wall_repairers = room_creeps.filter((e) => e.memory.role == 'wall_repairer');
-	if (conf.wall_rate > 0 && wall_repairers.length == 0) {
+	if (wall_repairers.length < conf.wall_rate) {
         let added_memory = {
         };
         let options = {
@@ -359,34 +370,6 @@ export function spawn(room_name: string) {
 				jsons.push(json);
 			}
 		}
-		/*
-        if (Game.rooms[external_room_name].memory.storage_list.length < 3) {
-            var external_conf = Memory.rooms_conf[external_room_name];
-            var external_proportions = {}
-            for (var source_name in external_conf.sources) {
-                var n_needed_external_init = conf_help.sources[source_name];
-                var external_init = _.filter(Game.creeps, (e) => ['init', 'external_init'].includes(e.memory.role) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && (e.ticksToLive == undefined || e.ticksToLive > conf_help.commuting_time));
-                var n_external_init = external_init.length;
-                if (n_external_init < n_needed_external_init) {
-					let added_memory = {
-						"source_name": source_name,
-						"external_room_name": external_room_name,
-						"home_room_name": room.name,
-					};
-					let options = {
-						"body": conf_help.body,
-					};
-					let priority = 40;
-					let added_json = {
-						"priority": priority,
-						"require_full": false
-					};
-					let json = spawning_func.prepare_role("external_init", room.memory.total_energy, added_memory, options, added_json);
-					jsons.push(json);
-                }
-            }
-        }
-		*/
     }
 
     //reservers, externalharvesters, externalcarriers
@@ -400,16 +383,13 @@ export function spawn(room_name: string) {
         let conf_external = conf.external_rooms[external_room_name].controller;
         let reserve = conf_external.reserve;
         let reservers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'reserver', conf_external.path_time) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room.name);
-        let n_needed_reservers = 0;
+        let n_needed_reservers = 1;
         if (reserve) {
-            n_needed_reservers = 2;
             if (external_room_name in Game.rooms) {
                 if (Game.rooms[external_room_name].controller.reservation !== undefined) {
                     let reservation = Game.rooms[external_room_name].controller.reservation;
-                    if (reservation.username == Memory.username && reservation.ticksToEnd > 1000) {
-                        n_needed_reservers = 1;
-                    } else if (external_room_status[external_room_name].invader_core_existance) {
-                        n_needed_reservers = 3;
+                    if (reservation.username == Memory.username && reservation.ticksToEnd > 800) {
+                        n_needed_reservers = 0;
                     }
                 }
             }
@@ -421,7 +401,10 @@ export function spawn(room_name: string) {
                 "rooms_forwardpath": conf_external.rooms_forwardpath,
                 "rooms_backwardpath": conf_external.rooms_backwardpath,
             };
-            let options = {};
+			let options = {
+				"max_parts": 8,
+                "max_energy": room.memory.total_maxenergy,
+			};
             let priority = 40;
             let added_json = {
                 "priority": priority,

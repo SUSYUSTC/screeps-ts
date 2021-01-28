@@ -3,6 +3,10 @@ import * as mymath from "./mymath";
 import * as layout from "./layout";
 import * as _ from 'lodash';
 
+function is_not_full(structure: AnyStorageStructure): boolean {
+	return structure.store.getFreeCapacity("energy") > 0;
+}
+
 export function clear_creep() {
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
@@ -17,27 +21,44 @@ export function set_room_memory(room_name: string) {
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
     }
-	let cpu_used = Game.cpu.getUsed();
+    let cpu_used = Game.cpu.getUsed();
 
     let room = Game.rooms[room_name];
     let structures = room.find(FIND_STRUCTURES);
     room.memory.objects_updated = false;
-	let sorted_structures_id = Object.keys(structures).sort();
-    if (room.memory.list_of_structures_id == undefined || !mymath.array_equal(sorted_structures_id, room.memory.list_of_structures_id)) {
+    let n_structures = structures.length;
+    if (room.memory.n_structures !== n_structures) {
         room.memory.objects_updated = true;
-		room.memory.list_of_structures_id = sorted_structures_id;
+		room.memory.n_structures = n_structures;
     }
-    let temp_exts = _.filter(structures, (structure) => structure.structureType == "extension");
-    let temp_spawns = _.filter(structures, (structure) => structure.structureType == "spawn");
-    let temp_towers = _.filter(structures, (structure) => structure.structureType == "tower");
-    let exts = temp_exts.map((e) => < StructureExtension > e);
-    let spawns = temp_spawns.map((e) => < StructureSpawn > e);
-    let towers = temp_towers.map((e) => < StructureTower > e);
-    room.memory.storage_list = spawns.map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.map((e) => < Id < AnyStorageStructure >> e.id));
-    room.memory.tower_list = towers.map((e) => e.id);
-    room.memory.spawn_list = spawns.map((e) => e.id);
+    let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
+    let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
+	room.memory.tower_list = towers.map((e) => e.id);
+	room.memory.spawn_list = spawns.map((e) => e.id);
+	if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 10 == 0 || room.memory.storage_list == undefined) {
+		let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
+		room.memory.storage_list = spawns.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id));
+	}
 
-	/*
+    let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    let n_sites = sites.length;;
+    if (room.memory.n_sites == undefined) {
+        room.memory.n_sites = 0;
+        room.memory.ticks_to_spawn_builder = 0;
+    }
+    if (n_sites > room.memory.n_sites) {
+        room.memory.ticks_to_spawn_builder = 8;
+    }
+    if (room.memory.ticks_to_spawn_builder > 0) {
+        room.memory.ticks_to_spawn_builder -= 1;
+    }
+    if (room.memory.n_sites !== n_sites) {
+        room.memory.objects_updated = true;
+        room.memory.n_sites = n_sites;
+    }
+    room.memory.n_sites = sites.length;
+
+    /*
     let spawn_energies = spawns.map((e) => e.store.getUsedCapacity("energy"));
     let spawn_maxenergies = spawns.map((e) => e.store.getCapacity("energy"));
     let spawn_totalenergy = mymath.array_sum(spawn_energies);
@@ -58,26 +79,8 @@ export function set_room_memory(room_name: string) {
         spawn.memory.spawning_time += 1;
     }
 
-    let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-	let sorted_sites_id = Object.keys(sites).sort();
-    if (room.memory.list_of_sites_id == undefined || !mymath.array_equal(sorted_sites_id, room.memory.list_of_sites_id)) {
-        room.memory.objects_updated = true;
-		room.memory.list_of_sites_id = sorted_sites_id;
-    }
     let sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
     room.memory.sites_total_progressleft = mymath.array_sum(sites_progressleft);
-    if (room.memory.n_sites == undefined) {
-        room.memory.n_sites = 0;
-        room.memory.ticks_to_spawn_builder = 0;
-    }
-    if (sites.length > room.memory.n_sites) {
-        room.memory.ticks_to_spawn_builder = 8;
-    }
-    if (room.memory.ticks_to_spawn_builder > 0) {
-        room.memory.ticks_to_spawn_builder -= 1;
-    }
-    room.memory.n_sites = sites.length;
-
     let enemies = room.find(FIND_HOSTILE_CREEPS);
     if (enemies.length > 0 && room.memory.tower_list.length == 0) {
         room.memory.danger_mode = true;
@@ -87,15 +90,19 @@ export function set_room_memory(room_name: string) {
     }
 
     let conf = Memory.rooms_conf[room_name];
-    layout.update_structure_info(room_name, "container", conf.containers);
-    layout.update_structure_info(room_name, "tower", conf.towers);
-    layout.update_structure_info(room_name, "link", conf.links);
-    if (conf.extensions !== undefined && room.controller.ticksToDowngrade > 8000) {
-        for (let xy of conf.extensions) {
-            room.createConstructionSite(xy[0], xy[1], 'extension')
-        }
-    }
+	if (global.test_var == undefined || Game.time % 10 == 0) {
+		layout.update_structure_info(room_name, "container", conf.containers);
+		layout.update_structure_info(room_name, "tower", conf.towers);
+		layout.update_structure_info(room_name, "link", conf.links);
+		layout.update_structure_info(room_name, "lab", conf.labs);
+		if (conf.extensions !== undefined && room.controller.ticksToDowngrade > 8000) {
+			for (let xy of conf.extensions) {
+				room.createConstructionSite(xy[0], xy[1], 'extension')
+			}
+		}
+	}
 
+    /*
     let temp_walls = _.filter(structures, (e) => ((e.structureType == "constructedWall" && e.hits) || e.structureType == "rampart"))
     let all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
     if (all_walls.length > 0 && conf.wall_rate > 0) {
@@ -107,6 +114,7 @@ export function set_room_memory(room_name: string) {
             room.memory.n_needed_wallrepair += 1;
         }
     }
+	*/
 
     let containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
     let link_modes = Object.keys(conf.links).filter((e) => conf.links[e].finished);
@@ -144,6 +152,9 @@ export function set_room_memory(room_name: string) {
     }
 
     for (let external_room_name in conf.external_rooms) {
+		if (!conf.external_rooms[external_room_name].active) {
+			continue;
+		}
         for (let source_name in conf.external_rooms[external_room_name].sources) {
             let conf_external = conf.external_rooms[external_room_name].sources[source_name];
             conf_external.harvester_name = "";
@@ -196,11 +207,8 @@ export function set_room_memory(room_name: string) {
         }
     }
     console.log(room.name, JSON.stringify(room.memory.external_room_status))
-	Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 export function set_global_memory() {
-	if (Game.tick_cpu == undefined) {
-		Game.tick_cpu = {"costmatrices": 0, "movetopos": 0};
-	}
 }

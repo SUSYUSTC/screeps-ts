@@ -7,13 +7,13 @@ import * as functions from "./functions";
 var moveoptions = {
     reusePath: 5,
     //visualizePathStyle: {},
-    maxRooms: 0,
+    maxRooms: 1,
     costCallback: functions.avoid_exits,
 };
 
 var pathfinderoptions = {
     //visualizePathStyle: {},
-    maxRooms: 0,
+    maxRooms: 1,
     roomCallback: function(room_name: string) {
         return functions.get_costmatrix_road(room_name);
     },
@@ -30,14 +30,20 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
     }
 	let cpu_used = Game.cpu.getUsed();
 
-	let regenerate_path = true;
+	let regenerate_path;
 	out: if (creep.memory.stored_path !== undefined && creep.memory.stored_path.time_left > 0) {
 		let target = creep.memory.stored_path.target;
 		let target_pos = creep.room.getPositionAt(target[0],target[1]);
 		if (pos.isEqualTo(target_pos)) {
 			let path = creep.memory.stored_path.path;
+			if (path.length == 0) {
+				regenerate_path=true;
+				console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+				break out;
+			}
 			let last_xy = path.slice(-1)[0];
 			if (pos.getRangeTo(last_xy[0], last_xy[1]) > range) {
+				regenerate_path=true;
 				console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 				break out;
 			}
@@ -47,6 +53,7 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
 				if (creep.pos.x == ele[0] && creep.pos.y == ele[1]) {
 					let next_xy = path[i+1];
 					if (next_xy == undefined) {
+						regenerate_path=true;
 						console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 						break out;
 					}
@@ -66,19 +73,23 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
 					}
 				}
 				else {
+					regenerate_path=true;
 					console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 					break out;
 				}
 			}
+			regenerate_path=true;
 			console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
 			break out;
 		}
 		else {
+			regenerate_path=true;
 			console.log(creep.room.name, creep.memory.role, "Regenerating path because target changed");
 			break out;
 		}
 	}
 	else {
+		regenerate_path=true;
 		console.log(creep.room.name, creep.memory.role, "Regenerating path because long time passed");
 	}
 	if (regenerate_path) {
@@ -98,6 +109,28 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
         creep.memory.stored_path.time_left = 0;
     }
 	Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+}
+
+export function moveto_stayxy(creep: Creep, xy: number[]) {
+	let stay_pos = creep.room.getPositionAt(xy[0], xy[1]);
+	if (stay_pos.lookFor("creep").length == 0) {
+		if (creep.pos.getRangeTo(xy[0], xy[1]) > 0) {
+			creep.memory.movable = true;
+			movetopos(creep, stay_pos, 0);
+		}
+		else {
+			creep.memory.movable = false;
+		}
+	}
+	else {
+		if (creep.pos.getRangeTo(xy[0], xy[1]) > 1) {
+			creep.memory.movable = true;
+			movetopos(creep, stay_pos, 1);
+		}
+		else {
+			creep.memory.movable = false;
+		}
+	}
 }
 export function movetoposexceptoccupied(creep: Creep, poses: RoomPosition[]) {
     //return 0 if successfully moving to position, 1 if no vacance left, 2 if already at position
@@ -190,13 +223,15 @@ export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, le
     if (energy >= left) {
         var output = creep.withdraw(structure, sourcetype, Math.min(energy - left, creep.store.getFreeCapacity(sourcetype)));
         if (output == ERR_NOT_IN_RANGE) {
-			//creep.moveTo(structure, moveoptions);
 			movetopos(creep, structure.pos, 1);
+			return 0;
         } else if (output !== 0) {
             return 1;
         }
     }
-    return 0;
+	else {
+		return 1;
+	}
 }
 
 export function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, sourcetype: ResourceConstant = "energy") {
@@ -270,16 +305,81 @@ export function preferred_container(creep: Creep, containers: conf_containers, p
     }
 }
 
-export function lab_request(creep: Creep, boost_request: type_boost_request, conflabs: conf_lab): StructureLab | null {
-    let lab = null;
-    for (let labname in conflabs) {
-        let conflab = conflabs[labname];
-        let match: boolean[] = Object.keys(creep.memory.boost_request).map((e) => conflab[e] == creep.memory.boost_request[e]);
-        if (mymath.all(match)) {
-            lab = < StructureLab > creep.room.lookForAt("structure", conflab.pos[0], conflab.pos[1])[0];
-        }
-    }
-    return lab;
+function number_of_specific_bodypart_not_boosted(creep: Creep, bodypart: BodyPartConstant, compound: MineralBoostConstant) {
+	let parts = creep.body.filter((e) => e.type==bodypart);
+	let n_boosted = parts.filter((e) => e.boost == undefined).length;
+	return n_boosted;
+}
+export function boost_request(creep: Creep, request: type_creep_boost_request): number {
+	//TODO: not able to handle the case that many creeps waiting for boosting
+	// return 0 for boost finished, 1 for still requiring boost, 2 for energy not enough, 3 for compound not enough
+	if (creep.memory.boost_status == undefined) {
+		creep.memory.boost_status = {
+			boost_found: true,
+			boosting: false,
+			boost_finished: false,
+		}
+	}
+	if (creep.memory.boost_status.boost_finished) {
+		return 0;
+	}
+	if (creep.memory.boost_status.boosting) {
+		let conf_labs = Memory.rooms_conf[creep.room.name].labs;
+		let lab_id = Object.values(conf_labs).filter((e) => e.state == 'boost')[0].id;
+		let lab = Game.getObjectById(lab_id);
+		for (let temp_bodypart in request) {
+			let bodypart = <BodyPartConstant> temp_bodypart;
+			let n_not_boosted = number_of_specific_bodypart_not_boosted(creep, bodypart, request[bodypart])
+			if (n_not_boosted == 0) {
+				continue;
+			}
+			else {
+				if (lab.mineralType == request[bodypart]) {
+					lab.boostCreep(creep);
+					return 1;
+				}
+				creep.room.memory.current_boost_request = {compound: request[bodypart], amount: n_not_boosted};
+				return 1;
+			}
+		}
+		delete creep.room.memory.current_boost_request;
+		creep.memory.boost_status.boosting = false;
+		creep.memory.boost_status.boost_finished = true;
+		return 0;
+	}
+	else if (creep.memory.boost_status.boost_found) {
+		//check if boost still available
+		let n_total_parts = 0;
+		for (let temp_bodypart in request) {
+			let bodypart = <BodyPartConstant> temp_bodypart;
+			let n_parts = creep.body.filter((e) => e.type == bodypart).length;
+			if (creep.room.terminal.store.getUsedCapacity(request[bodypart]) < n_parts*30) {
+				// compound not enough
+				creep.memory.boost_status.boost_found=false;
+				return 3;
+			}
+			n_total_parts += n_parts;
+		}
+		if (creep.room.terminal.store.getUsedCapacity("energy") < n_total_parts*20) {
+			// energy not enough
+			creep.memory.boost_status.boost_found=false;
+			return 2;
+		}
+		else {
+			let conf_labs = Memory.rooms_conf[creep.room.name].labs;
+			let lab_id = Object.values(conf_labs).filter((e) => e.state == 'boost')[0].id;
+			let lab = Game.getObjectById(lab_id);
+			if (creep.pos.isNearTo(lab)) {
+				creep.memory.boost_status.boosting = true;
+			}
+			else {
+				movetopos(creep, lab.pos, 1);
+			}
+			return 1;
+		}
+	} else {
+		return 2;
+	}
 }
 
 export function repair_container(creep: Creep) {

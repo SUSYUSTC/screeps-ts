@@ -97,21 +97,19 @@ export function movethroughrooms(creep: Creep, rooms_path: string[], poses_path:
             }
         }
         else {
-            if (coor_diff[1] == 1) {
-                exit_xy = [0, pos];
-            } else {
+            if (coor_diff[0] == 1) {
                 exit_xy = [49, pos];
+            } else {
+                exit_xy = [0, pos];
             }
         }
         let creeps_at_exit = creep.room.lookForAt("creep", exit_xy[0], exit_xy[1]);
         if (creep.pos.getRangeTo(exit_xy[0], exit_xy[1]) < 3 && creeps_at_exit.length > 0 && creeps_at_exit[0].name !== creep.name) {
-            creep.moveTo(2 * creep.pos.x - exit_xy[0], 2 * creep.pos.y - exit_xy[1], {
-                maxRooms: 0,
-                costCallback: functions.avoid_exits
-            });
+			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
+            creep.moveByPath(path.path);
         } else {
             creep.moveTo(exit_xy[0], exit_xy[1], {
-                maxRooms: 0,
+                maxRooms: 1,
                 costCallback: functions.avoid_exits
             });
         }

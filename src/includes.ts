@@ -28,10 +28,14 @@ interface RoomMemory {
     external_room_status ? : type_external_room_status;
     n_needed_wallrepair ? : number;
     n_sites ? : number;
+    n_structures ? : number;
     ticks_to_spawn_builder ? : number;
-    list_of_structures_id ? : string [];
-    list_of_sites_id ? : string [];
     objects_updated ? : boolean;
+	has_wall_to_repair ?: boolean;
+	has_structures_to_repair ?: boolean;
+	current_boost_request ?: type_current_boost_request;
+	reaction_ready ?: boolean;
+	reaction_request ?: type_reaction_request;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -49,9 +53,10 @@ interface CreepMemory {
     lab_carrying_target_id ? : Id < StructureLab > ;
     lab_carrying_resource ? : ResourceConstant;
     lab_carrying_forward ? : boolean;
-    boost_request ? : type_boost_request;
     stored_path ? : type_stored_path;
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
+	boost_status ?: type_boost_status;
+	resource_type ?: ResourceConstant;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -110,13 +115,11 @@ interface conf_containers extends conf_structures {
 interface conf_lab extends conf_structures {
     [key: string]: {
         pos: number[];
-        object: MineralBoostConstant;
-        body: BodyPartConstant;
+		state: "react" | "source1" | "source2" | "boost";
         id ? : Id < StructureLab > ;
         exists ? : boolean;
         finished ? : boolean;
         effect ? : string;
-        active ? : boolean;
     }
 }
 interface conf_init {
@@ -137,7 +140,7 @@ interface conf_carriers {
 interface conf_upgraders {
     locations: number[][];
     commuting_time: number;
-    boost_request ? : type_boost_request;
+    boost_request ? : boolean;
 }
 interface conf_harvesters {
     [key: string]: {
@@ -146,7 +149,9 @@ interface conf_harvesters {
 }
 interface conf_maincarriers {
     "MAIN": {
-        pos: number[];
+        main_pos: number[];
+        working_zone: number[][];
+		waiting_pos: number[];
         n_carry: number;
         link_name: string;
         link_amount: number;
@@ -215,13 +220,12 @@ interface room_conf {
     maincarriers: conf_maincarriers;
     max_transfer: number;
     stay_pos: number[];
+    mineral_stay_pos: number[];
     safe_pos: number[];
     storage_bar: number[];
     external_rooms: conf_external_rooms;
     wall_strength: number;
     wall_rate: number;
-    max_builder_size: number;
-    max_build_parts: number;
     labs ? : conf_lab;
     hunting ? : conf_hunting;
 }
@@ -257,8 +261,6 @@ interface Memory {
     };
     controlled_rooms ? : string[];
     username ? : any
-    performance_mode ? : boolean;
-    advanced_mode ? : boolean;
     debug_mode ? : boolean;
     rerunning ? : boolean;
     defender_responsible_types ? : type_defender_responsible_types;
@@ -329,10 +331,26 @@ type type_help_list = {
         }
     }
 }
-type type_boost_request = {
-    object ? : MineralBoostConstant;
-    body ? : BodyPartConstant;
-    effect ? : string;
+
+type type_reaction_request = {
+	reactant1: MineralConstant | MineralCompoundConstant;
+	reactant2: MineralConstant | MineralCompoundConstant;
+	product: MineralCompoundConstant;
+}
+
+type type_current_boost_request = {
+    compound : MineralBoostConstant;
+	amount : number;
+}
+
+type type_boost_status = {
+	boost_found: boolean;
+	boosting: boolean;
+	boost_finished: boolean;
+}
+
+type type_creep_boost_request = {
+	[key in BodyPartConstant]?: MineralBoostConstant;
 }
 
 interface Game {
@@ -351,5 +369,7 @@ declare module NodeJS {
 		basic_costmatrices: {
 			[key: string]: CostMatrix;
 		}
+		test_var: boolean;
+		visualize_cost(room_name: string): number;
 	}
 }
