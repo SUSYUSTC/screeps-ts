@@ -32,17 +32,19 @@ var room_E16N58_containers: conf_containers = {
         "RCL": 2,
     },
     "S2": {
-        "pos": [37, 31],
+        "pos": [37, 32],
         "RCL": 2,
     },
     "CT": {
         "pos": [18, 26],
         "RCL": 2,
     },
+	/*
     "MD": {
         "pos": [31, 25],
         "RCL": 3,
     },
+	 */
     "MINE": {
         "pos": [23, 40],
         "RCL": 6,
@@ -56,7 +58,7 @@ var room_E16N58_links: conf_links = {
         "source": true,
     },
     "S2": {
-        "pos": [36, 32],
+        "pos": [36, 31],
         "source": true,
     },
     "CT": {
@@ -64,42 +66,79 @@ var room_E16N58_links: conf_links = {
         "source": false,
     },
     "MAIN": {
-        "pos": [27, 33],
+        "pos": [37, 27],
         "source": true,
     },
 }
 var room_E16N58_labs: conf_lab = {
-    /*
     'L1': {
-        "pos": [27, 22],
-        "object": "GH2O",
-        "body": WORK,
-        "effect": "upgrade",
-        "active": false,
+        "pos": [34, 26],
+        "state": "boost",
     },
-	 */
+    'L2': {
+        "pos": [36, 24],
+        "state": "source1",
+    },
+    'L3': {
+        "pos": [36, 25],
+        "state": "source2",
+    },
+    'L4': {
+        "pos": [34, 25],
+        "state": "react",
+    },
+    'L5': {
+        "pos": [34, 24],
+        "state": "react",
+    },
+    'L6': {
+        "pos": [35, 24],
+        "state": "react",
+    },
+    'L7': {
+        "pos": [37, 24],
+        "state": "react",
+    },
+    'L8': {
+        "pos": [38, 24],
+        "state": "react",
+    },
+    'L9': {
+        "pos": [38, 25],
+        "state": "react",
+    },
+    'L10': {
+        "pos": [38, 25],
+        "state": "react",
+    },
 };
 
 var room_E16N58_carrier_preference_S1: conf_preference[] = [{
     "container": "CT",
     "points": 0,
+	/*
 }, {
     "container": "MD",
     "points": 500,
+	*/
 }]
 
 var room_E16N58_carrier_preference_S2: conf_preference[] = [{
+	/*
     "container": "MD",
     "points": 0,
 }, {
+	*/
     "container": "CT",
     "points": 1000,
 }]
 
 var room_E16N58_carrier_preference_storage: conf_preference[] = [{
+	/*
     "container": "MD",
     "points": 0,
 }, {
+	*/
     "container": "CT",
     "points": 1000,
 }]
@@ -137,37 +176,42 @@ var room_E16N58_upgraders: conf_upgraders = {
         [18, 26],
     ],
     "commuting_time": 21,
-    "boost_request": false,
+	//"boost_request": "GH",
 }
 var room_E16N58_harvesters: conf_harvesters = {
     "S1": {
-        "commuting_time": 30,
+        "commuting_time": 60,
     },
     "S2": {
-        "commuting_time": 36,
+        "commuting_time": 3,
     },
 }
 var room_E16N58_main_link_amount_source = 600;
 var room_E16N58_main_link_amount_sink = 400;
 var room_E16N58_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "main_pos": [27, 34],
+        "main_pos": [36, 27],
         "working_zone": [
-            [27, 34]
+            [36, 27],
+            [36, 26],
+            [35, 26],
+            [35, 25],
+            [37, 26],
+            [37, 25],
         ],
-        "waiting_pos": [26, 34],
+        "waiting_pos": [34, 26],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E16N58_main_link_amount_source,
         "storage": true,
-        "terminal": false,
+        "terminal": true,
     }
 }
 
 var room_E16N58_max_transfer: number = 8
-var room_E16N58_stay_pos: number[] = [32, 29];
+var room_E16N58_stay_pos: number[] = [38, 27];
 var room_E16N58_mineral_stay_pos: number[] = [23, 39];
-var room_E16N58_safe_pos: number[] = [36, 34];
+var room_E16N58_safe_pos: number[] = [37, 33];
 var room_E16N58_storage_bar: number[] = [200000];
 var room_E16N58_wall_strength = 200000;
 var room_E16N58_wall_rate = 0;
@@ -356,39 +400,39 @@ var room_E15N58_labs: conf_lab = {
     },
     'L2': {
         "pos": [43, 5],
-		"state": "source1",
+        "state": "source1",
     },
     'L3': {
         "pos": [43, 6],
-		"state": "source2",
+        "state": "source2",
     },
     'L4': {
         "pos": [41, 5],
-		"state": "react",
+        "state": "react",
     },
     'L5': {
         "pos": [41, 6],
-		"state": "react",
+        "state": "react",
     },
     'L6': {
         "pos": [42, 6],
-		"state": "react",
+        "state": "react",
     },
     'L7': {
         "pos": [44, 6],
-		"state": "react",
+        "state": "react",
     },
     'L8': {
         "pos": [45, 6],
-		"state": "react",
+        "state": "react",
     },
     'L9': {
         "pos": [45, 5],
-		"state": "react",
+        "state": "react",
     },
     'L10': {
         "pos": [45, 4],
-		"state": "react",
+        "state": "react",
     },
 };
 var room_E15N58_carrier_preference_S1: conf_preference[] = [{
@@ -666,39 +710,39 @@ var room_E14N51_labs: conf_lab = {
     },
     'L2': {
         "pos": [12, 29],
-		"state": "source1",
+        "state": "source1",
     },
     'L3': {
         "pos": [13, 29],
-		"state": "source2",
+        "state": "source2",
     },
     'L4': {
         "pos": [14, 28],
-		"state": "react",
+        "state": "react",
     },
     'L5': {
         "pos": [14, 27],
-		"state": "react",
+        "state": "react",
     },
     'L6': {
         "pos": [13, 27],
-		"state": "react",
+        "state": "react",
     },
     'L7': {
         "pos": [12, 27],
-		"state": "react",
+        "state": "react",
     },
     'L8': {
         "pos": [12, 28],
-		"state": "react",
+        "state": "react",
     },
     'L9': {
         "pos": [12, 30],
-		"state": "react",
+        "state": "react",
     },
     'L10': {
         "pos": [13, 31],
-		"state": "react",
+        "state": "react",
     },
 };
 var room_E14N51_carrier_preference_S1: conf_preference[] = [{
@@ -920,7 +964,12 @@ var room_E19N53_links: conf_links = {
         "source": true,
     },
 }
-var room_E19N53_labs: conf_lab = {};
+var room_E19N53_labs: conf_lab = {
+    "L1": {
+        "pos": [22, 12],
+        "state": "boost",
+    }
+};
 var room_E19N53_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
     "points": 0,
@@ -975,12 +1024,7 @@ var room_E19N53_upgraders: conf_upgraders = {
         [38, 17],
     ],
     "commuting_time": 57,
-    /*
-    "boost_request": {
-        "body": WORK,
-        "effect": "upgrade"
-    },
-	 */
+    "boost_request": "GH",
 }
 var room_E19N53_harvesters: conf_harvesters = {
     "S1": {
@@ -995,7 +1039,10 @@ var room_E19N53_main_link_amount_sink = 400;
 var room_E19N53_maincarriers: conf_maincarriers = {
     "MAIN": {
         "main_pos": [24, 11],
-        "working_zone": [[24, 11]],
+        "working_zone": [
+            [24, 11],
+            [23, 12]
+        ],
         "waiting_pos": [24, 10],
         "n_carry": 6,
         "link_name": "MAIN",
@@ -1005,7 +1052,7 @@ var room_E19N53_maincarriers: conf_maincarriers = {
     }
 }
 
-var room_E19N53_max_transfer: number = 4
+var room_E19N53_max_transfer: number = 8
 var room_E19N53_stay_pos: number[] = [24, 9];
 var room_E19N53_mineral_stay_pos: number[] = [33, 7];
 var room_E19N53_safe_pos: number[] = [27, 4];
@@ -1151,7 +1198,12 @@ var room_E19N51_links: conf_links = {
         "RCL": 5,
     },
 }
-var room_E19N51_labs: conf_lab = {};
+var room_E19N51_labs: conf_lab = {
+	"L1": {
+		"pos": [22, 20],
+		"state": "boost",
+	}
+};
 var room_E19N51_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
     "points": 300,
@@ -1206,12 +1258,7 @@ var room_E19N51_upgraders: conf_upgraders = {
         [17, 22],
     ],
     "commuting_time": 12,
-    /*
-    "boost_request": {
-        "body": WORK,
-        "effect": "upgrade"
-    },
-	 */
+    "boost_request": "GH2O",
 }
 var room_E19N51_harvesters: conf_harvesters = {
     "S1": {
@@ -1226,17 +1273,20 @@ var room_E19N51_main_link_amount_sink = 400;
 var room_E19N51_maincarriers: conf_maincarriers = {
     "MAIN": {
         "main_pos": [24, 21],
-        "working_zone": [[24, 21]],
+        "working_zone": [
+			[24, 21],
+			[23, 20],
+        ],
         "waiting_pos": [25, 20],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E19N51_main_link_amount_source,
         "storage": true,
-        "terminal": false,
+        "terminal": true,
     }
 }
 
-var room_E19N51_max_transfer: number = 4
+var room_E19N51_max_transfer: number = 8
 var room_E19N51_stay_pos: number[] = [22, 19];
 var room_E19N51_mineral_stay_pos: number[] = [39, 7];
 var room_E19N51_safe_pos: number[] = [27, 23];

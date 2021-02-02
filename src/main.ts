@@ -1,4 +1,6 @@
-Memory.debug_mode = true;
+if (Memory.debug_mode == undefined) {
+	Memory.debug_mode = true;
+}
 import * as config from "./config"
 import * as _ from "lodash";
 import * as creepjobs from "./creepjobs";
@@ -18,7 +20,6 @@ module.exports.loop = function() {
 	let cpu_used;
 	Game.tick_cpu = {};
 	cpu_used = Game.cpu.getUsed();
-	console.log("Controller rooms:", Memory.controlled_rooms);
 	Game.tick_cpu.parse_memory = Game.cpu.getUsed() - cpu_used;
 
     main_func.clear_creep();

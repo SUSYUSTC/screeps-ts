@@ -25,7 +25,9 @@ function get_defender_json(room_name: string, typename: string): type_spawn_json
     return json;
 }
 export function spawn(room_name: string) {
-	let cpu_used = Game.cpu.getUsed();
+	if (Game.time % 5 !== 0) {
+		return;
+	}
     let room = Game.rooms[room_name];
 	let enemies = room.find(FIND_HOSTILE_CREEPS).filter((e) => e.owner.username == 'Invader');
     if (enemies.length > 0 && room.memory.tower_list.length == 0) {
@@ -60,6 +62,13 @@ export function spawn(room_name: string) {
         if (!link_mode) {
             max_carry = conf.carriers[source_name].number;
         }
+		let with_carry = 0;
+		if (link_mode) {
+			with_carry = 2;
+		}
+		else if (is_container_broken && room.memory.total_maxenergy >= 600) {
+			with_carry = 1;
+		}
         info_source[source_name] = {
             n_carrys: n_carrys + "/" + max_carry,
             n_harvesters: harvesters.length + "/" + "1"
@@ -69,7 +78,7 @@ export function spawn(room_name: string) {
                 "source_name": source_name,
             };
             let options = {
-				"with_carry": (link_mode || (is_container_broken  && room.memory.total_maxenergy >= 600)),
+				"with_carry": with_carry,
                 "max_energy": room.memory.total_maxenergy,
             };
             let priority = (n_carrys > 0 ? 101 : 81);
@@ -521,8 +530,6 @@ export function spawn(room_name: string) {
         console.log(room.name, "source info: ", JSON.stringify(info_source))
         console.log(room.name, "home info: ", JSON.stringify(info_home))
         console.log(room.name, "external info: ", JSON.stringify(info_external))
-    }
-    if (jsons.length > 0 || Memory.debug_mode) {
         console.log(room_name, "Spawning list: ", jsons.map((e) => [e.rolename, e.cost, e.priority]));
     }
     let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);

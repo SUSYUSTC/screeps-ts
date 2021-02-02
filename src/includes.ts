@@ -31,11 +31,11 @@ interface RoomMemory {
     n_structures ? : number;
     ticks_to_spawn_builder ? : number;
     objects_updated ? : boolean;
-	has_wall_to_repair ?: boolean;
-	has_structures_to_repair ?: boolean;
-	current_boost_request ?: type_current_boost_request;
-	reaction_ready ?: boolean;
-	reaction_request ?: type_reaction_request;
+    has_wall_to_repair ? : boolean;
+    has_structures_to_repair ? : boolean;
+    current_boost_request ? : type_current_boost_request;
+    reaction_ready ? : boolean;
+    reaction_request ? : type_reaction_request;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -55,8 +55,8 @@ interface CreepMemory {
     lab_carrying_forward ? : boolean;
     stored_path ? : type_stored_path;
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
-	boost_status ?: type_boost_status;
-	resource_type ?: ResourceConstant;
+    boost_status ? : type_boost_status;
+    resource_type ? : ResourceConstant;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -115,7 +115,7 @@ interface conf_containers extends conf_structures {
 interface conf_lab extends conf_structures {
     [key: string]: {
         pos: number[];
-		state: "react" | "source1" | "source2" | "boost";
+        state: "react" | "source1" | "source2" | "boost";
         id ? : Id < StructureLab > ;
         exists ? : boolean;
         finished ? : boolean;
@@ -140,7 +140,7 @@ interface conf_carriers {
 interface conf_upgraders {
     locations: number[][];
     commuting_time: number;
-    boost_request ? : boolean;
+    boost_request ? : MineralBoostConstant;
 }
 interface conf_harvesters {
     [key: string]: {
@@ -151,7 +151,7 @@ interface conf_maincarriers {
     "MAIN": {
         main_pos: number[];
         working_zone: number[][];
-		waiting_pos: number[];
+        waiting_pos: number[];
         n_carry: number;
         link_name: string;
         link_amount: number;
@@ -332,44 +332,57 @@ type type_help_list = {
     }
 }
 
+type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
+type type_allowed_reactions = {
+    [key in MineralCompoundConstant] ? : [GeneralMineralConstant, GeneralMineralConstant];
+}
+
 type type_reaction_request = {
-	reactant1: MineralConstant | MineralCompoundConstant;
-	reactant2: MineralConstant | MineralCompoundConstant;
-	product: MineralCompoundConstant;
+    reactant1: GeneralMineralConstant;
+    reactant2: GeneralMineralConstant;
+    product: MineralCompoundConstant;
 }
 
 type type_current_boost_request = {
-    compound : MineralBoostConstant;
-	amount : number;
+    compound: MineralBoostConstant;
+    amount: number;
 }
 
 type type_boost_status = {
-	boost_found: boolean;
-	boosting: boolean;
-	boost_finished: boolean;
+    boost_found: boolean;
+    boosting: boolean;
+    boost_finished: boolean;
 }
 
 type type_creep_boost_request = {
-	[key in BodyPartConstant]?: MineralBoostConstant;
+    [key in BodyPartConstant] ? : MineralBoostConstant;
 }
 
 interface Game {
     costmatrices: {
         [key: string]: CostMatrix
     }
-	tick_cpu ?: {
-		[key: string]: number;
-	}
+    tick_cpu ? : {
+        [key: string]: number;
+    }
 }
 
+type type_order_result = {
+    id: string,
+    price: number,
+    energy_cost: number,
+    amount: number
+};
 declare var Game: Game;
 
 declare module NodeJS {
-	interface Global {
-		basic_costmatrices: {
-			[key: string]: CostMatrix;
-		}
-		test_var: boolean;
-		visualize_cost(room_name: string): number;
-	}
+    interface Global {
+        basic_costmatrices: {
+            [key: string]: CostMatrix;
+        }
+        test_var: boolean;
+        visualize_cost(room_name: string): number;
+        set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
+        get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant): type_order_result[];
+    }
 }

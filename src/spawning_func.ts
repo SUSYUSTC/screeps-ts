@@ -77,11 +77,7 @@ const getbody_wall_repairer = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
-    if (options.with_carry) {
-        return returnbody(5, 1, 1);
-    } else {
-        return returnbody(5, 0, 1);
-    }
+	return returnbody(5, options.with_carry, 1);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
     return returnbody(20, 0, 5);

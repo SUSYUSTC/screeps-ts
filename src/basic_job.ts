@@ -38,13 +38,13 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
 			let path = creep.memory.stored_path.path;
 			if (path.length == 0) {
 				regenerate_path=true;
-				console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+				//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 				break out;
 			}
 			let last_xy = path.slice(-1)[0];
 			if (pos.getRangeTo(last_xy[0], last_xy[1]) > range) {
 				regenerate_path=true;
-				console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+				//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 				break out;
 			}
 			let arg_pos;
@@ -54,7 +54,7 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
 					let next_xy = path[i+1];
 					if (next_xy == undefined) {
 						regenerate_path=true;
-						console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+						//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 						break out;
 					}
 					if (functions.get_costmatrix_road(creep.room.name).get(next_xy[0], next_xy[1]) !== 255) {
@@ -74,17 +74,17 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
 				}
 				else {
 					regenerate_path=true;
-					console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+					//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
 					break out;
 				}
 			}
 			regenerate_path=true;
-			console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
+			//console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
 			break out;
 		}
 		else {
 			regenerate_path=true;
-			console.log(creep.room.name, creep.memory.role, "Regenerating path because target changed");
+			//console.log(creep.room.name, creep.memory.role, "Regenerating path because target changed");
 			break out;
 		}
 	}
@@ -334,9 +334,11 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
 				continue;
 			}
 			else {
-				if (lab.mineralType == request[bodypart]) {
-					lab.boostCreep(creep);
-					return 1;
+				if (lab.mineralType == request[bodypart] && lab.store.getUsedCapacity(lab.mineralType) >= n_not_boosted*30 && lab.store.getUsedCapacity("energy") >= n_not_boosted*20) {
+					let output = lab.boostCreep(creep);
+					if (output == 0) {
+						return 1;
+					}
 				}
 				creep.room.memory.current_boost_request = {compound: request[bodypart], amount: n_not_boosted};
 				return 1;

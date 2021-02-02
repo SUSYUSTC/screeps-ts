@@ -97,3 +97,50 @@ global.visualize_cost = function(room_name: string) {
 	}
 	return 0;
 }
+
+let allowed_reactions: type_allowed_reactions = {
+	"ZK": ["Z", "K"],
+	"UL": ["U", "L"],
+	"OH": ["O", "H"],
+	"G": ["ZK", "UL"],
+	"GH": ["G", "H"],
+	"GH2O": ["GH", "OH"],
+	"XGH2O": ["X", "GH2O"],
+}
+
+global.set_reaction_request = function(room_name: string, compound: MineralCompoundConstant): number {
+	let room = Game.rooms[room_name];
+	if (allowed_reactions[compound] == undefined) {
+		return 1;
+	}
+	else {
+		let reactants = allowed_reactions[compound];
+		room.memory.reaction_request = {"reactant1": reactants[0], "reactant2": reactants[1], "product": compound};
+		return 0;
+	}
+}
+
+global.get_best_order = function(room_name: string, typ: "sell" | "buy", resource: MarketResourceConstant, num: number = 3, energy_price: number = 0.2): type_order_result[] {
+	let orders = Game.market.getAllOrders({"type": typ, "resourceType": resource});
+	let costs = orders.map((e) => Game.market.calcTransactionCost(1000, room_name, e.roomName)/1000 * energy_price);
+	let prices = orders.map((e) => e.price);
+	let scores;
+	if (typ == "sell") {
+		scores = mymath.array_ele_plus(prices, costs);
+	}
+	else {
+		scores = mymath.array_ele_minus(costs, prices);
+	}
+	let argsort = mymath.argsort(scores);
+	let result: type_order_result[] = [];
+	for (let index of argsort.slice(0,num)) {
+		console.log(orders[index].id, orders[index].price, costs[index] / energy_price, orders[index].amount);
+		result.push({
+			"id": orders[index].id, 
+			"price": orders[index].price,
+			"energy_cost": costs[index]/energy_price,
+			"amount": orders[index].amount
+		});
+	}
+	return result;
+}

@@ -11,7 +11,6 @@ export function clear_creep() {
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
-            console.log('Clearing non-existing creep memory:', name);
         }
     }
 }
@@ -135,6 +134,17 @@ export function set_room_memory(room_name: string) {
             conf.maincarriers.MAIN.link_amount = conf.main_link_amount_sink;
         }
     }
+	for (let source_name of ['S1', 'S2']) {
+		if (link_modes.includes(source_name)) {
+			let this_container = Game.getObjectById(conf.containers[source_name].id);
+			if (this_container.store.getUsedCapacity("energy") < 800) {
+				conf.links[source_name].source = false;
+			}
+			else {
+				conf.links[source_name].source = true;
+			}
+		}
+	}
 
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
         room.memory.lack_energy = false;
@@ -171,7 +181,6 @@ export function set_room_memory(room_name: string) {
     for (let creepname in Game.creeps) {
         let creep = Game.creeps[creepname];
         if (creep.memory.role == 'externalharvester' && creep.memory.home_room_name == room_name && creep.room.name == creep.memory.external_room_name) {
-            //console.log(room_name, creep.memory.source_name, JSON.stringify(conf.external_rooms[creep.memory.external_room_name].sources))
             let conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name];
             conf_external.harvester_name = creepname;
         }
@@ -206,7 +215,9 @@ export function set_room_memory(room_name: string) {
             }
         }
     }
-    console.log(room.name, JSON.stringify(room.memory.external_room_status))
+	if (Memory.debug_mode) {
+		console.log(room.name, JSON.stringify(room.memory.external_room_status))
+	}
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
