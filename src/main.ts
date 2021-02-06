@@ -1,6 +1,9 @@
 if (Memory.debug_mode == undefined) {
 	Memory.debug_mode = true;
 }
+if (Memory.output_mode == undefined) {
+	Memory.output_mode = true;
+}
 import * as config from "./config"
 import * as _ from "lodash";
 import * as creepjobs from "./creepjobs";
@@ -11,6 +14,7 @@ import * as links from "./links";
 import * as labs from "./labs"
 import * as main_func from "./main_func";
 import * as final_command from "./final_command"
+import * as output from "./output"
 import * as control from "./control"
 Memory.rerunning = true;
 
@@ -68,5 +72,6 @@ module.exports.loop = function() {
 	control.action();
 	Game.tick_cpu.control = Game.cpu.getUsed() - cpu_used;
 	final_command.log();
+	output.log();
 	global.test_var = true;
 }

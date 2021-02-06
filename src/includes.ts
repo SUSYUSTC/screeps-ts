@@ -262,6 +262,7 @@ interface Memory {
     controlled_rooms ? : string[];
     username ? : any
     debug_mode ? : boolean;
+    output_mode ? : boolean;
     rerunning ? : boolean;
     defender_responsible_types ? : type_defender_responsible_types;
     help_list ? : type_help_list;

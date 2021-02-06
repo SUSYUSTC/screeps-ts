@@ -6,14 +6,6 @@ function getside(x: number, y: number, x1: number, y1: number, x2: number, y2: n
 
 Memory.controlled_rooms = ['E16N58', 'E15N58', 'E14N51', 'E19N53', 'E19N51']
 var room_E16N58_towers: conf_towers = {
-    "T1": {
-        "pos": [37, 30],
-        "RCL": 3,
-    },
-    "T2": {
-        "pos": [30, 41],
-        "RCL": 5,
-    }
 };
 var room_E16N58_sources: conf_sources = {
     "S1": {
@@ -69,6 +61,10 @@ var room_E16N58_links: conf_links = {
         "pos": [37, 27],
         "source": true,
     },
+	"L1": {
+        "pos": [29, 32],
+        "source": false,
+	}
 }
 var room_E16N58_labs: conf_lab = {
     'L1': {
@@ -108,7 +104,7 @@ var room_E16N58_labs: conf_lab = {
         "state": "react",
     },
     'L10': {
-        "pos": [38, 25],
+        "pos": [38, 26],
         "state": "react",
     },
 };
