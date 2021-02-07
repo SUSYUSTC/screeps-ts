@@ -1,5 +1,4 @@
 //screeps
-import * as room_list from "./room_list"
 import * as mymath from "./mymath"
 export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
     for (let i = 0; i < 50; i++) {
@@ -7,13 +6,6 @@ export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
         costMatrix.set(49, i, 255);
         costMatrix.set(i, 49, 255);
         costMatrix.set(i, 0, 255);
-    }
-    for (let _room_name in room_list.rooms_ignore_pos) {
-        if (room_name == _room_name) {
-            for (let xy of room_list.rooms_ignore_pos[_room_name]) {
-                costMatrix.set(xy[0], xy[1], 1);
-            }
-        }
     }
 }
 

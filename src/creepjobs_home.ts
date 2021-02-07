@@ -222,10 +222,16 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'transferer') {
 		creep.say("T")
 		creep.memory.movable = true;
-		if (creep.store.getUsedCapacity("energy") == 0) {
+		let min_fill_energy;
+		if (creep.room.controller.level >=7) {
+			min_fill_energy = 100;
+		} else {
+			min_fill_energy = 50;
+		}
+		if (creep.store.getUsedCapacity("energy") < min_fill_energy) {
 			if (creep.ticksToLive >= 30) {
 				if (basic_job.charge_all(creep, false) == 0) {
-					let min_energy = creep.store.getFreeCapacity("energy") / 2;
+					let min_energy = creep.store.getCapacity("energy") / 2;
 					let selected_linkcontainer = basic_job.select_linkcontainer(creep, min_energy);
 					if (selected_linkcontainer == null) {
 						creep.memory.movable = false;

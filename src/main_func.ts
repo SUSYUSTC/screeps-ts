@@ -57,18 +57,6 @@ export function set_room_memory(room_name: string) {
     }
     room.memory.n_sites = sites.length;
 
-    /*
-    let spawn_energies = spawns.map((e) => e.store.getUsedCapacity("energy"));
-    let spawn_maxenergies = spawns.map((e) => e.store.getCapacity("energy"));
-    let spawn_totalenergy = mymath.array_sum(spawn_energies);
-    let spawn_totalmaxenergy = mymath.array_sum(spawn_maxenergies);
-    let ext_energies = exts.map((e) => e.store.getUsedCapacity("energy"));
-    let ext_maxenergies = exts.map((e) => e.store.getCapacity("energy"));
-    let ext_totalenergy = mymath.array_sum(ext_energies);
-    let ext_totalmaxenergy = mymath.array_sum(ext_maxenergies);
-    let total_energy = spawn_totalenergy + ext_totalenergy;
-    let total_maxenergy = spawn_totalmaxenergy + ext_totalmaxenergy;
-	 */
     room.memory.total_energy = room.energyAvailable;
     room.memory.total_maxenergy = room.energyCapacityAvailable;
     for (let spawn of spawns) {
@@ -100,20 +88,6 @@ export function set_room_memory(room_name: string) {
 			}
 		}
 	}
-
-    /*
-    let temp_walls = _.filter(structures, (e) => ((e.structureType == "constructedWall" && e.hits) || e.structureType == "rampart"))
-    let all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
-    if (all_walls.length > 0 && conf.wall_rate > 0) {
-        if (!("n_needed_wallrepair" in room.memory)) {
-            room.memory.n_needed_wallrepair = 0;
-        }
-        let do_add_wallrepair = (Math.floor(Game.time * conf.wall_rate / 10) > Math.floor((Game.time - 1) * conf.wall_rate / 10));
-        if (do_add_wallrepair) {
-            room.memory.n_needed_wallrepair += 1;
-        }
-    }
-	*/
 
     let containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
     let link_modes = Object.keys(conf.links).filter((e) => conf.links[e].finished);

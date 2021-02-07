@@ -27,5 +27,8 @@ export function log() {
 		if (room.memory.sites_total_progressleft !== 0) {
 			console.log("left progress of contruction sites:", room.memory.sites_total_progressleft);
 		}
+		let mine = Game.getObjectById(Memory.rooms_conf[room_name].mine.id);
+		let amount_total;
+		console.log("type:", mine.mineralType, "amount:", mine.mineralAmount, "density:", MINERAL_DENSITY[mine.density], "regeneration time:", mine.ticksToRegeneration);
 	}
 }
