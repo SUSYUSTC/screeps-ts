@@ -132,7 +132,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'upgrader') {
 		creep.say("U")
 		creep.memory.movable = false;
-		if (conf.upgraders.boost_request !== undefined) {
+		if (creep.room.controller.level < 8 && conf.upgraders.boost_request !== undefined) {
 			let boost_result = basic_job.boost_request(creep, {
 				"work": conf.upgraders.boost_request
 			});
@@ -186,7 +186,7 @@ export function creepjob(creep: Creep): number {
 		if (creep.store["energy"] == 0) {
 			if (creep.ticksToLive >= 50) {
 				let freecapacity = creep.store.getFreeCapacity("energy");
-				let lower_limit = (link_mode ? freecapacity : freecapacity + 100);
+				let lower_limit = (link_mode ? Math.floor(freecapacity/2) : freecapacity + 100);
 				let selected_linkcontainer = basic_job.select_linkcontainer(creep, lower_limit);
 				if (selected_linkcontainer == null) {
 					return 0;
@@ -307,7 +307,7 @@ export function creepjob(creep: Creep): number {
 		creep.say("WR");
 		creep.memory.movable = false;
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			let selected_linkcontainer = basic_job.select_linkcontainer(creep, 200, true);
+			let selected_linkcontainer = basic_job.select_linkcontainer(creep, 400, true);
 			basic_job.withdraw_energy(creep, selected_linkcontainer);
 		} else {
 			let wall_ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits) || e.structureType == 'rampart');
@@ -317,7 +317,7 @@ export function creepjob(creep: Creep): number {
 			let wall;
 			if (creep.memory.wall_to_repair) {
 				wall = Game.getObjectById(creep.memory.wall_to_repair);
-				if (wall.hits - hits_min > 200000) {
+				if (wall.hits - hits_min > 500000) {
 					delete creep.memory.wall_to_repair;
 					return 0;
 				}

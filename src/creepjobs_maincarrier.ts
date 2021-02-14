@@ -48,7 +48,7 @@ export function creepjob(creep: Creep): number {
 		} else {
 			creep.memory.resource_type = < ResourceConstant > Object.keys(creep.store)[0]
 		}
-		if_boost: if (creep.room.memory.current_boost_request !== undefined) {
+		if_boost: if (creep.room.memory.current_boost_request !== undefined && creep.room.terminal) {
 			creep.say("boost");
 			let request = creep.room.memory.current_boost_request;
 			let conf_labs = Memory.rooms_conf[creep.room.name].labs;
@@ -90,7 +90,7 @@ export function creepjob(creep: Creep): number {
 			}
 			return 0;
 		}
-		if_reaction: if (creep.room.memory.reaction_request !== undefined) {
+		if_reaction: if (creep.room.memory.reaction_request !== undefined && creep.room.terminal) {
 			creep.say("react");
 			let request = creep.room.memory.reaction_request;
 			let conf_labs = Memory.rooms_conf[creep.room.name].labs;
@@ -170,7 +170,12 @@ export function creepjob(creep: Creep): number {
 			basic_job.movetopos(creep, main_pos, 0);
 		}
 		if (creep.memory.resource_type !== undefined && creep.memory.resource_type !== "energy") {
-			basic_job.transfer_energy(creep, creep.room.terminal, creep.memory.resource_type)
+			if (creep.memory.resource_type == "battery" || creep.room.terminal == undefined) {
+				creep.transfer(creep.room.storage, creep.memory.resource_type);
+			}
+			else {
+				creep.transfer(creep.room.terminal, creep.memory.resource_type);
+			}
 		}
 		let link_id = conf.links[conf_maincarrier.link_name].id;
 		let link = Game.getObjectById(link_id);
@@ -179,12 +184,26 @@ export function creepjob(creep: Creep): number {
 		let terminal_energy;
 		let storage_energy = creep.room.storage.store.getUsedCapacity("energy");
 		let storage_leftenergy = creep.room.storage.store.getFreeCapacity("energy");
-		if (conf_maincarrier.terminal) {
+		let energy_source="storage";
+		let energy_sink="storage";
+		let factory;
+		if (creep.room.terminal) {
 			terminal_energy = creep.room.terminal.store.getUsedCapacity("energy");
+			if (terminal_energy + creep_energy > 60000) {
+				energy_source = "terminal";
+			}
+			else if (terminal_energy + creep_energy < 50000) {
+				energy_sink = "terminal";
+			}
 		}
 		if (link_energy < conf_maincarrier.link_amount && (storage_energy > 5000 || creep_energy !== 0)) {
 			if (creep_energy == 0) {
-				creep.withdraw(creep.room.storage, "energy");
+				if (energy_source == "storage") {
+					creep.withdraw(creep.room.storage, "energy")
+				}
+				else {
+					creep.withdraw(creep.room.terminal, "energy");
+				}
 			} else {
 				creep.transfer(link, "energy", Math.min(conf_maincarrier.link_amount - link_energy, creep_energy));
 			}
@@ -193,19 +212,35 @@ export function creepjob(creep: Creep): number {
 			if (creep_energy == 0) {
 				creep.withdraw(link, "energy", Math.min(link_energy - conf_maincarrier.link_amount, creep_energy));
 			} else {
-				if (creep.transfer(creep.room.storage, "energy") !== 0) {
+				if (energy_sink == "storage") {
+					creep.transfer(creep.room.storage, "energy")
+				}
+				else {
 					creep.transfer(creep.room.terminal, "energy");
 				}
 			}
-		} else if (conf_maincarrier.terminal && terminal_energy < 50000 && storage_energy > 50000) {
+		} else if (energy_sink == "terminal" && storage_energy + creep_energy > 50000) {
 			if (creep_energy == 0) {
 				creep.withdraw(creep.room.storage, "energy");
 			} else {
 				creep.transfer(creep.room.terminal, "energy");
 			}
-		} else if (conf_maincarrier.terminal && terminal_energy > 60000 && storage_leftenergy > 60000) {
+		} else if (energy_source == "terminal" && storage_leftenergy > 60000) {
 			if (creep_energy == 0) {
 				creep.withdraw(creep.room.terminal, "energy");
+			} else {
+				creep.transfer(creep.room.storage, "energy");
+			}
+		} else if (storage_energy + creep_energy > 800000 && creep.room.memory.factory_id !== undefined) {
+			if (creep_energy == 0) {
+				creep.withdraw(creep.room.storage, "energy");
+			} else {
+				let factory = Game.getObjectById(creep.room.memory.factory_id);
+				creep.transfer(factory, "energy");
+			}
+		} else if (Game.time % 10 == 0 && creep.room.memory.factory_id !== undefined && (factory = Game.getObjectById(creep.room.memory.factory_id)) && factory.store.getUsedCapacity("battery") >= 300) {
+			if (creep_energy == 0) {
+				creep.withdraw(factory, "battery");
 			} else {
 				creep.transfer(creep.room.storage, "energy");
 			}

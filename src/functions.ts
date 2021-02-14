@@ -81,16 +81,16 @@ export function analyze_component(creep: Creep): type_creep_components {
 }
 
 global.visualize_cost = function(room_name: string) {
-	let cost = get_costmatrix_road('E15N58');
+	let cost = get_costmatrix_road(room_name);
 	for (let x = 0; x < 50; x++) {
 		for (let y = 0; y < 50; y++) {
-			Game.rooms.E15N58.visual.text(cost.get(x,y).toString(), x, y);
+			Game.rooms[room_name].visual.text(cost.get(x,y).toString(), x, y);
 		}
 	}
 	return 0;
 }
 
-let allowed_reactions: type_allowed_reactions = {
+export var allowed_reactions: type_allowed_reactions = {
 	"ZK": ["Z", "K"],
 	"UL": ["U", "L"],
 	"OH": ["O", "H"],
@@ -110,6 +110,23 @@ global.set_reaction_request = function(room_name: string, compound: MineralCompo
 		room.memory.reaction_request = {"reactant1": reactants[0], "reactant2": reactants[1], "product": compound};
 		return 0;
 	}
+}
+
+global.summarize_terminal = function(): type_resource_number {
+	let result: type_resource_number = {}
+	for (let room_name of Memory.controlled_rooms) {
+		let terminal = Game.rooms[room_name].terminal
+		if (terminal) {
+			let keys = <Array<ResourceConstant>>Object.keys(terminal.store)
+			for (let resource of keys) {
+				if (result[resource] == undefined) {
+					result[resource] = 0
+				}
+				result[resource] += terminal.store.getUsedCapacity(resource);
+			}
+		}
+	}
+	return result
 }
 
 global.get_best_order = function(room_name: string, typ: "sell" | "buy", resource: MarketResourceConstant, num: number = 3, energy_price: number = 0.2): type_order_result[] {

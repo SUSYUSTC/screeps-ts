@@ -36,6 +36,9 @@ interface RoomMemory {
     current_boost_request ? : type_current_boost_request;
     reaction_ready ? : boolean;
     reaction_request ? : type_reaction_request;
+	factory_id ? : Id<StructureFactory>;
+	nuker_id ? : Id<StructureNuker>;
+	powerspawn_id ? : Id<StructurePowerSpawn>;
 }
 interface CreepMemory {
     role: type_creep_role;
@@ -273,32 +276,6 @@ interface invader_type {
     name: string;
     boost: boolean;
 }
-interface type_room_list_bridge {
-    type: string;
-    rooms: string[];
-    coor_same: number;
-    name: string;
-};
-interface type_room_list_graph {
-    [key: string]: {
-        [key: string]: number;
-    }
-};
-interface type_room_list_room {
-    room_name: string;
-    connected_rooms: {
-        [key: string]: { // room_name
-            [key: string]: { // bridge_name
-                exit: number[];
-                standpoint: number[];
-                index: number;
-            };
-        };
-    };
-};
-interface type_room_list_rooms {
-    [key: string]: type_room_list_room;
-};
 interface type_spawn_json {
     rolename: string;
     creepname: string;
@@ -332,7 +309,20 @@ type type_help_list = {
         }
     }
 }
-
+type type_reaction_priority = {
+	[key: string]: {
+		[key in MineralCompoundConstant] ? : number;
+	}
+}
+type type_mineral_storage_room = {
+	[key in MineralConstant | MineralCompoundConstant] ?: string;
+}
+type type_mineral_storage_amount = {
+	[key in MineralConstant | MineralCompoundConstant] ?: number;
+}
+type type_mineral_minimum_amount = {
+	[key in MineralConstant | MineralCompoundConstant] ?: number;
+}
 type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
 type type_allowed_reactions = {
     [key in MineralCompoundConstant] ? : [GeneralMineralConstant, GeneralMineralConstant];
@@ -376,8 +366,13 @@ type type_order_result = {
 };
 declare var Game: Game;
 
+type type_resource_number = {[key in ResourceConstant] ?: number};
 declare module NodeJS {
     interface Global {
+		reaction_priority ?: type_reaction_priority;
+		mineral_storage_room ?: type_mineral_storage_room;
+		mineral_storage_amount ?: type_mineral_storage_amount;
+		mineral_minimum_amount ?: type_mineral_minimum_amount;
         basic_costmatrices: {
             [key: string]: CostMatrix;
         }
@@ -385,5 +380,6 @@ declare module NodeJS {
         visualize_cost(room_name: string): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant): type_order_result[];
+		summarize_terminal(): type_resource_number;
     }
 }

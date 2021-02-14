@@ -12,6 +12,7 @@ import * as spawning from "./spawning";
 import * as towers from "./towers";
 import * as links from "./links";
 import * as labs from "./labs"
+import * as factory from "./factory"
 import * as main_func from "./main_func";
 import * as final_command from "./final_command"
 import * as output from "./output"
@@ -64,7 +65,9 @@ module.exports.loop = function() {
 
 	cpu_used = Game.cpu.getUsed();
     for (var room_name of Memory.controlled_rooms) {
+		labs.prepare(room_name);
 		labs.reaction(room_name);
+		factory.produce(room_name);
     }
 	Game.tick_cpu.labs = Game.cpu.getUsed() - cpu_used;
 

@@ -4,7 +4,7 @@ import * as layout from "./layout";
 import * as _ from 'lodash';
 
 function is_not_full(structure: AnyStorageStructure): boolean {
-	return structure.store.getFreeCapacity("energy") > 0;
+    return structure.store.getFreeCapacity("energy") > 0;
 }
 
 export function clear_creep() {
@@ -28,16 +28,50 @@ export function set_room_memory(room_name: string) {
     let n_structures = structures.length;
     if (room.memory.n_structures !== n_structures) {
         room.memory.objects_updated = true;
-		room.memory.n_structures = n_structures;
+        room.memory.n_structures = n_structures;
     }
+    let conf = Memory.rooms_conf[room_name];
+    if (global.test_var == undefined || Game.time % 10 == 0) {
+        layout.update_structure_info(room_name, "container", conf.containers);
+        layout.update_structure_info(room_name, "tower", conf.towers);
+        layout.update_structure_info(room_name, "link", conf.links);
+        layout.update_structure_info(room_name, "lab", conf.labs);
+        if (conf.extensions !== undefined && room.controller.ticksToDowngrade > 8000) {
+            for (let xy of conf.extensions) {
+                room.createConstructionSite(xy[0], xy[1], 'extension')
+            }
+        }
+		let nukers = < StructureNuker[] > _.filter(structures, (structure) => structure.structureType == "nuker");
+		if (nukers.length == 1) {
+			room.memory.nuker_id = nukers[0].id;
+		}
+		else {
+			delete room.memory.nuker_id;
+		}
+		let factories = < StructureFactory[] > _.filter(structures, (structure) => structure.structureType == "factory");
+		if (factories.length == 1) {
+			room.memory.factory_id = factories[0].id;
+		}
+		else {
+			delete room.memory.factory_id;
+		}
+		let powerspawns = < StructurePowerSpawn[] > _.filter(structures, (structure) => structure.structureType == "powerSpawn");
+		if (powerspawns.length == 1) {
+			room.memory.powerspawn_id = powerspawns[0].id;
+		}
+		else {
+			delete room.memory.powerspawn_id;
+		}
+    }
+
     let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
     let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
-	room.memory.tower_list = towers.map((e) => e.id);
-	room.memory.spawn_list = spawns.map((e) => e.id);
-	if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 10 == 0 || room.memory.storage_list == undefined) {
-		let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
-		room.memory.storage_list = spawns.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id));
-	}
+    room.memory.tower_list = towers.map((e) => e.id);
+    room.memory.spawn_list = spawns.map((e) => e.id);
+    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 10 == 0 || room.memory.storage_list == undefined) {
+        let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
+        room.memory.storage_list = spawns.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id).concat(exts.filter(is_not_full).map((e) => < Id < AnyStorageStructure >> e.id));
+    }
 
     let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     let n_sites = sites.length;;
@@ -76,19 +110,6 @@ export function set_room_memory(room_name: string) {
         room.memory.danger_mode = false;
     }
 
-    let conf = Memory.rooms_conf[room_name];
-	if (global.test_var == undefined || Game.time % 10 == 0) {
-		layout.update_structure_info(room_name, "container", conf.containers);
-		layout.update_structure_info(room_name, "tower", conf.towers);
-		layout.update_structure_info(room_name, "link", conf.links);
-		layout.update_structure_info(room_name, "lab", conf.labs);
-		if (conf.extensions !== undefined && room.controller.ticksToDowngrade > 8000) {
-			for (let xy of conf.extensions) {
-				room.createConstructionSite(xy[0], xy[1], 'extension')
-			}
-		}
-	}
-
     let containers_mode = ['S1', 'S2', 'CT'].map((e) => (e in conf.containers) && conf.containers[e].finished);
     let link_modes = Object.keys(conf.links).filter((e) => conf.links[e].finished);
     room.memory.container_mode = mymath.all(containers_mode);
@@ -108,17 +129,16 @@ export function set_room_memory(room_name: string) {
             conf.maincarriers.MAIN.link_amount = conf.main_link_amount_sink;
         }
     }
-	for (let source_name of ['S1', 'S2']) {
-		if (link_modes.includes(source_name)) {
-			let this_container = Game.getObjectById(conf.containers[source_name].id);
-			if (this_container.store.getUsedCapacity("energy") < 800) {
-				conf.links[source_name].source = false;
-			}
-			else {
-				conf.links[source_name].source = true;
-			}
-		}
-	}
+    for (let source_name of ['S1', 'S2']) {
+        if (link_modes.includes(source_name)) {
+            let this_container = Game.getObjectById(conf.containers[source_name].id);
+            if (this_container.store.getUsedCapacity("energy") < 800) {
+                conf.links[source_name].source = false;
+            } else {
+                conf.links[source_name].source = true;
+            }
+        }
+    }
 
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
         room.memory.lack_energy = false;
@@ -136,9 +156,9 @@ export function set_room_memory(room_name: string) {
     }
 
     for (let external_room_name in conf.external_rooms) {
-		if (!conf.external_rooms[external_room_name].active) {
-			continue;
-		}
+        if (!conf.external_rooms[external_room_name].active) {
+            continue;
+        }
         for (let source_name in conf.external_rooms[external_room_name].sources) {
             let conf_external = conf.external_rooms[external_room_name].sources[source_name];
             conf_external.harvester_name = "";
@@ -189,11 +209,19 @@ export function set_room_memory(room_name: string) {
             }
         }
     }
-	if (Memory.debug_mode) {
-		console.log(room.name, JSON.stringify(room.memory.external_room_status))
-	}
+    if (Memory.debug_mode) {
+        console.log(room.name, JSON.stringify(room.memory.external_room_status))
+    }
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 export function set_global_memory() {
+    if (global.mineral_storage_amount == undefined) {
+        global.mineral_storage_amount = {};
+    }
+    let keys = < Array < keyof type_mineral_storage_room >> Object.keys(global.mineral_storage_room);
+    for (let key of keys) {
+        let room_name = global.mineral_storage_room[key];
+        global.mineral_storage_amount[key] = Game.rooms[room_name].terminal.store.getUsedCapacity(key);
+    }
 }

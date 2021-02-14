@@ -64,7 +64,11 @@ var room_E16N58_links: conf_links = {
 	"L1": {
         "pos": [29, 32],
         "source": false,
-	}
+	},
+	"L2": {
+        "pos": [43, 15],
+        "source": false,
+	},
 }
 var room_E16N58_labs: conf_lab = {
     'L1': {
@@ -209,7 +213,7 @@ var room_E16N58_stay_pos: number[] = [38, 27];
 var room_E16N58_mineral_stay_pos: number[] = [23, 39];
 var room_E16N58_safe_pos: number[] = [37, 33];
 var room_E16N58_storage_bar: number[] = [200000];
-var room_E16N58_wall_strength = 200000;
+var room_E16N58_wall_strength = 10000;
 var room_E16N58_wall_rate = 0;
 
 var room_E16N58_external_rooms: conf_external_rooms = {
@@ -959,12 +963,56 @@ var room_E19N53_links: conf_links = {
         "pos": [25, 11],
         "source": true,
     },
+    "L1": {
+        "pos": [17, 16],
+        "source": false,
+    },
+    "L2": {
+        "pos": [29, 5],
+        "source": false,
+    },
 }
 var room_E19N53_labs: conf_lab = {
     "L1": {
         "pos": [22, 12],
         "state": "boost",
-    }
+    },
+    "L2": {
+        "pos": [24, 12],
+        "state": "source1",
+    },
+    "L3": {
+        "pos": [24, 13],
+        "state": "source2",
+    },
+    "L4": {
+        "pos": [23, 13],
+        "state": "react",
+    },
+    "L5": {
+        "pos": [22, 11],
+        "state": "react",
+    },
+    "L6": {
+        "pos": [22, 13],
+        "state": "react",
+    },
+    "L7": {
+        "pos": [25, 13],
+        "state": "react",
+    },
+    "L8": {
+        "pos": [26, 13],
+        "state": "react",
+    },
+    "L9": {
+        "pos": [26, 12],
+        "state": "react",
+    },
+    "L10": {
+        "pos": [26, 11],
+        "state": "react",
+    },
 };
 var room_E19N53_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
@@ -1034,12 +1082,14 @@ var room_E19N53_main_link_amount_source = 600;
 var room_E19N53_main_link_amount_sink = 400;
 var room_E19N53_maincarriers: conf_maincarriers = {
     "MAIN": {
-        "main_pos": [24, 11],
+        "main_pos": [24, 10],
         "working_zone": [
+			[24, 10],
             [24, 11],
-            [23, 12]
+			[23, 12],
+			[25, 12],
         ],
-        "waiting_pos": [24, 10],
+        "waiting_pos": [22, 9],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E19N53_main_link_amount_source,
@@ -1049,7 +1099,7 @@ var room_E19N53_maincarriers: conf_maincarriers = {
 }
 
 var room_E19N53_max_transfer: number = 8
-var room_E19N53_stay_pos: number[] = [24, 9];
+var room_E19N53_stay_pos: number[] = [21, 8];
 var room_E19N53_mineral_stay_pos: number[] = [33, 7];
 var room_E19N53_safe_pos: number[] = [27, 4];
 var room_E19N53_storage_bar: number[] = [100000, 300000];
@@ -1195,10 +1245,46 @@ var room_E19N51_links: conf_links = {
     },
 }
 var room_E19N51_labs: conf_lab = {
-	"L1": {
+	"B1": {
 		"pos": [22, 20],
 		"state": "boost",
-	}
+	},
+	"S1": {
+		"pos": [24, 18],
+		"state": "source1",
+	},
+	"S2": {
+		"pos": [24, 19],
+		"state": "source2",
+	},
+	"R1": {
+		"pos": [22, 19],
+		"state": "react",
+	},
+	"R2": {
+		"pos": [22, 18],
+		"state": "react",
+	},
+	"R3": {
+		"pos": [23, 18],
+		"state": "react",
+	},
+	"R4": {
+		"pos": [25, 18],
+		"state": "react",
+	},
+	"R5": {
+		"pos": [26, 18],
+		"state": "react",
+	},
+	"R6": {
+		"pos": [26, 19],
+		"state": "react",
+	},
+	"R7": {
+		"pos": [26, 20],
+		"state": "react",
+	},
 };
 var room_E19N51_carrier_preference_S1: conf_preference[] = [{
     "container": "MD",
@@ -1254,7 +1340,7 @@ var room_E19N51_upgraders: conf_upgraders = {
         [17, 22],
     ],
     "commuting_time": 12,
-    "boost_request": "GH2O",
+    "boost_request": "GH",
 }
 var room_E19N51_harvesters: conf_harvesters = {
     "S1": {
@@ -1271,9 +1357,12 @@ var room_E19N51_maincarriers: conf_maincarriers = {
         "main_pos": [24, 21],
         "working_zone": [
 			[24, 21],
+			[24, 20],
 			[23, 20],
+			[23, 19],
+			[25, 19],
         ],
-        "waiting_pos": [25, 20],
+        "waiting_pos": [22, 21],
         "n_carry": 6,
         "link_name": "MAIN",
         "link_amount": room_E19N51_main_link_amount_source,
@@ -1283,16 +1372,16 @@ var room_E19N51_maincarriers: conf_maincarriers = {
 }
 
 var room_E19N51_max_transfer: number = 8
-var room_E19N51_stay_pos: number[] = [22, 19];
+var room_E19N51_stay_pos: number[] = [20, 23];
 var room_E19N51_mineral_stay_pos: number[] = [39, 7];
 var room_E19N51_safe_pos: number[] = [27, 23];
-var room_E19N51_storage_bar: number[] = [100000, 300000];
+var room_E19N51_storage_bar: number[] = [100000, 300000, 500000];
 var room_E19N51_wall_strength = 2000;
 var room_E19N51_wall_rate = 0;
 
 var room_E19N51_external_rooms: conf_external_rooms = {
     "E19N52": {
-        "active": true,
+        "active": false,
         "controller": {
             "reserve": true,
             "path_time": 60,
@@ -1374,6 +1463,60 @@ Memory.rooms_conf = {
     "E19N53": room_E19N53,
     "E19N51": room_E19N51,
 };
+global.reaction_priority={
+	"E16N58": {
+		"GH": 1,
+		"XGH2O": 0,
+	},
+	"E15N58": {
+		"UL": 2,
+		"G": 1,
+		"XGH2O": 0,
+	},
+	"E14N51": {
+		"ZK": 1,
+		"XGH2O": 0,
+	},
+	"E19N53": {
+		"GH2O": 1,
+		"XGH2O": 0,
+	},
+	"E19N51": {
+		"OH": 1,
+		"XGH2O": 0,
+	},
+}
+global.mineral_storage_room = {
+	"U": "E15N58",
+	"L": "E15N58",
+	"Z": "E14N51",
+	"K": "E14N51",
+	"O": "E19N51",
+	"H": "E16N58",
+	"X": "E19N53",
+	"UL": "E15N58",
+	"ZK": "E14N51",
+	"G": "E15N58",
+	"GH": "E16N58",
+	"OH": "E19N51",
+	"GH2O": "E19N53",
+}
+global.mineral_minimum_amount = {
+	"U": 1960,
+	"L": 1960,
+	"Z": 1960,
+	"K": 1960,
+	"O": 1960,
+	"H": 1960,
+	"X": 840,
+	"UL": 1960,
+	"ZK": 1960,
+	"G": 1960,
+	"GH": 1960,
+	"OH": 840,
+	"GH2O": 840,
+	"XGH2O": 0,
+}
 Memory.help_list = {
     /*
     "E14N51": {

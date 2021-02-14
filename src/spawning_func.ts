@@ -97,8 +97,8 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     if (options.rcl8) {
         return returnbody(1, 1, 1);
     } else {
-        if (options.max_energy >= 2200) {
-            return returnbody(18, 4, 4);
+        if (options.max_energy >= 2150) {
+            return returnbody(18, 4, 3);
         } else if (options.max_energy >= 1200) {
             return returnbody(10, 2, 2);
         } else if (options.max_energy >= 600) {

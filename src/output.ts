@@ -1,22 +1,33 @@
+import * as mymath from "./mymath"
 export function log() {
 	if (!Memory.output_mode) {
 		return;
 	}
 	for (let room_name of Memory.controlled_rooms) {
-		console.log(room_name);
 		let room = Game.rooms[room_name];
 		if (room.controller.level == 8) {
-			console.log("RCL:", room.controller.level);
+			console.log("房间:", room_name, "RCL:", room.controller.level);
 		}
 		else {
-			console.log("RCL:", room.controller.level, "progress:", room.controller.progress, "/", room.controller.progressTotal);
+			console.log("房间:", room_name, "RCL:", room.controller.level, "progress:", room.controller.progress, "/", room.controller.progressTotal);
 		}
 		console.log("room energy:", room.energyAvailable, "/", room.energyCapacityAvailable);
+		let walls = room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits));
+		let ramparts = room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'rampart');
+		let wall_strength = 0;
+		let rampart_strength = 0;
+		if (walls.length > 0) {
+			wall_strength = mymath.array_mean(walls.map((e) => e.hits));
+		}
+		if (ramparts.length > 0) {
+			rampart_strength = mymath.array_mean(ramparts.map((e) => e.hits));
+		}
+		console.log(`mean wall strength: ${Math.floor(wall_strength/1000)}k x ${walls.length}, mean rampart strength: ${Math.floor(rampart_strength/1000)}k x ${ramparts.length}`);
 		if (room.storage !== undefined) {
-			console.log("storage:", JSON.stringify(room.storage.store));
+			console.log("storage:", JSON.stringify(room.storage.store), "Total:", room.storage.store.getUsedCapacity(), "/", room.storage.store.getCapacity());
 		}
 		if (room.terminal !== undefined) {
-			console.log("terminal:", JSON.stringify(room.terminal.store));
+			console.log("terminal:", JSON.stringify(room.terminal.store), "Total:", room.terminal.store.getUsedCapacity(), "/", room.terminal.store.getCapacity());
 		}
 		if (room.memory.reaction_request !== undefined) {
 			console.log("reaction running:", JSON.stringify(room.memory.reaction_request));
