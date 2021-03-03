@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
-
+import * as config from "./config";
 const body_cost: {
     [key in BodyPartConstant]: number
 } = {
@@ -45,7 +45,7 @@ const getbody_hunter = (options: any): BodyPartConstant[] => {
     return fullreturnbody(options.body);
 }
 const getbody_defender = (options: any): BodyPartConstant[] => {
-    var bodyinfo = Memory.defender_responsible_types[options.defender_type].body;
+    var bodyinfo = config.defender_responsible_types[options.defender_type].body;
     return fullreturnbody(bodyinfo);
 }
 const getbody_invader_core_attacker = (options: any): BodyPartConstant[] => {
@@ -109,7 +109,16 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     }
 }
 const getbody_builder = (options: any): BodyPartConstant[] => {
-    let n_carry = Math.min(options.max_parts, Math.floor(options.max_energy / 200));
+	let n_afforable = Math.floor(options.max_energy / 200);
+	let n_carry;
+	if (n_afforable >= options.max_parts) {
+		n_carry = options.max_parts;
+	} else if (n_afforable >= Math.ceil(options.max_parts/2)) {
+		n_carry = Math.ceil(options.max_parts/2);
+	}
+	else {
+		n_carry = n_afforable;
+	}
     let n_move = n_carry;
     let n_work = n_carry;
     return returnbody(n_work, n_carry, n_move);
@@ -233,3 +242,8 @@ export function spawn_json(room_name: string, json: type_spawn_json) {
         return;
     }
 }
+
+for (var name in config.defender_responsible_types) {
+	config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
+}
+

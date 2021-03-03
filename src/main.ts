@@ -13,6 +13,7 @@ import * as towers from "./towers";
 import * as links from "./links";
 import * as labs from "./labs"
 import * as factory from "./factory"
+import * as market from "./market"
 import * as main_func from "./main_func";
 import * as final_command from "./final_command"
 import * as output from "./output"
@@ -29,13 +30,13 @@ module.exports.loop = function() {
 
     main_func.clear_creep();
 	main_func.set_global_memory()
-    for (var room_name of Memory.controlled_rooms) {
+    for (var room_name of config.controlled_rooms) {
         var room = Game.rooms[room_name];
         main_func.set_room_memory(room_name);
 	}
 
 	cpu_used = Game.cpu.getUsed();
-    for (var room_name of Memory.controlled_rooms) {
+    for (var room_name of config.controlled_rooms) {
         if (towers.attack_all(room_name) == 1) {
         	if (towers.heal_all(room_name) == 1) {
         		towers.repair_all(room_name);
@@ -58,16 +59,17 @@ module.exports.loop = function() {
     }
 
 	cpu_used = Game.cpu.getUsed();
-    for (var room_name of Memory.controlled_rooms) {
+    for (var room_name of config.controlled_rooms) {
 		spawning.spawn(room_name);
     }
 	Game.tick_cpu.spawning = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
-    for (var room_name of Memory.controlled_rooms) {
+    for (var room_name of config.controlled_rooms) {
 		labs.prepare(room_name);
 		labs.reaction(room_name);
 		factory.produce(room_name);
+		market.process_buy_order(room_name);
     }
 	Game.tick_cpu.labs = Game.cpu.getUsed() - cpu_used;
 

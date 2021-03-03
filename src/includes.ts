@@ -14,17 +14,7 @@ type type_stored_path = {
 }
 interface RoomMemory {
     storage_list ? : Id < AnyStorageStructure > [];
-    tower_list ? : Id < StructureTower > [];
-    spawn_list ? : Id < StructureSpawn > [];
-    total_energy ? : number;
-    total_maxenergy ? : number;
-    container_mode ? : boolean;
-    mine_harvestable ? : boolean;
-    sites_total_progressleft ? : number;
-    danger_mode ? : boolean;
-    link_modes ? : string[];
-    lack_energy ? : boolean;
-    storage_level ? : number;
+	storage_level ? : number;
     external_room_status ? : type_external_room_status;
     n_needed_wallrepair ? : number;
     n_sites ? : number;
@@ -36,10 +26,31 @@ interface RoomMemory {
     current_boost_request ? : type_current_boost_request;
     reaction_ready ? : boolean;
     reaction_request ? : type_reaction_request;
-	factory_id ? : Id<StructureFactory>;
-	nuker_id ? : Id<StructureNuker>;
-	powerspawn_id ? : Id<StructurePowerSpawn>;
+	objects_to_buy ? : {
+		[key: string]: type_object_to_trade;
+	}
+	objects_to_sell ? : {
+		[key: string]: type_object_to_trade;
+	}
+    market_cooldown ? : boolean;
+	named_structures_status ?: type_all_named_structures_status
+	unique_structures_status ?: type_all_unique_structures_status
 }
+interface type_all_named_structures_status {
+	container: type_named_structures_status<StructureContainer>;
+	link: type_named_structures_status<StructureLink>;
+	lab: type_named_structures_status<StructureLab>;
+	spawn: type_named_structures_status<StructureSpawn>;
+};
+interface type_all_unique_structures_status {
+	terminal: type_unique_structures_status<StructureTerminal>;
+	storage: type_unique_structures_status<StructureStorage>;
+	factory: type_unique_structures_status<StructureFactory>;
+	nuker: type_unique_structures_status<StructureNuker>;
+	powerSpawn: type_unique_structures_status<StructurePowerSpawn>;
+	observer: type_unique_structures_status<StructureObserver>;
+	extractor: type_unique_structures_status<StructureExtractor>;
+};
 interface CreepMemory {
     role: type_creep_role;
     source_name ? : string;
@@ -66,69 +77,40 @@ interface SpawnMemory {
     can_suicide ? : boolean;
 }
 interface conf_sources {
-    [key: string]: {
-        id: Id < Source > ;
-        RCL ? : number;
-        finished ? : boolean;
-    }
+    [key: string]: Id < Source > ;
 }
-interface conf_mine {
-    id: Id < Mineral > ;
+interface Game_mine {
     type ? : ResourceConstant;
     density ? : number;
     amount ? : number;
 }
-interface conf_structures {
+type type_named_structures = "container" | "link" | "lab" | "spawn";
+type type_unique_structures =  "factory" | "nuker" | "storage" | "terminal" | "observer" | "powerSpawn" | "extractor";
+type type_multiple_structures =  "road" | "extension" | "tower";
+interface type_named_structures_status<T> {
     [key: string]: {
-        pos: number[];
-        id ? : Id < Structure > ;
-        exists ? : boolean;
-        finished ? : boolean;
-        RCL ? : number;
+		exists?: boolean;
+		finished?: boolean;
+		id ?: Id<T>;
     }
 }
-interface conf_towers extends conf_structures {
+interface type_unique_structures_status<T> {
+	exists?: boolean;
+	finished?: boolean;
+	id ?: Id<T>;
+}
+interface conf_named_structures {
     [key: string]: {
         pos: number[];
-        id ? : Id < StructureTower > ;
-        exists ? : boolean;
-        finished ? : boolean;
-        RCL ? : number;
+        RCL: number;
     }
 }
-interface conf_links extends conf_structures {
-    [key: string]: {
-        pos: number[];
-        source: boolean;
-        id ? : Id < StructureLink > ;
-        exists ? : boolean;
-        finished ? : boolean;
-        RCL ? : number;
-    }
+interface conf_unique_structures {
+	pos: number[];
+	RCL: number;
 }
-interface conf_containers extends conf_structures {
-    [key: string]: {
-        pos: number[];
-        id ? : Id < StructureContainer > ;
-        exists ? : boolean;
-        finished ? : boolean;
-        RCL ? : number;
-    }
-}
-interface conf_lab extends conf_structures {
-    [key: string]: {
-        pos: number[];
-        state: "react" | "source1" | "source2" | "boost";
-        id ? : Id < StructureLab > ;
-        exists ? : boolean;
-        finished ? : boolean;
-        effect ? : string;
-    }
-}
-interface conf_init {
-    [key: string]: {
-        number: number;
-    }
+interface conf_multiple_structures {
+    [key: string]: number[][];
 }
 interface conf_preference {
     container: string;
@@ -143,24 +125,16 @@ interface conf_carriers {
 interface conf_upgraders {
     locations: number[][];
     commuting_time: number;
-    boost_request ? : MineralBoostConstant;
 }
 interface conf_harvesters {
     [key: string]: {
         commuting_time: number;
     }
 }
-interface conf_maincarriers {
-    "MAIN": {
-        main_pos: number[];
-        working_zone: number[][];
-        waiting_pos: number[];
-        n_carry: number;
-        link_name: string;
-        link_amount: number;
-        storage: boolean;
-        terminal: boolean;
-    }
+interface conf_maincarrier {
+    main_pos: number[];
+    working_zone: number[][];
+    waiting_pos: number[];
 }
 interface conf_external_rooms {
     [key: string]: {
@@ -176,8 +150,7 @@ interface conf_external_rooms {
         sources: {
             [key: string]: {
                 id: Id < Source > ;
-                harvest_pos: number[];
-                reserve: boolean;
+                harvester_pos: number[];
                 single_distance: number;
                 n_carry: number;
                 n_carrier: number;
@@ -189,13 +162,11 @@ interface conf_external_rooms {
                 poses_forwardpath: number[];
                 rooms_backwardpath: string[];
                 poses_backwardpath: number[];
-                harvester_name ? : string;
-                transfer_target_id ? : Id < AnyStorageStructure > ;
             }
         }
     }
 }
-interface conf_hunting {
+interface type_conf_hunting {
     room_name: string;
     number: number;
     rooms_forwardpath: string[];
@@ -205,32 +176,31 @@ interface conf_hunting {
     body: type_body_components;
     stay_pos: number[];
 }
-interface room_conf {
-    towers: conf_towers;
-    sources: conf_sources;
-    mine: conf_mine;
-    containers: conf_containers;
-    extensions ? : number[][];
-    links: conf_links;
-    link_transfer_gap: number;
-    link_transfer_amount: number;
-    init: conf_init;
-    carriers: conf_carriers;
-    upgraders: conf_upgraders;
-    harvesters: conf_harvesters;
-    main_link_amount_source: number;
-    main_link_amount_sink: number;
-    maincarriers: conf_maincarriers;
-    max_transfer: number;
-    stay_pos: number[];
-    mineral_stay_pos: number[];
-    safe_pos: number[];
-    storage_bar: number[];
-    external_rooms: conf_external_rooms;
-    wall_strength: number;
-    wall_rate: number;
-    labs ? : conf_lab;
-    hunting ? : conf_hunting;
+interface type_conf_room {
+    readonly sources: conf_sources;
+    readonly mine: Id < Mineral > ;
+    readonly spawns: conf_named_structures;
+    readonly containers: conf_named_structures;
+    readonly links: conf_named_structures;
+    readonly labs: conf_named_structures;
+    readonly towers: conf_multiple_structures;
+    readonly roads: conf_multiple_structures;
+    readonly extensions: conf_multiple_structures;
+    readonly storage: conf_unique_structures;
+    readonly terminal: conf_unique_structures;
+    readonly factory: conf_unique_structures;
+    readonly nuker: conf_unique_structures;
+    readonly powerspawn: conf_unique_structures;
+    readonly observer: conf_unique_structures;
+    readonly extractor: conf_unique_structures;
+    readonly carriers: conf_carriers;
+    readonly upgraders: conf_upgraders;
+    readonly harvesters: conf_harvesters;
+    readonly maincarrier: conf_maincarrier;
+    readonly transferer_stay_pos: number[];
+    readonly mineral_stay_pos: number[];
+    readonly safe_pos: number[];
+    readonly external_rooms: conf_external_rooms;
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -259,16 +229,9 @@ interface Memory {
     spawns: {
         [name: string]: SpawnMemory
     };
-    rooms_conf: {
-        [key: string]: room_conf
-    };
-    controlled_rooms ? : string[];
-    username ? : any
     debug_mode ? : boolean;
     output_mode ? : boolean;
     rerunning ? : boolean;
-    defender_responsible_types ? : type_defender_responsible_types;
-    help_list ? : type_help_list;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -310,18 +273,18 @@ type type_help_list = {
     }
 }
 type type_reaction_priority = {
-	[key: string]: {
-		[key in MineralCompoundConstant] ? : number;
-	}
+    [key: string]: {
+        [key in MineralCompoundConstant] ? : number;
+    }
 }
 type type_mineral_storage_room = {
-	[key in MineralConstant | MineralCompoundConstant] ?: string;
+    [key in MineralConstant | MineralCompoundConstant] ? : string;
 }
 type type_mineral_storage_amount = {
-	[key in MineralConstant | MineralCompoundConstant] ?: number;
+    [key in MineralConstant | MineralCompoundConstant] ? : number;
 }
 type type_mineral_minimum_amount = {
-	[key in MineralConstant | MineralCompoundConstant] ?: number;
+    [key in MineralConstant | MineralCompoundConstant] ? : number;
 }
 type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
 type type_allowed_reactions = {
@@ -349,6 +312,12 @@ type type_creep_boost_request = {
     [key in BodyPartConstant] ? : MineralBoostConstant;
 }
 
+type type_mine_status = {
+	density: number;
+	type: MineralConstant;
+	amount: number;
+	harvestable: boolean;
+}
 interface Game {
     costmatrices: {
         [key: string]: CostMatrix
@@ -356,30 +325,63 @@ interface Game {
     tick_cpu ? : {
         [key: string]: number;
     }
+	mineral_storage_amount ? : type_mineral_storage_amount;
+    memory: {
+        [key: string]: {
+            tower_list?: Id < StructureTower > [];
+            spawn_list?: Id < StructureSpawn > [];
+			danger_mode?: boolean;
+			sites_total_progressleft?: number;
+			link_modes?: string[];
+			container_modes_all?: boolean;
+			are_links_source ?: {
+				[key: string]: boolean;
+			}
+			maincarrier_link_amount?: number;
+			lack_energy ?: boolean;
+			mine_status ?: type_mine_status;
+			external_harvester?: {
+				[key: string]: {
+					[key: string]: string;
+				}
+			}
+		}
+    }
 }
 
 type type_order_result = {
-    id: string,
-    price: number,
-    energy_cost: number,
-    amount: number
+    id: string;
+    price: number;
+    transaction_cost: number;
+    energy_price: number;
+    score: number;
+    amount: number;
+};
+type type_object_to_trade = {
+    max_score: number;
+    resource: MarketResourceConstant;
+    amount: number;
+    energy_price: number;
 };
 declare var Game: Game;
 
-type type_resource_number = {[key in ResourceConstant] ?: number};
+type GeneralStore = Store<ResourceConstant, boolean>;
+
+type type_resource_number = {
+    [key in ResourceConstant] ? : number
+};
+
 declare module NodeJS {
     interface Global {
-		reaction_priority ?: type_reaction_priority;
-		mineral_storage_room ?: type_mineral_storage_room;
-		mineral_storage_amount ?: type_mineral_storage_amount;
-		mineral_minimum_amount ?: type_mineral_minimum_amount;
         basic_costmatrices: {
             [key: string]: CostMatrix;
         }
         test_var: boolean;
         visualize_cost(room_name: string): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
-        get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant): type_order_result[];
-		summarize_terminal(): type_resource_number;
+        get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
+        summarize_terminal(): type_resource_number;
+        auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
+        auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
     }
 }

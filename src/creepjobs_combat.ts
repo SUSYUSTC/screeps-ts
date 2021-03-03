@@ -3,6 +3,7 @@ import * as defense from "./defense";
 import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
+import * as config from "./config";
 var moveoptions = {
     reusePath: 5,
     //visualizePathStyle: {},
@@ -10,11 +11,11 @@ var moveoptions = {
     costCallback: functions.avoid_exits,
 };
 export function creepjob(creep: Creep): number {
-	let conf = Memory.rooms_conf[creep.memory.home_room_name];
+	let conf = config.conf_rooms[creep.memory.home_room_name];
     if (creep.memory.role == 'hunter') {
         creep.say("HT")
         creep.memory.movable = false;
-        hunting.hunt(creep);
+        hunting.hunt(creep, config.hunting[creep.memory.home_room_name]);
 		return 0;
     } else if (creep.memory.role == 'invader_core_attacker') {
         creep.say("A");
@@ -100,7 +101,7 @@ export function creepjob(creep: Creep): number {
                 console.log("Seems that the creep is moving on exits");
 				return 0;
             }
-            let fightable_types = Memory.defender_responsible_types[creep.memory.defender_type].list;
+            let fightable_types = config.defender_responsible_types[creep.memory.defender_type].list;
             let responsible_rooms = Object.keys(external_room_status).filter((e) => fightable_types.includes(external_room_status[e].defense_type));
             if (responsible_rooms.length > 0) {
                 creep.memory.defending_room = responsible_rooms[0];

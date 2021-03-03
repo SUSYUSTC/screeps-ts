@@ -11,15 +11,11 @@ var moveoptions = {
 function not_edge(pos: RoomPosition): boolean {
     return pos.x > 2 && pos.x < 47 && pos.y > 2 && pos.y < 47
 }
-export function hunt(creep: Creep) {
-    let conf = Memory.rooms_conf[creep.memory.home_room_name];
+export function hunt(creep: Creep, conf_hunting: type_conf_hunting) {
     let attacked = false;
     let rangedattacked = false;
-    if (!("hunting" in conf)) {
-        return;
-    }
-    if (creep.room.name !== conf.hunting.room_name && creep.hits == creep.hitsMax) {
-        external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.poses_forwardpath);
+    if (creep.room.name !== conf_hunting.room_name && creep.hits == creep.hitsMax) {
+        external_room.movethroughrooms(creep, conf_hunting.rooms_forwardpath, conf_hunting.poses_forwardpath);
     } else {
         let enermies = creep.room.find(FIND_HOSTILE_CREEPS);
         let dangerous;
@@ -41,14 +37,14 @@ export function hunt(creep: Creep) {
                 let argmin_movable = mymath.argmin(distance_movable);
                 moving_target = enermies_movable[argmin_movable];
             }
-			if (creep.rangedAttack(target) == 0) {
-				rangedattacked=true;
-			}
+            if (creep.rangedAttack(target) == 0) {
+                rangedattacked = true;
+            }
             var total_components: {
                 [key: string]: number
             } = {};
             for (let key in creeps_components[0]) {
-                total_components[key] = mymath.array_sum(creeps_components.map((e) => e[key]));
+                total_components[key] = mymath.array_sum(creeps_components.map((e) => e[ < keyof type_creep_components > key]));
             }
             console.log(JSON.stringify(total_components));
             dangerous = (total_components.n_attack > 5 || total_components.n_rangedattack > 3);
@@ -68,15 +64,15 @@ export function hunt(creep: Creep) {
                         let argmin_structures = mymath.argmin(distance_structures);
                         let closest_structure = structures[argmin_structures];
                         creep.attack(closest_structure);
-						if (!rangedattacked) {
-							creep.rangedAttack(closest_structure);
-						}
+                        if (!rangedattacked) {
+                            creep.rangedAttack(closest_structure);
+                        }
                     }
                 }
             }
         }
-        if (creep.hits <= creep.hitsMax * 0.8 || creep.room.name !== conf.hunting.room_name) {
-            external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.poses_backwardpath);
+        if (creep.hits <= creep.hitsMax * 0.8 || creep.room.name !== conf_hunting.room_name) {
+            external_room.movethroughrooms(creep, conf_hunting.rooms_backwardpath, conf_hunting.poses_backwardpath);
             return;
         }
         if (!dangerous && enermies.length > 0) {
@@ -85,8 +81,8 @@ export function hunt(creep: Creep) {
             }
             return;
         }
-        if (others.length < conf.hunting.number - 1) {
-            external_room.movethroughrooms(creep, conf.hunting.rooms_forwardpath, conf.hunting.poses_forwardpath);
+        if (others.length < conf_hunting.number - 1) {
+            external_room.movethroughrooms(creep, conf_hunting.rooms_forwardpath, conf_hunting.poses_forwardpath);
             return;
         }
         let distance_to_others = others.map((e) => creep.pos.getRangeTo(e));
@@ -100,7 +96,7 @@ export function hunt(creep: Creep) {
                     creep.moveTo(moving_target, moveoptions);
                     return;
                 } else {
-                    creep.moveTo(conf.hunting.stay_pos[0], conf.hunting.stay_pos[1]);
+                    creep.moveTo(conf_hunting.stay_pos[0], conf_hunting.stay_pos[1]);
                     return;
                 }
             } else {
@@ -111,19 +107,19 @@ export function hunt(creep: Creep) {
                         }
                         return;
                     } else {
-                        external_room.movethroughrooms(creep, conf.hunting.rooms_backwardpath, conf.hunting.poses_backwardpath);
+                        external_room.movethroughrooms(creep, conf_hunting.rooms_backwardpath, conf_hunting.poses_backwardpath);
                         return;
                     }
                 } else {
                     if (not_edge(target.pos)) {
                         creep.moveTo(target, moveoptions)
                     } else {
-                        creep.moveTo(conf.hunting.stay_pos[0], conf.hunting.stay_pos[1]);
+                        creep.moveTo(conf_hunting.stay_pos[0], conf_hunting.stay_pos[1]);
                     }
                 }
             }
         } else {
-            creep.moveTo(conf.hunting.stay_pos[0], conf.hunting.stay_pos[1]);
+            creep.moveTo(conf_hunting.stay_pos[0], conf_hunting.stay_pos[1]);
             return;
         }
     }

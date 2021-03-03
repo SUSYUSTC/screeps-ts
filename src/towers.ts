@@ -1,12 +1,14 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
+import * as config from "./config";
 export function attack_all(room_name: string) {
     var room = Game.rooms[room_name]
+	var game_memory = Game.memory[room_name];
     var enemies = room.find(FIND_HOSTILE_CREEPS);
     if (enemies.length > 0) {
         var hits = enemies.map((e) => e.hits);
         var index = mymath.argmin(hits);
-        var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
+        var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
         for (var tower of towers) {
             tower.attack(enemies[index]);
         }
@@ -16,10 +18,11 @@ export function attack_all(room_name: string) {
 }
 export function heal_all(room_name: string) {
     var room = Game.rooms[room_name]
+	var game_memory = Game.memory[room_name];
     var creeps = room.find(FIND_MY_CREEPS);
     for (var creep of creeps) {
         if (creep.hits < creep.hitsMax) {
-            var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
+            var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
             for (var tower of towers) {
                 tower.heal(creep)
             }
@@ -30,13 +33,14 @@ export function heal_all(room_name: string) {
 }
 export function repair_all(room_name: string) {
     var room = Game.rooms[room_name]
-    var conf = Memory.rooms_conf[room.name];
+	var game_memory = Game.memory[room_name];
+    var conf = config.conf_rooms[room.name];
     var structures = room.find(FIND_STRUCTURES);
     var roads = _.filter(structures, (e) => e.structureType == 'road')
     var roads_needrepair = _.filter(roads, (e) => e.hitsMax - e.hits >= 1000)
     var containers = _.filter(structures, (e) => e.structureType == 'container')
     var containers_needrepair = _.filter(containers, (e) => e.hitsMax - e.hits >= 150000)
-    var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
+    var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
     if (towers.length == 0) {
         return;
     }
@@ -79,7 +83,7 @@ export function repair_all(room_name: string) {
 	repair_wall: if (room.memory.has_wall_to_repair || Game.time % 10 == 0) {
 		var temp_walls = _.filter(structures, (e) => ((e.structureType == "constructedWall" && e.hits) || e.structureType == "rampart"))
 		var all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
-		var walls = all_walls.filter((e) => e.hits < conf.wall_strength);
+		var walls = all_walls.filter((e) => e.hits < config.wall_strength);
 		if (walls.length == 0) {
 			room.memory.has_wall_to_repair = false;
 			break repair_wall;
