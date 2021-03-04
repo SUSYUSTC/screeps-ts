@@ -77,20 +77,16 @@ const getbody_wall_repairer = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
-	return returnbody(5, options.with_carry, 1);
+    return returnbody(5, options.with_carry, 1);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
     return returnbody(20, 0, 5);
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
-    if (options.reserve) {
-        var n_work = 5;
-        var n_move = 5;
-    } else {
-        var n_work = 3;
-        var n_move = 3;
-    }
-    var n_carry = options.n_carry;
+    var n_work = 5;
+    var n_move = 5;
+    var carry_affordable = Math.floor((options.max_energy - 750) / 50)
+    var n_carry = Math.min(options.max_parts, carry_affordable);
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_upgrader = (options: any): BodyPartConstant[] => {
@@ -109,23 +105,22 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     }
 }
 const getbody_builder = (options: any): BodyPartConstant[] => {
-	let n_afforable = Math.floor(options.max_energy / 200);
-	let n_carry;
-	if (n_afforable >= options.max_parts) {
-		n_carry = options.max_parts;
-	} else if (n_afforable >= Math.ceil(options.max_parts/2)) {
-		n_carry = Math.ceil(options.max_parts/2);
-	}
-	else {
-		n_carry = n_afforable;
-	}
+    let n_afforable = Math.floor(options.max_energy / 200);
+    let n_carry;
+    if (n_afforable >= options.max_parts) {
+        n_carry = options.max_parts;
+    } else if (n_afforable >= Math.ceil(options.max_parts / 2)) {
+        n_carry = Math.ceil(options.max_parts / 2);
+    } else {
+        n_carry = n_afforable;
+    }
     let n_move = n_carry;
     let n_work = n_carry;
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_carrier = (options: any): BodyPartConstant[] => {
     let temp_n_move = Math.floor((options.max_energy + 50) / 150);
-    let n_carry = Math.min(options.max_energy / 50 - temp_n_move, temp_n_move*2);
+    let n_carry = Math.min(options.max_energy / 50 - temp_n_move, temp_n_move * 2);
     if (n_carry >= options.max_parts) {
         n_carry = options.max_parts;
     } else if (n_carry >= Math.ceil(options.max_parts / 2)) {
@@ -143,16 +138,21 @@ const getbody_specialcarrier = (options: any): BodyPartConstant[] => {
 }
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
-	let n_move = Math.ceil(options.max_parts/2);
+    let n_move = Math.ceil(options.max_parts / 2);
     let n_work = 0;
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
-    return returnbody(0, options.n_carry, options.n_carry);
+    var carry_affordable = Math.floor(options.max_energy / 100)
+    var n_carry = Math.min(options.max_parts, carry_affordable);
+    return returnbody(0, n_carry, n_carry);
 }
 const getbody_reserver = (options: any): BodyPartConstant[] => {
-	let n_parts = Math.min(options.max_parts, Math.floor(options.max_energy/650));
-	let bodyinfo: type_body_components = {"claim": n_parts, "move": n_parts};
+    let n_parts = Math.min(options.max_parts, Math.floor(options.max_energy / 650));
+    let bodyinfo: type_body_components = {
+        "claim": n_parts,
+        "move": n_parts
+    };
     return fullreturnbody(bodyinfo);
 }
 const getbody_transferer = (options: any): BodyPartConstant[] => {
@@ -184,7 +184,7 @@ const getbody_list: type_getbody = {
     'hunter': getbody_hunter,
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
-	'wall_repairer': getbody_wall_repairer,
+    'wall_repairer': getbody_wall_repairer,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
@@ -244,6 +244,22 @@ export function spawn_json(room_name: string, json: type_spawn_json) {
 }
 
 for (var name in config.defender_responsible_types) {
-	config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
+    config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
 }
 
+global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string): number {
+    // 0: success, 1: name exists
+    if (Game.creeps[name] !== undefined) {
+        return 1;
+    }
+    let room = Game.rooms[room_name];
+    let obj: type_additional_spawn = {
+        "name": name,
+        "body": body,
+    }
+    if (room.memory.additional_spawn_queue == undefined) {
+        room.memory.additional_spawn_queue = [];
+    }
+    room.memory.additional_spawn_queue.push(obj);
+    return 0;
+}

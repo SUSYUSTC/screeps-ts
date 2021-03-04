@@ -26,10 +26,21 @@ function get_defender_json(room_name: string, typename: string): type_spawn_json
     return json;
 }
 export function spawn(room_name: string) {
+    let room = Game.rooms[room_name];
+	if (room.memory.additional_spawn_queue !== undefined && room.memory.additional_spawn_queue.length > 0) {
+		let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
+		let obj = room.memory.additional_spawn_queue[0];
+		for (let s of spawns) {
+			if (s.spawnCreep(obj.body, obj.name) == 0) {
+				room.memory.additional_spawn_queue = room.memory.additional_spawn_queue.slice(1, undefined)
+				return;
+			}
+		}
+		return;
+	}
 	if (Game.time % 5 !== 0) {
 		return;
 	}
-    let room = Game.rooms[room_name];
 	let game_memory = Game.memory[room_name];
 	let enemies = room.find(FIND_HOSTILE_CREEPS).filter((e) => e.owner.username == 'Invader');
     if (enemies.length > 0 && game_memory.tower_list.length == 0) {
@@ -413,6 +424,9 @@ export function spawn(room_name: string) {
                 }
             }
         }
+		else {
+			n_needed_reservers = 0;
+		}
         if (reservers.length < n_needed_reservers) {
             let added_memory = {
                 "external_room_name": external_room_name,
@@ -451,7 +465,10 @@ export function spawn(room_name: string) {
                     "rooms_forwardpath": conf_external.rooms_forwardpath,
                     "rooms_backwardpath": conf_external.rooms_backwardpath,
                 };
-                let options = conf_external;
+				let options = {
+					"max_energy": room.energyCapacityAvailable,
+					"max_parts": conf_external.n_carry,
+				}
                 let priority = (externalcarriers.length > 0 ? 31 : 21);
                 let added_json = {
                     "priority": priority,
@@ -469,7 +486,10 @@ export function spawn(room_name: string) {
                     "rooms_forwardpath": conf_external.rooms_forwardpath,
                     "rooms_backwardpath": conf_external.rooms_backwardpath,
                 };
-                let options = conf_external;
+				let options = {
+					"max_energy": room.energyCapacityAvailable,
+					"max_parts": conf_external.n_carry,
+				}
                 let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {
                     "priority": priority,

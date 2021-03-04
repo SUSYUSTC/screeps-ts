@@ -1,6 +1,8 @@
 //screeps
 import * as mymath from "./mymath"
 import * as config from "./config"
+import * as basic_job from "./basic_job"
+import * as attack from "./attack"
 export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
     for (let i = 0; i < 50; i++) {
         costMatrix.set(0, i, 255);

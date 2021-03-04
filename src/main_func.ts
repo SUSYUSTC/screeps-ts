@@ -144,13 +144,20 @@ export function set_room_memory(room_name: string) {
             [key: string]: number
         } = {};
         link_modes.forEach((e) => link_energies[e] = Game.getObjectById(links_status[e].id).store.getUsedCapacity("energy"));
+		if (room.memory.maincarrier_link_amount == undefined) {
+			room.memory.maincarrier_link_amount = 400;
+		}
         if (mymath.any(sink_links.map((e) => link_energies[e] <= config.main_link_amount_source - config.link_transfer_gap))) {
-            game_memory.are_links_source.MAIN = true;
-            game_memory.maincarrier_link_amount = config.main_link_amount_source;
+			room.memory.is_mainlink_source = true;
+            room.memory.maincarrier_link_amount = config.main_link_amount_source;
         } else if (mymath.any(source_links.map((e) => link_energies[e] >= config.main_link_amount_sink + config.link_transfer_gap))) {
-            game_memory.are_links_source.MAIN = false;
-            game_memory.maincarrier_link_amount = config.main_link_amount_sink;
+			room.memory.is_mainlink_source = false;
+            room.memory.maincarrier_link_amount = config.main_link_amount_sink;
         }
+		if (room.memory.is_mainlink_source !== undefined) {
+			game_memory.are_links_source.MAIN = room.memory.is_mainlink_source;
+		}
+		room.visual.text(room.memory.maincarrier_link_amount.toString(), conf.links.MAIN.pos[0], conf.links.MAIN.pos[1]);
     }
 
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {

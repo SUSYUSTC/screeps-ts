@@ -346,7 +346,7 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
     }
     if (creep.memory.boost_status.boosting) {
         let labs_status = creep.room.memory.named_structures_status.lab;
-        let lab_id = labs_status.R1.id;
+        let lab_id = labs_status.B1.id;
         let lab = Game.getObjectById(lab_id);
         for (let temp_bodypart in request) {
             let bodypart = < BodyPartConstant > temp_bodypart;
@@ -368,6 +368,7 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             }
         }
         delete creep.room.memory.current_boost_request;
+		delete creep.room.memory.current_boost_creep;
         creep.memory.boost_status.boosting = false;
         creep.memory.boost_status.boost_finished = true;
         return 0;
@@ -390,9 +391,14 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             return 2;
         } else {
             let labs_status = creep.room.memory.named_structures_status.lab;
-            let lab_id = labs_status.R1.id;
+            let lab_id = labs_status.B1.id;
             let lab = Game.getObjectById(lab_id);
             if (creep.pos.isNearTo(lab)) {
+				if (creep.room.memory.current_boost_creep == undefined) {
+					creep.room.memory.current_boost_creep = creep.name;
+				} else if (creep.room.memory.current_boost_creep !== creep.name) {
+					return 1;
+				}
                 creep.memory.boost_status.boosting = true;
             } else {
                 movetopos(creep, lab.pos, 1);

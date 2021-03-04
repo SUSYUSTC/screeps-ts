@@ -4,20 +4,21 @@ if (Memory.debug_mode == undefined) {
 if (Memory.output_mode == undefined) {
 	Memory.output_mode = true;
 }
-import * as config from "./config"
+import * as config from "./config";
 import * as _ from "lodash";
 import * as creepjobs from "./creepjobs";
 import * as mymath from "./mymath";
 import * as spawning from "./spawning";
 import * as towers from "./towers";
 import * as links from "./links";
-import * as labs from "./labs"
-import * as factory from "./factory"
-import * as market from "./market"
+import * as labs from "./labs";
+import * as factory from "./factory";
+import * as market from "./market";
 import * as main_func from "./main_func";
-import * as final_command from "./final_command"
-import * as output from "./output"
-import * as control from "./control"
+import * as final_command from "./final_command";
+import * as output from "./output";
+import * as attack from "./attack";
+import * as control from "./control";
 Memory.rerunning = true;
 
 module.exports.loop = function() {

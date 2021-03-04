@@ -375,7 +375,7 @@ export var conf_E21N49: type_conf_room =
     },
     "external_rooms": {
         "E22N49": {
-            "active": false,
+            "active": true,
             "controller": {
                 "reserve": true,
                 "path_time": 60,
@@ -389,7 +389,7 @@ export var conf_E21N49: type_conf_room =
                     "id": <Id<Source>>"5bbcae2f9099fc012e638884",
                     "harvester_pos": [41, 5],
                     "single_distance": 60,
-                    "n_carry": 14,
+                    "n_carry": 13,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -404,7 +404,7 @@ export var conf_E21N49: type_conf_room =
                     "id": <Id<Source>>"5bbcae2f9099fc012e638886",
                     "harvester_pos": [38, 44],
                     "single_distance": 57,
-                    "n_carry": 14,
+                    "n_carry": 13,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
