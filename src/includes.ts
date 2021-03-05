@@ -1,12 +1,13 @@
 type type_external_room_status = {
     [key: string]: { // room_name
-        "defense_type": string;
-        "reserver": string;
-        "invader_core_existance": boolean;
-        "safe": boolean;
+        defense_type: string;
+        reserver: string;
+        invader_core_existance: boolean;
+        safe: boolean;
+		time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter" | "help_harvester" | "help_carrier" | "help_builder" | "wall_repairer"
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "wall_repairer"
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -204,6 +205,7 @@ interface type_conf_room {
     readonly mineral_stay_pos: number[];
     readonly safe_pos: number[];
     readonly external_rooms: conf_external_rooms;
+	readonly defense_boundary: number[][];
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -275,23 +277,28 @@ type type_help_list = {
         }
     }
 }
+type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
 type type_reaction_priority = {
     [key: string]: {
         [key in MineralCompoundConstant] ? : number;
     }
 }
 type type_mineral_storage_room = {
-    [key in MineralConstant | MineralCompoundConstant] ? : string;
+	[key in string]: GeneralMineralConstant[];
 }
 type type_mineral_storage_amount = {
-    [key in MineralConstant | MineralCompoundConstant] ? : number;
+	[key in string]: {
+		[key in GeneralMineralConstant] ? : number;
+	}
+}
+type type_mineral_level = {
+    [key in GeneralMineralConstant] : number;
 }
 type type_mineral_minimum_amount = {
-    [key in MineralConstant | MineralCompoundConstant] ? : number;
+    [key in GeneralMineralConstant] : number;
 }
-type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
 type type_allowed_reactions = {
-    [key in MineralCompoundConstant] ? : [GeneralMineralConstant, GeneralMineralConstant];
+    [key in MineralCompoundConstant] : [GeneralMineralConstant, GeneralMineralConstant];
 }
 
 type type_reaction_request = {

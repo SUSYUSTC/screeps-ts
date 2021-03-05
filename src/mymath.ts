@@ -38,6 +38,12 @@ export function argmax(arr: number[]): number {
 export function argmin(arr: number[]): number {
     return arr.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
 }
+export function max(arr: number[]): number {
+    return Math.max.apply(null, arr);
+}
+export function min(arr: number[]): number {
+    return Math.min.apply(null, arr);
+}
 
 export function all(arr: boolean[]): boolean {
     return arr.reduce((a, b) => a && b, true);

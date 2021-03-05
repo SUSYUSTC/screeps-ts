@@ -194,14 +194,17 @@ export function set_room_memory(room_name: string) {
         room.memory.external_room_status = {};
     }
     for (let external_room_name in conf.external_rooms) {
+		// Initialize if not exists
         if (!(external_room_name in room.memory.external_room_status)) {
             room.memory.external_room_status[external_room_name] = {
                 "defense_type": '',
                 "reserver": '',
                 "invader_core_existance": false,
                 "safe": true,
+				"time_last": 0,
             }
         }
+		// If visible 
         if (external_room_name in Game.rooms) {
             let external_room = Game.rooms[external_room_name];
             let defense_type = defense.get_defense_type(Game.rooms[external_room_name]);
@@ -212,13 +215,32 @@ export function set_room_memory(room_name: string) {
                 reserver = '';
             }
             let invader_core_existance = Game.rooms[external_room_name].find(FIND_STRUCTURES).filter((e) => e.structureType == 'invaderCore').length > 0;
+			let old_defense_type = room.memory.external_room_status[external_room_name].defense_type;
+			let time_last = room.memory.external_room_status[external_room_name].time_last;
+			if (defense_type == old_defense_type) {
+				time_last += 1;
+			} else {
+				time_last = 0
+			}
             room.memory.external_room_status[external_room_name] = {
                 "defense_type": defense_type,
                 "reserver": reserver,
                 "invader_core_existance": invader_core_existance,
                 "safe": (defense_type == '') && (reserver == config.username) && !invader_core_existance,
+				"time_last": time_last,
             }
-        }
+		} else {
+			room.memory.external_room_status[external_room_name].time_last += 1;
+			if (room.memory.external_room_status[external_room_name].time_last >= 1500) {
+				room.memory.external_room_status[external_room_name] = {
+					"defense_type": '',
+					"reserver": '',
+					"invader_core_existance": false,
+					"safe": true,
+					"time_last": 0,
+				}
+			}
+		}
     }
     if (Memory.debug_mode) {
         console.log(room.name, JSON.stringify(room.memory.external_room_status))
@@ -231,9 +253,15 @@ export function set_global_memory() {
         Game.mineral_storage_amount = {};
     }
     Game.memory = {}
-    let keys = < Array < keyof type_mineral_storage_room >> Object.keys(config.mineral_storage_room);
-    for (let key of keys) {
-        let room_name = config.mineral_storage_room[key];
-        Game.mineral_storage_amount[key] = Game.rooms[room_name].terminal.store.getUsedCapacity(key);
+    let room_names = < Array < keyof type_mineral_storage_room >> Object.keys(config.mineral_storage_room);
+    for (let room_name of room_names) {
+		try {
+			Game.mineral_storage_amount[room_name] = {};
+			for (let mineral of config.mineral_storage_room[room_name]) {
+				Game.mineral_storage_amount[room_name][mineral] = Game.rooms[room_name].terminal.store.getUsedCapacity(mineral);
+			}
+		} catch (err) {
+			console.log("Error", err, err.stack);
+		}
     }
 }

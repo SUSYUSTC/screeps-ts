@@ -1,9 +1,11 @@
 import * as _ from "lodash"
 import * as defense from "./defense";
+import * as mymath from "./mymath";
 import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
+import * as basic_job from "./basic_job";
 var moveoptions = {
     reusePath: 5,
     //visualizePathStyle: {},
@@ -12,6 +14,9 @@ var moveoptions = {
 };
 export function creepjob(creep: Creep): number {
 	let conf = config.conf_rooms[creep.memory.home_room_name];
+	if (conf == undefined) {
+		conf = config.conf_rooms[creep.room.name];
+	}
     if (creep.memory.role == 'hunter') {
         creep.say("HT")
         creep.memory.movable = false;
@@ -110,6 +115,31 @@ export function creepjob(creep: Creep): number {
             }
         }
 		return 0;
+	} else if (creep.memory.role == 'home_defender') {
+		let output = basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"});
+		if (output > 0) {
+			return 0;
+		}
+		let hostile_creeps = creep.room.find(FIND_HOSTILE_CREEPS);
+		if (hostile_creeps.length == 0) {
+			return 0;
+		}
+		let ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'rampart')
+		if (ramparts.length == 0) {
+			return 0;
+		}
+		let distances_ramparts_to_hostile = ramparts.map((r) => mymath.min(hostile_creeps.map((hc) => r.pos.getRangeTo(hc))));
+		let argmin_ramparts_to_hostile = mymath.argmin(distances_ramparts_to_hostile);
+		let target = ramparts[argmin_ramparts_to_hostile];
+		let avoid_boundary = function avoid_exits(room_name: string, costMatrix: CostMatrix) {
+			for (let xy of conf.defense_boundary) {
+				costMatrix.set(xy[0], xy[1], 255);
+			}
+		}
+		creep.moveTo(target, {maxRooms: 1, reusePath: 0, costCallback: avoid_boundary});
+		let distances_hostile = hostile_creeps.map((hc) => creep.pos.getRangeTo(hc));
+		let argmin_hostile = mymath.argmin(distances_hostile);
+		creep.attack(hostile_creeps[argmin_hostile]);
 	}
 	return 1;
 }

@@ -310,7 +310,7 @@ export var conf_E14N51: type_conf_room =
     },
     "terminal": {
         "pos": [15, 30],
-        "RCL": 4
+        "RCL": 6
     },
     "powerspawn": {
         "pos": [16, 30],
@@ -391,7 +391,6 @@ export var conf_E14N51: type_conf_room =
     "safe_pos": [24, 5],
     "upgraders": {
         "locations": [
-            [13, 31],
             [13, 32],
             [13, 33],
             [12, 31],
@@ -415,7 +414,7 @@ export var conf_E14N51: type_conf_room =
                     "id": <Id<Source>>"5bbcadb99099fc012e637b42",
                     "harvester_pos": [22, 24],
                     "single_distance": 57,
-                    "n_carry": 14,
+                    "n_carry": 13,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -430,7 +429,7 @@ export var conf_E14N51: type_conf_room =
                     "id": <Id<Source>>"5bbcadb99099fc012e637b43",
                     "harvester_pos": [41, 27],
                     "single_distance": 61,
-                    "n_carry": 14,
+                    "n_carry": 13,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -443,5 +442,54 @@ export var conf_E14N51: type_conf_room =
                 }
             }
         }
-    }
+    },
+    "defense_boundary": [
+        [14, 38],
+        [14, 39],
+        [14, 40],
+        [14, 41],
+        [15, 41],
+        [16, 41],
+        [17, 41],
+        [18, 41],
+        [19, 41],
+        [20, 41],
+        [21, 41],
+        [22, 41],
+        [23, 23],
+        [23, 41],
+        [24, 23],
+        [24, 41],
+        [25, 23],
+        [25, 41],
+        [26, 23],
+        [26, 41],
+        [27, 23],
+        [27, 41],
+        [28, 23],
+        [28, 41],
+        [29, 23],
+        [29, 41],
+        [30, 23],
+        [30, 41],
+        [31, 23],
+        [31, 24],
+        [31, 25],
+        [31, 26],
+        [31, 27],
+        [31, 28],
+        [31, 29],
+        [31, 30],
+        [31, 31],
+        [31, 32],
+        [31, 33],
+        [31, 34],
+        [31, 35],
+        [31, 36],
+        [31, 37],
+        [31, 38],
+        [31, 39],
+        [31, 40],
+        [31, 41]
+    ]
 }

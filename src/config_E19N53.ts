@@ -166,7 +166,6 @@ export var conf_E19N53: type_conf_room =
             [19, 19],
             [20, 18],
             [24, 11],
-            [23, 12],
             [24, 10]
         ],
         "5": [
@@ -179,6 +178,7 @@ export var conf_E19N53: type_conf_room =
             [39, 17]
         ],
         "6": [
+            [23, 12],
             [28, 6],
             [29, 6],
             [30, 6],
@@ -318,7 +318,7 @@ export var conf_E19N53: type_conf_room =
     },
     "terminal": {
         "pos": [23, 11],
-        "RCL": 4
+        "RCL": 6
     },
     "powerspawn": {
         "pos": [24, 9],
@@ -421,7 +421,7 @@ export var conf_E19N53: type_conf_room =
                     "id": <Id<Source>>"5bbcae049099fc012e6384ec",
                     "harvester_pos": [21, 12],
                     "single_distance": 50,
-                    "n_carry": 12,
+                    "n_carry": 11,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -436,7 +436,7 @@ export var conf_E19N53: type_conf_room =
                     "id": <Id<Source>>"5bbcae049099fc012e6384ed",
                     "harvester_pos": [34, 21],
                     "single_distance": 41,
-                    "n_carry": 10,
+                    "n_carry": 9,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -449,5 +449,30 @@ export var conf_E19N53: type_conf_room =
                 }
             }
         }
-    }
+    },
+    "defense_boundary": [
+        [1, 16],
+        [1, 17],
+        [1, 18],
+        [1, 19],
+        [1, 20],
+        [1, 21],
+        [1, 22],
+        [1, 23],
+        [1, 27],
+        [1, 28],
+        [1, 29],
+        [1, 30],
+        [21, 1],
+        [22, 1],
+        [23, 1],
+        [24, 1],
+        [25, 1],
+        [26, 1],
+        [31, 1],
+        [32, 1],
+        [33, 1],
+        [34, 1],
+        [35, 1]
+    ]
 }

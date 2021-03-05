@@ -150,7 +150,6 @@ export var conf_E15N58: type_conf_room =
         "4": [
             [41, 7],
             [42, 7],
-            [42, 5],
             [41, 1],
             [43, 4],
             [43, 3],
@@ -174,6 +173,7 @@ export var conf_E15N58: type_conf_room =
         ],
         "6": [
             [46, 7],
+            [42, 5],
             [47, 8],
             [42, 11],
             [43, 12],
@@ -337,7 +337,7 @@ export var conf_E15N58: type_conf_room =
     },
     "terminal": {
         "pos": [42, 4],
-        "RCL": 4
+        "RCL": 6
     },
     "powerspawn": {
         "pos": [44, 2],
@@ -419,7 +419,6 @@ export var conf_E15N58: type_conf_room =
             [35, 5],
             [35, 6],
             [35, 7],
-            [34, 5],
             [34, 7]
         ],
         "commuting_time": 3
@@ -440,7 +439,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadc79099fc012e637d6a",
                     "harvester_pos": [32, 12],
                     "single_distance": 44,
-                    "n_carry": 12,
+                    "n_carry": 11,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -483,7 +482,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadb89099fc012e637b18",
                     "harvester_pos": [12, 34],
                     "single_distance": 74,
-                    "n_carry": 18,
+                    "n_carry": 17,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -498,7 +497,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadb89099fc012e637b19",
                     "harvester_pos": [34, 43],
                     "single_distance": 75,
-                    "n_carry": 18,
+                    "n_carry": 17,
                     "n_carrier": 2,
                     "carry_end": {
                         "type": "storage",
@@ -511,5 +510,22 @@ export var conf_E15N58: type_conf_room =
                 }
             }
         }
-    }
+    },
+    "defense_boundary": [
+        [30, 1],
+        [30, 2],
+        [30, 3],
+        [30, 4],
+        [30, 5],
+        [30, 16],
+        [31, 16],
+        [31, 17],
+        [32, 17],
+        [32, 18],
+        [33, 18],
+        [33, 19],
+        [34, 19],
+        [34, 20],
+        [35, 20]
+    ]
 }

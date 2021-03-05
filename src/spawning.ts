@@ -515,6 +515,9 @@ export function spawn(room_name: string) {
             if (mymath.all(defenders_type.map((e) => !fightable_defender_types.includes(e)))) {
                 let costs = fightable_defender_types.map((e) => config.defender_responsible_types[e].cost);
                 let argmin = mymath.argmin(costs);
+				if (costs[argmin] > room.energyCapacityAvailable) {
+					continue;
+				}
                 let json = get_defender_json(room_name, fightable_defender_types[argmin]);
                 jsons.push(json);
                 break;

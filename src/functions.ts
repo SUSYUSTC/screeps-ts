@@ -93,22 +93,12 @@ global.visualize_cost = function(room_name: string) {
     return 0;
 }
 
-export var allowed_reactions: type_allowed_reactions = {
-    "ZK": ["Z", "K"],
-    "UL": ["U", "L"],
-    "OH": ["O", "H"],
-    "G": ["ZK", "UL"],
-    "GH": ["G", "H"],
-    "GH2O": ["GH", "OH"],
-    "XGH2O": ["X", "GH2O"],
-}
-
 global.set_reaction_request = function(room_name: string, compound: MineralCompoundConstant): number {
     let room = Game.rooms[room_name];
-    if (allowed_reactions[compound] == undefined) {
+    if (config.allowed_reactions[compound] == undefined) {
         return 1;
     } else {
-        let reactants = allowed_reactions[compound];
+        let reactants = config.allowed_reactions[compound];
         room.memory.reaction_request = {
             "reactant1": reactants[0],
             "reactant2": reactants[1],

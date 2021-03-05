@@ -7,7 +7,7 @@ function determine_reaction_request(room_name: string) {
     let room = Game.rooms[room_name];
     let priority = config.reaction_priority[room_name];
     let keys = < Array < keyof typeof priority >> Object.keys(priority);
-    let available_list = keys.filter((e) => mymath.all(functions.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= 280)));
+    let available_list = keys.filter((e) => mymath.all(config.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= 280)));
 	if (available_list.length == 0) {
 		return;
 	}
@@ -20,9 +20,10 @@ function determine_reaction_request(room_name: string) {
     }
     if (room.memory.reaction_request == undefined) {
         let priorities = available_list.map((e) => priority[e]);
-        let argmin = mymath.argmin(priorities);
-		console.log("Set reaction request:", room_name, available_list[argmin]);
-		global.set_reaction_request(room_name, available_list[argmin]);
+		priorities = mymath.array_ele_minus(priorities, available_list.map((e) => room.terminal.store.getUsedCapacity(e) / 1960));
+        let argmax = mymath.argmax(priorities);
+		console.log("Set reaction request:", room_name, available_list[argmax]);
+		global.set_reaction_request(room_name, available_list[argmax]);
     }
 }
 
@@ -31,11 +32,14 @@ function get_reaction_supply(room_name: string) {
     let priority = config.reaction_priority[room_name];
     let keys = < Array < keyof typeof priority >> Object.keys(priority);
     for (let key of keys) {
-        let reactants = functions.allowed_reactions[key];
+        let reactants = config.allowed_reactions[key];
         for (let reactant of reactants) {
             let minimum_amount = config.mineral_minimum_amount[reactant];
             if (room.terminal.store.getUsedCapacity(reactant) < minimum_amount && Game.mineral_storage_amount[reactant] >= minimum_amount) {
-                let supply_room_name = config.mineral_storage_room[reactant];
+				let supplied_rooms = Object.keys(config.mineral_storage_room).filter((e) => config.mineral_storage_room[e].includes(reactant));
+				let terminal_amounts = supplied_rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity());
+				let argmax = mymath.argmax(terminal_amounts);
+                let supply_room_name = supplied_rooms[argmax];
 				console.log("Sending resource", reactant, "from", supply_room_name, "to", room_name);
 				Game.rooms[supply_room_name].terminal.send(reactant, minimum_amount, room_name);
                 return;
