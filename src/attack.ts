@@ -104,17 +104,23 @@ export function dismantle_group_x2(group: type_dismantle_group_x2, flagname: str
     return 0;
 }
 
-global.spawn_dismantler_group_x2 = function(room_name: string, suffix: string): number {
+global.spawn_dismantler_group_x2 = function(room_name: string, suffix: string, dismantler_body: number[] = null, healer_body: number[] = null): number {
     let body_dismantler: BodyPartConstant[] = []
-    mymath.range(10).forEach((e) => body_dismantler.push(TOUGH));
-    mymath.range(30).forEach((e) => body_dismantler.push(WORK));
-    mymath.range(10).forEach((e) => body_dismantler.push(MOVE));
-    global.spawn_in_queue(room_name, body_dismantler, "dismantler_" + suffix);
+    if (dismantler_body == null) {
+        dismantler_body = [10, 30, 10];
+    }
+    mymath.range(dismantler_body[0]).forEach((e) => body_dismantler.push(TOUGH));
+    mymath.range(dismantler_body[1]).forEach((e) => body_dismantler.push(WORK));
+    mymath.range(dismantler_body[2]).forEach((e) => body_dismantler.push(MOVE));
+	global.spawn_in_queue(room_name, body_dismantler, "dismantler_" + suffix, {}, true);
     let body_healer: BodyPartConstant[] = [];
-    mymath.range(10).forEach((e) => body_healer.push(TOUGH));
-    mymath.range(30).forEach((e) => body_healer.push(HEAL));
-    mymath.range(10).forEach((e) => body_healer.push(MOVE));
-    global.spawn_in_queue(room_name, body_healer, "healer_" + suffix);
+    if (healer_body == null) {
+        healer_body = [10, 30, 10]
+    }
+    mymath.range(healer_body[0]).forEach((e) => body_healer.push(TOUGH));
+    mymath.range(healer_body[1]).forEach((e) => body_healer.push(HEAL));
+    mymath.range(healer_body[2]).forEach((e) => body_healer.push(MOVE));
+	global.spawn_in_queue(room_name, body_healer, "healer_" + suffix, {}, true);
     return 0;
 }
 

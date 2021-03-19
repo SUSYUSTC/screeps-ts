@@ -13,6 +13,7 @@ import * as towers from "./towers";
 import * as links from "./links";
 import * as labs from "./labs";
 import * as factory from "./factory";
+import * as powerspawn from "./powerspawn";
 import * as market from "./market";
 import * as main_func from "./main_func";
 import * as final_command from "./final_command";
@@ -25,9 +26,8 @@ module.exports.loop = function() {
 	console.log()
 	console.log("Beginning of tick", Game.time);
 	let cpu_used;
+	Game.tick_cpu_main = {};
 	Game.tick_cpu = {};
-	cpu_used = Game.cpu.getUsed();
-	Game.tick_cpu.parse_memory = Game.cpu.getUsed() - cpu_used;
 
     main_func.clear_creep();
 	main_func.set_global_memory()
@@ -36,7 +36,7 @@ module.exports.loop = function() {
 			var room = Game.rooms[room_name];
 			main_func.set_room_memory(room_name);
 		} catch (err) {
-			console.log("Error", err, room_name, err.stack);
+			console.log("Error", room_name, err.stack);
 		}
 	}
 
@@ -48,12 +48,21 @@ module.exports.loop = function() {
 					towers.repair_all(room_name);
 				}
 			}
-			links.work(room_name)
 		} catch (err) {
-			console.log("Error", err, room_name, err.stack);
+			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu.towers_and_links = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.towers = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+    for (var room_name of config.controlled_rooms) {
+		try {
+			links.work(room_name)
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.links = Game.cpu.getUsed() - cpu_used;
 
     for (var name in Game.creeps) {
 		var creep = Game.creeps[name];
@@ -61,14 +70,14 @@ module.exports.loop = function() {
 			cpu_used = Game.cpu.getUsed();
 			creepjobs.creepjob(creep);
 			if (creep.memory.role !== undefined) {
-				if (Game.tick_cpu[creep.memory.role] == undefined) {
-					Game.tick_cpu[creep.memory.role] = 0;
+				if (Game.tick_cpu_main[creep.memory.role] == undefined) {
+					Game.tick_cpu_main[creep.memory.role] = 0;
 				}
-				Game.tick_cpu[creep.memory.role] += Game.cpu.getUsed() - cpu_used;
+				Game.tick_cpu_main[creep.memory.role] += Game.cpu.getUsed() - cpu_used;
 			}
 		} catch (err) {
 			creep.say("Error");
-			console.log("Error", err, creep.room.name, err.stack);
+			console.log("Error", creep.room.name, err.stack);
 		}
     }
 
@@ -77,10 +86,10 @@ module.exports.loop = function() {
 		try {
 			spawning.spawn(room_name);
 		} catch (err) {
-			console.log("Error", err, err.stack);
+			console.log("Error", err.stack);
 		}
     }
-	Game.tick_cpu.spawning = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.spawning = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
@@ -88,24 +97,36 @@ module.exports.loop = function() {
 			labs.prepare(room_name);
 			labs.reaction(room_name);
 			factory.produce(room_name);
-			market.process_buy_order(room_name);
+			powerspawn.process(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err, err.stack);
+			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu.labs = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.adv = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+	market.clear_used();
+    for (var room_name of config.controlled_rooms) {
+		try {
+			market.process_buy_order(room_name);
+			market.process_sell_order(room_name);
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.market = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
 	try {
 		control.action();
 	} catch (err) {
-		console.log("Error", err, err.stack);
+		console.log("Error", err.stack);
 	}
-	Game.tick_cpu.control = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.control = Game.cpu.getUsed() - cpu_used;
 	try {
 		final_command.log();
 	} catch (err) {
-		console.log("Error", err, err.stack);
+		console.log("Error", err.stack);
 	}
 	output.log();
 	global.test_var = true;

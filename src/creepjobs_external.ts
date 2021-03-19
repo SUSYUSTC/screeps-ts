@@ -172,7 +172,7 @@ export function creepjob(creep: Creep): number {
 		let conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name];
 		if (Game.rooms[creep.memory.home_room_name].memory.external_room_status[creep.memory.external_room_name].defense_type !== '') {
 			creep.drop("energy");
-			basic_job.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+			external_room.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
 			return 0;
 		}
 		if (creep.hits < creep.hitsMax) {
@@ -206,7 +206,7 @@ export function creepjob(creep: Creep): number {
 		creep.memory.movable = true;
 		let conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name]
 		if (Game.rooms[creep.memory.home_room_name].memory.external_room_status[creep.memory.external_room_name].defense_type !== '') {
-			basic_job.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+			external_room.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
 			return 0;
 		}
 		// Using creep.room.name !== creep.memory.home_room_name here considering the possibility that the creep need to put energy into link several times
@@ -275,7 +275,7 @@ export function creepjob(creep: Creep): number {
 		creep.memory.movable = true;
 		let conf_external = conf.external_rooms[creep.memory.external_room_name].controller;
 		if (Game.rooms[creep.memory.home_room_name].memory.external_room_status[creep.memory.external_room_name].defense_type !== '') {
-			basic_job.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+			external_room.external_flee(creep, conf.safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
 			return 0;
 		}
 		if (creep.room.name !== creep.memory.external_room_name) {

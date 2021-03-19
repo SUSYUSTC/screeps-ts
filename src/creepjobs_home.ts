@@ -32,7 +32,7 @@ export function creepjob(creep: Creep): number {
 		let source = Game.getObjectById(source_id);
 		let link_mode = false;
 		let link_source: null | StructureLink = null;
-		let container_source: null | StructureContainer = null;
+		let container_source;
 		if (true) {
 			link_mode = link_modes.includes(source_name);
 			if (link_mode) {
@@ -41,13 +41,12 @@ export function creepjob(creep: Creep): number {
 					return 0;
 				}
 				link_source = Game.getObjectById(conf_link_source.id);
-			} else {
-				let conf_container_source = containers_status[source_name];
-				if (!conf_container_source.finished) {
-					return 0;
-				}
-				container_source = Game.getObjectById(conf_container_source.id);
 			}
+			let conf_container_source = containers_status[source_name];
+			if (!conf_container_source.finished) {
+				return 0;
+			}
+			container_source = Game.getObjectById(conf_container_source.id);
 			let xy = conf.containers[source_name].pos;
 			let pos = creep.room.getPositionAt(xy[0], xy[1]);
 			let output = basic_job.movetoposexceptoccupied(creep, [pos]);
@@ -66,16 +65,16 @@ export function creepjob(creep: Creep): number {
 			}
 			return 0;
 		}
-		let this_container = Game.getObjectById(containers_status[creep.memory.source_name].id);
-		if (creep.store.getUsedCapacity("energy") >= 10 && this_container.hitsMax - this_container.hits >= 1000) {
-			creep.repair(this_container);
+		let creep_energy = creep.store.getUsedCapacity("energy");
+		if (creep_energy >= 10 && container_source.hitsMax - container_source.hits >= 1000) {
+			creep.repair(container_source);
 			return 0;
 		}
 		basic_job.harvest_source(creep, source);
 		if (link_mode) {
-			if (this_container.store.getUsedCapacity("energy") > 1600 && creep.store.getUsedCapacity("energy") <= 10) {
-				creep.withdraw(this_container, "energy");
-			} else if (creep.store.getFreeCapacity() == 0 && this_container.store.getUsedCapacity("energy") >= 1200) {
+			if (container_source.store.getUsedCapacity("energy") > 1600 && creep_energy <= 10) {
+				creep.withdraw(container_source, "energy");
+			} else if (creep.store.getFreeCapacity() == 0 && container_source.store.getUsedCapacity("energy") >= 1200) {
 				creep.transfer(link_source, "energy");
 			}
 		}
@@ -136,7 +135,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'upgrader') {
 		creep.say("U")
 		creep.memory.movable = false;
-		if (creep.room.terminal !== undefined && creep.room.controller.level < 8 && config.upgrader_boost_request !== undefined) {
+		if (creep.room.terminal !== undefined && (creep.room.controller.level < 8 || config.boost_rcl8[creep.room.name]) && config.upgrader_boost_request !== undefined) {
 			let boost_result = basic_job.boost_request(creep, {
 				"work": config.upgrader_boost_request
 			});
@@ -172,13 +171,11 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 		if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity("energy") * 0.2 && creep.ticksToLive >= 10) {
-			if (!game_memory.danger_mode) {
-				var lower_limit = (link_mode ? 100 : 800);
-				if (use_link) {
-					basic_job.withdraw_energy(creep, link, lower_limit);
-				} else {
-					basic_job.withdraw_energy(creep, container, lower_limit);
-				}
+			var lower_limit = (link_mode ? 100 : 800);
+			if (use_link) {
+				basic_job.withdraw_energy(creep, link, lower_limit);
+			} else {
+				basic_job.withdraw_energy(creep, container, lower_limit);
 			}
 		}
 		basic_job.upgrade_controller(creep, creep.room.controller);
@@ -195,9 +192,7 @@ export function creepjob(creep: Creep): number {
 				if (selected_linkcontainer == null) {
 					return 0;
 				}
-				if (!game_memory.danger_mode) {
-					basic_job.withdraw_energy(creep, selected_linkcontainer);
-				}
+				basic_job.withdraw_energy(creep, selected_linkcontainer);
 			} else {
 				//console.log("suicide here")
 				creep.suicide();
@@ -310,8 +305,16 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'wall_repairer') {
 		creep.say("WR");
 		creep.memory.movable = false;
+		if (creep.room.terminal !== undefined) {
+			let boost_result = basic_job.boost_request(creep, {
+				"work": "LH2O",
+			});
+			if (boost_result == 1) {
+				return 0;
+			}
+		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			let selected_linkcontainer = basic_job.select_linkcontainer(creep, 400, true);
+			let selected_linkcontainer = basic_job.select_linkcontainer(creep, 200);
 			basic_job.withdraw_energy(creep, selected_linkcontainer);
 		} else {
 			let wall_ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits) || e.structureType == 'rampart');

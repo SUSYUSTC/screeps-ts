@@ -1,5 +1,7 @@
 import * as mymath from "./mymath"
 import * as functions from "./functions"
+import * as config from "./config"
+import * as basic_job from "./basic_job"
 
 export function signed_number(num: number, sign: number): number {
     if (sign == 1) {
@@ -107,12 +109,30 @@ export function movethroughrooms(creep: Creep, rooms_path: string[], poses_path:
 			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
             creep.moveByPath(path.path);
         } else {
-            creep.moveTo(exit_xy[0], exit_xy[1], {
-                maxRooms: 1,
-                costCallback: functions.avoid_exits
-            });
+			if (config.controlled_rooms.includes(creep.room.name)) {
+				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
+			} else {
+				creep.moveTo(exit_xy[0], exit_xy[1], {
+					maxRooms: 0,
+					costCallback: functions.avoid_exits
+				});
+			}
         }
         return 0;
+    }
+}
+
+export function external_flee(creep: Creep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[]) {
+    if (creep.room.name == creep.memory.home_room_name) {
+        creep.memory.movable = false;
+		let pos = creep.room.getPositionAt(safe_pos[0], safe_pos[1]);
+		if (pos.lookFor("creep").length > 0) {
+			basic_job.movetopos(creep, pos, 1);
+		} else {
+			basic_job.movetopos(creep, pos, 0);
+		}
+    } else {
+        movethroughrooms(creep, rooms_backwardpath, poses_backwardpath);
     }
 }
 

@@ -8,7 +8,7 @@ export function attack_all(room_name: string) {
     if (enemies.length > 0) {
         var hits = enemies.map((e) => e.hits);
         var index = mymath.argmin(hits);
-        var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
+        var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
         for (var tower of towers) {
             tower.attack(enemies[index]);
         }
@@ -22,7 +22,7 @@ export function heal_all(room_name: string) {
     var creeps = room.find(FIND_MY_CREEPS);
     for (var creep of creeps) {
         if (creep.hits < creep.hitsMax) {
-            var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
+            var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
             for (var tower of towers) {
                 tower.heal(creep)
             }
@@ -35,52 +35,53 @@ export function repair_all(room_name: string) {
     var room = Game.rooms[room_name]
 	var game_memory = Game.memory[room_name];
     var conf = config.conf_rooms[room.name];
-    var structures = room.find(FIND_STRUCTURES);
-    var roads = _.filter(structures, (e) => e.structureType == 'road')
-    var roads_needrepair = _.filter(roads, (e) => e.hitsMax - e.hits >= 1000)
-    var containers = _.filter(structures, (e) => e.structureType == 'container')
-    var containers_needrepair = _.filter(containers, (e) => e.hitsMax - e.hits >= 150000)
-    var towers = game_memory.tower_list.map((e) => Game.getObjectById(e));
+	if (!(room.memory.has_structures_to_repair || room.memory.has_wall_to_repair || Game.time % 20 == 0)) {
+		return;
+	}
+    var towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
     if (towers.length == 0) {
         return;
     }
+    var scheduled = towers.map((e) => false);
+    var structures = room.find(FIND_STRUCTURES);
 	if (room.memory.has_structures_to_repair == undefined) {
 		room.memory.has_structures_to_repair = true;
 	}
-	if (room.memory.has_structures_to_repair || Game.time % 20 == 0) {
+	repair_structures: if (room.memory.has_structures_to_repair || Game.time % 20 == 0) {
+		var roads = _.filter(structures, (e) => e.structureType == 'road')
+		var roads_needrepair = _.filter(roads, (e) => e.hitsMax - e.hits >= 1000)
+		var containers = _.filter(structures, (e) => e.structureType == 'container')
+		var containers_needrepair = _.filter(containers, (e) => e.hitsMax - e.hits >= 150000)
 		var others_needrepair = structures.filter((e) => e.hitsMax - e.hits > 0 && ['lab', 'extension', 'spawn', 'storage', 'link', 'terminal'].includes(e.structureType))
-		if (others_needrepair.length == 0) {
+		var structures_needrepair = roads_needrepair.concat(containers_needrepair).concat(others_needrepair);
+		if (structures_needrepair.length == 0) {
 			room.memory.has_structures_to_repair = false;
+			break repair_structures;
 		}
 		else {
 			room.memory.has_structures_to_repair = true;
 		}
+		var distance_array = structures_needrepair.map((structure) => towers.map((tower) => tower.pos.getRangeTo(structure.pos)));
+		var tower_index = distance_array.map((array) => mymath.argmin(array));
+		for (var i = 0; i < towers.length; ++i) {
+			let tower = towers[i];
+			if (tower.store['energy'] == 0) {
+				continue;
+			}
+			let index: number[] = mymath.range(tower_index.length).filter((e: number) => tower_index[e] == i);
+			let structures_matchtower = index.map((e) => structures_needrepair[e]);
+			if (structures_matchtower.length > 0) {
+				var hits_structures = structures_matchtower.map((e) => e.hits);
+				var index_weakest = mymath.argmin(hits_structures);
+				var output = tower.repair(structures_matchtower[index_weakest]);
+				scheduled[i] = true;
+			}
+		}
 	}
-	else {
-		var others_needrepair: AnyStructure[] = [];
-	}
-    var structures_needrepair = roads_needrepair.concat(containers_needrepair).concat(others_needrepair);
-    var distance_array = structures_needrepair.map((structure) => towers.map((tower) => tower.pos.getRangeTo(structure.pos)));
-    var tower_index = distance_array.map((array) => mymath.argmin(array));
-    var scheduled = towers.map((e) => false);
-    for (var i = 0; i < towers.length; ++i) {
-        let tower = towers[i];
-        if (tower.store['energy'] == 0) {
-            continue;
-        }
-        let index: number[] = mymath.range(tower_index.length).filter((e: number) => tower_index[e] == i);
-        let structures_matchtower = index.map((e) => structures_needrepair[e]);
-        if (structures_matchtower.length > 0) {
-            var hits_structures = structures_matchtower.map((e) => e.hits);
-            var index_weakest = mymath.argmin(hits_structures);
-            var output = tower.repair(structures_matchtower[index_weakest]);
-            scheduled[i] = true;
-        }
-    }
 	if (room.memory.has_wall_to_repair == undefined) {
 		room.memory.has_wall_to_repair = true;
 	}
-	repair_wall: if (room.memory.has_wall_to_repair || Game.time % 10 == 0) {
+	repair_wall: if (room.memory.has_wall_to_repair || Game.time % 20 == 0) {
 		var temp_walls = _.filter(structures, (e) => ((e.structureType == "constructedWall" && e.hits) || e.structureType == "rampart"))
 		var all_walls = temp_walls.map((e) => < Structure_Wall_Rampart > e);
 		var walls = all_walls.filter((e) => e.hits < config.wall_strength);
@@ -108,18 +109,4 @@ export function repair_all(room_name: string) {
 			}
 		}
 	}
-	/*
-	if (room.memory.n_needed_wallrepair > 0) {
-		let hits_argmin = mymath.argmin(all_walls.map((e) => e.hits));
-		let wall_to_repair = all_walls[hits_argmin];
-		let distance_to_the_wall = towers.map((e) => wall_to_repair.pos.getRangeTo(e));
-		let distance_argmin = mymath.argmin(distance_to_the_wall);
-		if (!scheduled[distance_argmin]) {
-			let output = towers[distance_argmin].repair(wall_to_repair);
-			if (output == 0) {
-				room.memory.n_needed_wallrepair -= 1;
-			}
-		}
-	}
-	*/
 }

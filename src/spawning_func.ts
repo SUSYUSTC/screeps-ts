@@ -51,7 +51,14 @@ const getbody_defender = (options: any): BodyPartConstant[] => {
 const getbody_invader_core_attacker = (options: any): BodyPartConstant[] => {
     var bodyinfo = {
         "move": 5,
-        "attack": 10
+        "attack": 10,
+    };
+    return fullreturnbody(bodyinfo);
+}
+const getbody_home_defender = (options: any): BodyPartConstant[] => {
+    var bodyinfo = {
+        "move": 10,
+        "attack": 40,
     };
     return fullreturnbody(bodyinfo);
 }
@@ -91,7 +98,7 @@ const getbody_externalharvester = (options: any): BodyPartConstant[] => {
 }
 const getbody_upgrader = (options: any): BodyPartConstant[] => {
     if (options.rcl8) {
-        return returnbody(1, 1, 1);
+        return returnbody(15, 3, 3);
     } else {
         if (options.max_energy >= 2150) {
             return returnbody(18, 4, 3);
@@ -169,22 +176,23 @@ interface type_getbody {
 const getbody_list: type_getbody = {
     'harvester': getbody_harvester,
     'mineharvester': getbody_mineharvester,
-    'externalharvester': getbody_externalharvester,
-    'help_harvester': getbody_help_harvester,
     'carrier': getbody_carrier,
-    'externalcarrier': getbody_externalcarrier,
     'maincarrier': getbody_maincarrier,
     'specialcarrier': getbody_specialcarrier,
-    'help_carrier': getbody_help_carrier,
-    'reserver': getbody_reserver,
     'builder': getbody_builder,
-    'help_builder': getbody_help_builder,
     'upgrader': getbody_upgrader,
     'transferer': getbody_transferer,
+    'wall_repairer': getbody_wall_repairer,
+    'reserver': getbody_reserver,
+    'externalharvester': getbody_externalharvester,
+    'externalcarrier': getbody_externalcarrier,
+    'help_harvester': getbody_help_harvester,
+    'help_carrier': getbody_help_carrier,
+    'help_builder': getbody_help_builder,
     'hunter': getbody_hunter,
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
-    'wall_repairer': getbody_wall_repairer,
+    'home_defender': getbody_home_defender,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
@@ -247,7 +255,7 @@ for (var name in config.defender_responsible_types) {
     config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
 }
 
-global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string): number {
+global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: any = {}, first=false): number {
     // 0: success, 1: name exists
     if (Game.creeps[name] !== undefined) {
         return 1;
@@ -256,10 +264,15 @@ global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], na
     let obj: type_additional_spawn = {
         "name": name,
         "body": body,
+		"memory": memory,
     }
     if (room.memory.additional_spawn_queue == undefined) {
-        room.memory.additional_spawn_queue = [];
+		room.memory.additional_spawn_queue = {"first":[], "last": []};
     }
-    room.memory.additional_spawn_queue.push(obj);
+	if (first) {
+		room.memory.additional_spawn_queue.first.push(obj);
+	} else {
+		room.memory.additional_spawn_queue.last.push(obj);
+	}
     return 0;
 }

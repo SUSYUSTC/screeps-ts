@@ -11,26 +11,21 @@ var moveoptions = {
     costCallback: functions.avoid_exits,
 };
 
-var pathfinderoptions = {
-    //visualizePathStyle: {},
-    maxRooms: 1,
-    roomCallback: function(room_name: string) {
-        return functions.get_costmatrix_road(room_name);
-    },
-};
 
 var vision_options: any = {
     visualizePathStyle: {}
 };
 
-export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
+export function movetopos(creep: Creep, pos: RoomPosition, range: number, costmatrix: CostMatrix = null) {
     let name_of_this_function = "movetopos"
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
-
     let regenerate_path;
+	if (costmatrix == null) {
+		costmatrix = functions.get_costmatrix_road(creep.room.name);
+	}
     out: if (creep.memory.stored_path !== undefined && creep.memory.stored_path.time_left > 0) {
         let target = creep.memory.stored_path.target;
         let target_pos = creep.room.getPositionAt(target[0], target[1]);
@@ -57,7 +52,10 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
                         //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
                         break out;
                     }
-                    if (functions.get_costmatrix_road(creep.room.name).get(next_xy[0], next_xy[1]) !== 255) {
+					if (costmatrix == null) {
+						costmatrix = functions.get_costmatrix_road(creep.room.name);
+					}
+                    if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
                         regenerate_path = false;
                         break out;
                     }
@@ -67,7 +65,10 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
             if (regenerate_path) {
                 let next_xy = path[0];
                 if (creep.pos.getRangeTo(next_xy[0], next_xy[1]) <= 1) {
-                    if (functions.get_costmatrix_road(creep.room.name).get(next_xy[0], next_xy[1]) !== 255) {
+					if (costmatrix == null) {
+						costmatrix = functions.get_costmatrix_road(creep.room.name);
+					}
+                    if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
                         regenerate_path = false;
                         break out;
                     }
@@ -91,6 +92,16 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
         console.log(creep.room.name, creep.memory.role, "Regenerating path because long time passed");
     }
     if (regenerate_path) {
+		if (costmatrix == null) {
+			costmatrix = functions.get_costmatrix_road(creep.room.name);
+		}
+        let pathfinderoptions = {
+            //visualizePathStyle: {},
+            maxRooms: 1,
+            roomCallback: function(room_name: string) {
+                return costmatrix;
+            },
+        };
         let path = PathFinder.search(creep.pos, {
             pos: pos,
             range: range
@@ -113,17 +124,6 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number) {
         creep.memory.stored_path.time_left = 0;
     }
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
-}
-
-export function movetopos_restricted(creep: Creep, pos: RoomPosition, range: number, areas: number[][]): number {
-	let output = 1;
-	for (let xy of areas) {
-		if (pos.getRangeTo(xy[0], xy[1]) <= range) {
-			movetopos(creep, creep.room.getPositionAt(xy[0], xy[1]), 0);
-			return 0;
-		}
-	}
-	return output;
 }
 
 export function moveto_stayxy(creep: Creep, xy: number[]) {
@@ -159,13 +159,17 @@ export function movetoposexceptoccupied(creep: Creep, poses: RoomPosition[]) {
             return 2;
         }
         if (vacant && !(inposition && creep.pos.getRangeTo(pos) > 1)) {
-            creep.moveTo(pos.x, pos.y, moveoptions);
+			if (config.conf_rooms[creep.room.name] !== undefined) {
+				movetopos(creep, pos, 0);
+			} else {
+				creep.moveTo(pos.x, pos.y, moveoptions);
+			}
             return 0;
         }
     }
     return 1;
 }
-export function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydistance = false) {
+export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydistance = false) {
     var metric = config.distance_metric;
     if (obj_list.length == 0) {
         return 1;
@@ -187,9 +191,9 @@ export function charge_list(creep: Creep, obj_list: AnyStorageStructure[], bydis
 export function charge_all(creep: Creep, doaction: boolean = true): number {
     var metric = config.distance_metric;
     let game_memory = Game.memory[creep.room.name];
-    let store_list: AnyStorageStructure[] = creep.room.memory.storage_list.map((id) => Game.getObjectById(id));
+    let store_list: AnyStoreStructure[] = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id));
     store_list = store_list.filter((e) => ( < GeneralStore > e.store).getFreeCapacity("energy") > 0);
-    let tower_list: StructureTower[] = game_memory.tower_list.map((id) => Game.getObjectById(id));
+    let tower_list: StructureTower[] = creep.room.memory.tower_list.map((id) => Game.getObjectById(id));
     tower_list = tower_list.filter((e) => e.store.getFreeCapacity("energy") > 400);
     let distance = store_list.map((e) => metric(creep.room.name, creep.pos, e.pos)).concat(tower_list.map((e) => metric(creep.room.name, creep.pos, e.pos)));
     if (distance.length == 0) {
@@ -206,7 +210,7 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
         obj = store_list[argsort[0]];
     }
     if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
-        creep.moveTo(obj, moveoptions);
+        movetopos(creep, obj.pos, 1);
     } else {
         let obj2;
         if (argsort.length > 1 && distance[argsort[1]] > 1) {
@@ -216,8 +220,8 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
                 obj2 = store_list[argsort[1]];
             }
         }
-        if (doaction) {
-            creep.moveTo(obj2, moveoptions);
+        if (doaction && obj2 !== undefined) {
+			movetopos(creep, obj2.pos, 1);
         }
     }
     return 0;
@@ -231,17 +235,12 @@ export function harvest_source(creep: Creep, source: Source | Mineral) {
     }
 }
 
-export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, left: number = 0, sourcetype: ResourceConstant = "energy", areas: number[][] = null) {
+export function withdraw_energy(creep: Creep, structure: AnyStoreStructure, left: number = 0, sourcetype: ResourceConstant = "energy") {
     var energy = ( < GeneralStore > structure.store).getUsedCapacity(sourcetype);
     if (energy >= left) {
         var output = creep.withdraw(structure, sourcetype, Math.min(energy - left, creep.store.getFreeCapacity(sourcetype)));
         if (output == ERR_NOT_IN_RANGE) {
-			if (areas !== null) {
-				movetopos_restricted(creep, structure.pos, 1, areas);
-			}
-			else {
-				movetopos(creep, structure.pos, 1);
-			}
+			movetopos(creep, structure.pos, 1);
             return 0;
         } else if (output !== 0) {
             return 1;
@@ -251,15 +250,10 @@ export function withdraw_energy(creep: Creep, structure: AnyStorageStructure, le
     }
 }
 
-export function transfer_energy(creep: Creep, structure: AnyStorageStructure | Creep, sourcetype: ResourceConstant = "energy", areas: number[][] = null) {
+export function transfer_energy(creep: Creep, structure: AnyStoreStructure | Creep, sourcetype: ResourceConstant = "energy") {
     var output = creep.transfer(structure, sourcetype);
     if (output == ERR_NOT_IN_RANGE) {
-		if (areas !== null) {
-			movetopos_restricted(creep, structure.pos, 1, areas);
-		}
-		else {
-			movetopos(creep, structure.pos, 1);
-		}
+		movetopos(creep, structure.pos, 1);
         return 1;
     }
     return 0;
@@ -287,15 +281,9 @@ export function build_structure(creep: Creep): number {
     }
     return 1;
 }
-export function select_linkcontainer(creep: Creep, min_energy: number = 0, allow_link: boolean = true): AnyStorageStructure | null {
+export function select_linkcontainer(creep: Creep, min_energy: number = 0): AnyStoreStructure | null {
     var metric = config.distance_metric;
-    if (allow_link) {
-        var allowed_structures = ['container', 'link', 'storage', 'terminal'];
-    } else {
-        var allowed_structures = ['container', 'storage', 'terminal'];
-    }
-    var temp_structures: Structure[] = _.filter(creep.room.find(FIND_STRUCTURES), (e) => allowed_structures.includes(e.structureType));
-    var structures: AnyStorageStructure[] = temp_structures.map((e) => < AnyStorageStructure > e);
+    var structures: AnyStoreStructure[] = creep.room.memory.energy_storage_list.map((e) => < AnyStoreStructure > Game.getObjectById(e));
     structures = structures.filter((e) => ( < GeneralStore > e.store).getUsedCapacity("energy") >= min_energy);
     if (structures.length == 0) {
         return null;
@@ -368,7 +356,7 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             }
         }
         delete creep.room.memory.current_boost_request;
-		delete creep.room.memory.current_boost_creep;
+        delete creep.room.memory.current_boost_creep;
         creep.memory.boost_status.boosting = false;
         creep.memory.boost_status.boost_finished = true;
         return 0;
@@ -394,11 +382,11 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             let lab_id = labs_status.B1.id;
             let lab = Game.getObjectById(lab_id);
             if (creep.pos.isNearTo(lab)) {
-				if (creep.room.memory.current_boost_creep == undefined) {
-					creep.room.memory.current_boost_creep = creep.name;
-				} else if (creep.room.memory.current_boost_creep !== creep.name) {
-					return 1;
-				}
+                if (creep.room.memory.current_boost_creep == undefined) {
+                    creep.room.memory.current_boost_creep = creep.name;
+                } else if (creep.room.memory.current_boost_creep !== creep.name) {
+                    return 1;
+                }
                 creep.memory.boost_status.boosting = true;
             } else {
                 movetopos(creep, lab.pos, 1);
@@ -420,7 +408,7 @@ export function repair_container(creep: Creep) {
 }
 export function ask_for_renew(creep: Creep) {
     var metric = config.distance_metric;
-    var spawns: StructureSpawn[] = Game.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e));
+    var spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
     var distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
     var argmin = mymath.argmin(distances);
     var closest_spawn = spawns[argmin];
@@ -428,14 +416,5 @@ export function ask_for_renew(creep: Creep) {
         closest_spawn.renewCreep(creep);
     } else {
         creep.moveTo(closest_spawn, moveoptions);
-    }
-}
-
-export function external_flee(creep: Creep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[]) {
-    if (creep.room.name == creep.memory.home_room_name) {
-        creep.memory.movable = false;
-        creep.moveTo(safe_pos[0], safe_pos[1], moveoptions);
-    } else {
-        external_room.movethroughrooms(creep, rooms_backwardpath, poses_backwardpath);
     }
 }

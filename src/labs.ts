@@ -7,6 +7,9 @@ function determine_reaction_request(room_name: string) {
     let room = Game.rooms[room_name];
     let priority = config.reaction_priority[room_name];
     let keys = < Array < keyof typeof priority >> Object.keys(priority);
+	if (room.memory.reaction_request !== undefined && !keys.includes(room.memory.reaction_request.product)) {
+		delete room.memory.reaction_request;
+	}
     let available_list = keys.filter((e) => mymath.all(config.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= 280)));
 	if (available_list.length == 0) {
 		return;
@@ -35,14 +38,16 @@ function get_reaction_supply(room_name: string) {
         let reactants = config.allowed_reactions[key];
         for (let reactant of reactants) {
             let minimum_amount = config.mineral_minimum_amount[reactant];
-            if (room.terminal.store.getUsedCapacity(reactant) < minimum_amount && Game.mineral_storage_amount[reactant] >= minimum_amount) {
+			if (room.terminal.store.getUsedCapacity(reactant) < minimum_amount) {
 				let supplied_rooms = Object.keys(config.mineral_storage_room).filter((e) => config.mineral_storage_room[e].includes(reactant));
-				let terminal_amounts = supplied_rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity());
+				let terminal_amounts = supplied_rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity(reactant));
 				let argmax = mymath.argmax(terminal_amounts);
-                let supply_room_name = supplied_rooms[argmax];
-				console.log("Sending resource", reactant, "from", supply_room_name, "to", room_name);
-				Game.rooms[supply_room_name].terminal.send(reactant, minimum_amount, room_name);
-                return;
+				if (terminal_amounts[argmax] > minimum_amount) {
+					let supply_room_name = supplied_rooms[argmax];
+					console.log("Sending resource", reactant, "from", supply_room_name, "to", room_name);
+					Game.rooms[supply_room_name].terminal.send(reactant, minimum_amount, room_name);
+					return;
+				}
             }
         }
     }

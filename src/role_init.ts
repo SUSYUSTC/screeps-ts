@@ -25,7 +25,7 @@ function assign_work(creep: Creep): type_work_result{
     let metric = config.distance_metric;
     let conf = config.conf_rooms[creep.room.name];
     let source = Game.getObjectById(conf.sources[creep.memory.source_name]);
-    let charge_list = creep.room.memory.storage_list.map((id) => Game.getObjectById(id));
+    let charge_list = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id));
 	charge_list = charge_list.filter((e) => (<GeneralStore>e.store).getFreeCapacity("energy") > 0)
     let sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
     let distance_charge = charge_list.map((obj) => metric(creep.room.name, creep.pos, obj.pos));

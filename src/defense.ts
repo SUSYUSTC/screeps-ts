@@ -18,13 +18,13 @@ const allowed_numbers: type_allowed_body_numbers = {
     'big_far': [
         [0, 1, 1],
         [1, 1, 0],
-	],
-	'two_far': [
-		[0, 2, 0],
-	]
+    ],
+    'two_far': [
+        [0, 2, 0],
+    ]
 }
 
-function _get_one_invader_type(creep: Creep): null | invader_type {
+function get_one_invader_type(creep: Creep): null | invader_type {
     if (!(creep.owner.username == 'Invader')) {
         return null;
     }
@@ -59,26 +59,77 @@ function _get_one_invader_type(creep: Creep): null | invader_type {
     };
 }
 
+export function get_creep_invading_ability(creep: Creep): type_body_components {
+	let result: type_body_components = {
+		"work": 0,
+		"move": 0,
+		"attack": 0,
+		"ranged_attack": 0,
+		"heal": 0,
+		"tough": 0,
+	}
+    for (let body of creep.body) {
+		if (result[body.type] == undefined) {
+			continue;
+		}
+        if (body.boost !== undefined) {
+            let compound_letter_number = ( < string > body.boost).length;
+            if (compound_letter_number == 2) {
+                result[body.type] += 2;
+            } else if (compound_letter_number == 4) {
+                result[body.type] += 3;
+            } else if (compound_letter_number == 5) {
+                result[body.type] += 4;
+            }
+        } else {
+            result[body.type] += 1;
+        }
+    }
+    return result;
+}
+
+export function get_room_invading_ability(room_name: string): type_body_components {
+	let result: type_body_components = {
+		"work": 0,
+		"move": 0,
+		"attack": 0,
+		"ranged_attack": 0,
+		"heal": 0,
+		"tough": 0,
+	}
+	let room = Game.rooms[room_name];
+	let hostile_creeps = room.find(FIND_HOSTILE_CREEPS);
+	for (let hc of hostile_creeps) {
+		if (hc.owner.username == 'Invader') {
+			continue;
+		}
+		let ability = get_creep_invading_ability(hc);
+		for (let body in result) {
+			result[<BodyPartConstant>body] += ability[<BodyPartConstant>body];
+		}
+	}
+	return result;
+}
+
 export function get_defense_type(room: Room): string {
     var enemies = room.find(FIND_HOSTILE_CREEPS)
-	var enemy_types = enemies.map((e) => functions.analyze_component(e));
-	var argattacker = mymath.range(enemy_types.length).filter((i) => (enemy_types[i].n_attack+ enemy_types[i].n_rangedattack + enemy_types[i].n_heal) > 0);
-	enemies = argattacker.map((i) => enemies[i]);
+    var enemy_types = enemies.map((e) => functions.analyze_component(e));
+    var argattacker = mymath.range(enemy_types.length).filter((i) => (enemy_types[i].n_attack + enemy_types[i].n_rangedattack + enemy_types[i].n_heal) > 0);
+    enemies = argattacker.map((i) => enemies[i]);
     if (enemies.length == 0) {
         return "";
     }
-    var types = enemies.map((e) => _get_one_invader_type(e));
+    var types = enemies.map((e) => get_one_invader_type(e));
     if (mymath.any(types.map((e) => (e == null)))) {
-		var components = enemies.map((e) => functions.analyze_component(e));
-		var n_total_attack = mymath.array_sum(components.map((e) => e.n_attack));
-		var n_total_rangedattack = mymath.array_sum(components.map((e) => e.n_rangedattack));
-		var n_total_heal = mymath.array_sum(components.map((e) => e.n_rangedattack));
-		if (n_total_attack + n_total_rangedattack > 0) {
-			return "user";
-		}
-		else {
-			return "";
-		}
+        var components = enemies.map((e) => functions.analyze_component(e));
+        var n_total_attack = mymath.array_sum(components.map((e) => e.n_attack));
+        var n_total_rangedattack = mymath.array_sum(components.map((e) => e.n_rangedattack));
+        var n_total_heal = mymath.array_sum(components.map((e) => e.n_rangedattack));
+        if (n_total_attack + n_total_rangedattack > 0) {
+            return "user";
+        } else {
+            return "";
+        }
     }
     if (mymath.any(types.map((e) => e.level !== 1))) {
         throw Error("Invader with level 2")
@@ -98,7 +149,7 @@ export function get_defense_type(room: Room): string {
     if (mymath.any(types.map((e) => e.level !== 1))) {
         throw Error("Unexpected type of invader")
     }
-	return "user"
+    return "user"
 }
 
 export function defend(creep: Creep) {
@@ -112,16 +163,25 @@ export function defend(creep: Creep) {
         let distance = creeps.map((e) => creep.pos.getRangeTo(e.pos));
         let argmin = mymath.argmin(distance);
         creep.heal(creeps[argmin]);
-		creep.moveTo(creeps[argmin], {maxRooms: 0, reusePath: 0, costCallback: functions.avoid_exits});
+        creep.moveTo(creeps[argmin], {
+            maxRooms: 0,
+            reusePath: 0,
+            costCallback: functions.avoid_exits
+        });
         return;
     }
-	var enemy_types = enemies.map((e) => functions.analyze_component(e));
-	let distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
-	let argmin = mymath.argmin(distance)
-	let target = enemies[argmin];
-	creep.moveTo(target, {maxRooms: 0, reusePath: 0, costCallback: functions.avoid_exits});
+    var enemy_types = enemies.map((e) => functions.analyze_component(e));
+    let distance = enemies.map((e) => creep.pos.getRangeTo(e.pos));
+    let argmin = mymath.argmin(distance)
+    let target = enemies[argmin];
+    creep.moveTo(target, {
+        maxRooms: 0,
+        reusePath: 0,
+        costCallback: functions.avoid_exits
+    });
     if (creep.attack(target) == ERR_NOT_IN_RANGE) {
         creep.heal(creep);
     }
     creep.rangedAttack(target);
 }
+

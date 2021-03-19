@@ -116,6 +116,14 @@ export function creepjob(creep: Creep): number {
         }
 		return 0;
 	} else if (creep.memory.role == 'home_defender') {
+		if (creep.room.terminal.store.getUsedCapacity("UH2O") < 1200) {
+			Game.rooms[config.defense_compounds_storage_room].terminal.send("UH2O", 1200, creep.room.name);
+			return 0;
+		}
+		if (creep.room.terminal.store.getUsedCapacity("ZO") < 300) {
+			Game.rooms[config.defense_compounds_storage_room].terminal.send("ZO", 300, creep.room.name);
+			return 0;
+		}
 		let output = basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"});
 		if (output > 0) {
 			return 0;

@@ -3,6 +3,7 @@ import * as creepjobs_home from "./creepjobs_home"
 import * as creepjobs_external from "./creepjobs_external"
 import * as creepjobs_maincarrier from "./creepjobs_maincarrier"
 import * as creepjobs_combat from "./creepjobs_combat"
+import * as creepjobs_resources from "./creepjobs_resources"
 import * as config from "./config"
 export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
@@ -21,6 +22,9 @@ export function creepjob(creep: Creep) {
         return;
     } else if (config.creep_roles_combat.includes(creep.memory.role)) {
         creepjobs_combat.creepjob(creep);
+        return;
+    } else if (config.creep_roles_resources.includes(creep.memory.role)) {
+        creepjobs_resources.creepjob(creep);
         return;
     }
 }

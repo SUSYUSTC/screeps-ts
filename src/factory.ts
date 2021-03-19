@@ -8,7 +8,9 @@ export function produce(room_name: string) {
 		return 1;
 	}
 	let factory = Game.getObjectById(factory_status.id);
-	if (factory.store.getUsedCapacity("energy") >= 600 && factory.cooldown == 0) {
+	if (factory.store.getUsedCapacity("energy") >= 8000 && factory.cooldown == 0) {
 		factory.produce("battery");
+	} else if (factory.store.getUsedCapacity("energy") < 5000 && factory.store.getUsedCapacity("battery") >= 50 && factory.cooldown == 0) {
+		factory.produce("energy");
 	}
 }

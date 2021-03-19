@@ -7,14 +7,15 @@ type type_external_room_status = {
 		time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "wall_repairer"
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "wall_repairer" | "pb_attacker" | "pb_healer" | "pb_carrier"
 type type_stored_path = {
     path: number[][];
     target: number[];
     time_left: number;
 }
 interface RoomMemory {
-    storage_list ? : Id < AnyStorageStructure > [];
+    energy_filling_list ? : Id < AnyStoreStructure > [];
+    energy_storage_list ? : Id < AnyStoreStructure > [];
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
     n_needed_wallrepair ? : number;
@@ -39,7 +40,18 @@ interface RoomMemory {
     maincarrier_link_amount ? : number;
     is_mainlink_source ? : boolean;
     current_boost_creep ? : string;
-	additional_spawn_queue ? : type_additional_spawn[];
+	additional_spawn_queue ? : {
+		first: type_additional_spawn[];
+		last: type_additional_spawn[];
+	}
+	mean_wall_strength ?: number;
+	mean_rampart_strength ?: number;
+	n_walls ?: number;
+	n_ramparts ?: number;
+	external_resources ?: type_external_resources;
+	sites_total_progressleft ? : number;
+	tower_list ? : Id < StructureTower > [];
+	spawn_list ? : Id < StructureSpawn > [];
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -87,6 +99,7 @@ interface conf_sources {
 interface type_additional_spawn {
 	name: string;
 	body: BodyPartConstant[];
+	memory: any;
 }
 type type_named_structures = "container" | "link" | "lab" | "spawn";
 type type_unique_structures = "factory" | "nuker" | "storage" | "terminal" | "observer" | "powerSpawn" | "extractor";
@@ -170,6 +183,24 @@ interface conf_external_rooms {
         }
     }
 }
+interface type_resource_status {
+	id: Id <StructurePowerBank>;
+	xy: number[];
+	status: number;
+	time_last: number;
+	rooms_path: string[];
+	poses_path: number[];
+	distance: number;
+	path_found: boolean;
+	pb_attacker_name: string;
+	pb_healer_name: string;
+	amount: number;
+}
+interface type_external_resources {
+	pb: {
+		[key: string]: type_resource_status;
+	}
+}
 interface type_conf_hunting {
     room_name: string;
     number: number;
@@ -237,6 +268,7 @@ interface Memory {
     debug_mode ? : boolean;
     output_mode ? : boolean;
     rerunning ? : boolean;
+	history_cpus ?: number[];
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -253,7 +285,6 @@ interface type_spawn_json {
     affordable: boolean;
     [key: string]: any;
 };
-type AnyStorageStructure = StructureLink | StructureTower | StructureSpawn | StructureContainer | StructureExtension | StructureStorage | StructureTerminal | StructureLab | StructureFactory;
 interface type_creep_components {
     n_move: number;
     n_work: number;
@@ -335,13 +366,13 @@ interface Game {
     tick_cpu ? : {
         [key: string]: number;
     }
+    tick_cpu_main ? : {
+        [key: string]: number;
+    }
     mineral_storage_amount ? : type_mineral_storage_amount;
     memory: {
         [key: string]: {
-            tower_list ? : Id < StructureTower > [];
-            spawn_list ? : Id < StructureSpawn > [];
             danger_mode ? : boolean;
-            sites_total_progressleft ? : number;
             link_modes ? : string[];
             container_modes_all ? : boolean;
             lack_energy ? : boolean;
@@ -392,7 +423,7 @@ declare module NodeJS {
         summarize_terminal(): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
-		spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string): number;
+		spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
 		spawn_dismantler_group_x2(room_name: string, suffix: string): number;
 		do_dismantler_group_x2(suffix: string, flagname: string): number;
     }

@@ -1,4 +1,13 @@
 import * as _ from "lodash"
+export function clear_used() {
+	if (Game.time % 10 == 0) {
+		for (let id in Game.market.orders) {
+			if (Game.market.orders[id].remainingAmount == 0) {
+				Game.market.cancelOrder(id);
+			}
+		}
+	}
+}
 export function process_buy_order(room_name: string): number {
     let room = Game.rooms[room_name];
     if (room.terminal == undefined || room.terminal.cooldown > 0 || room.memory.objects_to_buy == undefined || Object.keys(room.memory.objects_to_buy).length == 0) {
@@ -59,6 +68,9 @@ export function process_sell_order(room_name: string): number {
             room.memory.market_cooldown = false;
             let transaction_amount_available;
             if (obj.resource == "energy") {
+				if (room.terminal.store.getUsedCapacity("energy") < 20000) {
+					continue;
+				}
                 transaction_amount_available = Math.floor(room.terminal.store.getUsedCapacity("energy") / (1 + order.transaction_cost)) - 5;
             } else {
                 transaction_amount_available = Math.floor(room.terminal.store.getUsedCapacity("energy") / order.transaction_cost) - 5;
