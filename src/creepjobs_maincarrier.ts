@@ -201,7 +201,7 @@ function get_energy_status(creep_amount: number, link_amount: number, link_targe
 	if (storage_amount + creep_amount >= 500000 && nuker_amount !== undefined && nuker_amount < 300000) {
 		sink = "nuker";
 	}
-	if (powerspawn_amount !== undefined && powerspawn_amount < 3000) {
+	if (storage_amount + creep_amount >= 500000 && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
 		sink = "powerspawn";
 	}
 	if (terminal_amount !== undefined) {
@@ -374,7 +374,7 @@ export function creepjob(creep: Creep): number {
     if (creep.memory.role == 'maincarrier') {
         creep.say("MC");
         creep.memory.movable = false;
-        if (creep.ticksToLive < 20 && creep.store.getUsedCapacity() == 0) {
+        if (creep.ticksToLive < 6 && creep.store.getUsedCapacity() == 0) {
             creep.suicide();
             return 0;
         }
@@ -450,7 +450,7 @@ export function creepjob(creep: Creep): number {
 		let nuker;
 		let nuker_energy;
 		let nuker_G;
-		if (nuker_id !== undefined && config.fill_nuker[creep.room.name]) {
+		if (nuker_id !== undefined) {
 			nuker = Game.getObjectById(nuker_id);
 			nuker_energy = nuker.store.getUsedCapacity("energy");
 			nuker_G = nuker.store.getUsedCapacity("G");

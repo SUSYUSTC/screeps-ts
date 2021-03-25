@@ -3,43 +3,7 @@ import * as functions from "./functions"
 import * as config from "./config"
 import * as basic_job from "./basic_job"
 
-export function signed_number(num: number, sign: number): number {
-    if (sign == 1) {
-        return num + 1;
-    } else {
-        return 0 - num;
-    }
-}
-export function room2coor(room: string): number[] {
-    let pos = []
-    let sign = []
-    let str = room;
-    let split;
-    if (room.includes('E')) {
-        sign.push(1)
-        split = str.split('E')
-        str = split[1]
-    }
-    if (room.includes('W')) {
-        sign.push(-1)
-        split = str.split('W')
-        str = split[1]
-    }
-    if (room.includes('N')) {
-        sign.push(-1)
-        split = str.split('N')
-    }
-    if (room.includes('S')) {
-        sign.push(1)
-        split = str.split('S')
-    }
-    pos.push(parseInt(split[0]))
-    pos.push(parseInt(split[1]))
-    return [signed_number(pos[0], sign[0]), signed_number(pos[1], sign[1])];
-}
-
-
-export function movethroughrooms(creep: Creep, rooms_path: string[], poses_path: number[]) {
+export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[]) {
     if (rooms_path.length != poses_path.length + 1) {
         throw Error("Unexpected length of arguments")
     }
@@ -56,8 +20,8 @@ export function movethroughrooms(creep: Creep, rooms_path: string[], poses_path:
 	//var room_info = room_list.room_list.rooms[creep.room.name];
     var arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
     if (arg == rooms_path.length - 1) {
-        let room1_coor = room2coor(rooms_path[arg - 1]);
-        let room2_coor = room2coor(rooms_path[arg]);
+        let room1_coor = functions.room2coor(rooms_path[arg - 1]);
+        let room2_coor = functions.room2coor(rooms_path[arg]);
         let coor_diff = mymath.array_ele_minus(room2_coor, room1_coor);
         let standpoint_xy;
         let pos = poses_path[arg - 1];
@@ -85,8 +49,8 @@ export function movethroughrooms(creep: Creep, rooms_path: string[], poses_path:
             return 0;
         }
     } else {
-        let room1_coor = room2coor(rooms_path[arg]);
-        let room2_coor = room2coor(rooms_path[arg + 1]);
+        let room1_coor = functions.room2coor(rooms_path[arg]);
+        let room2_coor = functions.room2coor(rooms_path[arg + 1]);
         let coor_diff = mymath.array_ele_minus(room2_coor, room1_coor);
         let pos = poses_path[arg];
         let exit_xy;

@@ -381,6 +381,7 @@ export var conf_E19N55: type_conf_room =
     "external_rooms": {
         "E19N56": {
             "active": false,
+            "container": false,
             "controller": {
                 "reserve": true,
                 "path_time": 30,

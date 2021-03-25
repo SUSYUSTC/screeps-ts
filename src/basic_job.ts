@@ -16,7 +16,7 @@ var vision_options: any = {
     visualizePathStyle: {}
 };
 
-export function movetopos(creep: Creep, pos: RoomPosition, range: number, costmatrix: CostMatrix = null) {
+export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, costmatrix: CostMatrix = null) {
     let name_of_this_function = "movetopos"
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
@@ -89,7 +89,7 @@ export function movetopos(creep: Creep, pos: RoomPosition, range: number, costma
     }
     else {
         regenerate_path = true;
-        console.log(creep.room.name, creep.memory.role, "Regenerating path because long time passed");
+		//console.log(creep.room.name, creep.memory.role, "Regenerating path because long time passed");
     }
     if (regenerate_path) {
 		if (costmatrix == null) {

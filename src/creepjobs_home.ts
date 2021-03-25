@@ -65,16 +65,20 @@ export function creepjob(creep: Creep): number {
 			}
 			return 0;
 		}
+		let harvest_rate = 10;
+		if (creep.memory.pc_level !== undefined ) {
+			harvest_rate = config.powered_harvester[creep.memory.pc_level].n_harvest*2;
+		}
 		let creep_energy = creep.store.getUsedCapacity("energy");
-		if (creep_energy >= 10 && container_source.hitsMax - container_source.hits >= 1000) {
+		if (creep_energy >= harvest_rate && container_source.hitsMax - container_source.hits >= 1000) {
 			creep.repair(container_source);
 			return 0;
 		}
 		basic_job.harvest_source(creep, source);
 		if (link_mode) {
-			if (container_source.store.getUsedCapacity("energy") > 1600 && creep_energy <= 10) {
+			if (container_source.store.getUsedCapacity("energy") > 1600 && creep_energy <= harvest_rate) {
 				creep.withdraw(container_source, "energy");
-			} else if (creep.store.getFreeCapacity() == 0 && container_source.store.getUsedCapacity("energy") >= 1200) {
+			} else if (creep.store.getFreeCapacity() < harvest_rate && container_source.store.getUsedCapacity("energy") >= 1200) {
 				creep.transfer(link_source, "energy");
 			}
 		}

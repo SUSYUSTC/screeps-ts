@@ -1,6 +1,87 @@
 import * as mymath from "./mymath"
 import * as config from "./config"
+interface type_log_market {
+	resourceType: MarketResourceConstant;
+	amount: number;
+	price: number;
+	room_name: string;
+}
+interface type_level {
+	level: number;
+	progress: number;
+	progressTotal: number;
+}
+type type_store_log = {
+	[key in ResourceConstant] ?: number;
+}
+interface type_wall_strength_log {
+	mean_strength: number;
+	number: number;
+}
+interface type_mine_log {
+	type: MineralConstant;
+	amount: number;
+	density: number;
+	regeneration_time: number;
+}
+interface type_room_log {
+	RCL: type_level;
+	room_energy: number;
+	room_total_energy: number;
+	storage: type_store_log;
+	terminal: type_store_log;
+	nuker: type_store_log;
+	factory: type_store_log;
+	powerSpawn: type_store_log;
+	wall: type_wall_strength_log;
+	rampart: type_wall_strength_log;
+	mine: type_mine_log;
+	reaction: GeneralMineralConstant;
+	boosting: MineralBoostConstant;
+	construction_sites_progressleft: number;
+	objects_to_buy: {
+		[key: string]: type_object_to_trade;
+	};
+	objects_to_sell: {
+		[key: string]: type_object_to_trade;
+	};
+}
+interface type_log {
+	time: number;
+	GCL : type_level;
+	GPL: type_level;
+	credits: number;
+	pixel: number;
+	bucket: number;
+	Averaged_CPU: number;
+	market: {
+		sell: {
+			[key: string]: type_log_market
+		};
+		buy: {
+			[key: string]: type_log_market
+		};
+	};
+	rooms: {
+		[key: string]: type_room_log;
+	};
+}
 export function log() {
+	let log: type_log = {
+		time: null,
+		GCL: null,
+		GPL: null,
+		credits: null,
+		pixel: null,
+		bucket: null,
+		Averaged_CPU: null,
+		market: {
+			sell: {},
+			buy: {},
+		},
+		rooms: {},
+	}
+	log.time = Game.time;
 	if (Memory.history_cpus == undefined) {
 		Memory.history_cpus = [];
 	}
@@ -8,21 +89,57 @@ export function log() {
 	if (Memory.history_cpus.length > 20) {
 		Memory.history_cpus.shift();
 	}
-	console.log(`GCL: ${Game.gcl.level}, ${Game.gcl.progress}/${Game.gcl.progressTotal}, GPL: ${Game.gpl.level}, ${Game.gpl.progress}/${Game.gpl.progressTotal}, Cr: ${Game.market.credits}, pixel: ${Game.resources.pixel}, CPU bucket: ${Game.cpu.bucket}, Averged CPU usage: ${mymath.array_mean(Memory.history_cpus)}`);
+	log.GCL = {
+		"level": Game.gcl.level,
+		"progress": Game.gcl.progress,
+		"progressTotal": Game.gcl.progressTotal,
+	}
+	log.GPL = {
+		"level": Game.gpl.level,
+		"progress": Game.gpl.progress,
+		"progressTotal": Game.gpl.progressTotal,
+	}
+	log.pixel = Game.resources.pixel;
+	log.credits = Game.market.credits;
+	log.Averaged_CPU = mymath.array_mean(Memory.history_cpus);
+	log.bucket = Game.cpu.bucket;
 	if (!Memory.output_mode) {
-		return;
+		console.log("Stringified log");
+		console.log(JSON.stringify(log));
 	}
 	for (let order_type of ['sell', 'buy']) {
-		let str = `${order_type} `;
 		for (let id in Game.market.orders) {
 			let order = Game.market.orders[id];
 			if (order.type == order_type) {
-				str += `${order.resourceType}: ${order.amount}/${order.remainingAmount} x ${order.price}, ${order.roomName}; `;
+				let log_market: type_log_market = {
+					"resourceType": order.resourceType,
+					"amount": order.amount,
+					"price": order.price,
+					"room_name": order.roomName,
+				}
+				log.market[<keyof (typeof log.market)>order_type][id] = log_market;
 			}
 		}
-		console.log(str);
 	}
 	for (let room_name of config.controlled_rooms) {
+		let room_log: type_room_log = {
+			RCL: null,
+			room_energy: null,
+			room_total_energy: null,
+			storage: null,
+			terminal: null,
+			nuker: null,
+			factory: null,
+			powerSpawn: null,
+			wall: null,
+			rampart: null,
+			objects_to_buy: {},
+			objects_to_sell: {},
+			mine: null,
+			reaction: null,
+			boosting: null,
+			construction_sites_progressleft: null,
+		};
 		let room = Game.rooms[room_name];
 		let game_memory = Game.memory[room_name];
 		let conf = config.conf_rooms[room_name];
@@ -43,46 +160,70 @@ export function log() {
 			room.memory.n_ramparts = ramparts.length;
 		}
 		if (room.controller.level == 8) {
-			console.log("房间:", room_name, "RCL:", room.controller.level, "room energy:", room.energyAvailable, "/", room.energyCapacityAvailable);
+			room_log.RCL = {
+				"level": room.controller.level,
+				"progress": null,
+				"progressTotal": null,
+			}
 		}
 		else {
-			console.log("房间:", room_name, "RCL:", room.controller.level, "progress:", room.controller.progress, "/", room.controller.progressTotal, "room energy:", room.energyAvailable, "/", room.energyCapacityAvailable);
+			room_log.RCL = {
+				"level": room.controller.level,
+				"progress": room.controller.progress,
+				"progressTotal": room.controller.progressTotal,
+			}
 		}
-		console.log(`mean wall strength: ${Math.floor(room.memory.mean_wall_strength/1000)}k x ${room.memory.n_walls}, mean rampart strength: ${Math.floor(room.memory.mean_rampart_strength/1000)}k x ${room.memory.n_ramparts}`);
+		room_log.room_energy = room.energyAvailable;
+		room_log.room_total_energy = room.energyCapacityAvailable;
+		room_log.wall = {
+			"mean_strength": room.memory.mean_wall_strength,
+			"number": room.memory.n_walls,
+		};
+		room_log.rampart = {
+			"mean_strength": room.memory.mean_rampart_strength,
+			"number": room.memory.n_ramparts,
+		};
 		let log_special = '';
 		if (room.memory.unique_structures_status.factory.finished) {
-			log_special += "factory: " + JSON.stringify(Game.getObjectById(room.memory.unique_structures_status.factory.id).store);
+			room_log.factory = Game.getObjectById(room.memory.unique_structures_status.factory.id).store;
 		}
 		if (room.memory.unique_structures_status.nuker.finished) {
-			log_special += " nuker: " + JSON.stringify(Game.getObjectById(room.memory.unique_structures_status.nuker.id).store);
+			room_log.nuker = Game.getObjectById(room.memory.unique_structures_status.nuker.id).store;
 		}
 		if (room.memory.unique_structures_status.powerSpawn.finished) {
-			log_special += " powerSpawn: " + JSON.stringify(Game.getObjectById(room.memory.unique_structures_status.powerSpawn.id).store);
+			room_log.powerSpawn = Game.getObjectById(room.memory.unique_structures_status.powerSpawn.id).store;
 		}
 		if (room.storage !== undefined) {
-			console.log("storage:", JSON.stringify(room.storage.store), log_special);
+			room_log.storage = room.storage.store;
 		}
 		if (room.terminal !== undefined) {
-			console.log("terminal:", JSON.stringify(room.terminal.store), "Total:", room.terminal.store.getUsedCapacity(), "/", room.terminal.store.getCapacity());
+			room_log.terminal = room.terminal.store;
 		}
 		if (room.memory.objects_to_buy !== undefined && Object.keys(room.memory.objects_to_buy).length > 0) {
-			console.log("objects to buy:", JSON.stringify(room.memory.objects_to_buy));
+			room_log.objects_to_buy = room.memory.objects_to_buy;
 		}
 		if (room.memory.objects_to_sell !== undefined && Object.keys(room.memory.objects_to_sell).length > 0) {
-			console.log("objects to sell:", JSON.stringify(room.memory.objects_to_sell));
+			room_log.objects_to_sell = room.memory.objects_to_sell;
 		}
 		let mine = Game.getObjectById(conf.mine);
 		let amount_total;
-		let log_minerals=`type: ${mine.mineralType}, amount: ${mine.mineralAmount}, density: ${MINERAL_DENSITY[mine.density]}, regeneration time: ${mine.ticksToRegeneration}`;
+		room_log.mine = {
+			"type": mine.mineralType,
+			"amount": mine.mineralAmount,
+			"density": MINERAL_DENSITY[mine.density],
+			"regeneration_time": mine.ticksToRegeneration,
+		}
 		if (room.memory.reaction_request !== undefined) {
-			log_minerals += `; reaction running: ${JSON.stringify(room.memory.reaction_request.product)}`;
+			room_log.reaction = room.memory.reaction_request.product;
 		}
 		if (room.memory.current_boost_request !== undefined) {
-			log_minerals += `; boosting: ${JSON.stringify(room.memory.current_boost_request.compound)}`;
+			room_log.boosting = room.memory.current_boost_request.compound;
 		}
-		console.log(log_minerals);
 		if (room.memory.sites_total_progressleft) {
-			console.log("left progress of contruction sites:", room.memory.sites_total_progressleft);
+			room_log.construction_sites_progressleft = room.memory.sites_total_progressleft;
 		}
+		log.rooms[room_name] = room_log;
 	}
+	console.log("Stringified log");
+	console.log(JSON.stringify(log));
 }

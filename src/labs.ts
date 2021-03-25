@@ -23,7 +23,7 @@ function determine_reaction_request(room_name: string) {
     }
     if (room.memory.reaction_request == undefined) {
         let priorities = available_list.map((e) => priority[e]);
-		priorities = mymath.array_ele_minus(priorities, available_list.map((e) => room.terminal.store.getUsedCapacity(e) / 1960));
+		//priorities = mymath.array_ele_minus(priorities, available_list.map((e) => room.terminal.store.getUsedCapacity(e) / 1960));
         let argmax = mymath.argmax(priorities);
 		console.log("Set reaction request:", room_name, available_list[argmax]);
 		global.set_reaction_request(room_name, available_list[argmax]);
@@ -42,7 +42,7 @@ function get_reaction_supply(room_name: string) {
 				let supplied_rooms = Object.keys(config.mineral_storage_room).filter((e) => config.mineral_storage_room[e].includes(reactant));
 				let terminal_amounts = supplied_rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity(reactant));
 				let argmax = mymath.argmax(terminal_amounts);
-				if (terminal_amounts[argmax] > minimum_amount) {
+				if (terminal_amounts[argmax] > minimum_amount*2) {
 					let supply_room_name = supplied_rooms[argmax];
 					console.log("Sending resource", reactant, "from", supply_room_name, "to", room_name);
 					Game.rooms[supply_room_name].terminal.send(reactant, minimum_amount, room_name);

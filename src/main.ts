@@ -15,10 +15,12 @@ import * as labs from "./labs";
 import * as factory from "./factory";
 import * as powerspawn from "./powerspawn";
 import * as market from "./market";
+import * as terminal from "./terminal";
 import * as main_func from "./main_func";
 import * as final_command from "./final_command";
 import * as output from "./output";
 import * as attack from "./attack";
+import * as powercreeps from "./powercreeps"
 import * as control from "./control";
 Memory.rerunning = true;
 
@@ -43,9 +45,12 @@ module.exports.loop = function() {
 	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
-			if (towers.attack_all(room_name) == 1) {
-				if (towers.heal_all(room_name) == 1) {
-					towers.repair_all(room_name);
+			if (Game.memory[room_name].danger_mode) {
+			} else {
+				if (towers.attack_all(room_name) == 1) {
+					if (towers.heal_all(room_name) == 1) {
+						towers.repair_all(room_name);
+					}
 				}
 			}
 		} catch (err) {
@@ -82,6 +87,18 @@ module.exports.loop = function() {
     }
 
 	cpu_used = Game.cpu.getUsed();
+    for (var name in Game.powerCreeps) {
+		var pc = Game.powerCreeps[name];
+		try {
+			powercreeps.work(pc);
+		} catch (err) {
+			creep.say("Error");
+			console.log("Error", creep.room.name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.pc = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
 			spawning.spawn(room_name);
@@ -94,6 +111,7 @@ module.exports.loop = function() {
 	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
+			terminal.process_resource_sending_request(room_name);
 			labs.prepare(room_name);
 			labs.reaction(room_name);
 			factory.produce(room_name);

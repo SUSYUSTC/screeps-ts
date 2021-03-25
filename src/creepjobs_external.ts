@@ -169,6 +169,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'externalharvester') {
 		creep.say("EH")
 		creep.memory.movable = true;
+		Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name] = creep.name;
 		let conf_external = conf.external_rooms[creep.memory.external_room_name].sources[creep.memory.source_name];
 		if (Game.rooms[creep.memory.home_room_name].memory.external_room_status[creep.memory.external_room_name].defense_type !== '') {
 			creep.drop("energy");
@@ -176,7 +177,6 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (creep.hits < creep.hitsMax) {
-			//external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
 			external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
 			return 0;
 		}
@@ -191,6 +191,22 @@ export function creepjob(creep: Creep): number {
 				creep.moveTo(pos.x, pos.y);
 			}
 			creep.memory.movable = true;
+			if (conf.external_rooms[creep.memory.external_room_name].container) {
+				let site = pos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
+				let container = pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
+				if (site == undefined && container == undefined) {
+					pos.createConstructionSite("container");
+					return 0;
+				}
+				if (site !== undefined && creep.store.getUsedCapacity("energy") >= 25) {
+					creep.build(site);
+					return 0;
+				}
+				if (container !== undefined && container.hitsMax - container.hits > 10000 && creep.store.getUsedCapacity("energy") >= 25) {
+					creep.repair(container);
+					return 0;
+				}
+			}
 			var source = Game.getObjectById(conf_external.id);
 			basic_job.harvest_source(creep, source);
 			if ("transfer_target" in creep.memory) {
@@ -233,17 +249,29 @@ export function creepjob(creep: Creep): number {
 			// Pickup the resources if exists
 			let xy = conf_external.harvester_pos;
 			let pos = creep.room.getPositionAt(xy[0], xy[1]);
-			let resources = pos.lookFor(LOOK_RESOURCES);
-			let tombstones = pos.lookFor(LOOK_TOMBSTONES);
-			if (resources.length > 0 && resources[0].resourceType == "energy" && resources[0].amount >= 20) {
-				if (creep.pickup(resources[0]) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(resources[0], moveoptions);
+			let resource = pos.lookFor(LOOK_RESOURCES)[0];
+			if (resource !== undefined && resource.resourceType == "energy" && resource.amount >= 20) {
+				if (creep.pickup(resource) == ERR_NOT_IN_RANGE) {
+					creep.moveTo(resource, moveoptions);
 				}
 				return 0;
 			}
-			if (tombstones.length > 0 && tombstones[0].store.getUsedCapacity("energy")) {
-				if (creep.withdraw(tombstones[0], "energy") == ERR_NOT_IN_RANGE) {
-					creep.moveTo(tombstones[0], moveoptions);
+			let tombstone = pos.lookFor(LOOK_TOMBSTONES)[0];
+			if (tombstone !== undefined && tombstone.store.getUsedCapacity("energy") > 0) {
+				if (creep.withdraw(tombstone, "energy") == ERR_NOT_IN_RANGE) {
+					creep.moveTo(tombstone, moveoptions);
+				}
+				return 0;
+			}
+			let site = pos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
+			if (site !== undefined) {
+				creep.moveTo(site, {...moveoptions, ...{range: 1}});
+				return 0;
+			}
+			let container = <StructureContainer>pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
+			if (container !== undefined && container.store.getUsedCapacity("energy") > 0) {
+				if (creep.withdraw(container, "energy") == ERR_NOT_IN_RANGE) {
+					creep.moveTo(container, {...moveoptions, ...{range: 1}});
 				}
 				return 0;
 			}
@@ -251,20 +279,24 @@ export function creepjob(creep: Creep): number {
 			if (creep.pos.x == pos.x && creep.pos.y == pos.y) {
 				creep.memory.movable = false;
 			}
-			let harvester_name = game_memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name];
+			let harvester_name = Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name];
 			if (harvester_name == "") {
-				creep.moveTo(pos.x, pos.y, moveoptions);
+				creep.moveTo(pos.x, pos.y, {...moveoptions, ...{range: 1}});
 				return 0;
 			}
 			let withdraw_target = Game.creeps[harvester_name];
+			// harvester died, remove the mark
+			if (withdraw_target == undefined) {
+				Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name] = "";
+			}
 			if (withdraw_target.room.name !== creep.memory.external_room_name) {
-				creep.moveTo(pos.x, pos.y, moveoptions);
+				creep.moveTo(pos.x, pos.y, {...moveoptions, ...{range: 1}});
 				return 0;
 			}
 			// Go to the harvester if any of the creeps is not in its position
 			let ready = (creep.pos.isNearTo(withdraw_target) && withdraw_target.pos.x == pos.x && withdraw_target.pos.y == pos.y);
 			if (!ready) {
-				creep.moveTo(withdraw_target, moveoptions);
+				creep.moveTo(withdraw_target, {...moveoptions, ...{range: 1}});
 				return 0;
 			}
 			withdraw_target.memory.transfer_target = creep.name;
@@ -291,6 +323,20 @@ export function creepjob(creep: Creep): number {
 			} else {
 				creep.reserveController(creep.room.controller);
 			}
+		}
+		return 0;
+	} else if (creep.memory.role == 'claimer') {
+		creep.say("claim");
+		creep.memory.movable = true;
+		let conf_external = conf.external_rooms[creep.memory.external_room_name].controller;
+		if (creep.room.name !== creep.memory.external_room_name) {
+			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
+		} else {
+			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
+				creep.moveTo(creep.room.controller, moveoptions);
+				return 0;
+			}
+			creep.claimController(creep.room.controller);
 		}
 		return 0;
 	}

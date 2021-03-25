@@ -84,7 +84,7 @@ const getbody_wall_repairer = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {
-    return returnbody(5, options.with_carry, 1);
+    return returnbody(options.with_harvest, options.with_carry, options.with_move);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
     return returnbody(20, 0, 5);
@@ -162,6 +162,13 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
     };
     return fullreturnbody(bodyinfo);
 }
+const getbody_claimer = (options: any): BodyPartConstant[] => {
+    let bodyinfo: type_body_components = {
+        "claim": 1,
+        "move": 1,
+    };
+    return fullreturnbody(bodyinfo);
+}
 const getbody_transferer = (options: any): BodyPartConstant[] => {
     let n_work = 0;
     let n_carry = options.max_parts;
@@ -184,6 +191,7 @@ const getbody_list: type_getbody = {
     'transferer': getbody_transferer,
     'wall_repairer': getbody_wall_repairer,
     'reserver': getbody_reserver,
+    'claimer': getbody_claimer,
     'externalharvester': getbody_externalharvester,
     'externalcarrier': getbody_externalcarrier,
     'help_harvester': getbody_help_harvester,

@@ -41,7 +41,12 @@ export function update_named_structures(room_name: string, structuretype: type_n
 				memory_conf[structure_name].exists = false;
 				memory_conf[structure_name].finished = false;
 				if (create_site) {
-					let return_value = pos.createConstructionSite(structuretype);
+					let return_value;
+					if (structuretype == 'spawn') {
+						return_value = pos.createConstructionSite(structuretype, structure_name);
+					} else {
+						return_value = pos.createConstructionSite(structuretype);
+					}
 					if (return_value == 0) {
 						output = 2;
 						memory_conf[structure_name].exists = true;
