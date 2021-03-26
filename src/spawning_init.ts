@@ -20,6 +20,7 @@ export function spawn_init(room_name: string, source_name: string, max_creeps: n
 					role: 'init',
 					cost: 200,
 					movable: false,
+					crossable: false,
 				}
 			});
 			console.log(spawn.name, "create init creep:" + output);
@@ -38,6 +39,7 @@ export function spawn_init(room_name: string, source_name: string, max_creeps: n
 								role: 'init',
 								cost: amount,
 								movable: false,
+								crossable: false,
 							}
 						});
 					}

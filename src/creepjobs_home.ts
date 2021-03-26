@@ -27,6 +27,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'harvester') {
 		creep.say("H")
 		creep.memory.movable = false;
+		creep.memory.crossable = false;
 		let source_name = creep.memory.source_name;
 		let source_id = conf.sources[source_name];
 		let source = Game.getObjectById(source_id);
@@ -86,6 +87,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'carrier') {
 		creep.say("C")
 		creep.memory.movable = true;
+		creep.memory.crossable = true;
 		let source_name = creep.memory.source_name;
 		let container_source;
 		if (creep.memory.source_name == 'storage') {
@@ -120,6 +122,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'mineharvester') {
 		creep.say("M")
 		creep.memory.movable = false;
+		creep.memory.crossable = false;
 		if (!game_memory.mine_status.harvestable) {
 			return 0;
 		}
@@ -139,6 +142,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'upgrader') {
 		creep.say("U")
 		creep.memory.movable = false;
+		creep.memory.crossable = false;
 		if (creep.room.terminal !== undefined && (creep.room.controller.level < 8 || config.boost_rcl8[creep.room.name]) && config.upgrader_boost_request !== undefined) {
 			let boost_result = basic_job.boost_request(creep, {
 				"work": config.upgrader_boost_request
@@ -187,6 +191,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'builder') {
 		creep.say("B")
 		creep.memory.movable = false;
+		creep.memory.crossable = true;
 		let link_mode = link_modes.includes('CT');
 		if (creep.store["energy"] == 0) {
 			if (creep.ticksToLive >= 50) {
@@ -225,6 +230,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'transferer') {
 		creep.say("T")
 		creep.memory.movable = true;
+		creep.memory.crossable = true;
 		let min_fill_energy;
 		if (creep.room.controller.level >=7) {
 			min_fill_energy = 100;
@@ -282,6 +288,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'specialcarrier') {
 		creep.say("SC")
 		creep.memory.movable = true;
+		creep.memory.crossable = true;
 		let mineral_type = game_memory.mine_status.type;
 		if (game_memory.mine_status.harvestable) {
 			let container = Game.getObjectById(containers_status.MINE.id);
@@ -309,6 +316,7 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'wall_repairer') {
 		creep.say("WR");
 		creep.memory.movable = false;
+		creep.memory.crossable = true;
 		if (creep.room.terminal !== undefined) {
 			let boost_result = basic_job.boost_request(creep, {
 				"work": "LH2O",

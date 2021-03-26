@@ -87,6 +87,7 @@ interface CreepMemory {
     external_room_name ? : string;
     transfer_target ? : string;
     movable: boolean;
+	crossable: boolean;
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
@@ -104,6 +105,7 @@ interface CreepMemory {
 }
 interface PowerCreepMemory {
     movable: boolean;
+	crossable: boolean;
     stored_path ? : type_stored_path;
 	previous_room: string;
 	n_finished: number;

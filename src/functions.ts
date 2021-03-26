@@ -125,8 +125,8 @@ export function get_costmatrix_road(room_name: string) {
             let room = Game.rooms[room_name];
             let mycreeps = room.find(FIND_MY_CREEPS);
 			let mypcs = room.find(FIND_MY_POWER_CREEPS);
-            mycreeps.filter((e) => !e.memory.movable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            mypcs.filter((e) => !e.memory.movable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            mycreeps.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            mypcs.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             let hostilecreeps = room.find(FIND_HOSTILE_CREEPS);
             hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             Game.costmatrices[room_name] = costmatrix.clone();

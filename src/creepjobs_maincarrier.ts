@@ -374,6 +374,7 @@ export function creepjob(creep: Creep): number {
     if (creep.memory.role == 'maincarrier') {
         creep.say("MC");
         creep.memory.movable = false;
+        creep.memory.crossable = false;
         if (creep.ticksToLive < 6 && creep.store.getUsedCapacity() == 0) {
             creep.suicide();
             return 0;

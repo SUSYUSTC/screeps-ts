@@ -6,6 +6,7 @@ export function work(pc: PowerCreep) {
 		return;
 	}
 	pc.memory.movable = false;
+	pc.memory.crossable = true;
 	if (pc.usePower(PWR_GENERATE_OPS) == 0) {
 		return;
 	}
