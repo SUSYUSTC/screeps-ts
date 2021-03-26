@@ -1,5 +1,6 @@
 import * as mymath from "./mymath";
 import * as functions from "./functions"
+import * as basic_job from "./basic_job"
 
 interface type_allowed_body_numbers {
     [key: string]: number[][];
@@ -185,3 +186,143 @@ export function defend(creep: Creep) {
     creep.rangedAttack(target);
 }
 
+interface type_tough_conf {
+    level: number;
+    hits: number;
+}
+
+function get_tough_conf(creep: Creep): type_tough_conf {
+    let toughs = creep.body.filter((e) => e.type == TOUGH && e.hits > 0);
+    let tough_boosts = toughs.map((e) => e.boost);
+    let tough_conf: type_tough_conf = {
+        "level": 0,
+        "hits": mymath.array_sum(toughs.map((e) => e.hits)),
+    }
+    if (tough_boosts.includes("XGHO2")) {
+        tough_conf.level = 3;
+    } else if (tough_boosts.includes("GHO2")) {
+        tough_conf.level = 2;
+    } else if (tough_boosts.includes("GO")) {
+        tough_conf.level = 1;
+    }
+    return tough_conf;
+}
+
+function get_number_active(creep: Creep, part: BodyPartConstant) {
+	return creep.body.filter((e) => e.type == part && e.hits > 0).length;
+}
+export function defend_home(room_name: string) {
+    var room = Game.rooms[room_name]
+    var game_memory = Game.memory[room_name];
+    var enemies = room.find(FIND_HOSTILE_CREEPS);
+    if (enemies.length == 0) {
+        return;
+    }
+    let creep_abilities = enemies.map((creep) => get_creep_invading_ability(creep));
+    let tough_confs = enemies.map((creep) => get_tough_conf(creep));
+    let heal_abilities = creep_abilities.map((e) => e.heal);
+    let distance_matrix = [];
+    for (let i = 0; i < enemies.length; i++) {
+        let distance_array = [];
+        for (let j = 0; j < enemies.length; j++) {
+            distance_array.push(enemies[i].pos.getRangeTo(enemies[j].pos))
+        }
+        distance_matrix.push(distance_array);
+    }
+    let max_healed_amount = [];
+    for (let i = 0; i < enemies.length; i++) {
+        let amount = 0;
+        for (let j = 0; j < enemies.length; j++) {
+            if (distance_matrix[i][j] <= 3) {
+                amount += heal_abilities[j] * 12;
+            }
+        }
+        max_healed_amount.push(amount);
+    }
+	let defenders = room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'home_defender');
+	let boosted_defenders = defenders.filter((creep) => basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}) == 0);
+	let n_active = boosted_defenders.map((creep) => get_number_active(creep, "attack"));
+    let towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
+    let damages = [];
+    for (let i = 0; i < enemies.length; i++) {
+        let amount = 0;
+        for (let j = 0; j < towers.length; j++) {
+            let dis = towers[j].pos.getRangeTo(enemies[i]);
+            if (dis < 5) {
+                amount += 600;
+            } else if (dis > 20) {
+                amount += 150;
+            } else {
+                amount += 3000 / dis;
+            }
+        }
+		for (let j = 0; j < boosted_defenders.length; j++) {
+			if (boosted_defenders[j].pos.getRangeTo(enemies[i]) <= 1) {
+				amount += n_active[j]*90;
+			}
+		}
+        damages.push(amount);
+    }
+    let pure_damages = [];
+    for (let i = 0; i < enemies.length; i++) {
+        let amount = max_healed_amount[i];
+        let tough_conf = tough_confs[i];
+        let ratio;
+        if (tough_conf.level == 3) {
+            ratio = 0.3;
+        } else if (tough_conf.level == 2) {
+            ratio = 0.5;
+        } else if (tough_conf.level == 1) {
+            ratio = 0.7;
+        } else {
+            ratio = 1.0;
+        }
+        if (damages[i] - tough_conf.hits / ratio > max_healed_amount[i]) {
+            pure_damages.push(damages[i] - max_healed_amount[i]);
+        } else if (damages[i] - tough_conf.hits / ratio > 0) {
+            let additional_amount = damages[i] - tough_conf.hits / ratio;
+            pure_damages.push((tough_conf.hits - max_healed_amount[i] + additional_amount) / ratio);
+        } else if (damages[i] - tough_conf.hits / ratio <= 0) {
+            pure_damages.push(0);
+        }
+    }
+	let priorities = [];
+    for (let i = 0; i < enemies.length; i++) {
+		if (pure_damages[i] > 0) {
+			priorities.push(pure_damages[i]+enemies[i].hitsMax-enemies[i].hits);
+		} else {
+			priorities.push(0);
+		}
+	}
+	let argmax = mymath.argmax(priorities);
+	if (priorities[argmax] > 0) {
+		for (let tower of towers) {
+			tower.attack(enemies[argmax]);
+		}
+		for (let defender of boosted_defenders) {
+			if (defender.pos.getRangeTo(enemies[argmax]) <= 1) {
+				defender.attack(enemies[argmax]);
+			} else {
+				let xmin = Math.max(defender.pos.x - 1, 0);
+				let xmax = Math.min(defender.pos.x + 1, 49);
+				let ymin = Math.max(defender.pos.y - 1, 0);
+				let ymax = Math.min(defender.pos.y + 1, 49);
+				let enemy_in_range = enemies.filter((e) => defender.pos.getRangeTo(e) <= 1)[0];
+				if (enemy_in_range !== undefined) {
+					defender.attack(enemy_in_range);
+				}
+			}
+		}
+	} else {
+		for (let defender of boosted_defenders) {
+			let xmin = Math.max(defender.pos.x - 1, 0);
+			let xmax = Math.min(defender.pos.x + 1, 49);
+			let ymin = Math.max(defender.pos.y - 1, 0);
+			let ymax = Math.min(defender.pos.y + 1, 49);
+			let enemy_in_range = defender.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my)[0];
+			if (enemy_in_range !== undefined) {
+				defender.attack(enemy_in_range);
+			}
+		}
+	}
+}

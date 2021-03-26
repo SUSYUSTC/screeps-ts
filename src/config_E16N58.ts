@@ -401,8 +401,7 @@ export var conf_E16N58: type_conf_room =
                     "id": <Id<Source>>"5bbcade89099fc012e6381d0",
                     "harvester_pos": [4, 21],
                     "single_distance": 19,
-                    "n_carry": 6,
-                    "n_carrier": 2,
+                    "n_carry_tot": 11,
                     "carry_end": {
                         "type": "storage",
                         "name": ""

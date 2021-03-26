@@ -189,8 +189,7 @@ interface conf_external_rooms {
                 id: Id < Source > ;
                 harvester_pos: number[];
                 single_distance: number;
-                n_carry: number;
-                n_carrier: number;
+                n_carry_tot: number;
                 carry_end: {
                     "type": string;
                     "name": string;

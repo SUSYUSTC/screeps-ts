@@ -145,9 +145,6 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 		creep.moveTo(target, {maxRooms: 1, reusePath: 0, costCallback: avoid_boundary});
-		let distances_hostile = hostile_creeps.map((hc) => creep.pos.getRangeTo(hc));
-		let argmin_hostile = mymath.argmin(distances_hostile);
-		creep.attack(hostile_creeps[argmin_hostile]);
 	}
 	return 1;
 }

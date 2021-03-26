@@ -142,8 +142,8 @@ export var wall_rates: type_wall_rates = {
     "E19N53": 0,
     "E15N58": 0,
     "E16N58": 0,
-    "E21N49": 1,
-    "E19N55": 0,
+    "E21N49": 0,
+    "E19N55": 1,
     "E14N59": 0,
 }
 export var reaction_products: MineralCompoundConstant[] = ['XGH2O'];

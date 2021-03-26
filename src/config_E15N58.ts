@@ -440,8 +440,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadc79099fc012e637d6a",
                     "harvester_pos": [32, 12],
                     "single_distance": 44,
-                    "n_carry": 11,
-                    "n_carrier": 2,
+                    "n_carry_tot": 22,
                     "carry_end": {
                         "type": "storage",
                         "name": ""
@@ -455,8 +454,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadc79099fc012e637d6c",
                     "harvester_pos": [17, 23],
                     "single_distance": 36,
-                    "n_carry": 10,
-                    "n_carrier": 2,
+                    "n_carry_tot": 19,
                     "carry_end": {
                         "type": "storage",
                         "name": ""
@@ -484,8 +482,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadb89099fc012e637b18",
                     "harvester_pos": [12, 34],
                     "single_distance": 74,
-                    "n_carry": 17,
-                    "n_carrier": 2,
+                    "n_carry_tot": 34,
                     "carry_end": {
                         "type": "storage",
                         "name": ""
@@ -499,8 +496,7 @@ export var conf_E15N58: type_conf_room =
                     "id": <Id<Source>>"5bbcadb89099fc012e637b19",
                     "harvester_pos": [34, 43],
                     "single_distance": 75,
-                    "n_carry": 17,
-                    "n_carrier": 2,
+                    "n_carry_tot": 34,
                     "carry_end": {
                         "type": "storage",
                         "name": ""
