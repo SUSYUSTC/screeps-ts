@@ -54,7 +54,7 @@ export function creepjob(creep: Creep): number {
 			if (output == 0) {
 				return 0;
 			} else if (output == 1) {
-				creep.moveTo(pos.x, pos.y);
+				basic_job.movetopos(creep, pos, 1);
 				return 0;
 			}
 		}

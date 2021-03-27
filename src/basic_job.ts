@@ -28,8 +28,7 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 	}
     out: if (creep.memory.stored_path !== undefined && creep.memory.stored_path.time_left > 0) {
         let target = creep.memory.stored_path.target;
-        let target_pos = creep.room.getPositionAt(target[0], target[1]);
-        if (pos.isEqualTo(target_pos)) {
+        if (pos.isEqualTo(target[0], target[1])) {
             let path = creep.memory.stored_path.path;
             if (path.length == 0) {
                 regenerate_path = true;
@@ -44,43 +43,27 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
             }
             let arg_pos;
             let i = 0;
-            for (let ele of path) {
-                if (creep.pos.x == ele[0] && creep.pos.y == ele[1]) {
-                    let next_xy = path[i + 1];
-                    if (next_xy == undefined) {
-                        regenerate_path = true;
-                        //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                        break out;
-                    }
-					if (costmatrix == null) {
-						costmatrix = functions.get_costmatrix_road(creep.room.name);
-					}
-                    if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
-                        regenerate_path = false;
-                        break out;
-                    }
-                }
-                i += 1;
-            }
-            if (regenerate_path) {
-                let next_xy = path[0];
-                if (creep.pos.getRangeTo(next_xy[0], next_xy[1]) <= 1) {
-					if (costmatrix == null) {
-						costmatrix = functions.get_costmatrix_road(creep.room.name);
-					}
-                    if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
-                        regenerate_path = false;
-                        break out;
-                    }
-                } else {
-                    regenerate_path = true;
-                    //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                    break out;
-                }
-            }
-            regenerate_path = true;
-            //console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
-            break out;
+			if (creep.pos.isEqualTo(path[0][0], path[0][1])) {
+				creep.memory.stored_path.path = creep.memory.stored_path.path.slice(1);
+				path = creep.memory.stored_path.path;
+			}
+			if (!creep.pos.isNearTo(path[0][0], path[0][1])) {
+				regenerate_path = true;
+				//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+				break out;
+			}
+			let next_xy = path[0];
+			if (costmatrix == null) {
+				costmatrix = functions.get_costmatrix_road(creep.room.name);
+			}
+			if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
+				regenerate_path = false;
+				break out;
+			} else {
+				regenerate_path = true;
+				//console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
+				break out;
+			}
         } else {
             regenerate_path = true;
             //console.log(creep.room.name, creep.memory.role, "Regenerating path because target changed");
@@ -116,9 +99,18 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
     } else {
         creep.memory.stored_path.time_left -= 1;
     }
-    if (creep.moveByPath(creep.memory.stored_path.path.map(function(e) {
-            return creep.room.getPositionAt(e[0], e[1]);
-        })) == ERR_NOT_FOUND) {
+	let path_pos = creep.memory.stored_path.path.slice(0, 1).map((e) => creep.room.getPositionAt(e[0], e[1]));
+	if (path_pos.length > 0) {
+		let potential_creep = path_pos[0].lookFor("creep")[0]
+		if (potential_creep !== undefined && !potential_creep.memory.movable && potential_creep.memory.crossable) {
+			potential_creep.moveByPath([creep.pos]);
+		}
+		let potential_pc = path_pos[0].lookFor("powerCreep")[0]
+		if (potential_pc !== undefined && !potential_pc.memory.movable && potential_pc.memory.crossable) {
+			potential_pc.moveByPath([creep.pos]);
+		}
+	}
+    if (creep.moveByPath(path_pos) == ERR_NOT_FOUND) {
         console.log("Creep moving outside path!");
         //console.log(JSON.stringify(creep.pos), creep.memory.stored_path.path);
         creep.memory.stored_path.time_left = 0;

@@ -461,7 +461,7 @@ export function spawn(room_name: string) {
         let reserve = conf_external.reserve;
         let reservers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'reserver', conf_external.path_time) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room.name);
         let n_needed_reservers = 1;
-        if (reserve) {
+		if (reserve && !config.preclaiming_rooms.includes(external_room_name)) {
             if (external_room_name in Game.rooms) {
 				if (Game.rooms[external_room_name].controller.my) {
 					n_needed_reservers = 0;
