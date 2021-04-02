@@ -152,13 +152,13 @@ export var conf_E14N59: type_conf_room =
             [23, 36]
         ],
         "7": [
-            [25, 24]
+            [25, 24],
+            [25, 36]
         ],
         "8": [
             [14, 29],
             [15, 28],
-            [13, 28],
-            [25, 36]
+            [13, 28]
         ]
     },
     "spawns": {
@@ -291,7 +291,7 @@ export var conf_E14N59: type_conf_room =
     },
     "factory": {
         "pos": [25, 35],
-        "RCL": 8
+        "RCL": 7
     },
     "observer": {
         "pos": [21, 36],

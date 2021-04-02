@@ -45,12 +45,9 @@ module.exports.loop = function() {
 	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
-			if (Game.memory[room_name].danger_mode) {
-			} else {
-				if (towers.attack_all(room_name) == 1) {
-					if (towers.heal_all(room_name) == 1) {
-						towers.repair_all(room_name);
-					}
+			if (towers.attack_all(room_name) == 1) {
+				if (towers.heal_all(room_name) == 1) {
+					towers.repair_all(room_name);
 				}
 			}
 		} catch (err) {
@@ -109,10 +106,11 @@ module.exports.loop = function() {
 	Game.tick_cpu_main.spawning = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
+	terminal.terminal_balance();
+	labs.prepare();
     for (var room_name of config.controlled_rooms) {
 		try {
 			terminal.process_resource_sending_request(room_name);
-			labs.prepare(room_name);
 			labs.reaction(room_name);
 			factory.produce(room_name);
 			powerspawn.process(room_name);
@@ -124,6 +122,7 @@ module.exports.loop = function() {
 
 	cpu_used = Game.cpu.getUsed();
 	market.clear_used();
+	market.regulate_all_order_prices();
     for (var room_name of config.controlled_rooms) {
 		try {
 			market.process_buy_order(room_name);

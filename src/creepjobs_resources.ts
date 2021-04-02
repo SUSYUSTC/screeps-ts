@@ -32,12 +32,14 @@ export function creepjob(creep: Creep): number {
 		let target_room = rooms_path[rooms_path.length-1];
 		if (creep.room.name !== target_room) {
 			external_room.movethroughrooms(creep, rooms_path, poses_path);
+			return 0;
 		} else {
 			let pb_xy = pb_status.xy;
 			let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
 			let pb = <StructurePowerBank>(pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
 			if (pb == undefined) {
 				creep.suicide();
+				return 0;
 			}
 			if (creep.pos.getRangeTo(pb) > 1) {
 				creep.moveTo(pb, {range: 1, maxRooms: 1, costCallback: functions.avoid_exits});
@@ -48,11 +50,13 @@ export function creepjob(creep: Creep): number {
 				}
 				if (creep.pos.getRangeTo(healer) == 1 && creep.hits == creep.hitsMax) {
 					if (pb.hits > 1800) {
+						creep.memory.ready = true;
 						creep.attack(pb);
 					} else if (creep.ticksToLive < 5 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
 						creep.attack(pb);
 					}
 				}
+				return 0;
 			}
 		}
 		return 0;
@@ -76,6 +80,7 @@ export function creepjob(creep: Creep): number {
 		let target_room = rooms_path[rooms_path.length-1];
 		if (creep.room.name !== target_room) {
 			external_room.movethroughrooms(creep, rooms_path, poses_path);
+			return 0;
 		} else {
 			let pb_xy = pb_status.xy;
 			let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
@@ -91,11 +96,15 @@ export function creepjob(creep: Creep): number {
 				}
 				if (creep.pos.getRangeTo(attacker) > 1) {
 					creep.moveTo(attacker, {range: 1, maxRooms: 1});
+					return 0;
 				} else {
+					creep.memory.ready = true;
 					creep.heal(attacker);
+					return 0;
 				}
 			} else {
 				creep.moveTo(pb, {range: 1, maxRooms: 1});
+				return 0;
 			}
 		}
 		return 0;
@@ -105,13 +114,13 @@ export function creepjob(creep: Creep): number {
 		let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
 		let rooms_path = pb_status.rooms_path;
 		let poses_path = pb_status.poses_path;
-		let rooms_path_reverse = _.clone(rooms_path);
-		let poses_path_reverse = _.clone(poses_path);
-		rooms_path_reverse.reverse();
-		poses_path_reverse.reverse();
 		let target_room = rooms_path[rooms_path.length-1];
 		if (creep.store.getUsedCapacity("power") > 0) {
 			if (creep.room.name !== creep.memory.home_room_name) {
+				let rooms_path_reverse = _.clone(rooms_path);
+				let poses_path_reverse = _.clone(poses_path);
+				rooms_path_reverse.reverse();
+				poses_path_reverse.reverse();
 				external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse);
 			} else {
 				if (creep.pos.getRangeTo(creep.room.terminal) > 1) {

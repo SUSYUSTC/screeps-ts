@@ -387,34 +387,33 @@ function detect_resources(room_name: string) {
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
 			if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
                 if (room.memory.external_resources.pb[external_room_name] == undefined) {
-					let external_terminal_store = Game.rooms[config.external_resources_compounds_storage_room].terminal.store;
 					let requested_resources: {[key in ResourceConstant] ?: number} = {};
-					for (let part in config.pb_attacker_body) {
-						let boost_mineral = config.pb_attacker_body[<BodyPartConstant> part].boost;
+					for (let part of <Array<BodyPartConstant>>Object.keys(config.pb_attacker_body)) {
+						let boost_mineral = config.pb_attacker_body[part].boost;
 						if (boost_mineral !== undefined) {
-							requested_resources[boost_mineral] = config.pb_attacker_body[<BodyPartConstant> part].number;
+							if (requested_resources[boost_mineral] == undefined) {
+								requested_resources[boost_mineral] = 0;
+							}
+							requested_resources[boost_mineral] += config.pb_attacker_body[part].number;
 						}
 					}
-					for (let part in config.pb_healer_body) {
-						let boost_mineral = config.pb_healer_body[<BodyPartConstant> part].boost;
+					for (let part of <Array<BodyPartConstant>>Object.keys(config.pb_healer_body)) {
+						let boost_mineral = config.pb_healer_body[part].boost;
 						if (boost_mineral !== undefined) {
-							requested_resources[boost_mineral] = config.pb_healer_body[<BodyPartConstant> part].number;
+							if (requested_resources[boost_mineral] == undefined) {
+								requested_resources[boost_mineral] = 0;
+							}
+							requested_resources[boost_mineral] += config.pb_healer_body[part].number;
 						}
 					}
 					let ok=true;
-					for (let mineral in requested_resources) {
-						if (external_terminal_store.getUsedCapacity(<ResourceConstant> mineral) < requested_resources[<ResourceConstant> mineral]) {
+					for (let mineral of <Array<ResourceConstant>>Object.keys(requested_resources)) {
+						if (room.terminal.store.getUsedCapacity(mineral) < requested_resources[mineral]) {
 							ok=false;
 						}
 					}
 					if (!ok) {
 						continue;
-					}
-					if (room_name !== config.external_resources_compounds_storage_room) {
-						for (let mineral in requested_resources) {
-							let num = requested_resources[<ResourceConstant> mineral];
-							global.request_resource_sending(config.external_resources_compounds_storage_room, room_name, <ResourceConstant> mineral, num*30);
-						}
 					}
                     let path = PathFinder.search(Game.getObjectById(room.memory.spawn_list[0]).pos, {
                         "pos": pb.pos,
@@ -423,23 +422,24 @@ function detect_resources(room_name: string) {
                         maxOps: 6000,
 						roomCallback: functions.restrict_passing_rooms,
                     })
+					if (path.incomplete) {
+						continue;
+					}
+					let name = "pb_"+Game.time.toString();
                     let rooms_path: string[] = [room_name];
                     let poses_path: number[] = [];
-                    let status = 3;
-                    if (!path.incomplete) {
-                        status = 0;
-                        for (let pos of path.path) {
-                            if (pos.roomName != rooms_path[rooms_path.length - 1]) {
-                                rooms_path.push(pos.roomName);
-                                if (pos.x == 0 || pos.x == 49) {
-                                    poses_path.push(pos.y);
-                                }
-                                if (pos.y == 0 || pos.y == 49) {
-                                    poses_path.push(pos.x);
-                                }
-                            }
-                        }
-                    }
+                    let status = 0;
+					for (let pos of path.path) {
+						if (pos.roomName != rooms_path[rooms_path.length - 1]) {
+							rooms_path.push(pos.roomName);
+							if (pos.x == 0 || pos.x == 49) {
+								poses_path.push(pos.y);
+							}
+							if (pos.y == 0 || pos.y == 49) {
+								poses_path.push(pos.x);
+							}
+						}
+					}
 					let n_moves = Math.ceil(pb.power / 100);
 					let pb_carrier_names: string[] = [];
 					let pb_carrier_sizes: number[] = [];
@@ -458,6 +458,7 @@ function detect_resources(room_name: string) {
 						pb_carrier_names.push(pb_carrier_name);
 					}
                     room.memory.external_resources.pb[external_room_name] = {
+						"name": name,
                         "xy": [pb.pos.x, pb.pos.y],
                         "id": pb.id,
                         "status": status,
@@ -604,6 +605,9 @@ export function set_global_memory() {
     }
     let cpu_used = Game.cpu.getUsed();
 
+	if (Memory.product_request == undefined) {
+		Memory.product_request = {};
+	}
 	for (let room_name of config.controlled_rooms) {
 		Game.memory[room_name] = {};
 	}

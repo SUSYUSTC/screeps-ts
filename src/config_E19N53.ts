@@ -330,7 +330,7 @@ export var conf_E19N53: type_conf_room =
     },
     "factory": {
         "pos": [25, 10],
-        "RCL": 8
+        "RCL": 7
     },
     "observer": {
         "pos": [12, 17],

@@ -143,7 +143,8 @@ export var conf_E14N51: type_conf_room =
             [35, 32],
             [36, 32],
             [37, 32],
-            [33, 32]
+            [33, 32],
+            [16, 31]
         ],
         "2": [
             [20, 35],
@@ -322,7 +323,7 @@ export var conf_E14N51: type_conf_room =
     },
     "factory": {
         "pos": [16, 28],
-        "RCL": 8
+        "RCL": 7
     },
     "observer": {
         "pos": [11, 34],

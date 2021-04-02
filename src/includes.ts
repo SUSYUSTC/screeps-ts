@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier"
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -53,6 +53,11 @@ interface RoomMemory {
     tower_list ? : Id < StructureTower > [];
     spawn_list ? : Id < StructureSpawn > [];
 	resource_sending_request ?: type_resource_sending_request[];
+	kept_resources ?: {
+		[key: string] : {
+			[key in ResourceConstant] ?: number;
+		}
+	}
 	external_harvester ? : {
 		[key: string]: {
 			[key: string]: string;
@@ -204,7 +209,8 @@ interface conf_external_rooms {
         }
     }
 }
-interface type_resource_status {
+interface type_pb_status {
+	name: string;
     id: Id < StructurePowerBank > ;
     xy: number[];
     status: number;
@@ -219,9 +225,23 @@ interface type_resource_status {
 	pb_carrier_sizes: number[];
     amount: number;
 }
+interface type_depo_status {
+	time: number;
+    id: Id < Deposit > ;
+    xy: number[];
+    status: number;
+    time_last: number;
+    rooms_path: string[];
+    poses_path: number[];
+    distance: number;
+    path_found: boolean;
+	pb_carrier_name: string[];
+	pb_harvester_name: string[];
+    amount: number;
+}
 interface type_external_resources {
     pb: {
-        [key: string]: type_resource_status;
+        [key: string]: type_pb_status;
     }
 }
 interface type_conf_hunting {
@@ -293,6 +313,7 @@ interface Memory {
     rerunning ? : boolean;
     history_cpus ? : number[];
 	pb_cooldown_time ?: number;
+	product_request: type_product_request;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -333,11 +354,6 @@ type type_help_list = {
     }
 }
 type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
-type type_reaction_priority = {
-    [key: string]: {
-        [key in MineralCompoundConstant] ? : number;
-    }
-}
 type type_mineral_storage_room = {
     [key in string]: GeneralMineralConstant[];
 }
@@ -346,16 +362,6 @@ type type_mineral_storage_amount = {
         [key in GeneralMineralConstant] ? : number;
     }
 }
-type type_mineral_level = {
-    [key in GeneralMineralConstant]: number;
-}
-type type_mineral_minimum_amount = {
-    [key in GeneralMineralConstant]: number;
-}
-type type_allowed_reactions = {
-    [key in MineralCompoundConstant]: [GeneralMineralConstant, GeneralMineralConstant];
-}
-
 type type_reaction_request = {
     reactant1: GeneralMineralConstant;
     reactant2: GeneralMineralConstant;
@@ -368,7 +374,6 @@ type type_current_boost_request = {
 }
 
 type type_boost_status = {
-    boost_found: boolean;
     boosting: boolean;
     boost_finished: boolean;
 }
@@ -430,7 +435,14 @@ type GeneralStore = Store < ResourceConstant, boolean > ;
 type type_resource_number = {
     [key in ResourceConstant] ? : number
 };
-
+type type_reaction_priority = {
+    [key: string]: {
+        [key in MineralCompoundConstant] ? : number;
+    }
+}
+type type_product_request = {
+	[key in GeneralMineralConstant] ? : number;
+}
 declare module NodeJS {
     interface Global {
         basic_costmatrices: {
@@ -448,5 +460,10 @@ declare module NodeJS {
         do_dismantler_group_x2(suffix: string, flagname: string): number;
 		request_resource_sending(room_from: string, room_to: string, resource: ResourceConstant, amount: number): number;
 		restrict_passing_rooms(room_name: string): CostMatrix;
+		reaction_priority: type_reaction_priority
+		set_product_request(resource: MineralCompoundConstant, number: number): number;
+		init_product_request(): number;
+		refresh_product_request(): number;
+		regulate_order_price(id: Id<Order>): number;
     }
 }

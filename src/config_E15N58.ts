@@ -349,7 +349,7 @@ export var conf_E15N58: type_conf_room =
     },
     "factory": {
         "pos": [44, 3],
-        "RCL": 8
+        "RCL": 7
     },
     "observer": {
         "pos": [48, 2],

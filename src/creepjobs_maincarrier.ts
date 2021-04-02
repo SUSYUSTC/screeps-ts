@@ -31,13 +31,24 @@ function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
 	}
 	if (!arrived) {
 		if (occupied) {
-			basic_job.movetopos(creep, creep.room.getPositionAt(conf_maincarrier.waiting_pos[0], conf_maincarrier.waiting_pos[1]), 0);
+			let waiting_pos = creep.room.getPositionAt(conf_maincarrier.waiting_pos[0], conf_maincarrier.waiting_pos[1]);
+			if (creep.pos.isEqualTo(waiting_pos)) {
+				creep.memory.movable = false;
+				creep.memory.crossable = true;
+				return 0;
+			} else {
+				basic_job.movetopos(creep, waiting_pos, 0);
+				creep.memory.movable = true;
+				creep.memory.crossable = true;
+			}
 		} else {
 			let costmatrix = functions.get_costmatrix_road(creep.room.name).clone()
 			for(let xy of conf_maincarrier.working_zone) {
 				costmatrix.set(xy[0], xy[1], 1);
 			}
 			basic_job.movetopos(creep, main_pos, 0, costmatrix);
+			creep.memory.movable = true;
+			creep.memory.crossable = true;
 		}
 		return 0;
 	}

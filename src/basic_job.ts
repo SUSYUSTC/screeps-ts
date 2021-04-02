@@ -47,6 +47,11 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 				creep.memory.stored_path.path = creep.memory.stored_path.path.slice(1);
 				path = creep.memory.stored_path.path;
 			}
+            if (path.length == 0) {
+                regenerate_path = true;
+                //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
+                break out;
+            }
 			if (!creep.pos.isNearTo(path[0][0], path[0][1])) {
 				regenerate_path = true;
 				//console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
@@ -316,7 +321,6 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
     // return 0 for boost finished, 1 for still requiring boost, 2 for energy not enough, 3 for compound not enough
     if (creep.memory.boost_status == undefined) {
         creep.memory.boost_status = {
-            boost_found: true,
             boosting: false,
             boost_finished: false,
         }
@@ -328,6 +332,9 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
         let labs_status = creep.room.memory.named_structures_status.lab;
         let lab_id = labs_status.B1.id;
         let lab = Game.getObjectById(lab_id);
+		if (creep.pos.getRangeTo(lab) > 1) { 
+			movetopos(creep, lab.pos, 1);
+		}
         for (let temp_bodypart in request) {
             let bodypart = < BodyPartConstant > temp_bodypart;
             let n_not_boosted = number_of_specific_bodypart_not_boosted(creep, bodypart, request[bodypart])
@@ -352,7 +359,7 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
         creep.memory.boost_status.boosting = false;
         creep.memory.boost_status.boost_finished = true;
         return 0;
-    } else if (creep.memory.boost_status.boost_found) {
+	} else {
         //check if boost still available
         let n_total_parts = 0;
         for (let temp_bodypart in request) {
@@ -360,14 +367,12 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             let n_parts = creep.body.filter((e) => e.type == bodypart).length;
             if (creep.room.terminal.store.getUsedCapacity(request[bodypart]) < n_parts * 30) {
                 // compound not enough
-                creep.memory.boost_status.boost_found = false;
                 return 3;
             }
             n_total_parts += n_parts;
         }
         if (creep.room.terminal.store.getUsedCapacity("energy") < n_total_parts * 20) {
             // energy not enough
-            creep.memory.boost_status.boost_found = false;
             return 2;
         } else {
             let labs_status = creep.room.memory.named_structures_status.lab;
@@ -385,8 +390,6 @@ export function boost_request(creep: Creep, request: type_creep_boost_request): 
             }
             return 1;
         }
-    } else {
-        return 2;
     }
 }
 
@@ -399,14 +402,34 @@ export function repair_container(creep: Creep) {
     return 1;
 }
 export function ask_for_renew(creep: Creep) {
-    var metric = config.distance_metric;
-    var spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
-    var distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
-    var argmin = mymath.argmin(distances);
-    var closest_spawn = spawns[argmin];
+    let metric = config.distance_metric;
+    let spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
+    let distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
+    let argmin = mymath.argmin(distances);
+    let closest_spawn = spawns[argmin];
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
         creep.moveTo(closest_spawn, moveoptions);
     }
+}
+export function unboost(creep: Creep) {
+	// negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found
+	let container_status = creep.room.memory.named_structures_status.container.Lab;
+	let lab_status = creep.room.memory.named_structures_status.lab.B1;
+	if (!container_status.finished) {
+		return 2;
+	}
+	if (!lab_status.finished) {
+		return 3;
+	}
+	let container = Game.getObjectById(container_status.id);
+	let lab = Game.getObjectById(lab_status.id);
+	if (!creep.pos.isEqualTo(container)) {
+		movetopos(creep, container.pos, 0);
+		return 1;
+	} else {
+		let out = lab.unboostCreep(creep);
+		return out;
+	}
 }

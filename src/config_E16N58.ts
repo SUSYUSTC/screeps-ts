@@ -157,7 +157,8 @@ export var conf_E16N58: type_conf_room =
         ],
         "7": [
             [39, 23],
-            [38, 22]
+            [38, 22],
+            [37, 25]
         ],
         "8": [
             [39, 21],
@@ -170,8 +171,7 @@ export var conf_E16N58: type_conf_room =
             [41, 14],
             [42, 13],
             [43, 14],
-            [44, 15],
-            [37, 25]
+            [44, 15]
         ]
     },
     "spawns": {
@@ -308,7 +308,7 @@ export var conf_E16N58: type_conf_room =
     },
     "factory": {
         "pos": [37, 26],
-        "RCL": 8
+        "RCL": 7
     },
     "observer": {
         "pos": [38, 21],

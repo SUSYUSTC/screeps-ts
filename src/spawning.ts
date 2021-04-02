@@ -145,8 +145,8 @@ export function spawn(room_name: string) {
 		room.memory.storage_level = 0;
 	}
     let added_upgraders = 0;
-	if (room.storage !== undefined || config.storage_bars[room_name] == undefined) {
-		let storage_bars = config.storage_bars[room_name];
+	if (room.storage !== undefined || config.storage_bars == undefined) {
+		let storage_bars = config.storage_bars;
 		if ("storage" in room) {
 			let current_energy = room.storage.store.getUsedCapacity("energy");
 			if (room.memory.storage_level < storage_bars.length && current_energy >= storage_bars[room.memory.storage_level] + 100000) {
@@ -222,7 +222,7 @@ export function spawn(room_name: string) {
 		max_upgrade -= n_builds_needed* 3;
 	}
 	if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && room.storage.store.getUsedCapacity("battery") >= 30000;
+		let storage_condition = room.storage !== undefined && room.storage.store.getUsedCapacity("battery") >= 120000 && room.storage.store.getUsedCapacity("energy") >= 750000;
 		if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
 			max_upgrade = 15;
 		}
@@ -506,7 +506,7 @@ export function spawn(room_name: string) {
 			let n_carriers;
 			if (conf.external_rooms[external_room_name].container) {
 				n_harvester_carry = 1;
-				if (room.energyCapacityAvailable >= conf_external.n_carry_tot*100) {
+				if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= conf_external.n_carry_tot*100) {
 					n_carriers = 1;
 				} else if (room.energyAvailable >= Math.ceil(conf_external.n_carry_tot/2)*100) {
 					n_carriers = 2;
@@ -516,7 +516,7 @@ export function spawn(room_name: string) {
 				n_carrier_carry = Math.ceil(conf_external.n_carry_tot/n_carriers);
 			} else {
 				let required_energy = (n: number, k: number) => Math.max(Math.ceil(n/k)*100, Math.ceil(n/k)*50+800);
-				if (room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 1)) {
+				if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 1)) {
 					n_carriers = 1;
 				} else if (room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 2)) {
 					n_carriers = 2;
