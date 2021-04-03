@@ -3,7 +3,7 @@ import * as functions from "./functions"
 import * as config from "./config"
 import * as basic_job from "./basic_job"
 
-export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[]) {
+export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: any = {}) {
     if (rooms_path.length != poses_path.length + 1) {
         throw Error("Unexpected length of arguments")
     }
@@ -42,10 +42,10 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
         if (creep.pos.x == standpoint_xy[0] && creep.pos.y == standpoint_xy[1]) {
             return 1;
         } else {
-            creep.moveTo(standpoint_xy[0], standpoint_xy[1], {
+			creep.moveTo(standpoint_xy[0], standpoint_xy[1], {...{
                 maxRooms: 0,
                 costCallback: functions.avoid_exits
-            });
+			}, ...add_options});
             return 0;
         }
     } else {
@@ -76,10 +76,10 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 			if (config.controlled_rooms.includes(creep.room.name)) {
 				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
 			} else {
-				creep.moveTo(exit_xy[0], exit_xy[1], {
+				creep.moveTo(exit_xy[0], exit_xy[1], {...{
 					maxRooms: 0,
 					costCallback: functions.avoid_exits
-				});
+				}, ...add_options});
 			}
         }
         return 0;

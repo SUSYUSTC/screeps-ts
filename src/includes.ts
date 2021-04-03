@@ -96,7 +96,6 @@ interface CreepMemory {
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
-    maincarrier_type ? : string;
     carrying_mineral ? : boolean;
     lab_carrying_target_id ? : Id < StructureLab > ;
     lab_carrying_resource ? : ResourceConstant;

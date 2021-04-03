@@ -87,7 +87,11 @@ const getbody_harvester = (options: any): BodyPartConstant[] => {
     return returnbody(options.with_harvest, options.with_carry, options.with_move);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
-    return returnbody(20, 0, 5);
+	if (options.full) {
+		return returnbody(40, 0, 10);
+	} else {
+		return returnbody(20, 0, 5);
+	}
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
     var n_work = 5;
@@ -138,10 +142,11 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_specialcarrier = (options: any): BodyPartConstant[] => {
-    let n_carry = 4;
-    let n_move = 2;
-    let n_work = 0;
-    return returnbody(n_work, n_carry, n_move);
+	if (options.full) {
+		return returnbody(0, 12, 6);
+	} else {
+		return returnbody(0, 6, 3);
+	}
 }
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
