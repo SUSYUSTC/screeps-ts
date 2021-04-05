@@ -72,6 +72,7 @@ function balance_resource(resource: ResourceConstant, gap: number, min: number, 
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
 	if (ns[argmax] - ns[argmin] >= gap && ns[argmin] < min) {
+		console.log("Sending resource", resource, "from", rooms[argmax], "to", rooms[argmin]);
 		Game.rooms[rooms[argmax]].terminal.send(resource, amount, rooms[argmin]);
 	}
 }

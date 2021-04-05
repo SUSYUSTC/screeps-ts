@@ -181,7 +181,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
     });
     let amount = 0;
     if (order.type == 'buy') {
-        orders = orders.filter((e) => e.price > order.price).sort((x, y) => y.price - x.price);
+        orders = orders.filter((e) => e.price > order.price && Game.market.orders[e.id] == undefined).sort((x, y) => y.price - x.price);
 		let acceptable_price = config.acceptable_prices.buy[order.resourceType];
 		if (acceptable_price == undefined) {
 			return -2;
@@ -198,7 +198,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             }
         }
     } else if (order.type == 'sell') {
-        orders = orders.filter((e) => e.price < order.price).sort((x, y) => x.price - y.price);
+        orders = orders.filter((e) => e.price < order.price && Game.market.orders[e.id] == undefined).sort((x, y) => x.price - y.price);
 		let acceptable_price = config.acceptable_prices.sell[order.resourceType];
 		if (acceptable_price == undefined) {
 			return -2;

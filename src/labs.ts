@@ -28,7 +28,7 @@ function get_all_reactants(obj: GeneralMineralConstant): GeneralMineralConstant[
         let s1 = get_all_reactants(reactant1);
         let s2 = get_all_reactants(reactant2);
         let reactants_set = new Set(s1.concat(s2));
-		reactants_set.add(obj);
+        reactants_set.add(obj);
         return Array.from(reactants_set);
     }
 }
@@ -74,7 +74,7 @@ function get_reaction_priortiy(): type_reaction_priority {
 */
 
 function get_priority_score(n: number, level: number): number {
-    return -Math.ceil(n / 1960) - level*5;
+    return -Math.ceil(n / 1960) - level * 5;
 }
 
 function get_reaction_priortiy(): type_reaction_priority {
@@ -153,6 +153,7 @@ export function prepare() {
             continue;
         }
         if (Game.time % 20 == 0) {
+            global.reset_product_request()
             get_reaction_supply(room_name);
         }
         if (Game.time % 20 == 10) {
@@ -194,57 +195,41 @@ export function reaction(room_name: string) {
                             product = < MineralCompoundConstant > (Object.keys(constants.allowed_reactions).filter((p) => compare_product([source1_lab.mineralType, source2_lab.mineralType], < MineralCompoundConstant > p))[0]);
                         }
                     }
-                    if (Memory.product_request[product] == undefined) {
-                        Memory.product_request[product] = 0;
+                    if (Memory.final_product_request[product] !== undefined) {
+                        Memory.final_product_request[product] -= 5;
                     }
-                    Memory.product_request[product] -= 5;
                 }
             }
         }
     }
 }
 
-global.set_product_request = function(resource: MineralCompoundConstant, n: number): number {
-    let reactants = get_all_reactants(resource);
-	Memory.product_request[resource] = 0;
-    for (let r of reactants) {
-        if (Memory.product_request[ < MineralCompoundConstant > r] == undefined) {
-            Memory.product_request[ < MineralCompoundConstant > r] = 0;
-        }
-        Memory.product_request[ < MineralCompoundConstant > r] += n;
+global.reset_product_request = function(): number {
+    if (Memory.final_product_request == undefined) {
+        Memory.final_product_request = {};
     }
-    return 0;
-}
-
-global.init_product_request = function(): number {
     let terminal_amounts = global.summarize_terminal()
     Memory.product_request = {};
-    for (let resource of constants.general_minerals) {
-        if (terminal_amounts[resource] !== undefined) {
-            Memory.product_request[resource] = -terminal_amounts[resource];
-        }
-    }
-    return 0;
-}
-
-global.refresh_product_request = function(): number {
-    let terminal_amounts = global.summarize_terminal()
-    for (let resource of constants.basic_minerals) {
-		Memory.product_request[resource] = 0;
-        if (terminal_amounts[resource] !== undefined) {
-            Memory.product_request[resource] -= terminal_amounts[resource];
-        }
-    }
-	for (let resource of <Array<GeneralMineralConstant>>Object.keys(Memory.product_request)) {
-		let reactants = constants.allowed_reactions[<MineralCompoundConstant>resource];
-		if (reactants !== undefined) {
-			for (let reactant of reactants) {
-				if (constants.basic_minerals.includes(<MineralConstant>reactant) && Memory.product_request[resource] > 0) {
-					Memory.product_request[<GeneralMineralConstant>reactant] += Memory.product_request[resource];
-				}
+	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
+	let n_store_rooms = Object.keys(config.mineral_storage_room).length;
+	for (let resource of request_final_products) {
+        let reactants = get_all_reactants(resource);
+		for (let reactant of reactants) {
+			if (terminal_amounts[reactant] == undefined) {
+				terminal_amounts[reactant] = 0;
 			}
+            Memory.product_request[reactant] = -terminal_amounts[reactant] + constants.mineral_minimum_amount[reactant] * n_store_rooms;
 		}
-	}
+    }
+    for (let resource of request_final_products) {
+        let reactants = get_all_reactants(resource);
+        Memory.product_request[resource] = 0;
+        for (let r of reactants) {
+            if (Memory.product_request[r] == undefined) {
+                Memory.product_request[r] = 0;
+            }
+            Memory.product_request[r] += Memory.final_product_request[resource];
+        }
+    }
     return 0;
 }
-

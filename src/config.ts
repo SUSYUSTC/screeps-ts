@@ -80,6 +80,10 @@ export var pc_conf: type_pc_conf = {
         "room_name": "E19N51",
         "source": true,
     },
+    "PC_B": {
+        "room_name": "E19N55",
+        "source": true,
+    },
 }
 export var hunting: type_hunting = {};
 export var link_transfer_gap: number = 600;
@@ -109,6 +113,7 @@ export var acceptable_prices: type_acceptable_prices = {
 		"X": 0.8,
 		"H": 0.4,
 		"O": 0.3,
+		"battery": 3.0,
 	},
 	"sell": {
 		"XGH2O": 8.8,
@@ -158,7 +163,9 @@ export var resources_balance: type_resources_balance = {
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
 	"LH2O": "E14N59",
-	"XKH2O": "E21N49"
+	"XKH2O": "E21N49",
+	"XUH2O": "E14N51",
+	"XGH2O": "E16N58",
 }
 export var protected_sources: {
     [key: string]: string[]
@@ -203,7 +210,7 @@ export var wall_rates: type_wall_rates = {
     "E16N58": 0,
     "E21N49": 0,
     "E19N55": 0,
-    "E14N59": 0,
+    "E14N59": 1,
 }
 let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
 let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
@@ -215,7 +222,7 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E19N51": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
     "E19N55": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
-    "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G"]),
+    "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G", "O", "GO", "OH"]),
 };
 
 export var help_list: type_help_list = {
@@ -302,6 +309,7 @@ export var pb_healer_body: type_body_conf = {
         number: 20,
     }
 }
+export var depo_last_cooldown = 20000;
 export var powered_harvester: type_powered_harvester = {
     1: {
         n_harvest: 7,
@@ -334,4 +342,4 @@ export var creep_roles_home = ["init", "harvester", "carrier", "builder", "upgra
 export var creep_roles_maincarrier = ["maincarrier"]
 export var creep_roles_combat = ["defender", "invader_core_attacker", "hunter", "home_defender"]
 export var creep_roles_external = ["externalharvester", "externalcarrier", "external_init", "reserver", "claimer", "help_harvester", "help_carrier", "help_builder"]
-export var creep_roles_resources = ["pb_attacker", "pb_healer", "pb_carrier"]
+export var creep_roles_resources = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]

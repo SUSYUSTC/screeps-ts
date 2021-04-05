@@ -193,6 +193,12 @@ export function creepjob(creep: Creep): number {
             creep.memory.ready = true;
             return 0;
         }
-    }
+	} else if (creep.memory.role == 'depo_container_builder') {
+		creep.say("DH");
+	} else if (creep.memory.role == 'depo_harvester') {
+		creep.say("DH");
+	} else if (creep.memory.role == 'depo_carrier') {
+		creep.say("DC");
+	}
     return 1;
 }

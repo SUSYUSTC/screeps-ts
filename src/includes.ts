@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_harvester" | "depo_carrier";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -217,7 +217,6 @@ interface type_pb_status {
     rooms_path: string[];
     poses_path: number[];
     distance: number;
-    path_found: boolean;
     pb_attacker_name: string;
     pb_healer_name: string;
 	pb_carrier_names: string[];
@@ -225,7 +224,7 @@ interface type_pb_status {
     amount: number;
 }
 interface type_depo_status {
-	time: number;
+	name: string;
     id: Id < Deposit > ;
     xy: number[];
     status: number;
@@ -233,15 +232,20 @@ interface type_depo_status {
     rooms_path: string[];
     poses_path: number[];
     distance: number;
-    path_found: boolean;
-	pb_carrier_name: string[];
-	pb_harvester_name: string[];
-    amount: number;
+	last_cooldown: number;
+	container_progress: number;
+	depo_container_builder_name ?: string;
+	depo_harvester_name ?: string;
+	depo_energy_carrier_name ?: string;
+	depo_carrier_name ?: string;
 }
 interface type_external_resources {
     pb: {
         [key: string]: type_pb_status;
     }
+	depo: {
+		[key: string]: type_depo_status;
+	}
 }
 interface type_conf_hunting {
     room_name: string;
@@ -312,7 +316,8 @@ interface Memory {
     rerunning ? : boolean;
     history_cpus ? : number[];
 	pb_cooldown_time ?: number;
-	product_request: type_product_request;
+	product_request ?: type_product_request;
+	final_product_request ?: type_product_request;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -462,6 +467,7 @@ declare module NodeJS {
 		reaction_priority: type_reaction_priority
 		set_product_request(resource: MineralCompoundConstant, number: number): number;
 		init_product_request(): number;
+		reset_product_request(): number;
 		refresh_product_request(): number;
 		regulate_order_price(id: Id<Order>): number;
     }
