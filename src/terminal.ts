@@ -60,7 +60,7 @@ function support_developing_rooms() {
 		let source_terminal = Game.rooms[helping_room_name].terminal.store.getUsedCapacity("energy");
         let target_storage = Game.rooms[helped_room].storage.store.getUsedCapacity("energy");
         let target_terminal = Game.rooms[helped_room].terminal.store.getUsedCapacity("energy");
-        if (source_storage >= 500000 && source_terminal >= 50000 && target_storage < 400000 && target_terminal < 100000) {
+        if (source_storage >= config.storage_full && source_terminal >= 50000 && target_storage < config.storage_full && target_terminal < 100000) {
             Game.rooms[helping_room_name].terminal.send("energy", 25000, helped_room);
             break;
         }
@@ -74,6 +74,25 @@ function balance_resource(resource: ResourceConstant, gap: number, min: number, 
 	if (ns[argmax] - ns[argmin] >= gap && ns[argmin] < min) {
 		console.log("Sending resource", resource, "from", rooms[argmax], "to", rooms[argmin]);
 		Game.rooms[rooms[argmax]].terminal.send(resource, amount, rooms[argmin]);
+	}
+}
+function balance_power() {
+	let rooms = config.controlled_rooms.filter((e) => Game.rooms[e].storage !== undefined && Game.rooms[e].terminal !== undefined && Game.rooms[e].memory.unique_structures_status.powerSpawn.finished);
+	let net_power_amounts = rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity("power") - (Game.rooms[e].storage.store.getUsedCapacity("energy") - config.storage_full)/50);
+	let argmin = mymath.argmin(net_power_amounts);
+	let argmax = mymath.argmax(net_power_amounts);
+	let amount_diff = net_power_amounts[argmax] - net_power_amounts[argmin];
+	if (amount_diff >= 1000) {
+		let room_min = Game.rooms[rooms[argmin]];
+		let room_max = Game.rooms[rooms[argmax]];
+		let amount = Math.min(Math.floor(amount_diff/2), room_max.terminal.store.getUsedCapacity("power"));
+		if (amount > 0) {
+			let out = room_max.terminal.send("power", amount, rooms[argmin]) == 0;
+			if (out) {
+				console.log("Sending resource", "power", "from", rooms[argmax], "to", rooms[argmin]);
+				return;
+			}
+		}
 	}
 }
 function gather_resource(room_name: string, resource: ResourceConstant, min_amount: number) {
@@ -100,4 +119,5 @@ export function terminal_balance() {
 		let room_name = config.resource_gathering_pos[<ResourceConstant> resource];
 		gather_resource(room_name, <ResourceConstant> resource, 1);
 	}
+	balance_power();
 }

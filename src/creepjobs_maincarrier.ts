@@ -206,13 +206,13 @@ function get_energy_status(creep_amount: number, link_amount: number, link_targe
 	let transfer_amount = undefined;
 	if (storage_amount + creep_amount >= 800000 && factory_amount !== undefined) {
 		sink = "factory";
-	} else if (storage_amount < 500000 && factory_amount >= 5000) {
+	} else if (storage_amount < config.storage_full && factory_amount >= 5000) {
 		source = "factory";
 	}
-	if (storage_amount + creep_amount >= 500000 && nuker_amount !== undefined && nuker_amount < 300000) {
+	if (storage_amount + creep_amount >= config.storage_full && nuker_amount !== undefined && nuker_amount < 300000) {
 		sink = "nuker";
 	}
-	if (storage_amount + creep_amount >= 500000 && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
+	if (storage_amount + creep_amount >= config.storage_full && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
 		sink = "powerspawn";
 	}
 	if (terminal_amount !== undefined) {

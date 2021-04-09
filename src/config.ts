@@ -24,12 +24,14 @@ import {
 import {
     conf_E14N59
 } from "./config_E14N59"
+import {
+    conf_E9N54
+} from "./config_E9N54"
 
-//conf_E21N49.external_rooms.E22N49.active = true;
-//conf_E19N55.external_rooms.E19N56.active = true;
-//conf_E19N53.external_rooms.E19N54.active = true;
-conf_E14N59.external_rooms.E15N59.container = true;
-conf_E14N59.external_rooms.E15N59.active = true;
+//conf_E14N59.external_rooms.E15N59.container = true;
+//onf_E14N59.external_rooms.E15N59.active = true;
+conf_E9N54.external_rooms.E8N54.container = true;
+conf_E9N54.external_rooms.E8N54.active = true;
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -69,8 +71,9 @@ export var conf_rooms: type_conf_rooms = {
     "E21N49": conf_E21N49,
     "E19N55": conf_E19N55,
     "E14N59": conf_E14N59,
+    "E9N54": conf_E9N54,
 }
-export var controlled_rooms: string[] = ['E16N58', 'E15N58', 'E14N51', 'E19N53', 'E19N51', 'E21N49', 'E19N55', 'E14N59'];
+export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
     return pos1.getRangeTo(pos2);
 }
@@ -95,7 +98,7 @@ export var upgrader_boost_request: MineralBoostConstant = "GH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
-export var preclaiming_rooms = ['E14N59', 'E15N59'];
+export var preclaiming_rooms: string[] = [];
 type type_acceptable_prices = {
 	buy: {
 		[key in MarketResourceConstant] ?: number;
@@ -113,6 +116,7 @@ export var acceptable_prices: type_acceptable_prices = {
 		"X": 0.8,
 		"H": 0.4,
 		"O": 0.3,
+		"energy": 0.3,
 		"battery": 3.0,
 	},
 	"sell": {
@@ -164,7 +168,9 @@ export var resources_balance: type_resources_balance = {
 export var resource_gathering_pos: type_resource_gathering_pos = {
 	"LH2O": "E14N59",
 	"XKH2O": "E21N49",
-	"XUH2O": "E14N51",
+	"XKHO2": "E21N49",
+	"XUH2O": "E15N58",
+	"XUHO2": "E15N58",
 	"XGH2O": "E16N58",
 }
 export var protected_sources: {
@@ -178,6 +184,7 @@ export var protected_sources: {
     "E21N49": [],
     "E19N55": ['S1'],
     "E14N59": ['S1', 'S2'],
+    "E9N54": ['S2'],
 }
 export var boost_rcl8: {
     [key: string]: boolean
@@ -190,6 +197,7 @@ export var boost_rcl8: {
     "E21N49": true,
     "E19N55": true,
     "E14N59": true,
+    "E9N54": true,
 }
 export var highway_resources: {
     [key: string]: string[]
@@ -201,7 +209,9 @@ export var highway_resources: {
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
     "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60'],
 }
-export var storage_bars: number[] = [100000, 200000, 300000, 400000];
+export var storage_bars: number[] = [60000, 120000, 180000, 240000];
+export var storage_gap: number = 60000;
+export var storage_full: number = 300000;
 export var wall_rates: type_wall_rates = {
     "E14N51": 0,
     "E19N51": 0,
@@ -210,7 +220,8 @@ export var wall_rates: type_wall_rates = {
     "E16N58": 0,
     "E21N49": 0,
     "E19N55": 0,
-    "E14N59": 1,
+    "E14N59": 0,
+    "E9N54": 0,
 }
 let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
 let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
@@ -223,22 +234,24 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
     "E19N55": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
     "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G", "O", "GO", "OH"]),
+	//"E9N54": ["L"],
 };
 
 export var help_list: type_help_list = {
-    "E15N58": {
-        "E14N59": {
-            "rooms_forwardpath": ['E15N58', 'E15N59', 'E14N59'],
-            "poses_forwardpath": [13, 35],
-            "commuting_distance": 58,
+    "E14N51": {
+        "E9N54": {
+            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
+            "poses_forwardpath": [5, 7, 45, 26, 10, 32, 9, 20, 14, 27],
+            "commuting_distance": 392,
             "n_carrys": {
-                "S1": 6,
+                "S1": 10,
                 "S2": 6,
             }
         }
     }
 };
 export var username: string = 'SUSYUSTC';
+export var sign: string = '黑暗森林';
 export var defender_responsible_types: type_defender_responsible_types = {
     'small_close': {
         "list": ['small_close'],
@@ -341,5 +354,5 @@ export var powered_harvester: type_powered_harvester = {
 export var creep_roles_home = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "specialcarrier", "wall_repairer"]
 export var creep_roles_maincarrier = ["maincarrier"]
 export var creep_roles_combat = ["defender", "invader_core_attacker", "hunter", "home_defender"]
-export var creep_roles_external = ["externalharvester", "externalcarrier", "external_init", "reserver", "claimer", "help_harvester", "help_carrier", "help_builder"]
+export var creep_roles_external = ["externalharvester", "externalcarrier", "external_init", "reserver", "claimer", "help_harvester", "help_carrier", "help_builder", "newroom_claimer"]
 export var creep_roles_resources = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]

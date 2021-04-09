@@ -174,14 +174,21 @@ const getbody_claimer = (options: any): BodyPartConstant[] => {
     };
     return fullreturnbody(bodyinfo);
 }
+const getbody_newroom_claimer = (options: any): BodyPartConstant[] => {
+    let bodyinfo: type_body_components = {
+        "claim": 1,
+        "move": 1,
+    };
+    return fullreturnbody(bodyinfo);
+}
 const getbody_transferer = (options: any): BodyPartConstant[] => {
     let n_work = 0;
     let n_carry = options.max_parts;
     let n_move = Math.ceil(n_carry / 2);
     return returnbody(n_work, n_carry, n_move);
 }
-interface type_getbody {
-    [key: string]: {
+type type_getbody = {
+    [key in type_creep_role] ?: {
         (options: any): BodyPartConstant[]
     };
 };
@@ -206,6 +213,7 @@ const getbody_list: type_getbody = {
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
     'home_defender': getbody_home_defender,
+    'newroom_claimer': getbody_newroom_claimer,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
@@ -282,6 +290,12 @@ global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], na
     if (room.memory.additional_spawn_queue == undefined) {
 		room.memory.additional_spawn_queue = {"first":[], "last": []};
     }
+	if (room.memory.additional_spawn_queue.first == undefined) {
+		room.memory.additional_spawn_queue.first = [];
+	}
+	if (room.memory.additional_spawn_queue.last == undefined) {
+		room.memory.additional_spawn_queue.last = [];
+	}
 	if (first) {
 		room.memory.additional_spawn_queue.first.push(obj);
 	} else {

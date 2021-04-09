@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -470,5 +470,6 @@ declare module NodeJS {
 		reset_product_request(): number;
 		refresh_product_request(): number;
 		regulate_order_price(id: Id<Order>): number;
+		update_layout(room_name: string, check_all: boolean): any;
     }
 }

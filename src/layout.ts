@@ -104,14 +104,20 @@ export function update_unique_structures(room_name: string, structuretype: type_
 	return output;
 };
 
-export function update_multiple_structures(room_name: string, structuretype: type_multiple_structures, conf: conf_multiple_structures, create_site: boolean): number {
+export function update_multiple_structures(room_name: string, structuretype: type_multiple_structures, conf: conf_multiple_structures, create_site: boolean, check_all: boolean = false): number {
     let room = Game.rooms[room_name];
 	let output = 0;
     for (let rcl_name in conf) {
 		let rcl = parseInt(rcl_name);
-        if (room.controller.level !== rcl) {
-            continue;
-        }
+		if (check_all) {
+			if (room.controller.level < rcl) {
+				continue;
+			}
+		} else {
+			if (room.controller.level !== rcl) {
+				continue;
+			}
+		}
 		let xys = conf[rcl_name];
 		for (let xy of xys) {
 			let pos = room.getPositionAt(xy[0], xy[1]);

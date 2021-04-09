@@ -124,14 +124,14 @@ function update_link_and_container(room_name: string) {
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
-function update_layout(room_name: string) {
+function update_layout(room_name: string, check_all: boolean = false) {
     let name_of_this_function = "update_layout";
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
 
-    if (global.test_var !== undefined && Game.time % 50 !== 0) {
+    if (global.test_var !== undefined && Game.time % 50 !== 0 && !check_all) {
         Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
@@ -140,9 +140,9 @@ function update_layout(room_name: string) {
     let containers_finished = (layout.update_named_structures(room_name, "container", conf.containers, true) == 0);
     let links_finished = (layout.update_named_structures(room_name, "link", conf.links, true) == 0);
     let spawns_finished = (layout.update_named_structures(room_name, "spawn", conf.spawns, true) == 0);
-    let roads_finished = (layout.update_multiple_structures(room_name, "road", conf.roads, true) == 0);
-    let extensions_finished = (layout.update_multiple_structures(room_name, "extension", conf.extensions, true) == 0);
-    let towers_finished = (layout.update_multiple_structures(room_name, "tower", conf.towers, true) == 0);
+    let roads_finished = (layout.update_multiple_structures(room_name, "road", conf.roads, true, check_all) == 0);
+    let extensions_finished = (layout.update_multiple_structures(room_name, "extension", conf.extensions, true, check_all) == 0);
+    let towers_finished = (layout.update_multiple_structures(room_name, "tower", conf.towers, true, check_all) == 0);
     //console.log("containers", containers_finished, "links", links_finished, "spawns", spawns_finished, "roads", roads_finished, "extension", extensions_finished, "towers", towers_finished)
     level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
     if (!level_finished) {
@@ -262,7 +262,7 @@ function update_external(room_name: string) {
         return;
     }
     for (let external_room_name in conf.external_rooms) {
-        if (!conf.external_rooms[external_room_name].active) {
+        if (!conf.external_rooms[external_room_name].active && Game.rooms[external_room_name] == undefined) {
             delete room.memory.external_room_status[external_room_name];
             continue;
         }
@@ -483,6 +483,7 @@ function detect_resources(room_name: string) {
                     Memory.pb_cooldown_time = 500;
                 }
             }
+			/*
             let depo = < Deposit > external_room.find(FIND_DEPOSITS)[0];
             if (depo !== undefined && depo.lastCooldown <= config.depo_last_cooldown && depo.ticksToDecay > 2000) {
                 let path = PathFinder.search(room.terminal.pos, {
@@ -522,6 +523,7 @@ function detect_resources(room_name: string) {
                     "container_progress": 0,
                 }
             }
+			*/
         }
     }
 
@@ -613,6 +615,7 @@ function update_resources(room_name: string) {
             }
         }
     }
+	/*
     for (let external_room_name in room.memory.external_resources.depo) {
         let depo_status = room.memory.external_resources.depo[external_room_name];
         if (depo_status.status == 0) {
@@ -654,6 +657,7 @@ function update_resources(room_name: string) {
         } else if (depo_status.status == 1) {}
     }
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+	*/
 }
 
 export function set_room_memory(room_name: string) {
@@ -732,3 +736,4 @@ export function set_global_memory() {
     }
     Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
+global.update_layout = update_layout
