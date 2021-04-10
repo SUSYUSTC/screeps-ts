@@ -205,7 +205,23 @@ interface conf_external_rooms {
                 rooms_backwardpath: string[];
                 poses_backwardpath: number[];
             }
-        }
+        };
+		powered_source ?: {
+			source_name: string;
+			carrier_distance: number;
+			carry_end: {
+				type: string;
+				name: string;
+			};
+			roads: number[][];
+			id: Id<Source>;
+			harvester_pos: number[];
+			single_distance: number;
+			rooms_forwardpath: string[];
+			rooms_backwardpath: string[];
+			poses_forwardpath: number[];
+			poses_backwardpath: number[];
+		}
     }
 }
 interface type_pb_status {

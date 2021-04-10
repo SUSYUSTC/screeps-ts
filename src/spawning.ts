@@ -220,7 +220,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-        let storage_condition = room.storage !== undefined && room.storage.store.getUsedCapacity("battery") >= 120000 && room.storage.store.getUsedCapacity("energy") >= 750000;
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= 160000);
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -278,7 +278,11 @@ export function spawn(room_name: string) {
     let n_mineharvesters_needed = 0;
     let n_specialcarriers_needed = 0;
     let full_mine: boolean;
-    if (game_memory.mine_status.amount > 0 && game_memory.mine_status.harvestable) {
+	let store_amount = room.storage.store.getUsedCapacity(game_memory.mine_status.type);
+	if (room.terminal !== undefined) {
+		store_amount += room.terminal.store.getUsedCapacity(game_memory.mine_status.type);
+	}
+	if (game_memory.mine_status.amount > 0 && game_memory.mine_status.harvestable && store_amount < 180000) {
         n_mineharvesters_needed = 1;
         n_specialcarriers_needed = 1;
         full_mine = game_memory.mine_status.amount >= 10000 && room.energyCapacityAvailable >= 4500;

@@ -27,6 +27,12 @@ global.summarize_terminal = function(): type_resource_number {
                 result[resource] += terminal.store.getUsedCapacity(resource);
             }
         }
+		let storage = Game.rooms[room_name].storage;
+		let resource = Game.memory[room_name].mine_status.type;
+		if (result[resource] == undefined) {
+			result[resource] = 0
+		}
+		result[resource] += storage.store.getUsedCapacity(resource);
     }
     return result
 }
