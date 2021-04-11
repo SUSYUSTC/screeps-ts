@@ -533,12 +533,13 @@ export function spawn(room_name: string) {
 				break if_powered_source;
 			}
             let conf_external = conf.external_rooms[external_room_name].powered_source;
+			info_external[external_room_name][conf_external.source_name] = {}
 			let pc_level = Game.memory[room_name].pc_source_level;
 			let harvester_conf = config.powered_external_harvester[pc_level];
             let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest + 10) * 3;
             let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
 			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * (3+pc_level) / 3 * 0.4);
-            let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5);
+            let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5) + 6;
             let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
             if (externalharvesters.length == 0 && !game_memory.danger_mode) {
                 let added_memory = {
@@ -584,9 +585,10 @@ export function spawn(room_name: string) {
                 jsons.push(json);
 				info_external[external_room_name][conf_external.source_name].n_carriers = externalcarriers.length + "/" + "1";
             }
-			let n_external_builder_needed = 0;
 			if (room.memory.powered_external_sites_total_progressleft !== undefined && room.memory.powered_external_sites_total_progressleft > 0) {
 				let n_builds_needed = Math.min(15, Math.ceil(room.memory.powered_external_sites_total_progressleft / 2000));
+				let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
+				let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
 				if (n_builds < n_builds_needed && !game_memory.danger_mode) {
 					let added_memory = {
 						"external_room_name": external_room_name,

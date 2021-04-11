@@ -114,6 +114,7 @@ interface PowerCreepMemory {
 	crossable: boolean;
     stored_path ? : type_stored_path;
 	current_source_target ?: string;
+	home_room_name ?: string;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -196,6 +197,7 @@ interface conf_external_rooms {
                 id: Id < Source > ;
                 harvester_pos: number[];
                 single_distance: number;
+				carrier_distance: number;
                 n_carry_tot: number;
                 carry_end: {
                     "type": string;

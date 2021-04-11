@@ -408,6 +408,7 @@ export var conf_E14N59: type_conf_room =
                     "id": <Id<Source>>"5bbcadc79099fc012e637d6a",
                     "harvester_pos": [30, 12],
                     "single_distance": 57,
+                    "carrier_distance": 59,
                     "n_carry_tot": 26,
                     "carry_end": {
                         "type": "storage",
@@ -422,6 +423,7 @@ export var conf_E14N59: type_conf_room =
                     "id": <Id<Source>>"5bbcadc79099fc012e637d6c",
                     "harvester_pos": [17, 23],
                     "single_distance": 44,
+                    "carrier_distance": 45,
                     "n_carry_tot": 21,
                     "carry_end": {
                         "type": "storage",
@@ -459,13 +461,13 @@ export var conf_E14N59: type_conf_room =
                     [16, 25],
                     [17, 24]
                 ],
+                "poses_forwardpath": [30],
+                "poses_backwardpath": [30],
                 "id": <Id<Source>>"5bbcadc79099fc012e637d6c",
                 "harvester_pos": [17, 23],
                 "single_distance": 44,
                 "rooms_forwardpath": ["E14N59", "E15N59"],
-                "rooms_backwardpath": ["E15N59", "E14N59"],
-                "poses_forwardpath": [30],
-                "poses_backwardpath": [30]
+                "rooms_backwardpath": ["E15N59", "E14N59"]
             }
         }
     },

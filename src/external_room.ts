@@ -86,7 +86,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
     }
 }
 
-export function external_flee(creep: Creep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[]) {
+export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[]) {
     if (creep.room.name == creep.memory.home_room_name) {
         creep.memory.movable = false;
 		let pos = creep.room.getPositionAt(safe_pos[0], safe_pos[1]);

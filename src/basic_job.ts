@@ -266,7 +266,7 @@ export function upgrade_controller(creep: Creep, controller: StructureController
 export function build_structure(creep: Creep): number {
     var metric = config.distance_metric;
     var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
-    if (targets.length) {
+	if (targets.length > 0) {
         var sort_list = Array.from(targets, obj => metric(creep.room.name, creep.pos, obj.pos));
         var arg = mymath.argmin(sort_list);
         var target = targets[arg];

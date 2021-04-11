@@ -87,7 +87,10 @@ function update_link_and_container(room_name: string) {
     game_memory.container_modes_all = mymath.all(container_modes);
     game_memory.link_modes = link_modes;
     game_memory.are_links_source = {};
-    link_modes.forEach((e) => game_memory.are_links_source[e] = false);
+	link_modes.filter((e) => e !== 'MAIN' && e !== 'Ext').forEach((e) => game_memory.are_links_source[e] = false);
+	if (links_status.Ext !== undefined) {
+		game_memory.are_links_source.Ext = true;
+	}
     for (let source_name of ['S1', 'S2']) {
         if (link_modes.includes(source_name)) {
             let this_container = Game.getObjectById(containers_status[source_name].id);
@@ -99,8 +102,8 @@ function update_link_and_container(room_name: string) {
         room.visual.text(source_name, source_pos.x, source_pos.y);
     }
     if (link_modes.includes('MAIN')) {
-        let source_links = link_modes.filter((e) => game_memory.are_links_source[e] && e !== 'MAIN')
-        let sink_links = link_modes.filter((e) => !game_memory.are_links_source[e] && e !== 'MAIN')
+        let source_links = link_modes.filter((e) => game_memory.are_links_source[e] == true)
+        let sink_links = link_modes.filter((e) => game_memory.are_links_source[e] == false)
         let link_energies: {
             [key: string]: number
         } = {};
@@ -108,16 +111,22 @@ function update_link_and_container(room_name: string) {
         if (room.memory.maincarrier_link_amount == undefined) {
             room.memory.maincarrier_link_amount = 400;
         }
-        if (mymath.any(sink_links.map((e) => link_energies[e] <= config.main_link_amount_source - config.link_transfer_gap))) {
+        if (mymath.any(sink_links.map((e) => link_energies[e] <= config.main_link_amount_source - config.link_transfer_from_main_gap))) {
             room.memory.is_mainlink_source = true;
             room.memory.maincarrier_link_amount = config.main_link_amount_source;
-        } else if (mymath.any(source_links.map((e) => link_energies[e] >= config.main_link_amount_sink + config.link_transfer_gap))) {
+        } else if (mymath.any(source_links.map((e) => link_energies[e] >= config.main_link_amount_sink + config.link_transfer_to_main_gap))) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
         }
+		if (link_energies['Ext'] !== undefined && link_energies['Ext'] > 0) {
+            room.memory.is_mainlink_source = false;
+            room.memory.maincarrier_link_amount = config.main_link_amount_sink;
+		}
+		/*
         if (room.memory.is_mainlink_source !== undefined) {
             game_memory.are_links_source.MAIN = room.memory.is_mainlink_source;
         }
+		*/
         room.visual.text(room.memory.maincarrier_link_amount.toString(), conf.links.MAIN.pos[0], conf.links.MAIN.pos[1]);
     }
 

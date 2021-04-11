@@ -390,6 +390,7 @@ export var conf_E21N49: type_conf_room =
                     "id": <Id<Source>>"5bbcae2f9099fc012e638884",
                     "harvester_pos": [41, 5],
                     "single_distance": 60,
+                    "carrier_distance": 58,
                     "n_carry_tot": 26,
                     "carry_end": {
                         "type": "storage",
@@ -404,6 +405,7 @@ export var conf_E21N49: type_conf_room =
                     "id": <Id<Source>>"5bbcae2f9099fc012e638886",
                     "harvester_pos": [38, 44],
                     "single_distance": 57,
+                    "carrier_distance": 55,
                     "n_carry_tot": 25,
                     "carry_end": {
                         "type": "storage",

@@ -30,8 +30,8 @@ import {
 
 //conf_E14N59.external_rooms.E15N59.container = true;
 //onf_E14N59.external_rooms.E15N59.active = true;
-//conf_E9N54.external_rooms.E8N54.container = true;
-//conf_E9N54.external_rooms.E8N54.active = true;
+conf_E19N55.external_rooms.E19N56.container = true;
+conf_E19N55.external_rooms.E19N56.active = true;
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -87,12 +87,14 @@ export var pc_conf: type_pc_conf = {
     "PC_B": {
         "room_name": "E19N55",
         "source": true,
+		"external_room": "E19N56",
     },
 }
 export var hunting: type_hunting = {};
-export var link_transfer_gap: number = 600;
+export var link_transfer_to_main_gap: number = 800;
+export var link_transfer_from_main_gap: number = 600;
 export var main_link_amount_source: number = 800;
-export var main_link_amount_sink: number = 200;
+export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry: number = 6;
 export var upgrader_boost_request: MineralBoostConstant = "GH2O";
@@ -364,17 +366,17 @@ export var powered_external_harvester: type_powered_harvester = {
     },
     3: {
         n_harvest: 11,
-        n_carry: 1,
+        n_carry: 2,
         n_move: 6,
     },
     4: {
         n_harvest: 13,
-        n_carry: 1,
+        n_carry: 2,
         n_move: 7,
     },
     5: {
         n_harvest: 14,
-        n_carry: 1,
+        n_carry: 2,
         n_move: 2,
     },
 }
@@ -382,5 +384,5 @@ export var powered_external_harvester: type_powered_harvester = {
 export var creep_roles_home = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "specialcarrier", "wall_repairer"]
 export var creep_roles_maincarrier = ["maincarrier"]
 export var creep_roles_combat = ["defender", "invader_core_attacker", "hunter", "home_defender"]
-export var creep_roles_external = ["externalharvester", "externalcarrier", "external_init", "reserver", "claimer", "help_harvester", "help_carrier", "help_builder", "newroom_claimer"]
+export var creep_roles_external = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "claimer", "help_harvester", "help_carrier", "help_builder", "newroom_claimer"]
 export var creep_roles_resources = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]

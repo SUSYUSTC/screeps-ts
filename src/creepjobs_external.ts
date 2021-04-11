@@ -208,10 +208,12 @@ export function creepjob(creep: Creep): number {
 				return 0;
 			} else if (output == 1) {
 				creep.moveTo(pos.x, pos.y);
+				return 0;
 			}
-			creep.memory.movable = true;
+			creep.memory.movable = false;
+			creep.memory.crossable = false;
 			if (conf.external_rooms[creep.memory.external_room_name].container) {
-				let site = pos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
+				let site = pos.lookFor(LOOK_CONSTRUCTION_SITES).filter((e) => e.structureType == 'container')[0];
 				let container = pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
 				if (site == undefined && container == undefined) {
 					pos.createConstructionSite("container");
@@ -253,18 +255,18 @@ export function creepjob(creep: Creep): number {
 		}
 		// Using creep.room.name !== creep.memory.home_room_name here considering the possibility that the creep need to put energy into link several times
 		if (creep.room.name == creep.memory.external_room_name && creep.store.getFreeCapacity("energy") > 0 && creep.getActiveBodyparts(WORK) > 0) {
-			let xmin = Math.max(creep.pos.x - 3, 0);
-			let xmax = Math.min(creep.pos.x + 3, 49);
-			let ymin = Math.max(creep.pos.y - 3, 0);
-			let ymax = Math.min(creep.pos.y + 3, 49);
-			let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true).map((e) => e.constructionSite)[0];
-			if (site !== undefined) {
-				creep.build(site);
+			let xmin = Math.max(creep.pos.x - 1, 0);
+			let xmax = Math.min(creep.pos.x + 1, 49);
+			let ymin = Math.max(creep.pos.y - 1, 0);
+			let ymax = Math.min(creep.pos.y + 1, 49);
+			let road = creep.room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).map((e) => e.structure).filter((e) => e.structureType == 'road' && e.hits < e.hitsMax * 0.4)[0];
+			if (road !== undefined) {
+				creep.repair(road);
 			}
 		}
 		let xy = conf_external.harvester_pos;
 		let pos = creep.room.getPositionAt(xy[0], xy[1]);
-		if (creep.store.getFreeCapacity("energy") == 0 || (creep.room.name == creep.memory.external_room_name && creep.pos.getRangeTo(pos) <= 1 && creep.store.getUsedCapacity("energy") > 0)) {
+		if (creep.store.getFreeCapacity("energy") <= 10 || ((creep.room.name !== creep.memory.external_room_name || creep.pos.getRangeTo(pos) > 1) && creep.store.getUsedCapacity("energy") > 0)) {
 			if (creep.room.name !== creep.memory.home_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
 			} else {
@@ -276,7 +278,7 @@ export function creepjob(creep: Creep): number {
 				}
 			}
 		} else {
-			if (creep.store.getUsedCapacity("energy") == 0 && creep.ticksToLive < conf_external.single_distance + 30) {
+			if (creep.store.getUsedCapacity("energy") == 0 && creep.ticksToLive < conf_external.carrier_distance + 20) {
 				creep.suicide();
 				return 0;
 			}
@@ -347,7 +349,7 @@ export function creepjob(creep: Creep): number {
 				if (containers.length == 0) {
 					let conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
 					external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
-				} {
+				} else {
 					let distances = containers.map((e) => creep.pos.getRangeTo(e));
 					let argmin = mymath.argmin(distances);
 					let container = containers[argmin];
@@ -375,7 +377,9 @@ export function creepjob(creep: Creep): number {
 				let conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
 				external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
 			} else {
-				basic_job.build_structure(creep);
+				if (basic_job.build_structure(creep) == 1) {
+					creep.suicide();
+				}
 			}
 		}
 	} else if (creep.memory.role == 'reserver') {

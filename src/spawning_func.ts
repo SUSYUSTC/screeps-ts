@@ -94,6 +94,9 @@ const getbody_mineharvester = (options: any): BodyPartConstant[] => {
 	}
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
+	if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
+		return returnbody(options.n_work, options.n_carry, options.n_move)
+	}
     var n_work = 5;
     var n_move = 5;
     var carry_affordable = Math.floor((options.max_energy - 750) / 50)
@@ -158,6 +161,9 @@ const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
+	if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
+		return returnbody(options.n_work, options.n_carry, options.n_move)
+	}
     var carry_affordable = Math.floor(options.max_energy / 100)
     var n_carry = Math.min(options.max_parts, carry_affordable);
     return returnbody(0, n_carry, n_carry);
