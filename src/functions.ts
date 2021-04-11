@@ -116,8 +116,10 @@ export function get_costmatrix_road(room_name: string) {
                 sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
                 structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             }
-			for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
-				costmatrix.set(xy[0], xy[1], 255);
+			if (config.conf_rooms[room_name] !== undefined) {
+				for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
+					costmatrix.set(xy[0], xy[1], 255);
+				}
 			}
             global.basic_costmatrices[room_name] = costmatrix.clone();
         }

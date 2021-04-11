@@ -30,11 +30,7 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath);
 			return 0;
 		}
-		let output = basic_job.movetoposexceptoccupied(creep, [container_pos]);
-		if (output == 0) {
-			return 0;
-		} else if (output == 1) {
-			basic_job.movetopos(creep, container_pos, 0);
+		if (basic_job.trymovetopos(creep, container_pos) !== 2) {
 			return 0;
 		}
 		creep.memory.crossable = false;
@@ -72,9 +68,8 @@ export function creepjob(creep: Creep): number {
 		let container_source_finished = containers_status[source_name].finished;
 		if (!container_source_finished) {
 			creep.memory.movable = false;
-			if (!creep.pos.isEqualTo(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1])) {
-				basic_job.movetopos(creep, creep.room.getPositionAt.apply(conf_external.transferer_stay_pos), 1)
-			}
+			let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+			basic_job.trymovetopos(creep, transferer_stay_pos);
 			return 0;
 		}
 		let MDCT;
@@ -89,9 +84,8 @@ export function creepjob(creep: Creep): number {
 		let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
 		if (!container_MDCT_finished && help_builders.length == 0) {
 			creep.memory.movable = false;
-			if (!creep.pos.isEqualTo(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1])) {
-				basic_job.movetopos(creep, creep.room.getPositionAt.apply(conf_external.transferer_stay_pos), 1)
-			}
+			let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+			basic_job.trymovetopos(creep, transferer_stay_pos);
 			return 0;
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
@@ -146,9 +140,8 @@ export function creepjob(creep: Creep): number {
 				let lower_limit = freecapacity + 100;
 				let selected_linkcontainer = basic_job.select_linkcontainer(creep, lower_limit);
 				if (selected_linkcontainer == null) {
-					if (!creep.pos.isEqualTo(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1])) {
-						basic_job.movetopos(creep, creep.room.getPositionAt.apply(conf_external.transferer_stay_pos), 1)
-					}
+					let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+					basic_job.trymovetopos(creep, transferer_stay_pos);
 					return 0;
 				} else {
 					basic_job.withdraw_energy(creep, selected_linkcontainer);
@@ -170,9 +163,8 @@ export function creepjob(creep: Creep): number {
 				//return energy before dying
 				let selected_linkcontainer = basic_job.select_linkcontainer(creep, 0);
 				if (selected_linkcontainer == null) {
-					if (!creep.pos.isEqualTo(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1])) {
-						basic_job.movetopos(creep, creep.room.getPositionAt.apply(conf_external.transferer_stay_pos), 1)
-					}
+					let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+					basic_job.trymovetopos(creep, transferer_stay_pos);
 					return 0;
 				}
 				basic_job.transfer_energy(creep, selected_linkcontainer);
@@ -203,11 +195,7 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
 		} else {
 			let pos = creep.room.getPositionAt(conf_external.harvester_pos[0], conf_external.harvester_pos[1]);
-			let output = basic_job.movetoposexceptoccupied(creep, [pos]);
-			if (output == 0) {
-				return 0;
-			} else if (output == 1) {
-				creep.moveTo(pos.x, pos.y);
+			if (basic_job.trymovetopos(creep, pos) !== 2) {
 				return 0;
 			}
 			creep.memory.movable = false;
@@ -291,26 +279,26 @@ export function creepjob(creep: Creep): number {
 			let resource = pos.lookFor(LOOK_RESOURCES)[0];
 			if (resource !== undefined && resource.resourceType == "energy" && resource.amount >= 20) {
 				if (creep.pickup(resource) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(resource, moveoptions);
+					basic_job.movetopos(creep, resource.pos, 1);
 				}
 				return 0;
 			}
 			let tombstone = pos.lookFor(LOOK_TOMBSTONES)[0];
 			if (tombstone !== undefined && tombstone.store.getUsedCapacity("energy") > 0) {
 				if (creep.withdraw(tombstone, "energy") == ERR_NOT_IN_RANGE) {
-					creep.moveTo(tombstone, moveoptions);
+					basic_job.movetopos(creep, tombstone.pos, 1);
 				}
 				return 0;
 			}
 			let site = pos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
 			if (site !== undefined) {
-				creep.moveTo(site, {...moveoptions, ...{range: 1}});
+				basic_job.movetopos(creep, site.pos, 1);
 				return 0;
 			}
 			let container = <StructureContainer>pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
 			if (container !== undefined && container.store.getUsedCapacity("energy") > 0) {
 				if (creep.withdraw(container, "energy") == ERR_NOT_IN_RANGE) {
-					creep.moveTo(container, {...moveoptions, ...{range: 1}});
+					basic_job.movetopos(creep, container.pos, 1);
 				}
 				return 0;
 			}
@@ -320,7 +308,7 @@ export function creepjob(creep: Creep): number {
 			}
 			let harvester_name = Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name];
 			if (harvester_name == "") {
-				creep.moveTo(pos.x, pos.y, {...moveoptions, ...{range: 1}});
+				basic_job.movetopos(creep, pos, 1);
 				return 0;
 			}
 			let withdraw_target = Game.creeps[harvester_name];
@@ -329,13 +317,13 @@ export function creepjob(creep: Creep): number {
 				Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name] = "";
 			}
 			if (withdraw_target.room.name !== creep.memory.external_room_name) {
-				creep.moveTo(pos.x, pos.y, {...moveoptions, ...{range: 1}});
+				basic_job.movetopos(creep, pos, 1);
 				return 0;
 			}
 			// Go to the harvester if any of the creeps is not in its position
 			let ready = (creep.pos.isNearTo(withdraw_target) && withdraw_target.pos.x == pos.x && withdraw_target.pos.y == pos.y);
 			if (!ready) {
-				creep.moveTo(withdraw_target, {...moveoptions, ...{range: 1}});
+				basic_job.movetopos(creep, withdraw_target.pos, 1);
 				return 0;
 			}
 			withdraw_target.memory.transfer_target = creep.name;
@@ -354,7 +342,7 @@ export function creepjob(creep: Creep): number {
 					let argmin = mymath.argmin(distances);
 					let container = containers[argmin];
 					if (creep.pos.getRangeTo(container) > 1) {
-						creep.moveTo(container, moveoptions);
+						basic_job.movetopos(creep, container.pos, 1);
 					} else {
 						creep.withdraw(container, "energy");
 					}
@@ -363,7 +351,7 @@ export function creepjob(creep: Creep): number {
 				if (creep.room.name == creep.memory.home_room_name) {
 					let linkcontainer = basic_job.select_linkcontainer(creep);
 					if (creep.pos.getRangeTo(linkcontainer) > 1) {
-						creep.moveTo(linkcontainer, moveoptions);
+						basic_job.movetopos(creep, linkcontainer.pos, 1);
 					} else {
 						creep.withdraw(linkcontainer, "energy");
 					}
@@ -395,7 +383,7 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
 		} else {
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
-				creep.moveTo(creep.room.controller, moveoptions);
+				basic_job.movetopos(creep, creep.room.controller.pos, 1);
 				return 0;
 			}
 			creep.memory.movable = false;
@@ -415,7 +403,7 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
 		} else {
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
-				creep.moveTo(creep.room.controller, moveoptions);
+				basic_job.movetopos(creep, creep.room.controller.pos, 1);
 				return 0;
 			}
 			creep.claimController(creep.room.controller);
@@ -430,7 +418,7 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath);
 		} else {
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
-				creep.moveTo(creep.room.controller, moveoptions);
+				basic_job.movetopos(creep, creep.room.controller.pos, 1);
 				return 0;
 			}
 			if (creep.room.controller.my) {

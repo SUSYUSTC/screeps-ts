@@ -156,15 +156,19 @@ export function movetoposexceptoccupied(creep: Creep, poses: RoomPosition[]) {
             return 2;
         }
         if (vacant && !(inposition && creep.pos.getRangeTo(pos) > 1)) {
-			if (config.conf_rooms[creep.room.name] !== undefined) {
-				movetopos(creep, pos, 0);
-			} else {
-				creep.moveTo(pos.x, pos.y, moveoptions);
-			}
+			movetopos(creep, pos, 0);
             return 0;
         }
     }
     return 1;
+}
+export function trymovetopos(creep: Creep, pos: RoomPosition) {
+	let out = movetoposexceptoccupied(creep, [pos]);
+	if (out == 1) {
+		movetopos(creep, pos, 1);
+		return 1;
+	}
+	return out;
 }
 export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydistance = false) {
     var metric = config.distance_metric;
@@ -180,7 +184,7 @@ export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydista
     var arg_max = mymath.argmax(sort_list);
     var obj_max = obj_list[arg_max];
     if (creep.transfer(obj_max, "energy") == ERR_NOT_IN_RANGE) {
-        creep.moveTo(obj_max, moveoptions);
+		movetopos(creep, obj_max.pos, 1);
     }
     return 0;
 }
@@ -227,8 +231,7 @@ export function charge_all(creep: Creep, doaction: boolean = true): number {
 export function harvest_source(creep: Creep, source: Source | Mineral) {
     var output = creep.harvest(source);
     if (output == ERR_NOT_IN_RANGE) {
-        creep.moveTo(source, moveoptions);
-        //movetopos(creep, source.pos);
+		movetopos(creep, source.pos, 1);
     }
 }
 
@@ -258,8 +261,7 @@ export function transfer_energy(creep: Creep, structure: AnyStoreStructure | Cre
 export function upgrade_controller(creep: Creep, controller: StructureController) {
     var output = creep.upgradeController(controller);
     if (output == ERR_NOT_IN_RANGE) {
-        //movetopos(creep, controller.pos);
-        creep.moveTo(controller, moveoptions);
+        movetopos(creep, controller.pos, 1);
     }
 }
 
@@ -271,8 +273,7 @@ export function build_structure(creep: Creep): number {
         var arg = mymath.argmin(sort_list);
         var target = targets[arg];
         if (creep.build(target) == ERR_NOT_IN_RANGE) {
-            //movetopos(creep, target.pos)
-            creep.moveTo(target, moveoptions);
+            movetopos(creep, target.pos, 1)
         }
         return 0;
     }
@@ -410,7 +411,7 @@ export function ask_for_renew(creep: Creep) {
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
-        creep.moveTo(closest_spawn, moveoptions);
+		movetopos(creep, closest_spawn.pos, 1);
     }
 }
 export function unboost(creep: Creep) {

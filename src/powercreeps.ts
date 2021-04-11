@@ -5,7 +5,7 @@ export function work(pc: PowerCreep) {
 	if (pc == undefined || pc.shard == undefined) {
 		return;
 	}
-	pc.memory.movable = false;
+	pc.memory.movable = true;
 	pc.memory.crossable = true;
 	if (pc.usePower(PWR_GENERATE_OPS) == 0) {
 		return;
@@ -14,12 +14,7 @@ export function work(pc: PowerCreep) {
 	pc.memory.home_room_name = conf.room_name;
 	if (!pc.room.controller.isPowerEnabled) {
 		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
-			if (pc.room.name == conf.room_name) {
-				basic_job.movetopos(pc, pc.room.controller.pos, 1);
-			} else {
-				pc.moveTo(pc.room.controller.pos, {range: 1})
-			}
-			pc.memory.movable = true;
+			basic_job.movetopos(pc, pc.room.controller.pos, 1);
 		} else {
 			pc.enableRoom(pc.room.controller);
 		}
@@ -30,7 +25,6 @@ export function work(pc: PowerCreep) {
 			let powerspawn = Game.getObjectById(pc.room.memory.unique_structures_status.powerSpawn.id)
 			if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
 				basic_job.movetopos(pc, powerspawn.pos, 1);
-				pc.memory.movable = true;
 			} else {
 				pc.renew(powerspawn);
 			}
@@ -39,7 +33,6 @@ export function work(pc: PowerCreep) {
 		if (pc.carry.getUsedCapacity("ops") > pc.carryCapacity - 50) {
 			if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
 				basic_job.movetopos(pc, pc.room.terminal.pos, 1);
-				pc.memory.movable = true;
 			} else {
 				pc.transfer(pc.room.terminal, "ops");
 			}
@@ -92,13 +85,9 @@ export function work(pc: PowerCreep) {
 		effect = source.effects.filter((e) => e.effect == PWR_REGEN_SOURCE)[0];
 	}
 	if (pc.pos.getRangeTo(source) > 3) {
-		if (pc.room.name == conf.room_name) {
-			basic_job.movetopos(pc, source.pos, 3);
-		} else {
-			pc.moveTo(source, {range: 3});
-		}
-		pc.memory.movable = true;
+		basic_job.movetopos(pc, source.pos, 3);
 	} else {
+		pc.memory.movable = false;
 		if (effect == undefined || effect.ticksRemaining < 50) {
 			let out = pc.usePower(PWR_REGEN_SOURCE, source);
 			if (out == 0) {

@@ -393,7 +393,7 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
         } else {
             output = creep.withdraw(target, resource_type, Math.min(creep.store.getCapacity(), resource_status.withdraw_amount));
         }
-        if (output == 0) {
+        if (output == ERR_NOT_IN_RANGE) {
             basic_job.movetopos(creep, target.pos, 1);
         }
     } else {
@@ -404,7 +404,7 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
         } else {
             output = creep.transfer(target, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), resource_status.transfer_amount));
         }
-        if (output == 0) {
+        if (output == ERR_NOT_IN_RANGE) {
             basic_job.movetopos(creep, target.pos, 1);
         }
     }

@@ -102,7 +102,7 @@ function update_link_and_container(room_name: string) {
         room.visual.text(source_name, source_pos.x, source_pos.y);
     }
     if (link_modes.includes('MAIN')) {
-        let source_links = link_modes.filter((e) => game_memory.are_links_source[e] == true)
+		let source_links = link_modes.filter((e) => game_memory.are_links_source[e] == true && Game.getObjectById(links_status[e].id).cooldown <= 3)
         let sink_links = link_modes.filter((e) => game_memory.are_links_source[e] == false)
         let link_energies: {
             [key: string]: number
@@ -118,7 +118,11 @@ function update_link_and_container(room_name: string) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
         }
-		if (link_energies['Ext'] !== undefined && link_energies['Ext'] > 0) {
+		if (link_energies['Ext'] !== undefined && link_energies['Ext'] > 0 && Game.getObjectById(links_status.Ext.id).cooldown <= 3) {
+            room.memory.is_mainlink_source = false;
+            room.memory.maincarrier_link_amount = config.main_link_amount_sink;
+		}
+		if (room.storage.store.getUsedCapacity("energy") < 1000) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
 		}
