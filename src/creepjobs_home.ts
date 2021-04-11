@@ -298,14 +298,18 @@ export function creepjob(creep: Creep): number {
                     basic_job.moveto_stayxy(creep, conf.mineral_stay_pos);
                 }
             } else {
-                if (creep.room.terminal && creep.room.terminal.store.getFreeCapacity() >= creep.store.getCapacity()) {
+                if (creep.room.terminal) {
                     if (creep.pos.isNearTo(creep.room.terminal)) {
                         creep.transfer(creep.room.terminal, mineral_type);
                     } else {
                         basic_job.movetopos(creep, creep.room.terminal.pos, 1);
                     }
                 } else {
-                    basic_job.moveto_stayxy(creep, conf.mineral_stay_pos);
+                    if (creep.pos.isNearTo(creep.room.storage)) {
+                        creep.transfer(creep.room.storage, mineral_type);
+                    } else {
+                        basic_job.movetopos(creep, creep.room.storage.pos, 1);
+                    }
                 }
             }
         } else {

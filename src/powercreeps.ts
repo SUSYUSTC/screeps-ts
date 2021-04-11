@@ -57,7 +57,7 @@ export function work(pc: PowerCreep) {
 	if (dict_next[pc.memory.current_source_target] == undefined) {
 		pc.memory.current_source_target = "S1"
 	}
-	let source_id;
+	let source_id: Id<Source>;
 	if (pc.memory.current_source_target == "external") {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
 		if (pc.room.name !== conf.external_room) {
@@ -75,13 +75,17 @@ export function work(pc: PowerCreep) {
 		source_id = config.conf_rooms[pc.room.name].sources[source_name];
 	}
 	let source = Game.getObjectById(source_id);
-	let effect;
+	let effect: RoomObjectEffect = undefined;
 	if (source.effects !== undefined) {
 		effect = source.effects.filter((e) => e.effect == PWR_REGEN_SOURCE)[0];
 	}
 	if (effect == undefined || effect.ticksRemaining < 50) {
 		if (pc.pos.getRangeTo(source) > 3) {
-			basic_job.movetopos(pc, source.pos, 3);
+			if (pc.room.name == conf.room_name) {
+				basic_job.movetopos(pc, source.pos, 3);
+			} else {
+				pc.moveTo(source, {range: 3});
+			}
 			pc.memory.movable = true;
 		} else {
 			let out = pc.usePower(PWR_REGEN_SOURCE, source);
