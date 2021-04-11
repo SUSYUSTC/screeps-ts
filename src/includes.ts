@@ -113,8 +113,7 @@ interface PowerCreepMemory {
     movable: boolean;
 	crossable: boolean;
     stored_path ? : type_stored_path;
-	previous_room: string;
-	n_finished: number;
+	current_source_target ?: string;
 }
 interface SpawnMemory {
     spawning_time ? : number;
