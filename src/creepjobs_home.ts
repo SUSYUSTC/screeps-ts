@@ -193,7 +193,7 @@ export function creepjob(creep: Creep): number {
         creep.memory.movable = false;
         creep.memory.crossable = true;
         let link_mode = link_modes.includes('CT');
-        if (creep.store["energy"] == 0) {
+        if (creep.store.getUsedCapacity("energy") == 0) {
             if (creep.ticksToLive >= 50) {
                 let freecapacity = creep.store.getFreeCapacity("energy");
                 let lower_limit = (link_mode ? Math.floor(freecapacity / 2) : freecapacity + 100);

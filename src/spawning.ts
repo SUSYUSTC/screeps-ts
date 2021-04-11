@@ -220,7 +220,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= 160000);
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= 180000);
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -482,9 +482,10 @@ export function spawn(room_name: string) {
             continue;
         }
         info_external[external_room_name] = {};
-        let conf_external = conf.external_rooms[external_room_name].controller;
-        let reserve = conf_external.reserve;
-        let reservers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'reserver', conf_external.path_time) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+        let conf_controller = conf.external_rooms[external_room_name].controller;
+		// reserver
+        let reserve = conf_controller.reserve;
+        let reservers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'reserver', conf_controller.path_time) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
         let n_needed_reservers = 1;
         if (reserve && !config.preclaiming_rooms.includes(external_room_name)) {
             if (external_room_name in Game.rooms) {
@@ -522,47 +523,35 @@ export function spawn(room_name: string) {
         if (!room.memory.external_room_status[external_room_name].safe) {
             continue;
         }
-        for (let source_name in conf.external_rooms[external_room_name].sources) {
-            info_external[external_room_name][source_name] = {}
-            let conf_external = conf.external_rooms[external_room_name].sources[source_name];
-            let n_harvester_carry;
-            let n_carrier_carry;
-            let n_carriers;
-            if (conf.external_rooms[external_room_name].container) {
-                n_harvester_carry = 1;
-                if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= conf_external.n_carry_tot * 100) {
-                    n_carriers = 1;
-                } else if (room.energyAvailable >= Math.ceil(conf_external.n_carry_tot / 2) * 100) {
-                    n_carriers = 2;
-                } else {
-                    n_carriers = 3;
-                }
-                n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
-            } else {
-                let required_energy = (n: number, k: number) => Math.max(Math.ceil(n / k) * 100, Math.ceil(n / k) * 50 + 800);
-                if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 1)) {
-                    n_carriers = 1;
-                } else if (room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 2)) {
-                    n_carriers = 2;
-                } else {
-                    n_carriers = 3;
-                }
-                n_harvester_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
-                n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
-            }
-            let externalharvester_spawning_time = (n_harvester_carry + 10) * 3;
-            let externalcarrier_spawning_time = n_carrier_carry * 6;
-            let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == room.name);
-            let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == room.name);
+		let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
+		if_powered_source: if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room == external_room_name) {
+			let conf_powered_source = conf.external_rooms[external_room_name].powered_source;
+			if (conf_powered_source == undefined) {
+				break if_powered_source;
+			}
+			if (Game.rooms[external_room_name] == undefined) {
+				break if_powered_source;
+			}
+            let conf_external = conf.external_rooms[external_room_name].powered_source;
+			let pc_level = Game.memory[room_name].pc_source_level;
+			let harvester_conf = config.powered_external_harvester[pc_level];
+            let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest + 10) * 3;
+            let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
+			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * (3+pc_level) / 3 * 0.4);
+            let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5);
+            let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
             if (externalharvesters.length == 0 && !game_memory.danger_mode) {
                 let added_memory = {
-                    "source_name": source_name,
+                    "source_name": conf_external.source_name,
                     "external_room_name": external_room_name,
                     "home_room_name": room.name,
+					"powered": true,
                 };
                 let options = {
                     "max_energy": room.energyCapacityAvailable,
-                    "max_parts": n_harvester_carry,
+					"n_work": harvester_conf.n_harvest,
+					"n_carry": harvester_conf.n_carry,
+					"n_move": harvester_conf.n_move,
                 }
                 let priority = (externalcarriers.length > 0 ? 31 : 21);
                 let added_json = {
@@ -571,17 +560,20 @@ export function spawn(room_name: string) {
                 };
                 let json = spawning_func.prepare_role("externalharvester", room.energyAvailable, added_memory, options, added_json);
                 jsons.push(json);
+				info_external[external_room_name][conf_external.source_name].n_harvesters = externalharvesters.length + "/" + "1";
             }
-            info_external[external_room_name][source_name].n_harvesters = externalharvesters.length + "/" + "1";
-            if (externalcarriers.length < n_carriers && !game_memory.danger_mode) {
+            if (externalcarriers.length == 0 && !game_memory.danger_mode) {
                 let added_memory = {
-                    "source_name": source_name,
+                    "source_name": conf_external.source_name,
                     "external_room_name": external_room_name,
                     "home_room_name": room.name,
+					"powered": true,
                 };
                 let options = {
                     "max_energy": room.energyCapacityAvailable,
-                    "max_parts": n_carrier_carry,
+					"n_work": 1,
+					"n_carry": n_carrier_carry,
+					"n_move": Math.ceil(n_carrier_carry/2) + 1,
                 }
                 let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {
@@ -590,9 +582,103 @@ export function spawn(room_name: string) {
                 };
                 let json = spawning_func.prepare_role("externalcarrier", room.energyAvailable, added_memory, options, added_json);
                 jsons.push(json);
+				info_external[external_room_name][conf_external.source_name].n_carriers = externalcarriers.length + "/" + "1";
             }
-            info_external[external_room_name][source_name].n_carriers = externalcarriers.length + "/" + n_carriers;
-        }
+			let n_external_builder_needed = 0;
+			if (room.memory.powered_external_sites_total_progressleft !== undefined && room.memory.powered_external_sites_total_progressleft > 0) {
+				let n_builds_needed = Math.min(15, Math.ceil(room.memory.powered_external_sites_total_progressleft / 2000));
+				if (n_builds < n_builds_needed && !game_memory.danger_mode) {
+					let added_memory = {
+						"external_room_name": external_room_name,
+						"home_room_name": room.name,
+					};
+					let options = {
+						"max_energy": room.energyCapacityAvailable,
+						"max_parts": Math.min(15, n_builds_needed),
+					};
+					let priority = 2;
+					let added_json = {
+						"priority": priority,
+						"require_full": true && game_memory.lack_energy,
+					};
+					let json = spawning_func.prepare_role("externalbuilder", room.energyAvailable, added_memory, options, added_json);
+					jsons.push(json);
+				}
+			}
+		} else {
+			for (let source_name in conf.external_rooms[external_room_name].sources) {
+				info_external[external_room_name][source_name] = {}
+				let conf_external = conf.external_rooms[external_room_name].sources[source_name];
+				// externalharvester and externalcarrier
+				let n_harvester_carry;
+				let n_carrier_carry;
+				let n_carriers;
+				if (conf.external_rooms[external_room_name].container) {
+					n_harvester_carry = 1;
+					if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= conf_external.n_carry_tot * 100) {
+						n_carriers = 1;
+					} else if (room.energyAvailable >= Math.ceil(conf_external.n_carry_tot / 2) * 100) {
+						n_carriers = 2;
+					} else {
+						n_carriers = 3;
+					}
+					n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
+				} else {
+					let required_energy = (n: number, k: number) => Math.max(Math.ceil(n / k) * 100, Math.ceil(n / k) * 50 + 800);
+					if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 1)) {
+						n_carriers = 1;
+					} else if (room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 2)) {
+						n_carriers = 2;
+					} else {
+						n_carriers = 3;
+					}
+					n_harvester_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
+					n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
+				}
+				let externalharvester_spawning_time = (n_harvester_carry + 10) * 3;
+				let externalcarrier_spawning_time = n_carrier_carry * 6;
+				let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == room.name);
+				let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == room.name);
+				if (externalharvesters.length == 0 && !game_memory.danger_mode) {
+					let added_memory = {
+						"source_name": source_name,
+						"external_room_name": external_room_name,
+						"home_room_name": room.name,
+					};
+					let options = {
+						"max_energy": room.energyCapacityAvailable,
+						"max_parts": n_harvester_carry,
+					}
+					let priority = (externalcarriers.length > 0 ? 31 : 21);
+					let added_json = {
+						"priority": priority,
+						"require_full": true && game_memory.lack_energy,
+					};
+					let json = spawning_func.prepare_role("externalharvester", room.energyAvailable, added_memory, options, added_json);
+					jsons.push(json);
+				}
+				info_external[external_room_name][source_name].n_harvesters = externalharvesters.length + "/" + "1";
+				if (externalcarriers.length < n_carriers && !game_memory.danger_mode) {
+					let added_memory = {
+						"source_name": source_name,
+						"external_room_name": external_room_name,
+						"home_room_name": room.name,
+					};
+					let options = {
+						"max_energy": room.energyCapacityAvailable,
+						"max_parts": n_carrier_carry,
+					}
+					let priority = (externalharvesters.length > 0 ? 30 : 20);
+					let added_json = {
+						"priority": priority,
+						"require_full": true && game_memory.lack_energy,
+					};
+					let json = spawning_func.prepare_role("externalcarrier", room.energyAvailable, added_memory, options, added_json);
+					jsons.push(json);
+				}
+				info_external[external_room_name][source_name].n_carriers = externalcarriers.length + "/" + n_carriers;
+			}
+		}
     }
     let Invader_rooms = Object.keys(external_room_status).filter((e) => !(['', 'user'].includes(external_room_status[e].defense_type)));
     if (Invader_rooms.length > 0) {

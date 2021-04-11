@@ -107,22 +107,59 @@ module.exports.loop = function() {
 
 	cpu_used = Game.cpu.getUsed();
 	terminal.terminal_balance();
-	labs.prepare();
     for (var room_name of config.controlled_rooms) {
 		try {
 			terminal.process_resource_sending_request(room_name);
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.terminal = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+	labs.prepare();
+	Game.tick_cpu_main.lab_prepare = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+    for (var room_name of config.controlled_rooms) {
+		try {
 			labs.reaction(room_name);
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.lab_reaction = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+    for (var room_name of config.controlled_rooms) {
+		try {
 			factory.produce(room_name);
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+    }
+	Game.tick_cpu_main.factory = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
+    for (var room_name of config.controlled_rooms) {
+		try {
 			powerspawn.process(room_name);
 		} catch (err) {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.adv = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.powerspawn = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
-	market.clear_used();
-	market.regulate_all_order_prices();
+	try {
+		market.clear_used();
+		market.regulate_all_order_prices();
+	} catch (err) {
+		console.log("Error", err.stack);
+	}
+	Game.tick_cpu_main.market_regulate = Game.cpu.getUsed() - cpu_used;
+
+	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
 			market.process_buy_order(room_name);
@@ -131,7 +168,7 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.market = Game.cpu.getUsed() - cpu_used;
+	Game.tick_cpu_main.market_process = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
 	try {

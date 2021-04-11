@@ -129,6 +129,9 @@ const getbody_builder = (options: any): BodyPartConstant[] => {
     let n_work = n_carry;
     return returnbody(n_work, n_carry, n_move);
 }
+const getbody_externalbuilder = (options: any): BodyPartConstant[] => {
+    return returnbody(options.max_parts, options.max_parts, options.max_parts);
+}
 const getbody_carrier = (options: any): BodyPartConstant[] => {
     let temp_n_move = Math.floor((options.max_energy + 50) / 150);
     let n_carry = Math.min(options.max_energy / 50 - temp_n_move, temp_n_move * 2);
@@ -206,6 +209,7 @@ const getbody_list: type_getbody = {
     'claimer': getbody_claimer,
     'externalharvester': getbody_externalharvester,
     'externalcarrier': getbody_externalcarrier,
+    'externalbuilder': getbody_externalbuilder,
     'help_harvester': getbody_help_harvester,
     'help_carrier': getbody_help_carrier,
     'help_builder': getbody_help_builder,

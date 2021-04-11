@@ -140,7 +140,8 @@ export var conf_E14N59: type_conf_room =
             [26, 26],
             [28, 27],
             [27, 26],
-            [28, 28]
+            [28, 28],
+            [28, 25]
         ],
         "4": [
             [22, 34],
@@ -158,7 +159,27 @@ export var conf_E14N59: type_conf_room =
         "8": [
             [14, 29],
             [15, 28],
-            [13, 28]
+            [13, 28],
+            [29, 24],
+            [30, 23],
+            [38, 23],
+            [31, 22],
+            [32, 21],
+            [33, 20],
+            [34, 19],
+            [35, 20],
+            [36, 21],
+            [37, 22],
+            [39, 24],
+            [40, 25],
+            [41, 26],
+            [42, 27],
+            [43, 27],
+            [44, 28],
+            [45, 28],
+            [46, 29],
+            [47, 30],
+            [48, 30]
         ]
     },
     "spawns": {
@@ -221,6 +242,10 @@ export var conf_E14N59: type_conf_room =
         "CT": {
             "pos": [27, 27],
             "RCL": 5
+        },
+        "Ext": {
+            "pos": [47, 31],
+            "RCL": 8
         },
         "L1": {
             "pos": [16, 28],
@@ -407,6 +432,40 @@ export var conf_E14N59: type_conf_room =
                     "rooms_backwardpath": ["E15N59", "E14N59"],
                     "poses_backwardpath": [30]
                 }
+            },
+            "powered_source": {
+                "source_name": "S2",
+                "carrier_distance": 18,
+                "carry_end": {
+                    "type": "link",
+                    "name": "Ext"
+                },
+                "roads": [
+                    [1, 30],
+                    [2, 31],
+                    [3, 32],
+                    [4, 32],
+                    [5, 32],
+                    [6, 32],
+                    [7, 32],
+                    [8, 32],
+                    [9, 31],
+                    [10, 31],
+                    [11, 30],
+                    [12, 29],
+                    [13, 28],
+                    [14, 27],
+                    [15, 26],
+                    [16, 25],
+                    [17, 24]
+                ],
+                "id": <Id<Source>>"5bbcadc79099fc012e637d6c",
+                "harvester_pos": [17, 23],
+                "single_distance": 44,
+                "rooms_forwardpath": ["E14N59", "E15N59"],
+                "rooms_backwardpath": ["E15N59", "E14N59"],
+                "poses_forwardpath": [30],
+                "poses_backwardpath": [30]
             }
         }
     },

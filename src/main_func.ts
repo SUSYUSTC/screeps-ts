@@ -136,6 +136,10 @@ function update_layout(room_name: string, check_all: boolean = false) {
         return;
     }
     let conf = config.conf_rooms[room_name];
+	let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
+	if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room !== undefined && Game.rooms[corresponding_pc_conf.external_room] !== undefined) {
+		layout.update_multiple_structures(corresponding_pc_conf.external_room, "road", {"0": conf.external_rooms[corresponding_pc_conf.external_room].powered_source.roads}, true);
+	}
     let level_finished = true;
     let containers_finished = (layout.update_named_structures(room_name, "container", conf.containers, true) == 0);
     let links_finished = (layout.update_named_structures(room_name, "link", conf.links, true) == 0);
@@ -195,6 +199,12 @@ function update_construction_sites(room_name: string) {
         let sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
         room.memory.sites_total_progressleft = mymath.array_sum(sites_progressleft);
     }
+	let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
+	if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room !== undefined && Game.rooms[corresponding_pc_conf.external_room] !== undefined) {
+		let sites = Game.rooms[corresponding_pc_conf.external_room].find(FIND_MY_CONSTRUCTION_SITES);
+        let sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
+		room.memory.powered_external_sites_total_progressleft = mymath.array_sum(sites_progressleft);
+	}
 
     if (room.memory.ticks_to_spawn_builder > 0) {
         room.memory.ticks_to_spawn_builder -= 1;

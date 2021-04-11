@@ -130,6 +130,9 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
             if (source1_lab.mineralType == undefined && source2_lab.mineralType == undefined) {
                 creep.room.memory.reaction_ready = false;
             }
+			if (request == undefined) {
+				return 1;
+			}
         } else {
             if (source1_lab.store.getUsedCapacity(request.reactant1) == 280 && source2_lab.store.getUsedCapacity(request.reactant2) == 280) {
                 creep.room.memory.reaction_ready = true;
@@ -188,7 +191,9 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 }
             }
         }
-    }
+	} else {
+		creep.room.memory.reaction_ready = true;
+	}
     return 1;
 }
 
@@ -431,7 +436,7 @@ export function creepjob(creep: Creep): number {
             boost_serve(creep, conf_maincarrier);
             return 0;
         }
-        if (creep.room.memory.reaction_request !== undefined && creep.room.terminal) {
+        if (creep.room.terminal && (creep.room.memory.reaction_request !== undefined || creep.room.memory.reaction_ready)) {
             creep.say("react");
             if (react_serve(creep, conf_maincarrier) == 0) {
                 return 0;

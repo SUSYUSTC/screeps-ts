@@ -294,7 +294,7 @@ export var conf_E15N58: type_conf_room =
         },
         "S2": {
             "pos": [37, 18],
-            "RCL": 6
+            "RCL": 7
         }
     },
     "containers": {

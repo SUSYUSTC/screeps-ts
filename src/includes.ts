@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -50,6 +50,7 @@ interface RoomMemory {
     n_ramparts ? : number;
     external_resources ? : type_external_resources;
     sites_total_progressleft ? : number;
+	powered_external_sites_total_progressleft ?: number;
     tower_list ? : Id < StructureTower > [];
     spawn_list ? : Id < StructureSpawn > [];
 	resource_sending_request ?: type_resource_sending_request[];
@@ -106,6 +107,7 @@ interface CreepMemory {
     resource_type ? : ResourceConstant;
     ready ? : boolean;
 	pc_level ?: number;
+	powered ?: boolean;
 }
 interface PowerCreepMemory {
     movable: boolean;
@@ -469,7 +471,7 @@ declare module NodeJS {
             [key: string]: CostMatrix;
         }
         test_var: boolean;
-        visualize_cost(room_name: string): number;
+        visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
         summarize_terminal(): type_resource_number;

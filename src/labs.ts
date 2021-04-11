@@ -175,6 +175,9 @@ export function reaction(room_name: string) {
     if (!room.memory.reaction_ready) {
         return;
     }
+	if (Game.cpu.bucket < 2000) {
+		return;
+	}
     let conf = config.conf_rooms[room_name].labs;
     let labs_status = room.memory.named_structures_status.lab;
     if (_.map(labs_status, (e) => e.finished).length == 10) {

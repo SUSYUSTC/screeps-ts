@@ -156,10 +156,10 @@ export function analyze_component(creep: Creep): type_creep_components {
     };
 }
 
-global.visualize_cost = function(room_name: string, xmin: number = 0, xmax: number = 49, ymin: number = 0, ymax: number = 49) {
+global.visualize_cost = function(room_name: string, x_center: number, y_center: number, range: number): number {
     let cost = get_costmatrix_road(room_name);
-    for (let x = xmin; x <= xmax; x++) {
-        for (let y = ymin; y <= ymax; y++) {
+    for (let x = x_center - range; x <= x_center + range; x++) {
+        for (let y = y_center - range; y <= y_center + range; y++) {
             Game.rooms[room_name].visual.text(cost.get(x, y).toString(), x, y);
         }
     }

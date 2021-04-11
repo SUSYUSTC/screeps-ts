@@ -30,8 +30,8 @@ import {
 
 //conf_E14N59.external_rooms.E15N59.container = true;
 //onf_E14N59.external_rooms.E15N59.active = true;
-conf_E9N54.external_rooms.E8N54.container = true;
-conf_E9N54.external_rooms.E8N54.active = true;
+//conf_E9N54.external_rooms.E8N54.container = true;
+//conf_E9N54.external_rooms.E8N54.active = true;
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -49,6 +49,7 @@ interface type_pc_conf {
     [key: string]: {
         room_name: string;
         source: boolean;
+		external_room ?: string;
     }
 }
 interface type_powered_harvester {
@@ -347,6 +348,33 @@ export var powered_harvester: type_powered_harvester = {
     5: {
         n_harvest: 14,
         n_carry: 6,
+        n_move: 2,
+    },
+}
+export var powered_external_harvester: type_powered_harvester = {
+    1: {
+        n_harvest: 8,
+        n_carry: 1,
+        n_move: 4,
+    },
+    2: {
+        n_harvest: 9,
+        n_carry: 1,
+        n_move: 5,
+    },
+    3: {
+        n_harvest: 11,
+        n_carry: 1,
+        n_move: 6,
+    },
+    4: {
+        n_harvest: 13,
+        n_carry: 1,
+        n_move: 7,
+    },
+    5: {
+        n_harvest: 14,
+        n_carry: 1,
         n_move: 2,
     },
 }

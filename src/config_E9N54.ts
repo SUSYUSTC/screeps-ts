@@ -360,8 +360,6 @@ export var conf_E9N54: type_conf_room =
         "waiting_pos": [24, 44],
         "working_zone": [
             [25, 45],
-            [23, 45],
-            [24, 44],
             [25, 46],
             [24, 47],
             [26, 47]
