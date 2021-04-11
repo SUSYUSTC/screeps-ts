@@ -75,11 +75,9 @@ export function spawn(room_name: string) {
             }
         }
         let creeps = room_creeps.filter((creep) => creep.memory.source_name == source_name);
-        let harvesters = creeps.filter((e) => is_valid_creep(e, 'harvester', conf.harvesters[source_name].commuting_time + 18));
         let this_container = Game.getObjectById(containers_status[source_name].id);
         let is_container_broken = (this_container.hitsMax - this_container.hits >= 100000);
         let carriers = creeps.filter((e) => is_valid_creep(e, 'carrier', Math.ceil(conf.carriers[source_name].number * 4.5) + 10));
-        let n_harvesters = harvesters.length;
         let n_carrys = spawning_func.get_nbody(carriers, 'carry')
         let max_carry = 0;
         let link_mode = link_modes.includes('CT') && link_modes.includes(source_name);
@@ -100,6 +98,8 @@ export function spawn(room_name: string) {
             with_carry = config.powered_harvester[level].n_carry;
             with_move = config.powered_harvester[level].n_move;
         }
+        let harvesters = creeps.filter((e) => is_valid_creep(e, 'harvester', conf.harvesters[source_name].commuting_time + (with_harvest + with_move + with_move)*3));
+        let n_harvesters = harvesters.length;
         info_source[source_name] = {
             n_carrys: n_carrys + "/" + max_carry,
             n_harvesters: harvesters.length + "/" + "1"
