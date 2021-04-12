@@ -19,20 +19,6 @@ global.set_reaction_request = function(room_name: string, compound: MineralCompo
     }
 }
 
-function get_all_reactants(obj: GeneralMineralConstant): GeneralMineralConstant[] {
-    if (['Z', 'K', 'U', 'L', 'X', 'O', 'H'].includes(obj)) {
-        return [obj];
-    } else {
-        let reactant1 = constants.allowed_reactions[ < MineralCompoundConstant > obj][0];
-        let reactant2 = constants.allowed_reactions[ < MineralCompoundConstant > obj][1];
-        let s1 = get_all_reactants(reactant1);
-        let s2 = get_all_reactants(reactant2);
-        let reactants_set = new Set(s1.concat(s2));
-        reactants_set.add(obj);
-        return Array.from(reactants_set);
-    }
-}
-
 type type_reactants_number = {
     [key in GeneralMineralConstant] ? : number;
 }
@@ -207,6 +193,34 @@ export function reaction(room_name: string) {
     }
 }
 
+function get_all_reactants(obj: GeneralMineralConstant): GeneralMineralConstant[] {
+    if (['Z', 'K', 'U', 'L', 'X', 'O', 'H'].includes(obj)) {
+        return [obj];
+    } else {
+        let reactant1 = constants.allowed_reactions[ < MineralCompoundConstant > obj][0];
+        let reactant2 = constants.allowed_reactions[ < MineralCompoundConstant > obj][1];
+        let s1 = get_all_reactants(reactant1);
+        let s2 = get_all_reactants(reactant2);
+        let reactants_set = new Set(s1.concat(s2));
+        reactants_set.add(obj);
+        return Array.from(reactants_set);
+    }
+}
+
+function process_product_request(obj: GeneralMineralConstant, amount: number) {
+	Memory.product_request[obj] += amount;
+	if (Memory.product_request[obj] <= 0) {
+		return;
+	}
+	if (constants.basic_minerals.includes(<MineralConstant>obj)) {
+		return;
+	}
+	let reactant1 = constants.allowed_reactions[ < MineralCompoundConstant > obj][0];
+	let reactant2 = constants.allowed_reactions[ < MineralCompoundConstant > obj][1];
+	process_product_request(reactant1, Memory.product_request[obj]);
+	process_product_request(reactant2, Memory.product_request[obj]);
+}
+
 global.reset_product_request = function(): number {
     if (Memory.final_product_request == undefined) {
         Memory.final_product_request = {};
@@ -232,18 +246,16 @@ global.reset_product_request = function(): number {
 			if (terminal_amounts[reactant] == undefined) {
 				terminal_amounts[reactant] = 0;
 			}
-            Memory.product_request[reactant] = -terminal_amounts[reactant] + constants.mineral_minimum_amount[reactant] * n_store_rooms;
+			Memory.product_request[reactant] = -terminal_amounts[reactant] + constants.mineral_minimum_amount[reactant] * n_store_rooms;
 		}
     }
+	for (let resource of <Array<GeneralMineralConstant>>Object.keys(config.reserved_resources)) {
+		if (constants.general_minerals.includes(resource)) {
+			Memory.product_request[resource] = -terminal_amounts[resource] + constants.mineral_minimum_amount[resource] * n_store_rooms;
+		}
+	}
     for (let resource of request_final_products) {
-        let reactants = get_all_reactants(resource);
-        Memory.product_request[resource] = 0;
-        for (let r of reactants) {
-            if (Memory.product_request[r] == undefined) {
-                Memory.product_request[r] = 0;
-            }
-            Memory.product_request[r] += Memory.final_product_request[resource];
-        }
+		process_product_request(resource, Memory.final_product_request[resource]);
     }
     return 0;
 }
