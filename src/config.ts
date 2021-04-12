@@ -104,26 +104,62 @@ export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var preclaiming_rooms: string[] = [];
 type type_acceptable_prices = {
 	buy: {
-		[key in MarketResourceConstant] ?: number;
+		[key in MarketResourceConstant] ?: {
+			price: number;
+			interval: number;
+		}
 	},
 	sell: {
-		[key in MarketResourceConstant] ?: number;
+		[key in MarketResourceConstant] ?: {
+			price: number;
+			interval: number;
+		}
 	},
 }
 export var acceptable_prices: type_acceptable_prices = {
 	"buy": {
-		"U": 0.3,
-		"L": 0.3,
-		"Z": 0.3,
-		"K": 0.3,
-		"X": 0.8,
-		"H": 0.4,
-		"O": 0.3,
-		"energy": 0.3,
-		"battery": 3.0,
+		"U": {
+			price: 0.4,
+			interval: 200,
+		},
+		"L": {
+			price: 0.4,
+			interval: 200,
+		},
+		"Z": {
+			price: 0.4,
+			interval: 200,
+		},
+		"K": {
+			price: 0.4,
+			interval: 200,
+		},
+		"X": {
+			price: 0.8,
+			interval: 200,
+		},
+		"H": {
+			price: 0.6,
+			interval: 200,
+		},
+		"O": {
+			price: 0.3,
+			interval: 200,
+		},
+		"energy": {
+			price: 0.3,
+			interval: -1,
+		},
+		"battery": {
+			price: 3.0,
+			interval: 400,
+		}
 	},
 	"sell": {
-		"XGH2O": 8.8,
+		"XGH2O": {
+			price: 8.8,
+			interval: -1,
+		}
 	}
 }
 type type_resources_balance = {

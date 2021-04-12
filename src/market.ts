@@ -189,7 +189,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
         for (let o of orders) {
             amount += o.amount;
             if (amount > order.amount / 3) {
-                if (o.price < acceptable_price) {
+                if (o.price < acceptable_price.price) {
                     console.log("Going to change order", order.resourceType, "to", o.price + 0.001);
                     Game.market.changeOrderPrice(id, o.price + 0.001);
 					return o.price + 0.001;
@@ -197,6 +197,10 @@ global.regulate_order_price = function(id: Id < Order > ): number {
 				return 0;
             }
         }
+		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
+			Game.market.changeOrderPrice(id, order.price * 1.01);
+			return 0;
+		}
     } else if (order.type == 'sell') {
         orders = orders.filter((e) => e.price < order.price && Game.market.orders[e.id] == undefined).sort((x, y) => x.price - y.price);
 		let acceptable_price = config.acceptable_prices.sell[order.resourceType];
@@ -207,7 +211,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             amount += o.amount;
             if (amount > order.amount / 3) {
                 let acceptable_price = config.acceptable_prices.sell[order.resourceType];
-                if (o.price > acceptable_price) {
+                if (o.price > acceptable_price.price) {
                     console.log("Going to change order", order.resourceType, "to", o.price - 0.001);
                     Game.market.changeOrderPrice(id, o.price - 0.001);
 					return o.price - 0.001;
@@ -215,6 +219,10 @@ global.regulate_order_price = function(id: Id < Order > ): number {
 				return 0;
             }
         }
+		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price > acceptable_price.price) {
+			Game.market.changeOrderPrice(id, order.price * 0.99);
+			return 0;
+		}
     } else {
 		return -1;
 	}
