@@ -244,7 +244,7 @@ export var conf_E14N59: type_conf_room =
             "RCL": 5
         },
         "Ext": {
-            "pos": [47, 31],
+            "pos": [43, 28],
             "RCL": 8
         },
         "L1": {
@@ -437,7 +437,7 @@ export var conf_E14N59: type_conf_room =
             },
             "powered_source": {
                 "source_name": "S2",
-                "carrier_distance": 18,
+                "carrier_distance": 22,
                 "carry_end": {
                     "type": "link",
                     "name": "Ext"

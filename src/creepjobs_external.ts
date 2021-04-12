@@ -242,7 +242,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		// Using creep.room.name !== creep.memory.home_room_name here considering the possibility that the creep need to put energy into link several times
-		if (creep.room.name == creep.memory.external_room_name && creep.store.getFreeCapacity("energy") > 0 && creep.getActiveBodyparts(WORK) > 0) {
+		if (creep.room.name == creep.memory.external_room_name && creep.store.getUsedCapacity("energy") > 0 && creep.getActiveBodyparts(WORK) > 0) {
 			let xmin = Math.max(creep.pos.x - 1, 0);
 			let xmax = Math.min(creep.pos.x + 1, 49);
 			let ymin = Math.max(creep.pos.y - 1, 0);
@@ -265,7 +265,13 @@ export function creepjob(creep: Creep): number {
 				if (conf_external.carry_end.type == 'storage') {
 					let output = basic_job.transfer_energy(creep, Game.rooms[creep.memory.home_room_name].storage);
 				} else if(conf_external.carry_end.type == 'link') {
-					let link = Game.getObjectById(creep.room.memory.named_structures_status.link[conf_external.carry_end.name].id);
+					let link_status = creep.room.memory.named_structures_status.link[conf_external.carry_end.name];
+					if (link_status == undefined || !link_status.finished) {
+						creep.memory.movable = false;
+						creep.memory.crossable = true;
+						return;
+					}
+					let link = Game.getObjectById(link_status.id);
 					let output = basic_job.transfer_energy(creep, link);
 				}
 			}

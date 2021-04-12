@@ -79,6 +79,8 @@ module.exports.loop = function() {
 			}
 		} catch (err) {
 			creep.say("Error");
+			creep.memory.movable = false;
+			creep.memory.crossable = false;
 			console.log("Error", creep.room.name, err.stack);
 		}
     }

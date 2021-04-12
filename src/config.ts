@@ -59,10 +59,6 @@ interface type_powered_harvester {
         n_move: number;
     }
 }
-type type_wall_rates = {
-    [key: string]: number;
-}
-
 export var conf_rooms: type_conf_rooms = {
     "E16N58": conf_E16N58,
     "E15N58": conf_E15N58,
@@ -252,7 +248,7 @@ export var highway_resources: {
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
 export var storage_full: number = 300000;
-export var wall_rates: type_wall_rates = {
+export var wall_rates: {[key: string]: number} = {
     "E14N51": 0,
     "E19N51": 0,
     "E19N53": 0,
@@ -276,6 +272,13 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G", "O", "GO", "OH"]),
 	//"E9N54": ["L"],
 };
+export var reserved_resources: {[key in ResourceConstant] ?: number} = {
+	"UH2O": 20000,
+	"LO": 20000,
+	"GHO2": 5000,
+	"LH2O": 20000,
+	"GH2O": 40000,
+}
 
 export var help_list: type_help_list = {
     "E14N51": {

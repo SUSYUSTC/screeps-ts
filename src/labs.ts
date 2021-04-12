@@ -217,6 +217,12 @@ global.reset_product_request = function(): number {
 		}
 	}
     let terminal_amounts = global.summarize_terminal()
+	for (let resource of <Array<ResourceConstant>>Object.keys(config.reserved_resources)) {
+		if (terminal_amounts[resource] == undefined) {
+			terminal_amounts[resource] = 0;
+		}
+		terminal_amounts[resource] -= config.reserved_resources[resource];
+	}
     Memory.product_request = {};
 	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
 	let n_store_rooms = Object.keys(config.mineral_storage_room).length;
