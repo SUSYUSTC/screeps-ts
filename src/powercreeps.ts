@@ -33,7 +33,7 @@ export function work(pc: PowerCreep) {
 		return;
 	}
 	if (pc.room.name == conf.room_name) {
-		if (pc.ticksToLive < 300) {
+		if (pc.ticksToLive < 500) {
 			pc.say("renew");
 			let powerspawn = Game.getObjectById(pc.room.memory.unique_structures_status.powerSpawn.id)
 			if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
