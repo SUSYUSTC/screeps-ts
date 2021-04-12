@@ -22,6 +22,10 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
         Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
+	if (creep.pos.getRangeTo(pos) <= range) {
+		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		return;
+	}
     let regenerate_path;
 	if (costmatrix == null) {
 		costmatrix = functions.get_costmatrix_road(creep.room.name);

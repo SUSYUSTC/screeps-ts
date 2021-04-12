@@ -28,8 +28,8 @@ import {
     conf_E9N54
 } from "./config_E9N54"
 
-//conf_E14N59.external_rooms.E15N59.container = true;
-//onf_E14N59.external_rooms.E15N59.active = true;
+conf_E14N59.external_rooms.E15N59.container = true;
+conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.container = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 
@@ -83,6 +83,7 @@ export var pc_conf: type_pc_conf = {
     "PC_A": {
         "room_name": "E14N59",
         "source": true,
+		"external_room": "E15N59",
     },
     "PC_B": {
         "room_name": "E19N55",

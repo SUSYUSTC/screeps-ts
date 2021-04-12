@@ -14,16 +14,19 @@ export function work(pc: PowerCreep) {
 	pc.memory.home_room_name = conf.room_name;
 	if (pc.room.name !== conf.room_name) {
 		if (conf.external_room == undefined) {
+			pc.say("miss1");
 			return;
 		}
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
 		if (!conf_external.rooms_forwardpath.includes(pc.room.name)) {
+			pc.say("miss2");
 			return;
 		}
 	}
 	if (!pc.room.controller.isPowerEnabled) {
+		pc.say("enable");
 		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
-			basic_job.movetopos(pc, pc.room.controller.pos, 1);
+			pc.moveTo(pc.room.controller, {range: 3});
 		} else {
 			pc.enableRoom(pc.room.controller);
 		}
@@ -31,6 +34,7 @@ export function work(pc: PowerCreep) {
 	}
 	if (pc.room.name == conf.room_name) {
 		if (pc.ticksToLive < 300) {
+			pc.say("renew");
 			let powerspawn = Game.getObjectById(pc.room.memory.unique_structures_status.powerSpawn.id)
 			if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
 				basic_job.movetopos(pc, powerspawn.pos, 1);
@@ -40,6 +44,7 @@ export function work(pc: PowerCreep) {
 			return;
 		}
 		if (pc.carry.getUsedCapacity("ops") > pc.carryCapacity - 50) {
+			pc.say("ops");
 			if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
 				basic_job.movetopos(pc, pc.room.terminal.pos, 1);
 			} else {

@@ -254,6 +254,10 @@ export function creepjob(creep: Creep): number {
 		}
 		let xy = conf_external.harvester_pos;
 		let pos = creep.room.getPositionAt(xy[0], xy[1]);
+		if (creep.pos.isNearTo(pos)) {
+			creep.memory.movable = false;
+			creep.memory.crossable = true;
+		}
 		if (creep.store.getFreeCapacity("energy") <= 10 || ((creep.room.name !== creep.memory.external_room_name || creep.pos.getRangeTo(pos) > 1) && creep.store.getUsedCapacity("energy") > 0)) {
 			if (creep.room.name !== creep.memory.home_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
@@ -331,6 +335,8 @@ export function creepjob(creep: Creep): number {
 		return 0;
 	} else if (creep.memory.role == 'externalbuilder') {
 		creep.say("EB");
+		creep.memory.movable = false;
+		creep.memory.crossable = true;
 		if (creep.store.getUsedCapacity("energy") == 0) {
 			if (creep.room.name == creep.memory.external_room_name) {
 				let containers = <Array<StructureContainer>> creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'container');
@@ -344,12 +350,19 @@ export function creepjob(creep: Creep): number {
 					if (creep.pos.getRangeTo(container) > 1) {
 						basic_job.movetopos(creep, container.pos, 1);
 					} else {
-						creep.withdraw(container, "energy");
+						if (container.store.getUsedCapacity("energy") > 0) {
+							creep.withdraw(container, "energy");
+						} else {
+							return 0;
+						}
 					}
 				}
 			} else {
 				if (creep.room.name == creep.memory.home_room_name) {
-					let linkcontainer = basic_job.select_linkcontainer(creep);
+					let linkcontainer = basic_job.select_linkcontainer(creep, creep.store.getCapacity());
+					if (linkcontainer == null) {
+						return 0;
+					}
 					if (creep.pos.getRangeTo(linkcontainer) > 1) {
 						basic_job.movetopos(creep, linkcontainer.pos, 1);
 					} else {

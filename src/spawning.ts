@@ -586,7 +586,7 @@ export function spawn(room_name: string) {
 				info_external[external_room_name][conf_external.source_name].n_carriers = externalcarriers.length + "/" + "1";
             }
 			if (room.memory.powered_external_sites_total_progressleft !== undefined && room.memory.powered_external_sites_total_progressleft > 0) {
-				let n_builds_needed = Math.min(15, Math.ceil(room.memory.powered_external_sites_total_progressleft / 2000));
+				let n_builds_needed = Math.min(15, Math.ceil(room.memory.powered_external_sites_total_progressleft / 2000) + 3);
 				let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
 				let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
 				if (n_builds < n_builds_needed && !game_memory.danger_mode) {
