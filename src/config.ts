@@ -81,7 +81,7 @@ export function distance_metric(room_name: string, pos1: RoomPosition, pos2: Roo
 
 export var pc_conf: type_pc_conf = {
     "PC_A": {
-        "room_name": "E19N51",
+        "room_name": "E14N59",
         "source": true,
     },
     "PC_B": {
@@ -120,31 +120,31 @@ export var acceptable_prices: type_acceptable_prices = {
 	"buy": {
 		"U": {
 			price: 0.4,
-			interval: 200,
+			interval: 1000,
 		},
 		"L": {
 			price: 0.4,
-			interval: 200,
+			interval: 1000,
 		},
 		"Z": {
 			price: 0.4,
-			interval: 200,
+			interval: 1000,
 		},
 		"K": {
 			price: 0.4,
-			interval: 200,
+			interval: 1000,
 		},
 		"X": {
 			price: 0.8,
-			interval: 200,
+			interval: 1000,
 		},
 		"H": {
 			price: 0.6,
-			interval: 200,
+			interval: 1000,
 		},
 		"O": {
 			price: 0.3,
-			interval: 200,
+			interval: 1000,
 		},
 		"energy": {
 			price: 0.3,
@@ -152,7 +152,7 @@ export var acceptable_prices: type_acceptable_prices = {
 		},
 		"battery": {
 			price: 3.0,
-			interval: 400,
+			interval: 1000,
 		}
 	},
 	"sell": {

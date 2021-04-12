@@ -12,6 +12,15 @@ export function work(pc: PowerCreep) {
 	}
 	let conf = config.pc_conf[pc.name];
 	pc.memory.home_room_name = conf.room_name;
+	if (pc.room.name !== conf.room_name) {
+		if (conf.external_room == undefined) {
+			return;
+		}
+		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
+		if (!conf_external.rooms_forwardpath.includes(pc.room.name)) {
+			return;
+		}
+	}
 	if (!pc.room.controller.isPowerEnabled) {
 		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
 			basic_job.movetopos(pc, pc.room.controller.pos, 1);
@@ -55,6 +64,7 @@ export function work(pc: PowerCreep) {
 	if (dict_next[pc.memory.current_source_target] == undefined) {
 		pc.memory.current_source_target = "S1"
 	}
+	pc.say(pc.memory.current_source_target);
 	if (pc.room.name !== conf.room_name && Game.rooms[conf.room_name].memory.external_room_status[conf.external_room].defense_type !== '') {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
 		if (pc.room.name !== conf.external_room) {
