@@ -14,6 +14,23 @@ var moveoptions = {
     costCallback: functions.avoid_exits,
 };
 
+function movetopos_restricted(creep: Creep, pos: RoomPosition, range: number): number {
+	// target has to be in the range of working zone
+    let output = 1;
+    let costmatrix = functions.get_costmatrix_road(creep.room.name).clone()
+    let conf_maincarrier = config.conf_rooms[creep.room.name].maincarrier;
+    for (let xy of conf_maincarrier.working_zone) {
+        costmatrix.set(xy[0], xy[1], 1);
+    }
+    for (let xy of conf_maincarrier.working_zone) {
+        if (pos.getRangeTo(xy[0], xy[1]) <= range) {
+            basic_job.movetopos(creep, creep.room.getPositionAt(xy[0], xy[1]), 0, costmatrix);
+            return 0;
+        }
+    }
+    return output;
+}
+
 function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
     // 0: moving, 1: arrived
     let main_pos = creep.room.getPositionAt(conf_maincarrier.main_pos[0], conf_maincarrier.main_pos[1]);
@@ -53,22 +70,6 @@ function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
         return 0;
     }
     return 1;
-}
-
-function movetopos_restricted(creep: Creep, pos: RoomPosition, range: number): number {
-    let output = 1;
-    let costmatrix = functions.get_costmatrix_road(creep.room.name).clone()
-    let conf_maincarrier = config.conf_rooms[creep.room.name].maincarrier;
-    for (let xy of conf_maincarrier.working_zone) {
-        costmatrix.set(xy[0], xy[1], 1);
-    }
-    for (let xy of conf_maincarrier.working_zone) {
-        if (pos.getRangeTo(xy[0], xy[1]) <= range) {
-            basic_job.movetopos(creep, creep.room.getPositionAt(xy[0], xy[1]), 0, costmatrix);
-            return 0;
-        }
-    }
-    return output;
 }
 
 function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant) {
@@ -394,7 +395,7 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
             output = creep.withdraw(target, resource_type, Math.min(creep.store.getCapacity(), resource_status.withdraw_amount));
         }
         if (output == ERR_NOT_IN_RANGE) {
-            basic_job.movetopos(creep, target.pos, 1);
+            movetopos_restricted(creep, target.pos, 1);
         }
     } else {
         let target = structure_from_name(creep.room.name, resource_status.sink);
@@ -405,7 +406,7 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
             output = creep.transfer(target, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), resource_status.transfer_amount));
         }
         if (output == ERR_NOT_IN_RANGE) {
-            basic_job.movetopos(creep, target.pos, 1);
+            movetopos_restricted(creep, target.pos, 1);
         }
     }
     return 0;
@@ -449,6 +450,7 @@ export function creepjob(creep: Creep): number {
                 costmatrix.set(xy[0], xy[1], 1);
             }
             basic_job.movetopos(creep, main_pos, 0, costmatrix);
+			return 0;
         }
         let mineral_type = Game.memory[creep.room.name].mine_status.type;
         let creep_energy = creep.store.getUsedCapacity("energy");
