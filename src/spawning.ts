@@ -572,9 +572,9 @@ export function spawn(room_name: string) {
                 };
                 let options = {
                     "max_energy": room.energyCapacityAvailable,
-					"n_work": 1,
+					"n_work": 2,
 					"n_carry": n_carrier_carry,
-					"n_move": Math.ceil(n_carrier_carry/2) + 1,
+					"n_move": Math.ceil(n_carrier_carry/2) + 2,
                 }
                 let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {
