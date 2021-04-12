@@ -198,7 +198,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             }
         }
 		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
-			Game.market.changeOrderPrice(id, order.price * 1.01);
+			Game.market.changeOrderPrice(id, order.price * 1.02);
 			return 0;
 		}
     } else if (order.type == 'sell') {
@@ -220,7 +220,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             }
         }
 		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price > acceptable_price.price) {
-			Game.market.changeOrderPrice(id, order.price * 0.99);
+			Game.market.changeOrderPrice(id, order.price * 0.98);
 			return 0;
 		}
     } else {

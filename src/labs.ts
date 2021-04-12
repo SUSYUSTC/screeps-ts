@@ -211,7 +211,7 @@ global.reset_product_request = function(): number {
     if (Memory.final_product_request == undefined) {
         Memory.final_product_request = {};
     }
-	for (let resource of <Array<GeneralMineralConstant>>Memory.final_product_request) {
+	for (let resource of <Array<GeneralMineralConstant>>Object.keys(Memory.final_product_request)) {
 		if (Memory.final_product_request[resource] <= 0) {
 			delete Memory.final_product_request[resource];
 		}
