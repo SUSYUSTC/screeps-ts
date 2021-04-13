@@ -5,7 +5,7 @@ export function process(room_name: string) {
 	if (!powerSpawn_status.finished) {
 		return 1;
 	}
-	if (Game.cpu.bucket < 2000) {
+	if (Game.cpu.bucket < 5000) {
 		return 1;
 	}
 	let powerspawn = Game.getObjectById(powerSpawn_status.id);

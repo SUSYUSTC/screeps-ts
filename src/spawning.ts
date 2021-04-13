@@ -220,7 +220,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= 180000);
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= config.battery_bar_to_spawn_upgrader);
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {

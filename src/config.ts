@@ -94,6 +94,7 @@ export var main_link_amount_source: number = 800;
 export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry: number = 6;
+export var battery_bar_to_spawn_upgrader: number = 200000;
 export var upgrader_boost_request: MineralBoostConstant = "GH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
