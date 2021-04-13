@@ -108,6 +108,7 @@ interface CreepMemory {
     ready ? : boolean;
 	pc_level ?: number;
 	powered ?: boolean;
+	request_boost ?: boolean;
 }
 interface PowerCreepMemory {
     movable: boolean;

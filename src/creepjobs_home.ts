@@ -135,13 +135,19 @@ export function creepjob(creep: Creep): number {
         creep.say("U")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-        if (creep.room.terminal !== undefined && (creep.room.controller.level < 8 || config.boost_rcl8[creep.room.name]) && config.upgrader_boost_request !== undefined) {
+		if (creep.memory.request_boost == undefined) {
+			creep.memory.request_boost = true;
+		}
+        if (creep.memory.request_boost && creep.room.terminal !== undefined && (creep.room.controller.level < 8 || config.boost_rcl8[creep.room.name]) && config.upgrader_boost_request !== undefined) {
             let boost_result = basic_job.boost_request(creep, {
                 "work": config.upgrader_boost_request
             });
             if (boost_result == 1) {
                 return 0;
             }
+			if (boost_result > 1) {
+				creep.memory.request_boost = false;
+			}
         }
         if (true) {
             let conf_locations = conf.upgraders.locations;
