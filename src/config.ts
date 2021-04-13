@@ -395,7 +395,7 @@ export var powered_harvester: type_powered_harvester = {
 }
 export var powered_external_harvester: type_powered_harvester = {
     1: {
-        n_harvest: 8,
+        n_harvest: 7,
         n_carry: 1,
         n_move: 4,
     },
@@ -410,7 +410,7 @@ export var powered_external_harvester: type_powered_harvester = {
         n_move: 6,
     },
     4: {
-        n_harvest: 13,
+        n_harvest: 12,
         n_carry: 2,
         n_move: 7,
     },

@@ -538,7 +538,7 @@ export function spawn(room_name: string) {
 			let harvester_conf = config.powered_external_harvester[pc_level];
             let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest + 10) * 3;
             let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
-			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * (3+pc_level) / 3 * 0.4);
+			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * 0.08);
             let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5) + 6;
             let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
             if (externalharvesters.length == 0 && !game_memory.danger_mode) {
