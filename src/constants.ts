@@ -89,7 +89,7 @@ export var mineral_level: type_mineral_level = {
 };
 export var general_minerals = <Array<GeneralMineralConstant>> Object.keys(mineral_level);
 export var basic_minerals = <Array<MineralConstant>>['U', 'L', 'Z', 'K', 'X', 'O', 'H'];
-let amount_mapping = [1960, 840, 0];
+let amount_mapping = [2000, 1000, 0];
 var temp_mineral_minimum_amount: any = {};
 for (let key in mineral_level) {
     temp_mineral_minimum_amount[key] = amount_mapping[mineral_level[ < GeneralMineralConstant > key]];

@@ -364,16 +364,16 @@ function is_danger_mode(room_name: string): boolean {
 }
 
 function detect_resources(room_name: string) {
+    let name_of_this_function = "detect_resources";
+    if (Game.tick_cpu[name_of_this_function] == undefined) {
+        Game.tick_cpu[name_of_this_function] = 0
+    }
     if (Memory.pb_cooldown_time == undefined) {
         Memory.pb_cooldown_time = 0;
     }
     if (Memory.pb_cooldown_time > 0) {
         Memory.pb_cooldown_time -= 1;
         return;
-    }
-    let name_of_this_function = "detect_resources";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
 
@@ -683,6 +683,42 @@ function update_resources(room_name: string) {
 	*/
 }
 
+function get_power_effects(room_name: string) {
+    let name_of_this_function = "get_power_effects";
+    if (Game.tick_cpu[name_of_this_function] == undefined) {
+        Game.tick_cpu[name_of_this_function] = 0
+    }
+    let cpu_used = Game.cpu.getUsed();
+
+	if (Game.time % 5 == 0) {
+		Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		return;
+	}
+	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0]) !== undefined;
+	if (!powered) {
+		Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		return;
+	}
+	let room = Game.rooms[room_name];
+	let lab_status = room.memory.named_structures_status.lab;
+	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']) {
+		if (lab_status[lab_name] !== undefined && lab_status[lab_name].finished) {
+			let lab = Game.getObjectById(lab_status[lab_name].id);
+			let effect: RoomObjectEffect = undefined;
+			if (lab.effects !== undefined) {
+				effect = lab.effects.filter((e) => e.effect == PWR_OPERATE_LAB)[0];
+			}
+			if (effect == undefined) {
+				lab_status[lab_name].effect_time = 0;
+			} else {
+				lab_status[lab_name].effect_time = effect.ticksRemaining;
+			}
+		}
+	}
+
+    Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+}
+
 export function set_room_memory(room_name: string) {
     let name_of_this_function = "set_room_memory"
     if (Game.tick_cpu_main[name_of_this_function] == undefined) {
@@ -701,6 +737,7 @@ export function set_room_memory(room_name: string) {
     update_external(room_name);
     detect_resources(room_name);
     update_resources(room_name);
+	get_power_effects(room_name);
 
     game_memory.danger_mode = is_danger_mode(room_name)
     if (game_memory.danger_mode) {

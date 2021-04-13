@@ -60,7 +60,7 @@ function get_reaction_priortiy(): type_reaction_priority {
 */
 
 function get_priority_score(n: number, level: number): number {
-    return -Math.ceil(n / 1960) - level * 5;
+    return -Math.ceil(n / 2000) - level * 5;
 }
 
 function get_reaction_priortiy(): type_reaction_priority {
@@ -88,7 +88,7 @@ function determine_reaction_request(room_name: string) {
     if (room.memory.reaction_request !== undefined && !keys.includes(room.memory.reaction_request.product)) {
         delete room.memory.reaction_request;
     }
-    let available_list = keys.filter((e) => mymath.all(constants.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= 280)));
+    let available_list = keys.filter((e) => mymath.all(constants.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= config.react_init_amount)));
     if (available_list.length == 0) {
         return;
     }
@@ -101,7 +101,6 @@ function determine_reaction_request(room_name: string) {
     }
     if (room.memory.reaction_request == undefined) {
         let priorities = available_list.map((e) => priority[e]);
-        //priorities = mymath.array_ele_minus(priorities, available_list.map((e) => room.terminal.store.getUsedCapacity(e) / 1960));
         let argmax = mymath.argmax(priorities);
         console.log("Set reaction request:", room_name, available_list[argmax]);
         global.set_reaction_request(room_name, available_list[argmax]);

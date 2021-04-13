@@ -128,14 +128,14 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
         let source2_lab = Game.getObjectById(source2_id);
         let react_labs = react_ids.map((e) => Game.getObjectById(e));
         if (creep.room.memory.reaction_ready) {
-            if (source1_lab.mineralType == undefined && source2_lab.mineralType == undefined) {
+            if (source1_lab.mineralAmount <= config.react_min_amount || source2_lab.mineralAmount <= config.react_min_amount) {
                 creep.room.memory.reaction_ready = false;
             }
 			if (request == undefined) {
 				return 1;
 			}
         } else {
-            if (source1_lab.store.getUsedCapacity(request.reactant1) == 280 && source2_lab.store.getUsedCapacity(request.reactant2) == 280) {
+            if (source1_lab.store.getUsedCapacity(request.reactant1) >= config.react_init_amount && source2_lab.store.getUsedCapacity(request.reactant2) >= config.react_init_amount) {
                 creep.room.memory.reaction_ready = true;
             }
         }
@@ -146,9 +146,10 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 [reactants[0]]: source_labs[0],
                 [reactants[1]]: source_labs[1]
             }
-            let has_enough_source = mymath.all(reactants.map((e) => creep.room.terminal.store.getUsedCapacity(e) >= 280 || creep.store.getUsedCapacity(e) >= 280 || temp_source_labs[e].store.getUsedCapacity(e) >= 280));
+			// enough when terminal+creep+lab >= init
+            let has_enough_source = mymath.all(reactants.map((e) => creep.room.terminal.store.getUsedCapacity(e) + creep.store.getUsedCapacity(e) + temp_source_labs[e].store.getUsedCapacity(e) >= config.react_init_amount));
             for (let lab of react_labs) {
-                if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= 280)) {
+                if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= config.react_init_amount)) {
 					// react labs exceeds amount or does not match
                     if (creep.store.getUsedCapacity() !== 0) {
                         transfer(creep, creep.room.terminal, creep.memory.resource_type);
@@ -166,24 +167,28 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
             for (let i of [0, 1]) {
                 let lab = source_labs[i];
                 let reactant = reactants[i];
-                if (lab.mineralType == undefined) {
-					// transfer to lab only when amount is exact (robust)
-                    if (creep.memory.resource_type == reactant && creep.store.getUsedCapacity(creep.memory.resource_type) == 280) {
-                        transfer(creep, lab, reactant);
-                        return 0;
-                    } else if (creep.memory.resource_type == undefined) {
-                        let output = creep.withdraw(creep.room.terminal, reactant, 280);
-                        if (output == ERR_NOT_IN_RANGE) {
-                            movetopos_restricted(creep, creep.room.terminal.pos, 1);
-                        } else if (output == ERR_NOT_ENOUGH_RESOURCES) {
-                            delete creep.room.memory.reaction_request;
-                        }
-                        return 0;
-                    } else {
-                        transfer(creep, creep.room.terminal, creep.memory.resource_type);
-                        return 0;
-                    }
-                } else if (lab.mineralType !== reactant || lab.store.getUsedCapacity(lab.mineralType) !== 280) {
+
+                if (lab.mineralType == undefined || (lab.mineralType == reactant && lab.mineralAmount < config.react_init_amount)) {
+					if (creep.memory.resource_type == undefined) {
+						let output = creep.withdraw(creep.room.terminal, reactant);
+						if (output == ERR_NOT_IN_RANGE) {
+							movetopos_restricted(creep, creep.room.terminal.pos, 1);
+						} else if (output == ERR_NOT_ENOUGH_RESOURCES) {
+							delete creep.room.memory.reaction_request;
+						}
+						return 0;
+					} else if (creep.memory.resource_type == reactant) {
+						transfer(creep, lab, reactant);
+						return 0;
+					} else {
+						let output = creep.transfer(creep.room.terminal, creep.memory.resource_type);
+						if (output == ERR_NOT_IN_RANGE) {
+							movetopos_restricted(creep, creep.room.terminal.pos, 1);
+						}
+						return 0;
+					}
+                } else if (lab.mineralType !== reactant){
+					// change reactant
                     if (creep.memory.resource_type == undefined) {
                         withdraw(creep, lab, lab.mineralType);
                         return 0;
@@ -192,6 +197,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                         return 0;
                     }
                 }
+				// else: lab.mineralType == reactant && lab.mineralAmount >= config.react_init_amount
             }
         }
 	} else {

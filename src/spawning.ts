@@ -220,7 +220,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= config.battery_bar_to_spawn_upgrader);
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= config.battery_bar_to_spawn_upgrader) && Game.cpu.bucket >= 9000;
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -329,7 +329,14 @@ export function spawn(room_name: string) {
         let json = spawning_func.prepare_role("specialcarrier", room.energyAvailable, added_memory, options, added_json);
         jsons.push(json);
     }
-    let maincarriers = room_creeps.filter((e) => is_valid_creep(e, "maincarrier", config.maincarrier_ncarry * 3 + 30));
+	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0] !== undefined);
+	let maincarrier_ncarry: number;
+	if (powered) {
+		maincarrier_ncarry = config.maincarrier_ncarry_powered;
+	} else {
+		maincarrier_ncarry = config.maincarrier_ncarry_no_power;
+	}
+    let maincarriers = room_creeps.filter((e) => is_valid_creep(e, "maincarrier", maincarrier_ncarry * 3 + 30));
     let n_maincarriers = maincarriers.length;
     let n_maincarriers_needed = 0;
     if (link_modes.includes('CT') && link_modes.includes('MAIN') && room.storage !== undefined) {
@@ -338,7 +345,7 @@ export function spawn(room_name: string) {
     if (n_maincarriers < n_maincarriers_needed) {
         let added_memory = {};
         let options = {
-            "max_parts": config.maincarrier_ncarry,
+            "max_parts": maincarrier_ncarry,
         };
         let priority = 110;
         let added_json = {

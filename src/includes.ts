@@ -136,6 +136,7 @@ interface type_named_structures_status < T > {
         exists ? : boolean;
         finished ? : boolean;
         id ? : Id < T > ;
+		effect_time ?: number;
     }
 }
 interface type_unique_structures_status < T > {

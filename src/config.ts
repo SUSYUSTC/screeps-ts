@@ -49,6 +49,8 @@ interface type_pc_conf {
     [key: string]: {
         room_name: string;
         source: boolean;
+		normal_ordered: boolean;
+		lab: boolean;
 		external_room ?: string;
     }
 }
@@ -79,11 +81,15 @@ export var pc_conf: type_pc_conf = {
     "PC_A": {
         "room_name": "E14N59",
         "source": true,
+		"normal_ordered": true,
+		"lab": true,
 		"external_room": "E15N59",
     },
     "PC_B": {
         "room_name": "E19N55",
         "source": true,
+		"normal_ordered": true,
+		"lab": true,
 		"external_room": "E19N56",
     },
 }
@@ -93,13 +99,16 @@ export var link_transfer_from_main_gap: number = 600;
 export var main_link_amount_source: number = 800;
 export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
-export var maincarrier_ncarry: number = 6;
+export var maincarrier_ncarry_no_power: number = 6;
+export var maincarrier_ncarry_powered: number = 12;
 export var battery_bar_to_spawn_upgrader: number = 200000;
 export var upgrader_boost_request: MineralBoostConstant = "GH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var preclaiming_rooms: string[] = [];
+export var react_init_amount: number = 1000;
+export var react_min_amount: number = 50;
 type type_acceptable_prices = {
 	buy: {
 		[key in MarketResourceConstant] ?: {
@@ -271,7 +280,7 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
     "E19N55": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
     "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G", "O", "GO", "OH"]),
-	//"E9N54": ["L"],
+	"E9N54": ["L"],
 };
 export var reserved_resources: {[key in ResourceConstant] ?: number} = {
 	"UH2O": 20000,
