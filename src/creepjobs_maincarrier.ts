@@ -149,6 +149,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
             let has_enough_source = mymath.all(reactants.map((e) => creep.room.terminal.store.getUsedCapacity(e) >= 280 || creep.store.getUsedCapacity(e) >= 280 || temp_source_labs[e].store.getUsedCapacity(e) >= 280));
             for (let lab of react_labs) {
                 if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= 280)) {
+					// react labs exceeds amount or does not match
                     if (creep.store.getUsedCapacity() !== 0) {
                         transfer(creep, creep.room.terminal, creep.memory.resource_type);
                         return 0;
@@ -166,6 +167,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 let lab = source_labs[i];
                 let reactant = reactants[i];
                 if (lab.mineralType == undefined) {
+					// transfer to lab only when amount is exact (robust)
                     if (creep.memory.resource_type == reactant && creep.store.getUsedCapacity(creep.memory.resource_type) == 280) {
                         transfer(creep, lab, reactant);
                         return 0;
