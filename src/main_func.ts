@@ -786,7 +786,7 @@ function update_gcl_room() {
 	}
 	if (Game.time % 50 == 10) {
 		let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-		room.memory.sites_total_progressleft = mymath.array_sum(sites.map((e) => e.progressTotal - e.progress));
+		room.memory.sites_total_progressleft = mymath.array_sum(sites.filter((e) => ['container', 'road'].includes(e.structureType)).map((e) => e.progressTotal - e.progress));
 		let supporting_room = Game.rooms[conf_map.supporting_room];
 		if (room.memory.external_sites_total_progressleft == undefined) {
 			supporting_room.memory.external_sites_total_progressleft = {};

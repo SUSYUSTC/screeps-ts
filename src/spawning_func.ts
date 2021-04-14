@@ -122,7 +122,7 @@ const getbody_gcl_upgrader = (options: any): BodyPartConstant[] => {
 	return returnbody(options.n_work, options.n_carry, options.n_move);
 }
 const getbody_gcl_carrier = (options: any): BodyPartConstant[] => {
-	return returnbody(2, 23, 25);
+	return returnbody(1, 24, 25);
 }
 const getbody_builder = (options: any): BodyPartConstant[] => {
     let n_afforable = Math.floor(options.max_energy / 200);

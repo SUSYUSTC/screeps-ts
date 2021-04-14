@@ -777,7 +777,6 @@ export function spawn(room_name: string) {
     }
 	// gcl
 	if_gcl: if (config.conf_gcl_map.supporting_room == room_name && Game.rooms[config.conf_gcl_map.gcl_room] !== undefined && Game.rooms[config.conf_gcl_map.gcl_room].controller.my) {
-		break if_gcl;
 		let gcl_room = Game.rooms[config.conf_gcl_map.gcl_room];
 		if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
 			break if_gcl;

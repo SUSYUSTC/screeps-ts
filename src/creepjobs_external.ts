@@ -345,7 +345,7 @@ export function creepjob(creep: Creep): number {
 		creep.memory.crossable = true;
 		if (creep.store.getUsedCapacity("energy") == 0) {
 			if (creep.room.name == creep.memory.external_room_name) {
-				let containers = <Array<StructureContainer>> creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'container');
+				let containers = (<Array<StructureContainer>> creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'container')).filter((e) => e.store.getUsedCapacity("energy") > 0);
 				if (containers.length == 0) {
 					external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
 				} else {
@@ -382,7 +382,8 @@ export function creepjob(creep: Creep): number {
 				external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath);
 			} else {
 				external_room.moveawayexit(creep);
-				if (basic_job.build_structure(creep) == 1) {
+				basic_job.build_structure(creep)
+				if (creep.room.memory.sites_total_progressleft == 0) {
 					creep.suicide();
 				}
 			}
@@ -468,16 +469,16 @@ export function creepjob(creep: Creep): number {
 			let lower_poses = config.conf_gcl.lower_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
 			let store: AnyStoreStructure;
 			if (creep.room.terminal !== undefined && creep.room.terminal.store.getUsedCapacity("energy") > 5000) {
-				upper_poses = [upper_poses[0], upper_poses[1], upper_poses[2]];
-				lower_poses = [lower_poses[0], lower_poses[1], lower_poses[2]];
+				upper_poses = [upper_poses[3], upper_poses[2], upper_poses[1]];
+				lower_poses = [lower_poses[3], lower_poses[2], lower_poses[1]];
 				store = creep.room.terminal;
 			} else if (creep.room.storage !== undefined && creep.room.storage.store.getUsedCapacity("energy") > 5000) {
-				upper_poses = [upper_poses[1], upper_poses[2], upper_poses[3]];
-				lower_poses = [lower_poses[1], lower_poses[2], lower_poses[3]];
+				upper_poses = [upper_poses[2], upper_poses[1], upper_poses[0]];
+				lower_poses = [lower_poses[2], lower_poses[1], lower_poses[0]];
 				store = creep.room.storage;
 			} else {
-				upper_poses = [upper_poses[2], upper_poses[3]];
-				lower_poses = [lower_poses[2], lower_poses[3]];
+				upper_poses = [upper_poses[1], upper_poses[0]];
+				lower_poses = [lower_poses[1], lower_poses[0]];
 				let container_status = creep.room.memory.named_structures_status.container.CT;
 				if (container_status.finished) {
 					store = Game.getObjectById(container_status.id);
@@ -503,9 +504,9 @@ export function creepjob(creep: Creep): number {
 				let xmax = Math.min(creep.pos.x + 3, 49);
 				let ymin = Math.max(creep.pos.y - 3, 0);
 				let ymax = Math.min(creep.pos.y + 3, 49);
-				let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true)[0].constructionSite;
+				let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true)[0];
 				if (site !== undefined) {
-					creep.build(site);
+					creep.build(site.constructionSite);
 				} else if (store.structureType == 'container' && store.hitsMax - store.hits >= 50000) {
 					creep.repair(store);
 				} else {
@@ -557,6 +558,14 @@ export function creepjob(creep: Creep): number {
 					if (road !== undefined) {
 						creep.repair(road);
 					}
+				}
+				let tower = creep.room.memory.tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
+				if (tower !== undefined) {
+					if (creep.transfer(tower, "energy") == ERR_NOT_IN_RANGE) {
+						basic_job.movetopos(creep, tower.pos, 1);
+						creep.memory.movable = true;
+					}
+					return;
 				}
 				let store: AnyStoreStructure;
 				if (creep.room.storage !== undefined && creep.room.storage.isActive()) {
