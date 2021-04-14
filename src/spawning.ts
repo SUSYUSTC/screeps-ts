@@ -456,35 +456,41 @@ export function spawn(room_name: string) {
             }
         }
     }
+	
+	// preclaimers
+	if_claimer: if (config.preclaiming_rooms[room_name] !== undefined) {
+		for (let external_room_name in config.preclaiming_rooms[room_name]) {
+			let n_needed_claimers = 1;
+			let external_room = Game.rooms[external_room_name];
+			if (external_room !== undefined && external_room.controller.my) {
+				n_needed_claimers = 0;
+				break if_claimer;
+			}
+			let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+			if (claimers.length < n_needed_claimers) {
+				let added_memory = {
+					"external_room_name": external_room_name,
+					"home_room_name": room_name,
+					"rooms_forwardpath": config.preclaiming_rooms[room_name][external_room_name].rooms_forwardpath,
+					"poses_forwardpath": config.preclaiming_rooms[room_name][external_room_name].poses_forwardpath,
+				};
+				let options = {};
+				let priority = 50;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("preclaimer", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		}
+	}
 
     //reservers, externalharvesters, externalcarriers
     let external_room_status = room.memory.external_room_status;
     let info_external: any = {}
     for (let external_room_name in conf.external_rooms) {
         // claimer
-        if_claimer: if (config.preclaiming_rooms.includes(external_room_name)) {
-            let n_needed_claimers = 1;
-            let external_room = Game.rooms[external_room_name];
-            if (external_room !== undefined && external_room.controller.my) {
-                n_needed_claimers = 0;
-                break if_claimer;
-            }
-            let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'claimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
-            if (claimers.length < n_needed_claimers) {
-                let added_memory = {
-                    "external_room_name": external_room_name,
-                    "home_room_name": room_name,
-                };
-                let options = {};
-                let priority = 50;
-                let added_json = {
-                    "priority": priority,
-                    "require_full": true && game_memory.lack_energy,
-                };
-                let json = spawning_func.prepare_role("claimer", room.energyAvailable, added_memory, options, added_json);
-                jsons.push(json);
-            }
-        }
         if (!conf.external_rooms[external_room_name].active || external_room_status[external_room_name].defense_type !== '' || room.storage == undefined) {
             continue;
         }
@@ -494,7 +500,7 @@ export function spawn(room_name: string) {
         let reserve = conf_controller.reserve;
         let reservers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'reserver', conf_controller.path_time) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
         let n_needed_reservers = 1;
-        if (reserve && !config.preclaiming_rooms.includes(external_room_name)) {
+        if (reserve && (config.preclaiming_rooms[room_name] == undefined || config.preclaiming_rooms[room_name][external_room_name] == undefined)) {
             if (external_room_name in Game.rooms) {
                 if (Game.rooms[external_room_name].controller.my) {
                     n_needed_reservers = 0;
@@ -531,7 +537,47 @@ export function spawn(room_name: string) {
             continue;
         }
 		let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
-		if_powered_source: if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room == external_room_name) {
+		let powered = corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room == external_room_name;
+		// externalbuilder
+		if (room.memory.external_sites_total_progressleft == undefined) {
+			room.memory.external_sites_total_progressleft = {};
+		}
+		let external_progress = room.memory.external_sites_total_progressleft[external_room_name];
+		if (external_progress !== undefined && external_progress > 0) {
+			let conf_external: type_external_map;
+			if (powered) {
+				conf_external = conf.external_rooms[external_room_name].powered_source;
+			} else if (config.conf_gcl_map.supporting_room == room_name && config.conf_gcl_map.gcl_room == external_room_name) {
+				conf_external = config.conf_gcl_map;
+			} else {
+				conf_external = conf.external_rooms[external_room_name].controller;
+			}
+			let n_builds_needed = Math.min(15, Math.ceil(external_progress / 1000));
+			let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
+			let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
+			if (n_builds < n_builds_needed && !game_memory.danger_mode) {
+				let added_memory = {
+					"external_room_name": external_room_name,
+					"home_room_name": room.name,
+					"rooms_forwardpath": conf_external.rooms_forwardpath,
+					"rooms_backwardpath": conf_external.rooms_backwardpath,
+					"poses_forwardpath": conf_external.poses_forwardpath,
+					"poses_backwardpath": conf_external.poses_backwardpath,
+				};
+				let options = {
+					"max_energy": room.energyCapacityAvailable,
+					"max_parts": n_builds_needed,
+				};
+				let priority = 2;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("externalbuilder", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		}
+		if_powered_source: if (powered) {
 			let conf_powered_source = conf.external_rooms[external_room_name].powered_source;
 			if (conf_powered_source == undefined) {
 				break if_powered_source;
@@ -543,6 +589,7 @@ export function spawn(room_name: string) {
 			info_external[external_room_name][conf_external.source_name] = {}
 			let pc_level = Game.memory[room_name].pc_source_level;
 			let harvester_conf = config.powered_external_harvester[pc_level];
+			// externalharvester, externalcarrier
             let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest + 10) * 3;
             let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
 			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * 0.08);
@@ -592,28 +639,6 @@ export function spawn(room_name: string) {
                 jsons.push(json);
 				info_external[external_room_name][conf_external.source_name].n_carriers = externalcarriers.length + "/" + "1";
             }
-			if (room.memory.powered_external_sites_total_progressleft !== undefined && room.memory.powered_external_sites_total_progressleft > 0) {
-				let n_builds_needed = Math.min(15, Math.ceil(room.memory.powered_external_sites_total_progressleft / 2000) + 3);
-				let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
-				let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
-				if (n_builds < n_builds_needed && !game_memory.danger_mode) {
-					let added_memory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room.name,
-					};
-					let options = {
-						"max_energy": room.energyCapacityAvailable,
-						"max_parts": Math.min(15, n_builds_needed),
-					};
-					let priority = 2;
-					let added_json = {
-						"priority": priority,
-						"require_full": true && game_memory.lack_energy,
-					};
-					let json = spawning_func.prepare_role("externalbuilder", room.energyAvailable, added_memory, options, added_json);
-					jsons.push(json);
-				}
-			}
 		} else {
 			for (let source_name in conf.external_rooms[external_room_name].sources) {
 				info_external[external_room_name][source_name] = {}

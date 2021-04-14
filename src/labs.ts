@@ -60,7 +60,7 @@ function get_reaction_priortiy(): type_reaction_priority {
 */
 
 function get_priority_score(n: number, level: number): number {
-    return -Math.ceil(n / 2000) - level * 5;
+    return Math.ceil(n / 2000) - level * 5;
 }
 
 function get_reaction_priortiy(): type_reaction_priority {
@@ -83,20 +83,16 @@ function get_reaction_priortiy(): type_reaction_priority {
 
 function determine_reaction_request(room_name: string) {
     let room = Game.rooms[room_name];
-    let priority = global.reaction_priority[room_name];
+    let priority = _.clone(global.reaction_priority[room_name]);
     let keys = < Array < keyof typeof priority >> Object.keys(priority);
     if (room.memory.reaction_request !== undefined && !keys.includes(room.memory.reaction_request.product)) {
         delete room.memory.reaction_request;
     }
+	if (room.memory.reaction_request !== undefined) {
+		priority[room.memory.reaction_request.product] += 8;
+	}
     let available_list = keys.filter((e) => mymath.all(constants.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= config.react_init_amount)));
     if (available_list.length == 0) {
-        return;
-    }
-    let urgent_list = available_list.filter((e) => room.terminal.store.getUsedCapacity(e) < constants.mineral_minimum_amount[e]);
-    if (urgent_list.length > 0) {
-        let urgent = urgent_list[0];
-        console.log("Set reaction request:", room_name, urgent);
-        global.set_reaction_request(room_name, urgent);
         return;
     }
     if (room.memory.reaction_request == undefined) {
@@ -238,6 +234,11 @@ global.reset_product_request = function(): number {
 	}
     Memory.product_request = {};
 	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
+	for (let resource of request_final_products) {
+		if (terminal_amounts[resource] !== undefined && terminal_amounts[resource] > 0) {
+			terminal_amounts[resource] = 0;
+		}
+	}
 	let n_store_rooms = Object.keys(config.mineral_storage_room).length;
 	for (let resource of request_final_products) {
         let reactants = get_all_reactants(resource);

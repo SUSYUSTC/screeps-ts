@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "claimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "specialcarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
     target: number[];
@@ -50,8 +50,10 @@ interface RoomMemory {
     n_ramparts ? : number;
     external_resources ? : type_external_resources;
     sites_total_progressleft ? : number;
-	powered_external_sites_total_progressleft ?: number;
-    tower_list ? : Id < StructureTower > [];
+	external_sites_total_progressleft ?:  {
+		[key: string]: number;
+	};
+	tower_list ? : Id < StructureTower > [];
     spawn_list ? : Id < StructureSpawn > [];
 	resource_sending_request ?: type_resource_sending_request[];
 	kept_resources ?: {
@@ -102,6 +104,10 @@ interface CreepMemory {
     lab_carrying_resource ? : ResourceConstant;
     lab_carrying_forward ? : boolean;
     stored_path ? : type_stored_path;
+	rooms_forwardpath ?: string[];
+	poses_forwardpath ?: number[];
+	rooms_backwardpath ?: string[];
+	poses_backwardpath ?: number[];
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
     boost_status ? : type_boost_status;
     resource_type ? : ResourceConstant;
@@ -182,51 +188,64 @@ interface conf_maincarrier {
     working_zone: number[][];
     waiting_pos: number[];
 }
+interface type_external_half_map {
+	rooms_forwardpath: string[];
+	poses_forwardpath: number[];
+}
+interface type_external_map {
+	rooms_forwardpath: string[];
+	poses_forwardpath: number[];
+	rooms_backwardpath: string[];
+	poses_backwardpath: number[];
+}
+interface type_external_controller extends type_external_map {
+	reserve: boolean;
+	path_time: number;
+	rooms_forwardpath: string[];
+	poses_forwardpath: number[];
+	rooms_backwardpath: string[];
+	poses_backwardpath: number[];
+}
+interface type_external_source extends type_external_map {
+	id: Id < Source > ;
+	harvester_pos: number[];
+	single_distance: number;
+	carrier_distance: number;
+	n_carry_tot: number;
+	carry_end: {
+		"type": string;
+		"name": string;
+	};
+	rooms_forwardpath: string[];
+	poses_forwardpath: number[];
+	rooms_backwardpath: string[];
+	poses_backwardpath: number[];
+}
+interface type_external_powered_source extends type_external_map {
+	source_name: string;
+	carrier_distance: number;
+	carry_end: {
+		type: string;
+		name: string;
+	};
+	roads: number[][];
+	id: Id<Source>;
+	harvester_pos: number[];
+	single_distance: number;
+	rooms_forwardpath: string[];
+	rooms_backwardpath: string[];
+	poses_forwardpath: number[];
+	poses_backwardpath: number[];
+}
 interface conf_external_rooms {
     [key: string]: {
         active: boolean;
 		container: boolean;
-        controller: {
-            reserve: boolean;
-            path_time: number;
-            rooms_forwardpath: string[];
-            poses_forwardpath: number[];
-            rooms_backwardpath: string[];
-            poses_backwardpath: number[];
-        }
+        controller: type_external_controller;
         sources: {
-            [key: string]: {
-                id: Id < Source > ;
-                harvester_pos: number[];
-                single_distance: number;
-				carrier_distance: number;
-                n_carry_tot: number;
-                carry_end: {
-                    "type": string;
-                    "name": string;
-                };
-                rooms_forwardpath: string[];
-                poses_forwardpath: number[];
-                rooms_backwardpath: string[];
-                poses_backwardpath: number[];
-            }
-        };
-		powered_source ?: {
-			source_name: string;
-			carrier_distance: number;
-			carry_end: {
-				type: string;
-				name: string;
-			};
-			roads: number[][];
-			id: Id<Source>;
-			harvester_pos: number[];
-			single_distance: number;
-			rooms_forwardpath: string[];
-			rooms_backwardpath: string[];
-			poses_forwardpath: number[];
-			poses_backwardpath: number[];
+			[key: string]: type_external_source;
 		}
+		powered_source ?: type_external_powered_source;
     }
 }
 interface type_pb_status {
@@ -304,6 +323,16 @@ interface type_conf_room {
     readonly safe_pos: number[];
     readonly external_rooms: conf_external_rooms;
     readonly defense_boundary: number[][];
+}
+interface type_config_gcl {
+	containers: conf_named_structures;
+	towers: conf_multiple_structures;
+	roads: conf_multiple_structures
+	terminal: conf_unique_structures;
+	storage: conf_unique_structures;
+	direction: number[];
+	upper_poses: number[][];
+	lower_poses: number[][];
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number

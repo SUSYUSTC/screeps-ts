@@ -347,8 +347,7 @@ export function creepjob(creep: Creep): number {
 			if (creep.room.name == creep.memory.external_room_name) {
 				let containers = <Array<StructureContainer>> creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'container');
 				if (containers.length == 0) {
-					let conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
-					external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+					external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
 				} else {
 					let distances = containers.map((e) => creep.pos.getRangeTo(e));
 					let argmin = mymath.argmin(distances);
@@ -375,14 +374,12 @@ export function creepjob(creep: Creep): number {
 						creep.withdraw(linkcontainer, "energy");
 					}
 				} else {
-					let conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
-					external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+					external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
 				}
 			}
 		} else {
 			if (creep.room.name !== creep.memory.external_room_name) {
-				let conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
-				external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
+				external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
 			} else {
 				if (basic_job.build_structure(creep) == 1) {
 					creep.suicide();
@@ -413,13 +410,12 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 		return 0;
-	} else if (creep.memory.role == 'claimer') {
+	} else if (creep.memory.role == 'preclaimer') {
 		creep.say("claim");
 		creep.memory.movable = true;
 		creep.memory.crossable = true;
-		let conf_external = conf.external_rooms[creep.memory.external_room_name].controller;
 		if (creep.room.name !== creep.memory.external_room_name) {
-			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
+			external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath);
 		} else {
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
 				basic_job.movetopos(creep, creep.room.controller.pos, 1);
@@ -449,6 +445,130 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 		return 0;
+	} else if (creep.memory.role == 'gcl_upgrader') {
+		creep.say("GU");
+		creep.memory.movable = false;
+		creep.memory.crossable = false;
+		let gcl_room_name = config.conf_gcl_map.gcl_room;
+		let supporting_room_name = config.conf_gcl_map.supporting_room;
+		if (creep.room.name == supporting_room_name) {
+			let boost_result = basic_job.boost_request(creep, {
+				"work": config.upgrader_boost_request
+			});
+			if (boost_result >= 1) {
+				return 0;
+			}
+		}
+		if (creep.room.name !== gcl_room_name) {
+			external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+			return 0;
+		} else {
+			let upper_poses = config.conf_gcl.upper_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
+			let lower_poses = config.conf_gcl.lower_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
+			let store: AnyStoreStructure;
+			if (creep.room.terminal !== undefined && creep.room.terminal.store.getUsedCapacity("energy") > 5000) {
+				upper_poses = [upper_poses[0], upper_poses[1], upper_poses[2]];
+				lower_poses = [lower_poses[0], lower_poses[1], lower_poses[2]];
+				store = creep.room.terminal;
+			} else if (creep.room.storage !== undefined && creep.room.storage.store.getUsedCapacity("energy") > 5000) {
+				upper_poses = [upper_poses[1], upper_poses[2], upper_poses[3]];
+				lower_poses = [lower_poses[1], lower_poses[2], lower_poses[3]];
+				store = creep.room.storage;
+			} else {
+				upper_poses = [upper_poses[2], upper_poses[3]];
+				lower_poses = [lower_poses[2], lower_poses[3]];
+				let container_status = creep.room.memory.named_structures_status.container.CT;
+				if (container_status.finished) {
+					store = Game.getObjectById(container_status.id);
+				}
+			}
+			let n_upper = mymath.array_sum(upper_poses.map((e) => e.lookFor("creep").length));
+			let n_lower = mymath.array_sum(lower_poses.map((e) => e.lookFor("creep").length));
+			let out: number;
+			if (n_upper >= n_lower) {
+				out = basic_job.movetoposexceptoccupied(creep, upper_poses);
+			} else {
+				out = basic_job.movetoposexceptoccupied(creep, lower_poses);
+			}
+			
+			if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity() * 0.2 && creep.ticksToLive >= 10) {
+				creep.withdraw(store, "energy");
+			}
+			if (creep.store.getUsedCapacity("energy") > 0) {
+				let xmin = Math.max(creep.pos.x - 3, 0);
+				let xmax = Math.min(creep.pos.x + 3, 49);
+				let ymin = Math.max(creep.pos.y - 3, 0);
+				let ymax = Math.min(creep.pos.y + 3, 49);
+				let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true)[0].constructionSite;
+				if (site !== undefined) {
+					creep.build(site);
+				} else {
+					creep.upgradeController(creep.room.controller);
+				}
+			}
+		}
+	} else if (creep.memory.role == 'gcl_carrier') {
+		creep.say("GC");
+		creep.memory.movable = false;
+		creep.memory.crossable = true;
+		let gcl_room_name = config.conf_gcl_map.gcl_room;
+		let supporting_room_name = config.conf_gcl_map.supporting_room;
+		if (creep.room.name == supporting_room_name) {
+			if (creep.store.getUsedCapacity("energy") == 0) {
+				if (creep.withdraw(creep.room.storage, "energy") == ERR_NOT_IN_RANGE) {
+					basic_job.movetopos(creep, creep.room.storage.pos, 1);
+					creep.memory.movable = true;
+				}
+				return 0;
+			} else {
+				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+				creep.memory.movable = true;
+				return 0;
+			}
+		} else if (creep.room.name !== gcl_room_name) {
+			if (creep.store.getUsedCapacity("energy") == 0) {
+				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_backwardpath, config.conf_gcl_map.poses_backwardpath);
+				creep.memory.movable = true;
+				return 0;
+			} else {
+				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+				creep.memory.movable = true;
+				return 0;
+			}
+		} else {
+			if (creep.store.getUsedCapacity("energy") == 0) {
+				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_backwardpath, config.conf_gcl_map.poses_backwardpath);
+				creep.memory.movable = true;
+				return 0;
+			} else {
+				if (creep.getActiveBodyparts(WORK) > 0) {
+					let xmin = Math.max(creep.pos.x - 1, 0);
+					let xmax = Math.min(creep.pos.x + 1, 49);
+					let ymin = Math.max(creep.pos.y - 1, 0);
+					let ymax = Math.min(creep.pos.y + 1, 49);
+					let road = creep.room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).map((e) => e.structure).filter((e) => e.structureType == 'road' && e.hits < e.hitsMax * 0.6)[0];
+					if (road !== undefined) {
+						creep.repair(road);
+					}
+				}
+				let store: AnyStoreStructure;
+				if (creep.room.storage !== undefined && creep.room.storage.isActive()) {
+					store = creep.room.storage;
+				} else {
+					let container_status = creep.room.memory.named_structures_status.container.CT;
+					if (container_status.finished) {
+						store = Game.getObjectById(container_status.id);
+					}
+				}
+				if (store !== undefined) {
+					if (creep.transfer(store, "energy") == ERR_NOT_IN_RANGE) {
+						basic_job.movetopos(creep, store.pos, 1);
+						creep.memory.movable = true;
+					}
+				}
+				return 0;
+			}
+		}
 	}
 	return 1;
 }

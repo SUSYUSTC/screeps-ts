@@ -214,9 +214,12 @@ function update_construction_sites(room_name: string) {
     }
 	let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
 	if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room !== undefined && Game.rooms[corresponding_pc_conf.external_room] !== undefined) {
-		let sites = Game.rooms[corresponding_pc_conf.external_room].find(FIND_MY_CONSTRUCTION_SITES);
+		let sites = Game.rooms[corresponding_pc_conf.external_room].find(FIND_MY_CONSTRUCTION_SITES).filter((e) => e.structureType == 'road');
         let sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
-		room.memory.powered_external_sites_total_progressleft = mymath.array_sum(sites_progressleft);
+		if (room.memory.external_sites_total_progressleft == undefined) {
+			room.memory.external_sites_total_progressleft = {};
+		}
+		room.memory.external_sites_total_progressleft[corresponding_pc_conf.external_room] = mymath.array_sum(sites_progressleft);
 	}
 
     if (room.memory.ticks_to_spawn_builder > 0) {
@@ -750,6 +753,42 @@ export function set_room_memory(room_name: string) {
     }
 
     Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+}
+
+function update_gcl_room() {
+	let conf = config.conf_gcl;
+	let conf_map = config.conf_gcl_map;
+	let room_name = conf_map.gcl_room;
+	let room = Game.rooms[room_name];
+	if (room == undefined || !room.controller.my) {
+		return;
+	}
+    if (room.memory.named_structures_status == undefined) {
+        let named_structures_status: any = {};
+        named_structures.forEach((e) => named_structures_status[e] = {});
+        room.memory.named_structures_status = < type_all_named_structures_status > named_structures_status;
+    }
+    if (room.memory.unique_structures_status == undefined) {
+        let unique_structures_status: any = {};
+        unique_structures.forEach((e) => unique_structures_status[e] = {});
+        room.memory.unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
+    }
+	if (Game.time % 50 == 0) {
+		layout.update_multiple_structures(room_name, "road", conf.roads, false);
+		layout.update_multiple_structures(room_name, "tower", conf.towers, true);
+		layout.update_named_structures(room_name, "container", conf.containers, true);
+		layout.update_unique_structures(room_name, "storage", conf.storage, true);
+		layout.update_unique_structures(room_name, "terminal", conf.terminal, true);
+	}
+	if (Game.time % 50 == 0) {
+		let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+		room.memory.sites_total_progressleft = mymath.array_sum(sites.map((e) => e.progress));
+		let supporting_room = Game.rooms[conf_map.supporting_room];
+		if (room.memory.external_sites_total_progressleft == undefined) {
+			supporting_room.memory.external_sites_total_progressleft = {};
+		}
+		supporting_room.memory.external_sites_total_progressleft[room_name] = mymath.array_sum(sites.map((e) => e.progress));
+	}
 }
 
 export function set_global_memory() {

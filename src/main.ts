@@ -54,6 +54,18 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
+	if (Game.rooms[config.conf_gcl_map.gcl_room] !== undefined) {
+		let room_name = config.conf_gcl_map.gcl_room;
+		try {
+			if (towers.attack_all(room_name) == 1) {
+				if (towers.heal_all(room_name) == 1) {
+					towers.repair_all(room_name);
+				}
+			}
+		} catch (err) {
+			console.log("Error", room_name, err.stack);
+		}
+	}
 	Game.tick_cpu_main.towers = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
