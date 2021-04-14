@@ -773,21 +773,25 @@ function update_gcl_room() {
         unique_structures.forEach((e) => unique_structures_status[e] = {});
         room.memory.unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
+	if (Game.time % 50 == 0 || global.test_var == undefined) {
+		let towers = < StructureTower[] > _.filter(room.find(FIND_STRUCTURES), (structure) => structure.structureType == "tower");
+		room.memory.tower_list = towers.map((e) => e.id);
+	}
 	if (Game.time % 50 == 0) {
-		layout.update_multiple_structures(room_name, "road", conf.roads, false);
+		layout.update_multiple_structures(room_name, "road", conf.roads, true, true);
 		layout.update_multiple_structures(room_name, "tower", conf.towers, true);
 		layout.update_named_structures(room_name, "container", conf.containers, true);
 		layout.update_unique_structures(room_name, "storage", conf.storage, true);
 		layout.update_unique_structures(room_name, "terminal", conf.terminal, true);
 	}
-	if (Game.time % 50 == 0) {
+	if (Game.time % 50 == 10) {
 		let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-		room.memory.sites_total_progressleft = mymath.array_sum(sites.map((e) => e.progress));
+		room.memory.sites_total_progressleft = mymath.array_sum(sites.map((e) => e.progressTotal - e.progress));
 		let supporting_room = Game.rooms[conf_map.supporting_room];
 		if (room.memory.external_sites_total_progressleft == undefined) {
 			supporting_room.memory.external_sites_total_progressleft = {};
 		}
-		supporting_room.memory.external_sites_total_progressleft[room_name] = mymath.array_sum(sites.map((e) => e.progress));
+		supporting_room.memory.external_sites_total_progressleft[room_name] = room.memory.sites_total_progressleft;
 	}
 }
 
@@ -833,6 +837,7 @@ export function set_global_memory() {
             Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = level;
         }
     }
+	update_gcl_room();
     Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 global.update_layout = update_layout

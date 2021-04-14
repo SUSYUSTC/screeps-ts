@@ -475,7 +475,7 @@ export function spawn(room_name: string) {
 					"poses_forwardpath": config.preclaiming_rooms[room_name][external_room_name].poses_forwardpath,
 				};
 				let options = {};
-				let priority = 50;
+				let priority = 5;
 				let added_json = {
 					"priority": priority,
 					"require_full": true && game_memory.lack_energy,
@@ -486,6 +486,47 @@ export function spawn(room_name: string) {
 		}
 	}
 
+	// externalbuilder
+	if (room.memory.external_sites_total_progressleft == undefined) {
+		room.memory.external_sites_total_progressleft = {};
+	}
+	let external_progress = room.memory.external_sites_total_progressleft;
+	if (external_progress !== undefined) {
+		for (let external_room_name in external_progress) {
+			let conf_external: type_external_map;
+			if (powered) {
+				conf_external = conf.external_rooms[external_room_name].powered_source;
+			} else if (config.conf_gcl_map.supporting_room == room_name && config.conf_gcl_map.gcl_room == external_room_name) {
+				conf_external = config.conf_gcl_map;
+			} else {
+				conf_external = conf.external_rooms[external_room_name].controller;
+			}
+			let n_builds_needed = Math.min(15, Math.ceil(external_progress[external_room_name] / 1000));
+			let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
+			let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
+			if (n_builds < n_builds_needed && !game_memory.danger_mode) {
+				let added_memory = {
+					"external_room_name": external_room_name,
+					"home_room_name": room.name,
+					"rooms_forwardpath": conf_external.rooms_forwardpath,
+					"rooms_backwardpath": conf_external.rooms_backwardpath,
+					"poses_forwardpath": conf_external.poses_forwardpath,
+					"poses_backwardpath": conf_external.poses_backwardpath,
+				};
+				let options = {
+					"max_energy": room.energyCapacityAvailable,
+					"max_parts": n_builds_needed,
+				};
+				let priority = 2;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("externalbuilder", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		}
+	}
     //reservers, externalharvesters, externalcarriers
     let external_room_status = room.memory.external_room_status;
     let info_external: any = {}
@@ -538,45 +579,6 @@ export function spawn(room_name: string) {
         }
 		let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
 		let powered = corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room == external_room_name;
-		// externalbuilder
-		if (room.memory.external_sites_total_progressleft == undefined) {
-			room.memory.external_sites_total_progressleft = {};
-		}
-		let external_progress = room.memory.external_sites_total_progressleft[external_room_name];
-		if (external_progress !== undefined && external_progress > 0) {
-			let conf_external: type_external_map;
-			if (powered) {
-				conf_external = conf.external_rooms[external_room_name].powered_source;
-			} else if (config.conf_gcl_map.supporting_room == room_name && config.conf_gcl_map.gcl_room == external_room_name) {
-				conf_external = config.conf_gcl_map;
-			} else {
-				conf_external = conf.external_rooms[external_room_name].controller;
-			}
-			let n_builds_needed = Math.min(15, Math.ceil(external_progress / 1000));
-			let externalbuilders = _.filter(Game.creeps, (e) => is_valid_creep(e, "externalbuilder", 150));
-			let n_builds = spawning_func.get_nbody(externalbuilders, 'work')
-			if (n_builds < n_builds_needed && !game_memory.danger_mode) {
-				let added_memory = {
-					"external_room_name": external_room_name,
-					"home_room_name": room.name,
-					"rooms_forwardpath": conf_external.rooms_forwardpath,
-					"rooms_backwardpath": conf_external.rooms_backwardpath,
-					"poses_forwardpath": conf_external.poses_forwardpath,
-					"poses_backwardpath": conf_external.poses_backwardpath,
-				};
-				let options = {
-					"max_energy": room.energyCapacityAvailable,
-					"max_parts": n_builds_needed,
-				};
-				let priority = 2;
-				let added_json = {
-					"priority": priority,
-					"require_full": true && game_memory.lack_energy,
-				};
-				let json = spawning_func.prepare_role("externalbuilder", room.energyAvailable, added_memory, options, added_json);
-				jsons.push(json);
-			}
-		}
 		if_powered_source: if (powered) {
 			let conf_powered_source = conf.external_rooms[external_room_name].powered_source;
 			if (conf_powered_source == undefined) {
@@ -773,6 +775,48 @@ export function spawn(room_name: string) {
             jsons.push(json);
         }
     }
+	// gcl
+	if_gcl: if (config.conf_gcl_map.supporting_room == room_name && Game.rooms[config.conf_gcl_map.gcl_room] !== undefined && Game.rooms[config.conf_gcl_map.gcl_room].controller.my) {
+		break if_gcl;
+		let gcl_room = Game.rooms[config.conf_gcl_map.gcl_room];
+		if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
+			break if_gcl;
+		}
+		if (gcl_room.terminal == undefined || !gcl_room.terminal.isActive()) {
+			let n_work = Math.ceil(600/(config.conf_gcl_map.carrier_distance + 2));
+			let n_move = Math.ceil(n_work/2);
+			let n_carry = Math.ceil(n_work/5)
+			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl_map.single_distance + (n_work + n_move + n_carry) * 3));
+			let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl_map.single_distance + 150));
+			if (upgraders.length == 0) {
+				let added_memory = { };
+				let options = {
+					"n_work": n_work,
+					"n_carry": n_carry,
+					"n_move": n_move,
+				};
+				let priority = 10;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("gcl_upgrader", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+			if (carriers.length == 0) {
+				let added_memory = { };
+				let options = { };
+				let priority = 11;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("gcl_carrier", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		} else {
+		}
+	}
     /*
     if (game_memory.danger_mode) {
     	let added_memory = {

@@ -379,8 +379,9 @@ export function creepjob(creep: Creep): number {
 			}
 		} else {
 			if (creep.room.name !== creep.memory.external_room_name) {
-				external_room.movethroughrooms(creep, creep.memory.rooms_backwardpath, creep.memory.poses_backwardpath);
+				external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath);
 			} else {
+				external_room.moveawayexit(creep);
 				if (basic_job.build_structure(creep) == 1) {
 					creep.suicide();
 				}
@@ -491,6 +492,9 @@ export function creepjob(creep: Creep): number {
 				out = basic_job.movetoposexceptoccupied(creep, lower_poses);
 			}
 			
+			if (store == undefined) {
+				return 0;
+			}
 			if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity() * 0.2 && creep.ticksToLive >= 10) {
 				creep.withdraw(store, "energy");
 			}
@@ -502,10 +506,13 @@ export function creepjob(creep: Creep): number {
 				let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true)[0].constructionSite;
 				if (site !== undefined) {
 					creep.build(site);
+				} else if (store.structureType == 'container' && store.hitsMax - store.hits >= 50000) {
+					creep.repair(store);
 				} else {
 					creep.upgradeController(creep.room.controller);
 				}
 			}
+			return 0;
 		}
 	} else if (creep.memory.role == 'gcl_carrier') {
 		creep.say("GC");

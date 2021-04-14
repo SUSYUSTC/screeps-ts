@@ -89,7 +89,7 @@ interface type_conf_gcl_map {
 export var conf_gcl_map: type_conf_gcl_map = {
 	energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
 	supporting_room: 'E16N58',
-	gcl_room: 'E15N57',
+	gcl_room: 'E16N57',
 	rooms_forwardpath: ['E16N58', 'E16N57'],
 	poses_forwardpath: [28],
 	rooms_backwardpath: ['E16N57', 'E16N58'],

@@ -56,7 +56,27 @@ export function process_resource_sending_request(room_name: string) {
 	}
 }
 
+function supply_gcl_room() {
+	if (Game.time % 20 !== 0) {
+		return;
+	}
+	let helped_room = Game.rooms[config.conf_gcl_map.gcl_room];
+	if (helped_room !== undefined && helped_room.terminal !== undefined && helped_room.terminal.isActive() && helped_room.terminal.store.getUsedCapacity("energy") < 150000) {
+		for (let helping_room_name of config.conf_gcl_map.energy_supply_rooms) {
+			let helping_room = Game.rooms[helping_room_name];
+			let source_storage = helping_room.storage.store.getUsedCapacity("energy");
+			let source_terminal = helping_room.terminal.store.getUsedCapacity("energy");
+			if (source_storage >= config.storage_full && source_terminal >= 50000) {
+				helping_room.terminal.send("energy", 25000, helped_room.name);
+				break;
+			}
+		}
+	}
+}
 function support_developing_rooms() {
+	if (Game.time % 20 !== 10) {
+		return;
+	}
 	let helping_rooms = config.controlled_rooms.filter((e) => Game.rooms[e].controller.level >= 8);
 	let helped_rooms = config.controlled_rooms.filter((e) => Game.rooms[e].controller.level < 8 && Game.rooms[e].terminal !== undefined);
     for (let helped_room of helped_rooms) {
@@ -117,6 +137,7 @@ function gather_resource(room_name: string, resource: ResourceConstant, min_amou
 
 export function terminal_balance() {
 	support_developing_rooms();
+	supply_gcl_room();
 	for (let resource of <Array<ResourceConstant>>Object.keys(config.resources_balance)) {
 		let conf = config.resources_balance[resource];
 		balance_resource(resource, conf.gap, conf.min, conf.amount);

@@ -100,3 +100,20 @@ export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], roo
     }
 }
 
+export function moveawayexit(creep: Creep | PowerCreep) {
+	if (creep.pos.x == 0) {
+		creep.move(RIGHT);
+		return 0;
+	} else if (creep.pos.x == 49) {
+		creep.move(LEFT);
+		return 0;
+	} else if (creep.pos.y == 0) {
+		creep.move(BOTTOM);
+		return 0;
+	} else if (creep.pos.y == 49) {
+		creep.move(TOP);
+		return 0;
+	} else {
+		return 1;
+	}
+}
