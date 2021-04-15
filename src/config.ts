@@ -195,8 +195,8 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
 		},
 		"battery": {
-			price: 3.0,
-			interval: 1000,
+			price: 3.6,
+			interval: 3000,
 		}
 	},
 	"sell": {
