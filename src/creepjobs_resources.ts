@@ -25,6 +25,7 @@ export function creepjob(creep: Creep): number {
             }
         }
         if (creep.room.name == creep.memory.home_room_name && basic_job.boost_request(creep, request, true) == 1) {
+			creep.say("PAb");
 			return 0;
 		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
@@ -34,6 +35,7 @@ export function creepjob(creep: Creep): number {
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
 			creep.memory.movable = true;
+			creep.say("PAe");
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -41,6 +43,7 @@ export function creepjob(creep: Creep): number {
             let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
             if (pb == undefined) {
                 creep.suicide();
+				creep.say("PAd");
                 return 0;
             }
             if (creep.pos.getRangeTo(pb) > 1) {
@@ -50,17 +53,21 @@ export function creepjob(creep: Creep): number {
                     costCallback: functions.avoid_exits
                 });
 				creep.memory.movable = true;
+				creep.say("PAm");
             } else {
                 let healer = Game.creeps[pb_status.pb_healer_name];
                 if (healer.room.name !== creep.room.name) {
+					creep.say("PAw");
                     return 0;
                 }
                 if (creep.pos.getRangeTo(healer) == 1 && creep.hits == creep.hitsMax) {
                     if (pb.hits > 1800) {
                         creep.memory.ready = true;
                         creep.attack(pb);
+						creep.say("PAa1");
                     } else if (creep.ticksToLive < 5 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
                         creep.attack(pb);
+						creep.say("PAa2");
                     }
                 }
                 return 0;
@@ -80,6 +87,7 @@ export function creepjob(creep: Creep): number {
             }
         }
         if (creep.room.name == creep.memory.home_room_name && basic_job.boost_request(creep, request, true) == 1) {
+			creep.say("PHb");
 			return 0;
 		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
@@ -89,6 +97,7 @@ export function creepjob(creep: Creep): number {
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
 			creep.memory.movable = true;
+			creep.say("PHe");
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -96,11 +105,13 @@ export function creepjob(creep: Creep): number {
             let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
             if (pb == undefined) {
                 creep.suicide();
+				creep.say("PHd");
                 return 0;
             }
             if (creep.pos.x > 1 && creep.pos.x < 48 && creep.pos.y > 1 && creep.pos.y < 48) {
                 let attacker = Game.creeps[pb_status.pb_attacker_name];
                 if (attacker.room.name !== creep.room.name) {
+					creep.say("PHw");
                     return 0;
                 }
                 if (creep.pos.getRangeTo(attacker) > 1) {
@@ -109,10 +120,12 @@ export function creepjob(creep: Creep): number {
                         maxRooms: 1
                     });
 					creep.memory.movable = true;
+					creep.say("PHm1");
                     return 0;
                 } else {
                     creep.memory.ready = true;
                     creep.heal(attacker);
+					creep.say("PHh");
                     return 0;
                 }
             } else {
@@ -121,6 +134,7 @@ export function creepjob(creep: Creep): number {
                     maxRooms: 1
                 });
 				creep.memory.movable = true;
+				creep.say("PHm2");
                 return 0;
             }
         }
@@ -148,17 +162,21 @@ export function creepjob(creep: Creep): number {
                 }
                 external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, add_options);
 				creep.memory.movable = true;
+				creep.say("PCe1");
             } else {
 				basic_job.transfer(creep, creep.room.terminal, {sourcetype: "power"});
+				creep.say("PCt");
             }
             return 0;
         }
         if (creep.memory.ready && creep.room.name == creep.memory.home_room_name) {
+			creep.say("PCd");
             creep.suicide();
         }
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
 			creep.memory.movable = true;
+			creep.say("PCe2");
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -173,8 +191,10 @@ export function creepjob(creep: Creep): number {
                         ignoreCreeps: true
                     });
 					creep.memory.movable = true;
+					creep.say("PCm1");
                     return 0;
                 }
+				creep.say("PCr1");
             }
             let resource = pb_pos.lookFor("resource")[0];
             if (resource !== undefined) {
@@ -186,8 +206,10 @@ export function creepjob(creep: Creep): number {
                         ignoreCreeps: true
                     });
 					creep.memory.movable = true;
+					creep.say("PCm2");
                     return 0;
                 }
+				creep.say("PCr2");
             }
             if (creep.pos.getRangeTo(pb_xy[0], pb_xy[1]) > 3) {
                 creep.moveTo(pb_xy[0], pb_xy[1], {
@@ -196,9 +218,11 @@ export function creepjob(creep: Creep): number {
                     costCallback: functions.avoid_exits
                 });
 				creep.memory.movable = true;
+				creep.say("PCm3");
                 return 0;
             }
             creep.memory.ready = true;
+			creep.say("PCw");
             return 0;
         }
 	} else if (creep.memory.role == 'depo_container_builder') {

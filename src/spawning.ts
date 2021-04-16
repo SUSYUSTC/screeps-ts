@@ -274,9 +274,9 @@ export function spawn(room_name: string) {
         jsons.push(json);
     }
 
-    // mineharvester and specialcarrier
+    // mineharvester and minecarrier
     let n_mineharvesters_needed = 0;
-    let n_specialcarriers_needed = 0;
+    let n_minecarriers_needed = 0;
     let full_mine: boolean;
 	let store_amount = room.storage.store.getUsedCapacity(game_memory.mine_status.type);
 	if (room.terminal !== undefined) {
@@ -284,24 +284,24 @@ export function spawn(room_name: string) {
 	}
 	if (game_memory.mine_status.amount > 0 && game_memory.mine_status.harvestable && store_amount < 180000) {
         n_mineharvesters_needed = 1;
-        n_specialcarriers_needed = 1;
+        n_minecarriers_needed = 1;
         full_mine = game_memory.mine_status.amount >= 10000 && room.energyCapacityAvailable >= 4500;
     } else {
         n_mineharvesters_needed = 0;
-        n_specialcarriers_needed = 0;
+        n_minecarriers_needed = 0;
     }
     let n_mineharvesters;
-    let n_specialcarriers;
+    let n_minecarriers;
     if (full_mine) {
         let mineharvesters = room_creeps.filter((e) => is_valid_creep(e, "mineharvester", 300));
-        let specialcarriers = room_creeps.filter((e) => is_valid_creep(e, "specialcarrier", 100));
+        let minecarriers = room_creeps.filter((e) => is_valid_creep(e, "minecarrier", 100));
         n_mineharvesters = mineharvesters.length;
-        n_specialcarriers = specialcarriers.length;
+        n_minecarriers = minecarriers.length;
     } else {
         let mineharvesters = room_creeps.filter((e) => is_valid_creep(e, "mineharvester", 150));
-        let specialcarriers = room_creeps.filter((e) => is_valid_creep(e, "specialcarrier", 50));
+        let minecarriers = room_creeps.filter((e) => is_valid_creep(e, "minecarrier", 50));
         n_mineharvesters = mineharvesters.length;
-        n_specialcarriers = specialcarriers.length;
+        n_minecarriers = minecarriers.length;
     }
     if (n_mineharvesters < n_mineharvesters_needed && !game_memory.danger_mode) {
         let added_memory = {};
@@ -316,7 +316,7 @@ export function spawn(room_name: string) {
         let json = spawning_func.prepare_role("mineharvester", room.energyAvailable, added_memory, options, added_json);
         jsons.push(json);
     }
-    if (n_specialcarriers < n_specialcarriers_needed && !game_memory.danger_mode) {
+    if (n_minecarriers < n_minecarriers_needed && !game_memory.danger_mode) {
         let added_memory = {};
         let options = {
             "full": full_mine,
@@ -326,7 +326,7 @@ export function spawn(room_name: string) {
             "priority": priority,
             "require_full": true && game_memory.lack_energy,
         };
-        let json = spawning_func.prepare_role("specialcarrier", room.energyAvailable, added_memory, options, added_json);
+        let json = spawning_func.prepare_role("minecarrier", room.energyAvailable, added_memory, options, added_json);
         jsons.push(json);
     }
 	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0] !== undefined);
@@ -374,7 +374,7 @@ export function spawn(room_name: string) {
         n_builds: n_builds + "/" + n_builds_needed,
         n_transfers: n_transfers + "/" + max_transfer,
         n_mineharvesters: n_mineharvesters + "/" + n_mineharvesters_needed,
-        n_specialcarriers: n_specialcarriers + "/" + n_specialcarriers_needed,
+        n_minecarriers: n_minecarriers + "/" + n_minecarriers_needed,
         n_maincarriers: n_maincarriers + "/" + n_maincarriers_needed,
     };
     if (config.help_list[room_name] !== undefined && !game_memory.danger_mode) {

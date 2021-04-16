@@ -153,7 +153,7 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     let n_work = 0;
     return returnbody(n_work, n_carry, n_move);
 }
-const getbody_specialcarrier = (options: any): BodyPartConstant[] => {
+const getbody_minecarrier = (options: any): BodyPartConstant[] => {
 	if (options.full) {
 		return returnbody(0, 12, 6);
 	} else {
@@ -212,7 +212,7 @@ const getbody_list: type_getbody = {
     'mineharvester': getbody_mineharvester,
     'carrier': getbody_carrier,
     'maincarrier': getbody_maincarrier,
-    'specialcarrier': getbody_specialcarrier,
+    'minecarrier': getbody_minecarrier,
     'builder': getbody_builder,
     'upgrader': getbody_upgrader,
     'transferer': getbody_transferer,
