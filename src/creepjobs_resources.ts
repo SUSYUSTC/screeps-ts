@@ -24,7 +24,7 @@ export function creepjob(creep: Creep): number {
                 request[ < BodyPartConstant > part] = boost_mineral
             }
         }
-        if (basic_job.boost_request(creep, request, true) == 1) {
+        if (creep.room.name == creep.memory.home_room_name && basic_job.boost_request(creep, request, true) == 1) {
 			return 0;
 		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
@@ -79,7 +79,7 @@ export function creepjob(creep: Creep): number {
                 request[ < BodyPartConstant > part] = boost_mineral
             }
         }
-        if (basic_job.boost_request(creep, request, true) == 1) {
+        if (creep.room.name == creep.memory.home_room_name && basic_job.boost_request(creep, request, true) == 1) {
 			return 0;
 		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];

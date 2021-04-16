@@ -24,6 +24,11 @@ interface type_mine_log {
 	density: number;
 	regeneration_time: number;
 }
+interface type_pb_log {
+	status: number;
+	time_last: number;
+	amount: number;
+}
 interface type_room_log {
 	RCL: type_level;
 	room_energy: number;
@@ -45,6 +50,9 @@ interface type_room_log {
 	objects_to_sell: {
 		[key: string]: type_object_to_trade;
 	};
+	pb_status: {
+		[key: string]: type_pb_log;
+	}
 }
 interface type_log {
 	time: number;
@@ -139,6 +147,7 @@ export function log() {
 			reaction: null,
 			boosting: null,
 			construction_sites_progressleft: null,
+			pb_status: {},
 		};
 		let room = Game.rooms[room_name];
 		let game_memory = Game.memory[room_name];
@@ -221,6 +230,13 @@ export function log() {
 		}
 		if (room.memory.sites_total_progressleft) {
 			room_log.construction_sites_progressleft = room.memory.sites_total_progressleft;
+		}
+		for (let external_room_name in room.memory.external_resources.pb) {
+			room_log.pb_status[external_room_name] = {
+				"status": room.memory.external_resources.pb[external_room_name].status,
+				"time_last": room.memory.external_resources.pb[external_room_name].time_last,
+				"amount": room.memory.external_resources.pb[external_room_name].amount,
+			}
 		}
 		log.rooms[room_name] = room_log;
 	}
