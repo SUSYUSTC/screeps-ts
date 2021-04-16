@@ -127,15 +127,15 @@ export function get_costmatrix_road(room_name: string) {
             mypcs.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             let hostilecreeps = room.find(FIND_HOSTILE_CREEPS);
             hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+			if (config.conf_rooms[room_name] !== undefined) {
+				for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
+					costmatrix.set(xy[0], xy[1], 255);
+				}
+			}
             Game.costmatrices[room_name] = costmatrix.clone();
         } else {
             Game.costmatrices[room_name] = costmatrix.clone();
         }
-		if (config.conf_rooms[room_name] !== undefined) {
-			for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
-				costmatrix.set(xy[0], xy[1], 255);
-			}
-		}
     }
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
     return Game.costmatrices[room_name];

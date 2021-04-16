@@ -50,7 +50,7 @@ function update_structures(room_name: string) {
         room.memory.unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
     let structures_defined = (room.memory.energy_filling_list !== undefined) && (room.memory.energy_storage_list !== undefined) && (room.memory.spawn_list !== undefined) && (room.memory.tower_list !== undefined)
-    if (global.test_var == undefined || room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 10 == 0 || !structures_defined) {
+    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 20 == 0 || !structures_defined) {
         let structures = room.find(FIND_STRUCTURES);
         room.memory.objects_updated = false;
         let n_structures = structures.length;
@@ -86,6 +86,9 @@ function update_link_and_container(room_name: string) {
     let link_modes = Object.keys(conf.links).filter((e) => links_status[e].finished);
     game_memory.container_modes_all = mymath.all(container_modes);
     game_memory.link_modes = link_modes;
+	if (!Game.powered_rooms.includes(room_name) && Game.time % 3 !== 0) {
+		return;
+	}
     game_memory.are_links_source = {};
 	link_modes.filter((e) => e !== 'MAIN' && e !== 'Ext').forEach((e) => game_memory.are_links_source[e] = false);
 	if (links_status.Ext !== undefined) {
@@ -126,11 +129,6 @@ function update_link_and_container(room_name: string) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
 		}
-		/*
-        if (room.memory.is_mainlink_source !== undefined) {
-            game_memory.are_links_source.MAIN = room.memory.is_mainlink_source;
-        }
-		*/
         room.visual.text(room.memory.maincarrier_link_amount.toString(), conf.links.MAIN.pos[0], conf.links.MAIN.pos[1]);
     }
 
@@ -144,7 +142,7 @@ function update_layout(room_name: string, check_all: boolean = false) {
     }
     let cpu_used = Game.cpu.getUsed();
 
-    if (global.test_var !== undefined && Game.time % 50 !== 0 && !check_all) {
+    if (Game.time % 50 !== 0 && !check_all) {
         Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
@@ -813,9 +811,14 @@ export function set_global_memory() {
     }
     let cpu_used = Game.cpu.getUsed();
 
+    if (Game.tick_cpu[name_of_this_function] == undefined) {
+        Game.tick_cpu[name_of_this_function] = 0
+    }
+    let cpu_used1 = Game.cpu.getUsed();
     if (Memory.product_request == undefined) {
         Memory.product_request = {};
     }
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used1;
     for (let room_name of config.controlled_rooms) {
         Game.memory[room_name] = {};
     }
@@ -827,24 +830,12 @@ export function set_global_memory() {
         spawn.memory.spawning_time += 1;
     }
 
-    if (Game.mineral_storage_amount == undefined) {
-        Game.mineral_storage_amount = {};
-    }
-    let room_names = < Array < keyof type_mineral_storage_room >> Object.keys(config.mineral_storage_room);
-    for (let room_name of room_names) {
-        try {
-            Game.mineral_storage_amount[room_name] = {};
-            for (let mineral of config.mineral_storage_room[room_name]) {
-                Game.mineral_storage_amount[room_name][mineral] = Game.rooms[room_name].terminal.store.getUsedCapacity(mineral);
-            }
-        } catch (err) {
-            console.log("Error", err, err.stack);
-        }
-    }
+	Game.powered_rooms = [];
     for (let pc_name in config.pc_conf) {
         if (config.pc_conf[pc_name].source) {
             let level = Game.powerCreeps[pc_name].powers[PWR_REGEN_SOURCE].level;
             Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = level;
+			Game.powered_rooms.push(config.pc_conf[pc_name].room_name);
         }
     }
 	update_gcl_room();

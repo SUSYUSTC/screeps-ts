@@ -1,6 +1,9 @@
 import * as mymath from "./mymath";
 import * as config from "./config";
 export function work(room_name: string) {
+	if (!Game.powered_rooms.includes(room_name) && Game.time % 3 !== 0) {
+		return;
+	}
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
 	let links_status = room.memory.named_structures_status.link;

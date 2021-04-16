@@ -455,6 +455,7 @@ interface Game {
         [key: string]: number;
     }
     mineral_storage_amount ? : type_mineral_storage_amount;
+	powered_rooms ?: string[];
     memory: {
         [key: string]: {
             danger_mode ? : boolean;
