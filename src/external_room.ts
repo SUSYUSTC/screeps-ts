@@ -86,17 +86,20 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
     }
 }
 
-export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[]) {
+export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], rooms_backwardpath: string[], poses_backwardpath: number[], moveoptions: type_movetopos_options = {}) {
+	// 0: home room, 1: external room
     if (creep.room.name == creep.memory.home_room_name) {
         creep.memory.movable = false;
 		let pos = creep.room.getPositionAt(safe_pos[0], safe_pos[1]);
 		if (pos.lookFor("creep").length > 0) {
-			basic_job.movetopos(creep, pos, 1);
+			basic_job.movetopos(creep, pos, 1, moveoptions);
 		} else {
-			basic_job.movetopos(creep, pos, 0);
+			basic_job.movetopos(creep, pos, 0, moveoptions);
 		}
+		return 0;
     } else {
         movethroughrooms(creep, rooms_backwardpath, poses_backwardpath);
+		return 1;
     }
 }
 
@@ -117,3 +120,4 @@ export function moveawayexit(creep: Creep | PowerCreep) {
 		return 1;
 	}
 }
+

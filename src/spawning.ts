@@ -646,31 +646,17 @@ export function spawn(room_name: string) {
 				info_external[external_room_name][source_name] = {}
 				let conf_external = conf.external_rooms[external_room_name].sources[source_name];
 				// externalharvester and externalcarrier
-				let n_harvester_carry;
+				let n_harvester_carry = 1;
 				let n_carrier_carry;
 				let n_carriers;
-				if (conf.external_rooms[external_room_name].container) {
-					n_harvester_carry = 1;
-					if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= conf_external.n_carry_tot * 100) {
-						n_carriers = 1;
-					} else if (room.energyAvailable >= Math.ceil(conf_external.n_carry_tot / 2) * 100) {
-						n_carriers = 2;
-					} else {
-						n_carriers = 3;
-					}
-					n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
+				if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= conf_external.n_carry_tot * 100) {
+					n_carriers = 1;
+				} else if (room.energyAvailable >= Math.ceil(conf_external.n_carry_tot / 2) * 100) {
+					n_carriers = 2;
 				} else {
-					let required_energy = (n: number, k: number) => Math.max(Math.ceil(n / k) * 100, Math.ceil(n / k) * 50 + 800);
-					if (conf_external.n_carry_tot <= 25 && room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 1)) {
-						n_carriers = 1;
-					} else if (room.energyCapacityAvailable >= required_energy(conf_external.n_carry_tot, 2)) {
-						n_carriers = 2;
-					} else {
-						n_carriers = 3;
-					}
-					n_harvester_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
-					n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
+					n_carriers = 3;
 				}
+				n_carrier_carry = Math.ceil(conf_external.n_carry_tot / n_carriers);
 				let externalharvester_spawning_time = (n_harvester_carry + 10) * 3;
 				let externalcarrier_spawning_time = n_carrier_carry * 6;
 				let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && e.memory.home_room_name == room.name);

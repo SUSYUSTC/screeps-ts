@@ -240,7 +240,7 @@ export function defend_home(room_name: string) {
         max_healed_amount.push(amount);
     }
 	let defenders = room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'home_defender');
-	let boosted_defenders = defenders.filter((creep) => basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}) == 0);
+	let boosted_defenders = defenders.filter((creep) => basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}, true) == 0);
 	let n_active = boosted_defenders.map((creep) => get_number_active(creep, "attack"));
     let towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
     let damages = [];

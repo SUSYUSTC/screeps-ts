@@ -31,9 +31,7 @@ export {
 	conf_gcl
 } from "./config_gcl"
 
-conf_E14N59.external_rooms.E15N59.container = true;
 conf_E14N59.external_rooms.E15N59.active = true;
-conf_E19N55.external_rooms.E19N56.container = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 
 type type_conf_rooms = {
@@ -249,7 +247,7 @@ export var resources_balance: type_resources_balance = {
 	},
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
-	"LH2O": "E14N59",
+	"LH2O": "E9N54",
 	"XKH2O": "E21N49",
 	"XKHO2": "E21N49",
 	"XUH2O": "E15N58",
@@ -268,19 +266,6 @@ export var protected_sources: {
     "E19N55": ['S1'],
     "E14N59": ['S1', 'S2'],
     "E9N54": ['S2'],
-}
-export var boost_rcl8: {
-    [key: string]: boolean
-} = {
-    "E16N58": true,
-    "E15N58": true,
-    "E14N51": true,
-    "E19N53": true,
-    "E19N51": true,
-    "E21N49": true,
-    "E19N55": true,
-    "E14N59": true,
-    "E9N54": true,
 }
 export var highway_resources: {
     [key: string]: string[]

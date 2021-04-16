@@ -15,6 +15,8 @@ export function creepjob(creep: Creep): number {
     var game_memory = Game.memory[creep.memory.home_room_name];
     if (creep.memory.role == 'pb_attacker') {
         creep.say("PA");
+		creep.memory.movable = false;
+		creep.memory.crossable = true;
         let request: type_creep_boost_request = {};
         for (let part in config.pb_attacker_body) {
             let boost_mineral = config.pb_attacker_body[ < BodyPartConstant > part].boost;
@@ -22,16 +24,16 @@ export function creepjob(creep: Creep): number {
                 request[ < BodyPartConstant > part] = boost_mineral
             }
         }
-        let output = basic_job.boost_request(creep, request);
-        if (output !== 0) {
-            return 0;
-        }
+        if (basic_job.boost_request(creep, request, true) == 1) {
+			return 0;
+		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
         let rooms_path = pb_status.rooms_path;
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
+			creep.memory.movable = true;
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -47,6 +49,7 @@ export function creepjob(creep: Creep): number {
                     maxRooms: 1,
                     costCallback: functions.avoid_exits
                 });
+				creep.memory.movable = true;
             } else {
                 let healer = Game.creeps[pb_status.pb_healer_name];
                 if (healer.room.name !== creep.room.name) {
@@ -67,6 +70,8 @@ export function creepjob(creep: Creep): number {
     } else if (creep.memory.role == 'pb_healer') {
         // 20 heal, 20 move
         creep.say("PH");
+		creep.memory.movable = false;
+		creep.memory.crossable = true;
         let request: type_creep_boost_request = {};
         for (let part in config.pb_healer_body) {
             let boost_mineral = config.pb_healer_body[ < BodyPartConstant > part].boost;
@@ -74,16 +79,16 @@ export function creepjob(creep: Creep): number {
                 request[ < BodyPartConstant > part] = boost_mineral
             }
         }
-        let output = basic_job.boost_request(creep, request);
-        if (output !== 0) {
-            return 0;
-        }
+        if (basic_job.boost_request(creep, request, true) == 1) {
+			return 0;
+		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
         let rooms_path = pb_status.rooms_path;
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
+			creep.memory.movable = true;
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -103,6 +108,7 @@ export function creepjob(creep: Creep): number {
                         range: 1,
                         maxRooms: 1
                     });
+					creep.memory.movable = true;
                     return 0;
                 } else {
                     creep.memory.ready = true;
@@ -114,6 +120,7 @@ export function creepjob(creep: Creep): number {
                     range: 1,
                     maxRooms: 1
                 });
+				creep.memory.movable = true;
                 return 0;
             }
         }
@@ -121,7 +128,7 @@ export function creepjob(creep: Creep): number {
     } else if (creep.memory.role == 'pb_carrier') {
         // 40 carry, 10 move
         creep.say("PC");
-        creep.memory.movable = true;
+        creep.memory.movable = false;
         creep.memory.crossable = true;
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
         let rooms_path = pb_status.rooms_path;
@@ -140,12 +147,9 @@ export function creepjob(creep: Creep): number {
                     };
                 }
                 external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, add_options);
+				creep.memory.movable = true;
             } else {
-                if (creep.pos.getRangeTo(creep.room.terminal) > 1) {
-                    basic_job.movetopos(creep, creep.room.terminal.pos, 1);
-                } else {
-                    creep.transfer(creep.room.terminal, "power");
-                }
+				basic_job.transfer(creep, creep.room.terminal, {sourcetype: "power"});
             }
             return 0;
         }
@@ -154,6 +158,7 @@ export function creepjob(creep: Creep): number {
         }
         if (creep.room.name !== target_room) {
             external_room.movethroughrooms(creep, rooms_path, poses_path);
+			creep.memory.movable = true;
             return 0;
         } else {
             let pb_xy = pb_status.xy;
@@ -167,6 +172,7 @@ export function creepjob(creep: Creep): number {
                         costCallback: functions.avoid_exits,
                         ignoreCreeps: true
                     });
+					creep.memory.movable = true;
                     return 0;
                 }
             }
@@ -179,6 +185,7 @@ export function creepjob(creep: Creep): number {
                         costCallback: functions.avoid_exits,
                         ignoreCreeps: true
                     });
+					creep.memory.movable = true;
                     return 0;
                 }
             }
@@ -188,6 +195,7 @@ export function creepjob(creep: Creep): number {
                     maxRooms: 1,
                     costCallback: functions.avoid_exits
                 });
+				creep.memory.movable = true;
                 return 0;
             }
             creep.memory.ready = true;

@@ -133,12 +133,12 @@ global.do_dismantler_group_x2 = function(suffix: string, flagname: string): numb
         "work": "XZH2O",
         "move": "XZHO2",
         "tough": "XGHO2"
-    });
+    }, true);
     let output_healer = basic_job.boost_request(healer, {
         "heal": "XLHO2",
         "move": "XZHO2",
         "tough": "XGHO2"
-    });
+    }, true);
     let flag = Game.flags[flagname];
     if (output_dismantler == 0 && output_healer == 0) {
         dismantle_group_x2({

@@ -61,11 +61,13 @@ interface RoomMemory {
 			[key in ResourceConstant] ?: number;
 		}
 	}
+	/*
 	external_harvester ? : {
 		[key: string]: {
 			[key: string]: string;
 		}
 	}
+	*/
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -240,7 +242,7 @@ interface type_external_powered_source extends type_external_map {
 interface conf_external_rooms {
     [key: string]: {
         active: boolean;
-		container: boolean;
+		//container: boolean;
         controller: type_external_controller;
         sources: {
 			[key: string]: type_external_source;
@@ -496,6 +498,10 @@ type type_reaction_priority = {
 }
 type type_product_request = {
 	[key in GeneralMineralConstant] ? : number;
+}
+interface type_movetopos_options {
+	costmatrix ?: CostMatrix;
+	setmovable ?: boolean;
 }
 declare module NodeJS {
     interface Global {

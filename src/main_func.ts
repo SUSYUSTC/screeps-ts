@@ -267,6 +267,7 @@ function update_external(room_name: string) {
     if (!("external_room_status" in room.memory)) {
         room.memory.external_room_status = {};
     }
+	/*
     if (room.memory.external_harvester == undefined) {
         room.memory.external_harvester = {};
     }
@@ -283,6 +284,7 @@ function update_external(room_name: string) {
             }
         }
     }
+	*/
     if (Game.time % 5 !== 0) {
         Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
@@ -682,8 +684,8 @@ function update_resources(room_name: string) {
 			let depo_commuting_times = Math.floor((Math.floor(1450 / depo_status.distance) + 1) / 2);
         } else if (depo_status.status == 1) {}
     }
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 	*/
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function get_power_effects(room_name: string) {
@@ -694,12 +696,12 @@ function get_power_effects(room_name: string) {
     let cpu_used = Game.cpu.getUsed();
 
 	if (Game.time % 5 == 0) {
-		Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 		return;
 	}
 	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0]) !== undefined;
 	if (!powered) {
-		Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 		return;
 	}
 	let room = Game.rooms[room_name];
@@ -719,7 +721,7 @@ function get_power_effects(room_name: string) {
 		}
 	}
 
-    Game.tick_cpu_main[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 export function set_room_memory(room_name: string) {
@@ -756,6 +758,12 @@ export function set_room_memory(room_name: string) {
 }
 
 function update_gcl_room() {
+    let name_of_this_function = "update_gcl_room";
+    if (Game.tick_cpu[name_of_this_function] == undefined) {
+        Game.tick_cpu[name_of_this_function] = 0
+    }
+    let cpu_used = Game.cpu.getUsed();
+
 	let conf = config.conf_gcl;
 	let conf_map = config.conf_gcl_map;
 	let room_name = conf_map.gcl_room;
@@ -793,6 +801,8 @@ function update_gcl_room() {
 		}
 		supporting_room.memory.external_sites_total_progressleft[room_name] = room.memory.sites_total_progressleft;
 	}
+
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 export function set_global_memory() {

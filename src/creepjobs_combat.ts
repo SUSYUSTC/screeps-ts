@@ -124,7 +124,7 @@ export function creepjob(creep: Creep): number {
 			Game.rooms[config.defense_compounds_storage_room].terminal.send("ZO", 300, creep.room.name);
 			return 0;
 		}
-		let output = basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"});
+		let output = basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}, true);
 		if (output > 0) {
 			return 0;
 		}
