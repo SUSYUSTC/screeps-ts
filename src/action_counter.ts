@@ -1,34 +1,3 @@
-/**
- Module: actionCounter
- Author: fangxm, Scorpior_gh
- Date:   2019.12.27
- Usage:
- module:main
- let actionCounter = require('actionCounter')
-
- actionCounter.warpActions();
-
- //your modules go here
-
- module.exports.loop=function(){
-     actionCounter.init();
-
-     //your codes go here
-
-     actionCounter.save(1500);
-     //you can use console.log(actionCounter.ratio()) after actionCounter.save() to auto print cpu ratio
- }
-
- The module can count the times of action and measure the CPU used by it.
-*/
-
-let warpGetUsed = false;
-
-let totalCPU = 0;
-let actionsTime = {};
-var historyTotalCPU = {};
-var historyForcedCPU = {};
-
 /*
 let functionsToWarp = [
     {name: 'Game.notify', parent: Game, val: Game.notify},
@@ -132,21 +101,20 @@ let functionsToWarp_creep = [
  * Warp functions, it should be call when global reset.
  */
 export function warpActions(){
-	Game.creep_actions_count = {};
     functionsToWarp_creep.forEach(({name, parent, val}) => warpAction(name, parent, val))
 }
 
-function warpAction(name, parent, action){
+function warpAction(name: string, parent: any, action: any){
     let actionName = name.split('.').pop();
 
     function warppedAction() {
         const start = Game.cpu.getUsed();
 
         let code = action.apply(this, arguments);
-		let role = this.memory.role;
+		let role: type_creep_role = this.memory.role;
 
         const end = Game.cpu.getUsed();
-        if(code === OK && end - start > 0.1) {
+        if(code === OK && end - start > 0.1 && role !== undefined) {
 			if (Game.creep_actions_count[role] == undefined) {
 				Game.creep_actions_count[role] = 0;
 			}

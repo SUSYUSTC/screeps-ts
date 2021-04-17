@@ -117,6 +117,7 @@ interface CreepMemory {
 	pc_level ?: number;
 	powered ?: boolean;
 	request_boost ?: boolean;
+	next_time ?: any;
 }
 interface PowerCreepMemory {
     movable: boolean;
@@ -454,6 +455,9 @@ interface Game {
     tick_cpu_main ? : {
         [key: string]: number;
     }
+	creep_actions_count: {
+		[key in type_creep_role] ?: number;
+	}
     mineral_storage_amount ? : type_mineral_storage_amount;
 	powered_rooms ?: string[];
     memory: {

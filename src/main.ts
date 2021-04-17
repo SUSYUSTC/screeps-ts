@@ -4,6 +4,7 @@ if (Memory.debug_mode == undefined) {
 if (Memory.output_mode == undefined) {
 	Memory.output_mode = true;
 }
+import * as action_counter from "./action_counter";
 import * as config from "./config";
 import * as _ from "lodash";
 import * as creepjobs from "./creepjobs";
@@ -23,6 +24,7 @@ import * as attack from "./attack";
 import * as powercreeps from "./powercreeps"
 import * as control from "./control";
 Memory.rerunning = true;
+action_counter.warpActions();
 
 module.exports.loop = function() {
 	console.log()

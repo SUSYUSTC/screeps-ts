@@ -820,15 +820,16 @@ function update_gcl_room() {
 }
 
 export function set_global_memory() {
-    Game.memory = {}
+	Game.creep_actions_count = {};
+    Game.memory = {};
     let name_of_this_function = "set_global_memory";
     if (Game.tick_cpu_main[name_of_this_function] == undefined) {
-        Game.tick_cpu_main[name_of_this_function] = 0
+        Game.tick_cpu_main[name_of_this_function] = 0;
     }
     let cpu_used = Game.cpu.getUsed();
 
     if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
+        Game.tick_cpu[name_of_this_function] = 0;
     }
     let cpu_used1 = Game.cpu.getUsed();
     if (Memory.product_request == undefined) {

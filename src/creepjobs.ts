@@ -5,26 +5,28 @@ import * as creepjobs_maincarrier from "./creepjobs_maincarrier"
 import * as creepjobs_combat from "./creepjobs_combat"
 import * as creepjobs_resources from "./creepjobs_resources"
 import * as config from "./config"
+var creepjob_dict: {[key in type_creep_role] ?: any} = {
+};
+for (let role of config.creep_roles_home) {
+	creepjob_dict[role] = creepjobs_home.creepjob;
+}
+for (let role of config.creep_roles_external) {
+	creepjob_dict[role] = creepjobs_external.creepjob;
+}
+for (let role of config.creep_roles_maincarrier) {
+	creepjob_dict[role] = creepjobs_maincarrier.creepjob;
+}
+for (let role of config.creep_roles_combat) {
+	creepjob_dict[role] = creepjobs_combat.creepjob;
+}
+for (let role of config.creep_roles_resources) {
+	creepjob_dict[role] = creepjobs_resources.creepjob;
+}
 export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
     }
-    if (!("role" in creep.memory)) {
-        return;
-    } else if (config.creep_roles_home.includes(creep.memory.role)) {
-        creepjobs_home.creepjob(creep);
-        return;
-    } else if (config.creep_roles_maincarrier.includes(creep.memory.role)) {
-        creepjobs_maincarrier.creepjob(creep);
-        return;
-    } else if (config.creep_roles_external.includes(creep.memory.role)) {
-        creepjobs_external.creepjob(creep);
-        return;
-    } else if (config.creep_roles_combat.includes(creep.memory.role)) {
-        creepjobs_combat.creepjob(creep);
-        return;
-    } else if (config.creep_roles_resources.includes(creep.memory.role)) {
-        creepjobs_resources.creepjob(creep);
-        return;
+    if (creep.memory.role !== undefined) {
+		creepjob_dict[creep.memory.role](creep);
     }
 }
