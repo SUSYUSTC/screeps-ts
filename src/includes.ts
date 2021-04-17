@@ -16,6 +16,8 @@ type type_stored_path = {
 interface RoomMemory {
     energy_filling_list ? : Id < AnyStoreStructure > [];
     energy_storage_list ? : Id < AnyStoreStructure > [];
+	repair_list ? : Id < Structure > [];
+	ramparts_to_repair ?: Id< StructureRampart > [];
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
     n_needed_wallrepair ? : number;
@@ -23,8 +25,6 @@ interface RoomMemory {
     n_structures ? : number;
     ticks_to_spawn_builder ? : number;
     objects_updated ? : boolean;
-    has_wall_to_repair ? : boolean;
-    has_structures_to_repair ? : boolean;
     current_boost_request ? : type_current_boost_request;
     reaction_ready ? : boolean;
     reaction_request ? : type_reaction_request;

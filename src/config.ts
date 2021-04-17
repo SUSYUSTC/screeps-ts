@@ -225,6 +225,11 @@ export var resources_balance: type_resources_balance = {
 		min: 2000,
 		amount: 1000,
 	},
+	"LH2O": {
+		gap: 2000,
+		min: 2000,
+		amount: 1000,
+	},
 	"UH2O": {
 		gap: 600,
 		min: 600,
@@ -247,7 +252,6 @@ export var resources_balance: type_resources_balance = {
 	},
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
-	"LH2O": "E9N54",
 	"XKH2O": "E21N49",
 	"XKHO2": "E21N49",
 	"XUH2O": "E15N58",
@@ -276,6 +280,7 @@ export var highway_resources: {
     "E14N51": ['E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
     "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60'],
+	"E9N54": ['E10N51', 'E10N52', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
@@ -294,15 +299,15 @@ export var wall_rates: {[key: string]: number} = {
 let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
 let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
 export var mineral_storage_room: type_mineral_storage_room = {
+    "E9N54": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G"]),
     "E15N58": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G"]),
     "E14N51": t3_compounds.concat(t2_compounds).concat(["Z", "ZH", "ZO", "K", "KH", "KO", "ZK", "G"]),
     "E21N49": t3_compounds.concat(t2_compounds).concat(["Z", "ZH", "ZO", "K", "KH", "KO", "ZK", "G"]),
     "E16N58": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
-    "E19N51": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
-    "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
     "E19N55": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
-    "E14N59": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G", "O", "GO", "OH"]),
-	"E9N54": ["L"],
+    "E19N51": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
+    "E14N59": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
+    "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
 };
 export var reserved_resources: {[key in ResourceConstant] ?: number} = {
 	"UH2O": 20000,

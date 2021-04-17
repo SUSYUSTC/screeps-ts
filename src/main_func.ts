@@ -9,6 +9,10 @@ function is_not_full(structure: AnyStoreStructure): boolean {
     return ( < GeneralStore > structure.store).getFreeCapacity("energy") > 0;
 }
 
+function need_to_repair(structure: Structure): boolean {
+    return (structure.hits < structure.hitsMax * 0.6);
+}
+
 export function clear_creep() {
     let name_of_this_function = "clear_creep";
     if (Game.tick_cpu_main[name_of_this_function] == undefined) {
@@ -65,7 +69,13 @@ function update_structures(room_name: string) {
         let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
         room.memory.energy_filling_list = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id).concat(exts.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id));
         room.memory.energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
-    }
+		room.memory.repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+		room.memory.ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
+    } else {
+        room.memory.energy_filling_list = room.memory.energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
+		room.memory.repair_list = room.memory.repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
+		room.memory.ramparts_to_repair = room.memory.ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.wall_strength);
+	}
 
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
@@ -798,6 +808,12 @@ function update_gcl_room() {
 			supporting_room.memory.external_sites_total_progressleft = {};
 		}
 		supporting_room.memory.external_sites_total_progressleft[room_name] = room.memory.sites_total_progressleft;
+	}
+	room.memory.ramparts_to_repair = [];
+	if (Game.time % 20 == 0) {
+		room.memory.repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => structure.structureType == "road" && need_to_repair(structure)).map((e) => e.id);
+	} else {
+		room.memory.repair_list = room.memory.repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
 	}
 
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;

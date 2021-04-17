@@ -122,10 +122,8 @@ export function work(pc: PowerCreep) {
 	}
 	if (pc.room.name !== conf.room_name && Game.rooms[conf.room_name].memory.external_room_status[conf.external_room].defense_type !== '') {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
-		if (pc.room.name !== conf.external_room) {
-			external_room.external_flee(pc, config.conf_rooms[conf.room_name].safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
-			return;
-		}
+		external_room.external_flee(pc, config.conf_rooms[conf.room_name].safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+		return;
 	}
 	let source_id: Id<Source>;
 	if (pc.memory.current_source_target == "external") {
