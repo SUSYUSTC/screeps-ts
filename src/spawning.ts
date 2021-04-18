@@ -767,10 +767,10 @@ export function spawn(room_name: string) {
 		if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
 			break if_gcl;
 		}
-		if (gcl_room.terminal == undefined || !gcl_room.terminal.isActive()) {
+		if (gcl_room.terminal == undefined) {
 			let n_work = Math.ceil(600/(config.conf_gcl_map.carrier_distance + 2));
 			let n_move = Math.ceil(n_work/2);
-			let n_carry = Math.ceil(n_work/5)
+			let n_carry = Math.ceil(n_work/5);
 			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl_map.single_distance + (n_work + n_move + n_carry) * 3));
 			let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl_map.single_distance + 150));
 			if (upgraders.length == 0) {
@@ -800,6 +800,23 @@ export function spawn(room_name: string) {
 				jsons.push(json);
 			}
 		} else {
+			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl_map.single_distance + 150));
+			let n_upgrades_needed = 0;
+			if (upgraders.length < n_upgrades_needed) {
+				let added_memory = { };
+				let options = {
+					"n_work": 32,
+					"n_carry": 10,
+					"n_move": 8,
+				};
+				let priority = 10;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("gcl_upgrader", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
 		}
 	}
     /*

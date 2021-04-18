@@ -9,15 +9,15 @@ var vision_options: any = {
 };
 
 export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}): number {
-    let name_of_this_function = "movetopos"
+    if (creep.pos.getRangeTo(pos) <= range) {
+        return 1;
+    }
+    let name_of_this_function = "movetopos";
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
-    if (creep.pos.getRangeTo(pos) <= range) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
-        return 1;
-    }
+
     let regenerate_path;
     if (options.setmovable == undefined) {
         options.setmovable = true;
@@ -105,6 +105,8 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
         creep.memory.stored_path.time_left -= 1;
     }
     let path_pos = creep.memory.stored_path.path.slice(0, 1).map((e) => creep.room.getPositionAt(e[0], e[1]));
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+
     if (path_pos.length > 0) {
         let potential_creep = path_pos[0].lookFor("creep")[0]
         if (potential_creep !== undefined && !potential_creep.memory.movable && potential_creep.memory.crossable) {
@@ -124,7 +126,6 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
             creep.memory.movable = true;
         }
     }
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
     return 0;
 }
 
@@ -196,17 +197,14 @@ export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydista
 
 export function charge_all(creep: Creep, moveoptions: type_movetopos_options = {}): number {
     // 0: found, 1: not found
-    var metric = config.distance_metric;
-    let game_memory = Game.memory[creep.room.name];
-    let store_list = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id)).filter((e) => ( < GeneralStore > e.store).getFreeCapacity("energy") > 0);
-    let tower_list = (creep.room.memory.tower_list.map((id) => < AnyStoreStructure > Game.getObjectById(id)).filter((e) => ( < GeneralStore > e.store).getFreeCapacity("energy") > 400));
-    let structures = store_list.concat(tower_list);
-    let distance = structures.map((e) => creep.pos.getRangeTo(e));
-    if (distance.length == 0) {
+    if (creep.room.memory.energy_filling_list.length == 0) {
         return 1;
     }
+    let game_memory = Game.memory[creep.room.name];
+    let store_list = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id));
+    let distance = store_list.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distance);
-    let obj = structures[argmin];
+    let obj = store_list[argmin];
     if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
         movetopos(creep, obj.pos, 1, moveoptions);
     }

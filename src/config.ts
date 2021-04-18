@@ -193,7 +193,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
 		},
 		"battery": {
-			price: 3.6,
+			price: 4.8,
 			interval: 3000,
 		}
 	},
@@ -294,7 +294,7 @@ export var wall_rates: {[key: string]: number} = {
     "E21N49": 0,
     "E19N55": 0,
     "E14N59": 0,
-    "E9N54": 0,
+    "E9N54": 1,
 }
 let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
 let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
@@ -427,7 +427,7 @@ export var powered_harvester: type_powered_harvester = {
     5: {
         n_harvest: 14,
         n_carry: 6,
-        n_move: 2,
+        n_move: 3,
     },
 }
 export var powered_external_harvester: type_powered_harvester = {
@@ -449,12 +449,12 @@ export var powered_external_harvester: type_powered_harvester = {
     4: {
         n_harvest: 12,
         n_carry: 2,
-        n_move: 7,
+        n_move: 6,
     },
     5: {
         n_harvest: 14,
         n_carry: 2,
-        n_move: 2,
+        n_move: 7,
     },
 }
 

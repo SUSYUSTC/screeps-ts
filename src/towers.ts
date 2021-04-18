@@ -84,7 +84,7 @@ export function repair_all(room_name: string) {
 		return 0;
 	}
 	if (room.memory.ramparts_to_repair.length > 0) {
-		repair(Game.getObjectById(room.memory.repair_list[0]));
+		repair(Game.getObjectById(room.memory.ramparts_to_repair[0]));
 		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 		return 0;
 	}

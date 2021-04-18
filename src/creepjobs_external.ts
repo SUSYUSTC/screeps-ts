@@ -425,6 +425,7 @@ export function creepjob(creep: Creep): number {
 			let upper_poses = config.conf_gcl.upper_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
 			let lower_poses = config.conf_gcl.lower_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
 			let store: AnyStoreStructure;
+			let container_pos = creep.room.getPositionAt(conf.containers.CT.pos[0], conf.containers.CT.pos[1]);
 			if (creep.room.terminal !== undefined && creep.room.terminal.store.getUsedCapacity("energy") > 5000) {
 				upper_poses = [upper_poses[3], upper_poses[2], upper_poses[1]];
 				lower_poses = [lower_poses[3], lower_poses[2], lower_poses[1]];

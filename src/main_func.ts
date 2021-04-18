@@ -67,7 +67,10 @@ function update_structures(room_name: string) {
         room.memory.tower_list = towers.map((e) => e.id);
         room.memory.spawn_list = spawns.map((e) => e.id);
         let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
-        room.memory.energy_filling_list = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id).concat(exts.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id));
+		let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
+		let energy_filling_exts = exts.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
+		let energy_filling_towers = towers.filter((e) => e.store.getFreeCapacity("energy") > 400).map((e) => < Id < AnyStoreStructure >> e.id);
+        room.memory.energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
         room.memory.energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
 		room.memory.repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
 		room.memory.ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
