@@ -775,8 +775,8 @@ function update_gcl_room() {
     }
     let cpu_used = Game.cpu.getUsed();
 
-	let conf = config.conf_gcl;
-	let conf_map = config.conf_gcl_map;
+	let conf = config.conf_gcl.conf;
+	let conf_map = config.conf_gcl.conf_map;
 	let room_name = conf_map.gcl_room;
 	let room = Game.rooms[room_name];
 	if (room == undefined || !room.controller.my) {
@@ -799,9 +799,11 @@ function update_gcl_room() {
 	if (Game.time % 50 == 0) {
 		layout.update_multiple_structures(room_name, "road", conf.roads, true, true);
 		layout.update_multiple_structures(room_name, "tower", conf.towers, true);
-		layout.update_named_structures(room_name, "container", conf.containers, true);
 		layout.update_unique_structures(room_name, "storage", conf.storage, true);
 		layout.update_unique_structures(room_name, "terminal", conf.terminal, true);
+		if (room.terminal == undefined || room.storage == undefined) {
+			layout.update_named_structures(room_name, "container", conf.containers, true);
+		}
 	}
 	if (Game.time % 50 == 10) {
 		let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
@@ -814,7 +816,7 @@ function update_gcl_room() {
 	}
 	room.memory.ramparts_to_repair = [];
 	if (Game.time % 20 == 0) {
-		room.memory.repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => structure.structureType == "road" && need_to_repair(structure)).map((e) => e.id);
+		room.memory.repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => ["road", "container"].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
 	} else {
 		room.memory.repair_list = room.memory.repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
 	}
@@ -849,7 +851,10 @@ export function set_global_memory() {
         }
         spawn.memory.spawning_time += 1;
     }
-
+	if (Game.time % 100 == 0 || Memory.total_energies == undefined) {
+		let tot_amounts = global.summarize_terminal();
+		Memory.total_energies = tot_amounts.energy += tot_amounts.battery * 10;
+	}
 	Game.powered_rooms = [];
     for (let pc_name in config.pc_conf) {
         if (config.pc_conf[pc_name].source) {

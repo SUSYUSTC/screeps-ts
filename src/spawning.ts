@@ -21,6 +21,7 @@ function get_defender_json(room_name: string, typename: string): type_spawn_json
     let priority = 120;
     let added_json = {
         "priority": priority,
+		"require_full": false,
     };
     let json = spawning_func.prepare_role("defender", room.energyAvailable, added_memory, options, added_json);
     return json;
@@ -220,7 +221,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") + room.storage.store.getUsedCapacity("energy") / 10 >= config.battery_bar_to_spawn_upgrader) && Game.cpu.bucket >= 9000;
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy") >= config.energy_bar_to_spawn_upgrader) && Game.cpu.bucket >= 9000;
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -229,9 +230,6 @@ export function spawn(room_name: string) {
     }
     if (n_upgrades < max_upgrade && !game_memory.danger_mode) {
         let added_memory: any = {};
-        if ("boost_request" in conf.upgraders) {
-            added_memory["boost_request"] = config.upgrader_boost_request;
-        }
         let options = {
             "max_energy": room.energyCapacityAvailable,
             rcl8: (room.controller.level == 8),
@@ -493,11 +491,14 @@ export function spawn(room_name: string) {
 	let external_progress = room.memory.external_sites_total_progressleft;
 	if (external_progress !== undefined) {
 		for (let external_room_name in external_progress) {
+			if (conf.external_rooms[external_room_name] == undefined) {
+				continue;
+			}
 			let conf_external: type_external_map;
 			if (powered) {
 				conf_external = conf.external_rooms[external_room_name].powered_source;
-			} else if (config.conf_gcl_map.supporting_room == room_name && config.conf_gcl_map.gcl_room == external_room_name) {
-				conf_external = config.conf_gcl_map;
+			} else if (config.conf_gcl.conf_map.supporting_room == room_name && config.conf_gcl.conf_map.gcl_room == external_room_name) {
+				conf_external = config.conf_gcl.conf_map;
 			} else {
 				conf_external = conf.external_rooms[external_room_name].controller;
 			}
@@ -762,17 +763,17 @@ export function spawn(room_name: string) {
         }
     }
 	// gcl
-	if_gcl: if (config.conf_gcl_map.supporting_room == room_name && Game.rooms[config.conf_gcl_map.gcl_room] !== undefined && Game.rooms[config.conf_gcl_map.gcl_room].controller.my) {
-		let gcl_room = Game.rooms[config.conf_gcl_map.gcl_room];
+	if_gcl: if (config.conf_gcl.conf_map.supporting_room == room_name && Game.rooms[config.conf_gcl.conf_map.gcl_room] !== undefined && Game.rooms[config.conf_gcl.conf_map.gcl_room].controller.my) {
+		let gcl_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
 		if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
 			break if_gcl;
 		}
 		if (gcl_room.terminal == undefined) {
-			let n_work = Math.ceil(600/(config.conf_gcl_map.carrier_distance + 2));
+			let n_work = Math.ceil(600/(config.conf_gcl.conf_map.carrier_distance + 2));
 			let n_move = Math.ceil(n_work/2);
 			let n_carry = Math.ceil(n_work/5);
-			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl_map.single_distance + (n_work + n_move + n_carry) * 3));
-			let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl_map.single_distance + 150));
+			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl.conf_map.single_distance + (n_work + n_move + n_carry) * 3));
+			let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl.conf_map.single_distance + 150));
 			if (upgraders.length == 0) {
 				let added_memory = { };
 				let options = {
@@ -800,10 +801,13 @@ export function spawn(room_name: string) {
 				jsons.push(json);
 			}
 		} else {
-			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl_map.single_distance + 150));
+			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl.conf_map.single_distance + 150));
 			let n_upgrades_needed = 0;
-			if (upgraders.length < n_upgrades_needed) {
-				let added_memory = { };
+			//let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
+			if (upgraders.length < n_upgrades_needed && gcl_room.terminal.store.getUsedCapacity("energy") >= 200000) {
+				let added_memory = {
+					"advanced": true,
+				};
 				let options = {
 					"n_work": 32,
 					"n_carry": 10,

@@ -245,21 +245,20 @@ export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {
     let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
     return n;
 }
-export function prepare_role(rolename: type_creep_role, energy: number, added_memory: any, options: any, added_json: any) {
-    var rolename = rolename;
-    var creepname = rolename + Game.time;
-    var body = getbody_list[rolename](options);
-    var cost = get_cost(body);
-    var affordable = (cost <= energy);
-    var memory: any = {
+export function prepare_role(rolename: type_creep_role, energy: number, added_memory: CreepMemory, options: any, added_json: {priority: number, require_full: boolean}) {
+    let creepname = rolename + Game.time;
+    let body = getbody_list[rolename](options);
+    let cost = get_cost(body);
+    let affordable = (cost <= energy);
+    let memory: any = {
         role: rolename
     };
     if (added_memory !== null) {
-        for (var key in added_memory) {
+        for (let key of <Array<keyof CreepMemory>> Object.keys(added_memory)) {
             memory[key] = added_memory[key];
         }
     }
-    var json: type_spawn_json = {
+    let json: type_spawn_json = {
         rolename: rolename,
         creepname: creepname,
         body: body,
@@ -267,7 +266,7 @@ export function prepare_role(rolename: type_creep_role, energy: number, added_me
         memory: memory,
         affordable: affordable
     }
-    for (var key in added_json) {
+    for (let key of <Array<keyof typeof added_json>> Object.keys(added_json)) {
         json[key] = added_json[key];
     }
     return json;

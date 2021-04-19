@@ -22,6 +22,7 @@ import * as final_command from "./final_command";
 import * as output from "./output";
 import * as attack from "./attack";
 import * as powercreeps from "./powercreeps"
+import * as gcl_room from "./gcl_room";
 import * as control from "./control";
 Memory.rerunning = true;
 action_counter.warpActions();
@@ -56,8 +57,8 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	if (Game.rooms[config.conf_gcl_map.gcl_room] !== undefined) {
-		let room_name = config.conf_gcl_map.gcl_room;
+	if (Game.rooms[config.conf_gcl.conf_map.gcl_room] !== undefined) {
+		let room_name = config.conf_gcl.conf_map.gcl_room;
 		try {
 			if (towers.attack_all(room_name) == 1) {
 				if (towers.heal_all(room_name) == 1) {
@@ -98,6 +99,15 @@ module.exports.loop = function() {
 			console.log("Error", creep.room.name, err.stack);
 		}
     }
+
+	cpu_used = Game.cpu.getUsed();
+	try {
+		gcl_room.run();
+	} catch (err) {
+		creep.say("Error");
+		console.log("Error at gcl room", err.stack);
+	}
+	Game.tick_cpu_main.gcl_room = Game.cpu.getUsed() - cpu_used;
 
 	cpu_used = Game.cpu.getUsed();
     for (var name in Game.powerCreeps) {

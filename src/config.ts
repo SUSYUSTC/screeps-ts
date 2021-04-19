@@ -27,12 +27,31 @@ import {
 import {
     conf_E9N54
 } from "./config_E9N54"
-export {
-	conf_gcl
+import {
+	config_gcl
 } from "./config_gcl"
 
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
+conf_E16N58.external_rooms.E17N58.active = true;
+function direction2orient(pos: number[]) {
+	if (pos[0] == 0 && pos[1] == 1) {
+		return BOTTOM;
+	}
+	if (pos[0] == 0 && pos[1] == -1) {
+		return TOP;
+	}
+	if (pos[0] == 1 && pos[1] == 0) {
+		return RIGHT;
+	}
+	if (pos[0] == -1 && pos[1] == 0) {
+		return LEFT;
+	}
+}
+config_gcl.queue1_orient = direction2orient(config_gcl.queue1_direction);
+config_gcl.queue2_orient = direction2orient(config_gcl.queue2_direction);
+config_gcl.positive_orient = direction2orient(config_gcl.direction);
+config_gcl.negative_orient = direction2orient([-config_gcl.direction[0], -config_gcl.direction[1]]);
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -73,27 +92,33 @@ export var conf_rooms: type_conf_rooms = {
     "E14N59": conf_E14N59,
     "E9N54": conf_E9N54,
 }
-interface type_conf_gcl_map {
-	energy_supply_rooms: string[];
-	supporting_room: string;
-	gcl_room: string;
-	rooms_forwardpath: string[];
-	poses_forwardpath: number[];
-	rooms_backwardpath: string[];
-	poses_backwardpath: number[];
-	single_distance: number;
-	carrier_distance: number;
+interface type_conf_gcl {
+	conf: type_config_gcl;
+	conf_map: {
+		energy_supply_rooms: string[];
+		supporting_room: string;
+		gcl_room: string;
+		rooms_forwardpath: string[];
+		poses_forwardpath: number[];
+		rooms_backwardpath: string[];
+		poses_backwardpath: number[];
+		single_distance: number;
+		carrier_distance: number;
+	}
 }
-export var conf_gcl_map: type_conf_gcl_map = {
-	energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
-	supporting_room: 'E16N58',
-	gcl_room: 'E16N57',
-	rooms_forwardpath: ['E16N58', 'E16N57'],
-	poses_forwardpath: [28],
-	rooms_backwardpath: ['E16N57', 'E16N58'],
-	poses_backwardpath: [28],
-	single_distance: 41,
-	carrier_distance: 39,
+export var conf_gcl: type_conf_gcl = {
+	conf: config_gcl,
+	conf_map: {
+		energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
+		supporting_room: 'E16N58',
+		gcl_room: 'E16N57',
+		rooms_forwardpath: ['E16N58', 'E16N57'],
+		poses_forwardpath: [28],
+		rooms_backwardpath: ['E16N57', 'E16N58'],
+		poses_backwardpath: [28],
+		single_distance: 41,
+		carrier_distance: 39,
+	}
 }
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
@@ -115,6 +140,13 @@ export var pc_conf: type_pc_conf = {
 		"lab": true,
 		"external_room": "E19N56",
     },
+    "PC_C": {
+        "room_name": "E16N58",
+        "source": true,
+		"normal_ordered": false,
+		"lab": true,
+		"external_room": "E17N58",
+    },
 }
 export var hunting: type_hunting = {};
 export var link_transfer_to_main_gap: number = 800;
@@ -124,8 +156,10 @@ export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 6;
 export var maincarrier_ncarry_powered: number = 12;
-export var battery_bar_to_spawn_upgrader: number = 200000;
-export var upgrader_boost_request: MineralBoostConstant = "GH2O";
+export var energy_bar_to_spawn_upgrader: number = 2.4e6;
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.8e7, 1.0e7, 1.2e7, 1.4e7, 1.6e7, 1.8e7];
+export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
+export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];

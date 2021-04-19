@@ -114,7 +114,9 @@ export var conf_E16N58: type_conf_room =
             [17, 21],
             [18, 22],
             [16, 20],
-            [15, 19]
+            [15, 19],
+            [38, 33],
+            [38, 32]
         ],
         "2": [
             [33, 35],
@@ -122,11 +124,12 @@ export var conf_E16N58: type_conf_room =
             [32, 34],
             [31, 33],
             [32, 32],
+            [36, 34],
             [31, 31],
-            [37, 29]
+            [37, 29],
+            [37, 34]
         ],
         "3": [
-            [36, 34],
             [30, 32]
         ],
         "4": [
@@ -181,7 +184,17 @@ export var conf_E16N58: type_conf_room =
             [29, 45],
             [29, 46],
             [29, 47],
-            [29, 48]
+            [29, 48],
+            [42, 32],
+            [43, 31],
+            [44, 30],
+            [45, 29],
+            [46, 28],
+            [47, 27],
+            [48, 26],
+            [41, 33],
+            [39, 33],
+            [40, 34]
         ]
     },
     "spawns": {
@@ -421,6 +434,26 @@ export var conf_E16N58: type_conf_room =
                     "rooms_backwardpath": ["E17N58", "E16N58"],
                     "poses_backwardpath": [25]
                 }
+            },
+            "powered_source": {
+                "source_name": "S1",
+                "carry_end": {
+                    "type": "storage",
+                    "name": ""
+                },
+                "roads": [
+                    [1, 24],
+                    [2, 23],
+                    [3, 22]
+                ],
+                "poses_forwardpath": [25],
+                "poses_backwardpath": [25],
+                "id": <Id<Source>>"5bbcade89099fc012e6381d0",
+                "harvester_pos": [4, 21],
+                "single_distance": 19,
+                "rooms_forwardpath": ["E16N58", "E17N58"],
+                "rooms_backwardpath": ["E17N58", "E16N58"],
+                "carrier_distance": 20
             }
         }
     },

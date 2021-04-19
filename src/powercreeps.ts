@@ -51,7 +51,7 @@ export function work(pc: PowerCreep) {
 	if (!pc.room.controller.isPowerEnabled) {
 		pc.say("enable");
 		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
-			pc.moveTo(pc.room.controller, {range: 3});
+			pc.moveTo(pc.room.controller, {range: 1});
 		} else {
 			pc.enableRoom(pc.room.controller);
 		}

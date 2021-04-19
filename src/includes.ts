@@ -90,14 +90,14 @@ interface type_resource_sending_request {
 	amount: number;
 }
 interface CreepMemory {
-    role: type_creep_role;
+    movable ?: boolean;
+	crossable ?: boolean;
+    role ?: type_creep_role;
     source_name ? : string;
     harvesting ? : boolean;
     home_room_name ? : string;
     external_room_name ? : string;
     transfer_target ? : string;
-    movable: boolean;
-	crossable: boolean;
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
@@ -118,6 +118,7 @@ interface CreepMemory {
 	powered ?: boolean;
 	request_boost ?: boolean;
 	next_time ?: any;
+	advanced ?: boolean;
 }
 interface PowerCreepMemory {
     movable: boolean;
@@ -334,8 +335,14 @@ interface type_config_gcl {
 	terminal: conf_unique_structures;
 	storage: conf_unique_structures;
 	direction: number[];
-	upper_poses: number[][];
-	lower_poses: number[][];
+	queue1_direction: number[];
+	queue1_poses: number[][];
+	queue2_direction: number[];
+	queue2_poses: number[][];
+	positive_orient ?: DirectionConstant;
+	negative_orient ?: DirectionConstant;
+	queue1_orient ?: DirectionConstant;
+	queue2_orient ?: DirectionConstant;
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -371,6 +378,7 @@ interface Memory {
 	pb_cooldown_time ?: number;
 	product_request ?: type_product_request;
 	final_product_request ?: type_product_request;
+	total_energies ?: number;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {

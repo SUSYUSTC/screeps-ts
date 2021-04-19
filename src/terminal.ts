@@ -17,7 +17,7 @@ global.request_resource_sending = function(room_from: string, room_to: string, r
 global.summarize_terminal = function(): type_resource_number {
     let result: type_resource_number = {}
     for (let room_name of config.controlled_rooms) {
-        let terminal = Game.rooms[room_name].terminal
+        let terminal = Game.rooms[room_name].terminal;
         if (terminal) {
             let keys = < Array < ResourceConstant >> Object.keys(terminal.store)
             for (let resource of keys) {
@@ -27,12 +27,16 @@ global.summarize_terminal = function(): type_resource_number {
                 result[resource] += terminal.store.getUsedCapacity(resource);
             }
         }
-		let storage = Game.rooms[room_name].storage;
-		let resource = Game.memory[room_name].mine_status.type;
-		if (result[resource] == undefined) {
-			result[resource] = 0
-		}
-		result[resource] += storage.store.getUsedCapacity(resource);
+        let storage = Game.rooms[room_name].storage;
+        if (storage) {
+            let keys = < Array < ResourceConstant >> Object.keys(storage.store)
+            for (let resource of keys) {
+                if (result[resource] == undefined) {
+                    result[resource] = 0
+                }
+                result[resource] += storage.store.getUsedCapacity(resource);
+            }
+        }
     }
     return result
 }
@@ -60,13 +64,13 @@ function supply_gcl_room() {
 	if (Game.time % 20 !== 0) {
 		return;
 	}
-	let helped_room = Game.rooms[config.conf_gcl_map.gcl_room];
-	if (helped_room !== undefined && helped_room.terminal !== undefined && helped_room.terminal.isActive() && helped_room.terminal.store.getUsedCapacity("energy") < 150000) {
-		for (let helping_room_name of config.conf_gcl_map.energy_supply_rooms) {
+	let helped_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
+	if (helped_room !== undefined && helped_room.terminal !== undefined && helped_room.terminal.isActive() && helped_room.terminal.store.getUsedCapacity("energy") < 240000) {
+		for (let helping_room_name of config.conf_gcl.conf_map.energy_supply_rooms) {
 			let helping_room = Game.rooms[helping_room_name];
 			let source_storage = helping_room.storage.store.getUsedCapacity("energy");
 			let source_terminal = helping_room.terminal.store.getUsedCapacity("energy");
-			if (source_storage >= config.storage_full && source_terminal >= 50000) {
+			if (source_storage >= config.storage_full - 50000 && source_terminal >= 50000) {
 				helping_room.terminal.send("energy", 25000, helped_room.name);
 				break;
 			}

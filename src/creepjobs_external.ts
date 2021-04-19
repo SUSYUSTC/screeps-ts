@@ -408,74 +408,43 @@ export function creepjob(creep: Creep): number {
 		creep.say("GU");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		let gcl_room_name = config.conf_gcl_map.gcl_room;
-		let supporting_room_name = config.conf_gcl_map.supporting_room;
+		let conf = config.conf_gcl.conf;
+		let conf_map = config.conf_gcl.conf_map;
+		let gcl_room_name = conf_map.gcl_room;
+		let supporting_room_name = conf_map.supporting_room;
 		if (creep.room.name == supporting_room_name) {
-			if (basic_job.boost_request(creep, {"work": config.upgrader_boost_request}, true) == 1) {
-				creep.say("GUb");
-				return 0;
+			if (creep.memory.advanced) {
+				if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound, "move": "ZO"}, true) == 1) {
+					creep.say("GUb");
+					return 0;
+				}
+			} else {
+				if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound}, true) == 1) {
+					creep.say("GUb");
+					return 0;
+				}
 			}
 		}
 		if (creep.room.name !== gcl_room_name) {
-			external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+			external_room.movethroughrooms(creep, conf_map.rooms_forwardpath, conf_map.poses_forwardpath);
 			creep.memory.movable = true;
 			creep.say("GUe");
 			return 0;
 		} else {
-			let upper_poses = config.conf_gcl.upper_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
-			let lower_poses = config.conf_gcl.lower_poses.map((e) => creep.room.getPositionAt(e[0], e[1]));
-			let store: AnyStoreStructure;
 			let container_pos = creep.room.getPositionAt(conf.containers.CT.pos[0], conf.containers.CT.pos[1]);
-			if (creep.room.terminal !== undefined && creep.room.terminal.store.getUsedCapacity("energy") > 5000) {
-				upper_poses = [upper_poses[3], upper_poses[2], upper_poses[1]];
-				lower_poses = [lower_poses[3], lower_poses[2], lower_poses[1]];
-				store = creep.room.terminal;
-			} else if (creep.room.storage !== undefined && creep.room.storage.store.getUsedCapacity("energy") > 5000) {
-				upper_poses = [upper_poses[2], upper_poses[1], upper_poses[0]];
-				lower_poses = [lower_poses[2], lower_poses[1], lower_poses[0]];
-				store = creep.room.storage;
-			} else {
-				upper_poses = [upper_poses[1], upper_poses[0]];
-				lower_poses = [lower_poses[1], lower_poses[0]];
-				let container_status = creep.room.memory.named_structures_status.container.CT;
-				if (container_status.finished) {
-					store = Game.getObjectById(container_status.id);
-				}
-			}
-			let n_upper = mymath.array_sum(upper_poses.map((e) => e.lookFor("creep").length));
-			let n_lower = mymath.array_sum(lower_poses.map((e) => e.lookFor("creep").length));
-			let out: number;
-			if (n_upper >= n_lower) {
-				out = basic_job.movetoposexceptoccupied(creep, upper_poses);
-				creep.say("GUm1");
-			} else {
-				out = basic_job.movetoposexceptoccupied(creep, lower_poses);
-				creep.say("GUm2");
-			}
-			
-			if (store == undefined) {
-				creep.say("GUn");
-				return 0;
-			}
-			if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity() * 0.2 && creep.ticksToLive >= 10) {
-				creep.withdraw(store, "energy");
-				creep.say("GUw");
-			}
-			if (creep.store.getUsedCapacity("energy") > 0) {
-				let xmin = Math.max(creep.pos.x - 3, 0);
-				let xmax = Math.min(creep.pos.x + 3, 49);
-				let ymin = Math.max(creep.pos.y - 3, 0);
-				let ymax = Math.min(creep.pos.y + 3, 49);
-				let site = creep.room.lookForAtArea("constructionSite", ymin, xmin, ymax, xmax, true)[0];
-				if (site !== undefined) {
-					creep.build(site.constructionSite);
-					creep.say("GUb");
-				} else if (store.structureType == 'container' && store.hitsMax - store.hits >= 50000) {
-					creep.repair(store);
-					creep.say("GUr");
-				} else {
-					creep.upgradeController(creep.room.controller);
-					creep.say("GUu");
+			if (!creep.memory.ready) {
+				if (basic_job.trymovetopos(creep, container_pos) == 2) {
+					let tower = creep.room.memory.tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
+					if (tower !== undefined && creep.room.terminal !== undefined) {
+						if (creep.store.getUsedCapacity("energy") == 0) {
+							creep.withdraw(creep.room.storage, "energy");
+						} else {
+							creep.transfer(tower, "energy");
+						}
+						return 0;
+					} else {
+						creep.memory.ready = true;
+					}
 				}
 			}
 			return 0;
@@ -484,34 +453,35 @@ export function creepjob(creep: Creep): number {
 		creep.say("GC");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		let gcl_room_name = config.conf_gcl_map.gcl_room;
-		let supporting_room_name = config.conf_gcl_map.supporting_room;
+		let conf_map = config.conf_gcl.conf_map;
+		let gcl_room_name = conf_map.gcl_room;
+		let supporting_room_name = conf_map.supporting_room;
 		if (creep.room.name == supporting_room_name) {
 			if (creep.store.getUsedCapacity("energy") == 0) {
 				basic_job.withdraw(creep, creep.room.storage);
 				creep.say("GCw");
 				return 0;
 			} else {
-				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+				external_room.movethroughrooms(creep, conf_map.rooms_forwardpath, conf_map.poses_forwardpath);
 				creep.memory.movable = true;
 				creep.say("GCe1");
 				return 0;
 			}
 		} else if (creep.room.name !== gcl_room_name) {
 			if (creep.store.getUsedCapacity("energy") == 0) {
-				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_backwardpath, config.conf_gcl_map.poses_backwardpath);
+				external_room.movethroughrooms(creep, conf_map.rooms_backwardpath, conf_map.poses_backwardpath);
 				creep.memory.movable = true;
 				creep.say("GCe2");
 				return 0;
 			} else {
-				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_forwardpath, config.conf_gcl_map.poses_forwardpath);
+				external_room.movethroughrooms(creep, conf_map.rooms_forwardpath, conf_map.poses_forwardpath);
 				creep.memory.movable = true;
 				creep.say("GCe3");
 				return 0;
 			}
 		} else {
 			if (creep.store.getUsedCapacity("energy") == 0) {
-				external_room.movethroughrooms(creep, config.conf_gcl_map.rooms_backwardpath, config.conf_gcl_map.poses_backwardpath);
+				external_room.movethroughrooms(creep, conf_map.rooms_backwardpath, conf_map.poses_backwardpath);
 				creep.memory.movable = true;
 				creep.say("GCe4");
 				return 0;

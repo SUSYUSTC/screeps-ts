@@ -102,7 +102,7 @@ export function creepjob(creep: Creep): number {
         creep.memory.movable = false;
         creep.memory.crossable = false;
 		let containers_status = creep.room.memory.named_structures_status.container;
-		if (basic_job.boost_request(creep, {"work": config.upgrader_boost_request}, false, moveoptions_noset) == 1) {
+		if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound}, false, moveoptions_noset) == 1) {
 			creep.say("Ub");
 			return 0;
 		}
@@ -206,7 +206,7 @@ export function creepjob(creep: Creep): number {
         creep.memory.movable = false;
         creep.memory.crossable = true;
 		if (creep.room.memory.sites_total_progressleft >= 100000) {
-			if (basic_job.boost_request(creep, {"work": "LH2O"}, false) == 1) {
+			if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false) == 1) {
 				creep.say("Bbo");
 				return 0;
 			}
@@ -260,7 +260,7 @@ export function creepjob(creep: Creep): number {
         creep.say("WR");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (basic_job.boost_request(creep, {"work": "LH2O"}, false) == 1) {
+		if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false) == 1) {
 			creep.say("WRb");
 			return 0;
 		}

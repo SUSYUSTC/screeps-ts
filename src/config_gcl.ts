@@ -1,4 +1,4 @@
-export var conf_gcl: type_config_gcl = {
+export var config_gcl: type_config_gcl = {
     "roads": {
         "1": [
             [28, 1],
@@ -51,13 +51,15 @@ export var conf_gcl: type_config_gcl = {
         "RCL": 6
     },
     "direction": [-1, 0],
-    "upper_poses": [
+    "queue1_direction": [0, 1],
+    "queue1_poses": [
         [19, 15],
         [18, 15],
         [17, 15],
         [16, 15]
     ],
-    "lower_poses": [
+    "queue2_direction": [0, -1],
+    "queue2_poses": [
         [19, 13],
         [18, 13],
         [17, 13],
