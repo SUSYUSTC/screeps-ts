@@ -73,7 +73,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
             creep.moveByPath(path.path);
         } else {
-			if (config.controlled_rooms.includes(creep.room.name)) {
+			if (config.occupied_rooms.includes(creep.room.name)) {
 				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
 			} else {
 				creep.moveTo(exit_xy[0], exit_xy[1], {...{

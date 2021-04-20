@@ -51,6 +51,15 @@ export function run() {
 	let conf = config.conf_gcl.conf;
 	let conf_map = config.conf_gcl.conf_map;
 	let room = Game.rooms[conf_map.gcl_room];
+	if (room == undefined) {
+		return 0;
+	}
+	if (room.controller.level == 8) {
+		if (room.storage.store.getUsedCapacity("energy") >= 8.0e5 && room.terminal.store.getUsedCapacity("energy") >= 2.4e5) {
+			room.controller.unclaim();
+			return 0;
+		}
+	}
 	let ready_upgraders = room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'gcl_upgrader' && e.memory.ready)
 	let upgrader_poses = ready_upgraders.map((e) => [e.pos.x, e.pos.y]);
 	let occs: {[key: number]: number} = {};
@@ -77,7 +86,7 @@ export function run() {
 	let priority_list: number[];
 	if (room.terminal !== undefined && room.terminal.store.getUsedCapacity("energy") >= 5000) {
 		store = room.terminal;
-		if (room.storage.store.getUsedCapacity("energy") < 500000 && room.terminal.store.getUsedCapacity("energy") >= 100000) {
+		if (room.storage.store.getUsedCapacity("energy") < 8.0e5 && room.terminal.store.getUsedCapacity("energy") >= 1.5e5) {
 			do_transfer = true;
 		}
 		unique_pos = 2;
@@ -128,7 +137,9 @@ export function run() {
 		ready_upgraders.forEach((e) => e.repair(store));
 		ready_upgraders.forEach((e) => e.say("GUr"));
 	} else {
-		ready_upgraders.forEach((e) => e.upgradeController(room.controller));
-		ready_upgraders.forEach((e) => e.say("GUu"));
+		if (room.controller.level !== 8) {
+			ready_upgraders.forEach((e) => e.upgradeController(room.controller));
+			ready_upgraders.forEach((e) => e.say("GUu"));
+		}
 	}
 }

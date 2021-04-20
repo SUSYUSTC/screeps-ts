@@ -428,6 +428,18 @@ export function creepjob(creep: Creep): number {
         creep.say("MC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
+        let links_status = creep.room.memory.named_structures_status.link;
+        let link_id = links_status.MAIN.id;
+        let link = Game.getObjectById(link_id);
+        let link_energy = link.store.getUsedCapacity("energy")
+		if (link_energy == creep.room.memory.maincarrier_link_amount) {
+			if (creep.memory.next_time.wakeup !== undefined && Game.time < creep.memory.next_time.wakeup) {
+				creep.say("sleep");
+				return 0;
+			}
+		} else {
+			creep.memory.next_time.wakeup = Game.time;
+		}
         if (creep.ticksToLive < 6 && creep.store.getUsedCapacity() == 0) {
             creep.suicide();
             return 0;
@@ -446,18 +458,10 @@ export function creepjob(creep: Creep): number {
             boost_serve(creep, conf_maincarrier);
             return 0;
         }
-		if (creep.memory.next_time == undefined) {
-			creep.memory.next_time = {};
-		}
-		if (creep.memory.next_time.react_serve == undefined) {
-			creep.memory.next_time.react_serve = Game.time;
-		}
-        if (Game.time >= creep.memory.next_time.react_serve && creep.room.terminal && (creep.room.memory.reaction_request !== undefined || creep.room.memory.reaction_ready)) {
+        if (creep.room.terminal && (creep.room.memory.reaction_request !== undefined || creep.room.memory.reaction_ready)) {
             creep.say("react");
             if (react_serve(creep, conf_maincarrier) == 0) {
                 return 0;
-            } else{
-				creep.memory.next_time.react_serve = Game.time + 5;
 			}
         }
         creep.say("MC");
@@ -478,21 +482,12 @@ export function creepjob(creep: Creep): number {
 		let cpu_used = Game.cpu.getUsed();
 
         let mineral_type = Game.memory[creep.room.name].mine_status.type;
-		for (let structure of ['powerspawn', 'nuker']) {
-			if (creep.memory.next_time[structure] == undefined) {
-				creep.memory.next_time[structure] = Game.time;
-			}
-		}
 
         let creep_energy = creep.store.getUsedCapacity("energy");
         let creep_power = creep.store.getUsedCapacity("power");
         let creep_battery = creep.store.getUsedCapacity("battery");
         let creep_G = creep.store.getUsedCapacity("G");
         let creep_mineral = creep.store.getUsedCapacity(mineral_type);
-        let links_status = creep.room.memory.named_structures_status.link;
-        let link_id = links_status.MAIN.id;
-        let link = Game.getObjectById(link_id);
-        let link_energy = link.store.getUsedCapacity("energy")
         let storage_energy = creep.room.storage.store.getUsedCapacity("energy");
         let storage_battery = creep.room.storage.store.getUsedCapacity("battery");
         let storage_mineral = creep.room.storage.store.getUsedCapacity(mineral_type);
@@ -522,28 +517,20 @@ export function creepjob(creep: Creep): number {
         let powerspawn;
         let powerspawn_energy;
         let powerspawn_power;
-        if (powerspawn_id !== undefined && Game.time >= creep.memory.next_time.powerspawn) {
+        if (powerspawn_id !== undefined) {
             powerspawn = Game.getObjectById(powerspawn_id);
             powerspawn_energy = powerspawn.store.getUsedCapacity("energy");
             powerspawn_power = powerspawn.store.getUsedCapacity("power");
-			if (powerspawn_energy >= 3000 && powerspawn_power >= 10) {
-				creep.memory.next_time.powerspawn = Game.time + 10;
-			} else if (terminal_power < 100 && powerspawn_power == 0) {
-				creep.memory.next_time.powerspawn = Game.time + 50;
-			}
         }
 
         let nuker_id = creep.room.memory.unique_structures_status.nuker.id;
         let nuker;
         let nuker_energy;
         let nuker_G;
-        if (nuker_id !== undefined && Game.time >= creep.memory.next_time.nuker) {
+        if (nuker_id !== undefined) {
             nuker = Game.getObjectById(nuker_id);
             nuker_energy = nuker.store.getUsedCapacity("energy");
             nuker_G = nuker.store.getUsedCapacity("G");
-			if (nuker_G == 5000 && nuker_energy == 300000) {
-				creep.memory.next_time.nuker = Game.time + 100;
-			}
         }
 
 
@@ -577,12 +564,16 @@ export function creepjob(creep: Creep): number {
             }
         }
 
-        if (creep.room.terminal !== undefined) {
-            creep.transfer(creep.room.terminal, creep.memory.resource_type)
-        } else {
-            creep.transfer(creep.room.storage, creep.memory.resource_type)
-        }
-
+		if (creep.memory.resource_type !== undefined) {
+			if (creep.room.terminal !== undefined) {
+				creep.transfer(creep.room.terminal, creep.memory.resource_type)
+				return 0;
+			} else {
+				return 0;
+				creep.transfer(creep.room.storage, creep.memory.resource_type)
+			}
+		}
+		creep.memory.next_time.wakeup = Game.time + 4;
     }
     return 0;
 }

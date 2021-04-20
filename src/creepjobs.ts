@@ -27,8 +27,8 @@ export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
     }
-	if (basic_job.move_with_path_in_memory(creep) == 0) {
-		return;
+	if (creep.memory.next_time == undefined) {
+		creep.memory.next_time = {};
 	}
     if (creep.memory.role !== undefined) {
 		creepjob_dict[creep.memory.role](creep);

@@ -30,6 +30,7 @@ import {
 import {
 	config_gcl
 } from "./config_gcl"
+import * as _ from "lodash"
 
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
@@ -121,6 +122,20 @@ export var conf_gcl: type_conf_gcl = {
 	}
 }
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
+export var occupied_rooms: string[] = _.clone(controlled_rooms);
+occupied_rooms.push(conf_gcl.conf_map.gcl_room);
+for (let room_name of controlled_rooms) {
+	let conf_external = conf_rooms[room_name].external_rooms;
+	for (let external_room_name in conf_external) {
+		if (conf_external[external_room_name].active) {
+			for (let added_room_name of conf_external[external_room_name].controller.rooms_forwardpath) {
+				if (!occupied_rooms.includes(added_room_name)) {
+					occupied_rooms.push(added_room_name);
+				}
+			}
+		}
+	}
+}
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
     return pos1.getRangeTo(pos2);
 }
@@ -154,10 +169,10 @@ export var link_transfer_from_main_gap: number = 600;
 export var main_link_amount_source: number = 800;
 export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
-export var maincarrier_ncarry_no_power: number = 6;
-export var maincarrier_ncarry_powered: number = 12;
+export var maincarrier_ncarry_no_power: number = 8;
+export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 2.4e6;
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.8e7, 1.0e7, 1.2e7, 1.4e7, 1.6e7, 1.8e7];
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e7, 1.1e7, 1.2e7, 1.3e7, 1.4e7, 1.5e7];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';

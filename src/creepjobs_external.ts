@@ -179,6 +179,18 @@ export function creepjob(creep: Creep): number {
 		creep.say("EC");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
+		if (creep.room.name == creep.memory.external_room_name) {
+			basic_job.repair_road(creep);
+			creep.say("ECr");
+		}
+		if (creep.memory.next_time.wakeup !== undefined && Game.time < creep.memory.next_time.wakeup) {
+			if (basic_job.move_with_path_in_memory(creep) == 0) {
+				creep.say("Ec0");
+				return 0;
+			} else {
+				creep.memory.next_time.wakeup = Game.time;
+			}
+		}
 		let conf_external;
 		if (creep.memory.powered) {
 			conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
@@ -191,15 +203,12 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		// Using creep.room.name !== creep.memory.home_room_name here considering the possibility that the creep need to put energy into link several times
-		if (creep.room.name == creep.memory.external_room_name) {
-			basic_job.repair_road(creep);
-			creep.say("ECr");
-		}
 		let xy = conf_external.harvester_pos;
 		let pos = creep.room.getPositionAt(xy[0], xy[1]);
 		if (creep.store.getFreeCapacity("energy") <= 10 || ((creep.room.name !== creep.memory.external_room_name || creep.pos.getRangeTo(pos) > 1) && creep.store.getUsedCapacity("energy") > 0)) {
 			if (creep.room.name !== creep.memory.home_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.memory.movable = true;
 				creep.say("ECe1");
 			} else {
@@ -220,11 +229,13 @@ export function creepjob(creep: Creep): number {
 			// The creep has no energy so heading toward the source or is waiting to get enough energy
 			if (creep.room.name !== creep.memory.external_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
+				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.memory.movable = true;
 				creep.say("ECe2");
 				return 0;
 			}
 			if (basic_job.movetopos(creep, pos, 1) == 0) {
+				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.say("ECm");
 				return 0;
 			}
@@ -234,55 +245,11 @@ export function creepjob(creep: Creep): number {
 				creep.pickup(resource);
 				creep.say("ECp");
 			}
-			/*
-			let tombstone = pos.lookFor(LOOK_TOMBSTONES)[0];
-			if (tombstone !== undefined && tombstone.store.getUsedCapacity("energy") > 0) {
-				if (creep.withdraw(tombstone, "energy") == ERR_NOT_IN_RANGE) {
-					basic_job.movetopos(creep, tombstone.pos, 1);
-					creep.memory.movable = true;
-				}
-				return 0;
-			}
-			let site = pos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
-			if (site !== undefined) {
-				if (basic_job.movetopos(creep, site.pos, 1) == 0) {
-					creep.memory.movable = true;
-				}
-				return 0;
-			}
-			*/
 			let container = <StructureContainer>pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
 			if (container !== undefined && container.store.getUsedCapacity("energy") >= creep.store.getFreeCapacity("energy")) {
 				creep.withdraw(container, "energy");
 				creep.say("ECw");
 			}
-			/*
-			// Go to the position if the harvester is absent (not spawned or not in the same room
-			if (creep.pos.x == pos.x && creep.pos.y == pos.y) {
-				creep.memory.movable = false;
-			}
-			let harvester_name = Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name];
-			if (harvester_name == "") {
-				basic_job.movetopos(creep, pos, 1);
-				return 0;
-			}
-			let withdraw_target = Game.creeps[harvester_name];
-			// harvester died, remove the mark
-			if (withdraw_target == undefined) {
-				Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name] = "";
-			}
-			if (withdraw_target.room.name !== creep.memory.external_room_name) {
-				basic_job.movetopos(creep, pos, 1);
-				return 0;
-			}
-			// Go to the harvester if any of the creeps is not in its position
-			let ready = (creep.pos.isNearTo(withdraw_target) && withdraw_target.pos.x == pos.x && withdraw_target.pos.y == pos.y);
-			if (!ready) {
-				basic_job.movetopos(creep, withdraw_target.pos, 1);
-				return 0;
-			}
-			withdraw_target.memory.transfer_target = creep.name;
-			*/
 		}
 		return 0;
 	} else if (creep.memory.role == 'externalbuilder') {
@@ -370,6 +337,10 @@ export function creepjob(creep: Creep): number {
 			external_room.movethroughrooms(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath);
 			creep.say("ce");
 		} else {
+			if (creep.room.controller.my) {
+				creep.suicide();
+				return 0;
+			}
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
 				basic_job.movetopos(creep, creep.room.controller.pos, 1);
 				creep.say("cm");

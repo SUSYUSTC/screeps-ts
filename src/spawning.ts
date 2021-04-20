@@ -221,7 +221,7 @@ export function spawn(room_name: string) {
         max_upgrade -= n_builds_needed * 3;
     }
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy") >= config.energy_bar_to_spawn_upgrader) && Game.cpu.bucket >= 9000;
+		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy") >= config.energy_bar_to_spawn_upgrader);
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -765,6 +765,9 @@ export function spawn(room_name: string) {
 	// gcl
 	if_gcl: if (config.conf_gcl.conf_map.supporting_room == room_name && Game.rooms[config.conf_gcl.conf_map.gcl_room] !== undefined && Game.rooms[config.conf_gcl.conf_map.gcl_room].controller.my) {
 		let gcl_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
+		if (gcl_room == undefined) {
+			break if_gcl;
+		}
 		if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
 			break if_gcl;
 		}
@@ -801,10 +804,11 @@ export function spawn(room_name: string) {
 				jsons.push(json);
 			}
 		} else {
-			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl.conf_map.single_distance + 150));
-			let n_upgrades_needed = 0;
-			//let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
-			if (upgraders.length < n_upgrades_needed && gcl_room.terminal.store.getUsedCapacity("energy") >= 200000) {
+			let raw_upgraders = _.filter(Game.creeps, (e) => e.memory.role == 'gcl_upgrader'); 
+			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  'gcl_upgrader', config.conf_gcl.conf_map.single_distance + 150));
+			let has_spawning = mymath.any(raw_upgraders.map((e) => e.spawning));
+			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
+			if (upgraders.length < n_upgrades_needed && gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 && Game.cpu.bucket >= 9000 && !has_spawning) {
 				let added_memory = {
 					"advanced": true,
 				};

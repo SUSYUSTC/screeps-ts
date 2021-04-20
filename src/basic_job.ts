@@ -9,9 +9,13 @@ var vision_options: any = {
 };
 
 export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}): number {
+	// 0: moving, 1: already arrived, 2: not in the same room
     if (creep.pos.getRangeTo(pos) <= range) {
         return 1;
     }
+	if (creep.room.name !== pos.roomName) {
+		return 2;
+	}
     let name_of_this_function = "movetopos";
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
@@ -91,10 +95,19 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
                 return costmatrix;
             },
         };
+		let name_of_this_function = "pathfinder";
+		if (Game.tick_cpu[name_of_this_function] == undefined) {
+			Game.tick_cpu[name_of_this_function] = 0
+		}
+		let cpu_used = Game.cpu.getUsed();
+
         let path = PathFinder.search(creep.pos, {
             pos: pos,
             range: range
         }, pathfinderoptions);
+
+		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+
         creep.memory.stored_path = {
             "path": path.path.map(function(e) {
                 return [e.x, e.y];
@@ -113,6 +126,7 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
     let path_pos = creep.memory.stored_path.path.slice(0, 1).map((e) => creep.room.getPositionAt(e[0], e[1]));
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 
+	// cross
     if (path_pos.length > 0) {
         let potential_creep = path_pos[0].lookFor("creep")[0]
         if (potential_creep !== undefined && !potential_creep.memory.movable && potential_creep.memory.crossable) {
@@ -137,17 +151,13 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 
 export function move_with_path_in_memory(creep: Creep) {
     // 0: moving, 1: fail to move
-    if (creep.memory.next_time !== undefined && Game.time < creep.memory.next_time.wakeup) {
-        let stored_path = creep.memory.stored_path;
-		if (stored_path == undefined) {
-			return 1;
-		}
-        let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
-        let out = movetopos(creep, target_pos, stored_path.range, stored_path.moveoptions);
-        return out;
-    } else {
-        return 1;
-    }
+	let stored_path = creep.memory.stored_path;
+	if (stored_path == undefined) {
+		return 1;
+	}
+	let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
+	let out = movetopos(creep, target_pos, stored_path.range, stored_path.moveoptions);
+	return out;
 }
 
 export function moveto_stayxy(creep: Creep, xy: number[], moveoptions: type_movetopos_options = {}) {

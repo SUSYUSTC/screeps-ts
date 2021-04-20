@@ -96,7 +96,7 @@ module.exports.loop = function() {
 			creep.say("Error");
 			creep.memory.movable = false;
 			creep.memory.crossable = false;
-			console.log("Error", creep.room.name, err.stack);
+			console.log("Error", creep.room.name, creep.name, err.stack);
 		}
     }
 
@@ -115,8 +115,8 @@ module.exports.loop = function() {
 		try {
 			powercreeps.work(pc);
 		} catch (err) {
-			creep.say("Error");
-			console.log("Error", creep.room.name, err.stack);
+			pc.say("Error");
+			console.log("Error", pc.room.name, err.stack);
 		}
     }
 	Game.tick_cpu_main.pc = Game.cpu.getUsed() - cpu_used;
