@@ -179,9 +179,6 @@ export function reaction(room_name: string) {
                             product = < MineralCompoundConstant > (Object.keys(constants.allowed_reactions).filter((p) => compare_product([source1_lab.mineralType, source2_lab.mineralType], < MineralCompoundConstant > p))[0]);
                         }
                     }
-                    if (Memory.final_product_request[product] !== undefined) {
-                        Memory.final_product_request[product] -= 5;
-                    }
                 }
             }
         }
@@ -226,19 +223,8 @@ global.reset_product_request = function(): number {
 		}
 	}
     let terminal_amounts = global.summarize_terminal()
-	for (let resource of <Array<ResourceConstant>>Object.keys(config.reserved_resources)) {
-		if (terminal_amounts[resource] == undefined) {
-			terminal_amounts[resource] = 0;
-		}
-		terminal_amounts[resource] -= config.reserved_resources[resource];
-	}
     Memory.product_request = {};
 	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
-	for (let resource of request_final_products) {
-		if (terminal_amounts[resource] !== undefined && terminal_amounts[resource] > 0) {
-			terminal_amounts[resource] = 0;
-		}
-	}
 	let n_store_rooms = Object.keys(config.mineral_storage_room).length;
 	for (let resource of request_final_products) {
         let reactants = get_all_reactants(resource);
@@ -249,11 +235,6 @@ global.reset_product_request = function(): number {
 			Memory.product_request[reactant] = -terminal_amounts[reactant] + constants.mineral_minimum_amount[reactant] * n_store_rooms;
 		}
     }
-	for (let resource of <Array<GeneralMineralConstant>>Object.keys(config.reserved_resources)) {
-		if (constants.general_minerals.includes(resource)) {
-			Memory.product_request[resource] = -terminal_amounts[resource] + constants.mineral_minimum_amount[resource] * n_store_rooms;
-		}
-	}
     for (let resource of request_final_products) {
 		process_product_request(resource, Memory.final_product_request[resource]);
     }

@@ -539,6 +539,7 @@ declare module NodeJS {
 		reset_product_request(): number;
 		refresh_product_request(): number;
 		regulate_order_price(id: Id<Order>): number;
+		set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
 		update_layout(room_name: string, check_all: boolean): any;
     }
 }

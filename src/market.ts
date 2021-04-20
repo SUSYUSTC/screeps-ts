@@ -244,3 +244,7 @@ export function regulate_all_order_prices(): number {
 	return 0;
 }
 
+global.set_resource_price = function(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number {
+	let orders = _.filter(Game.market.orders, (e) => e.type == type && e.resourceType == resource).forEach((e) => Game.market.changeOrderPrice(e.id, price));
+	return 0;
+}

@@ -343,14 +343,6 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E14N59": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
 };
-export var reserved_resources: {[key in ResourceConstant] ?: number} = {
-	"UH2O": 20000,
-	"LO": 20000,
-	"GHO2": 5000,
-	"LH2O": 20000,
-	"GH2O": 40000,
-}
-
 export var help_list: type_help_list = {
     "E14N51": {
         "E9N54": {
