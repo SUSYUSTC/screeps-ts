@@ -10,8 +10,11 @@ type type_external_room_status = {
 type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
 type type_stored_path = {
     path: number[][];
-    target: number[];
+    target_room: string;
+    target_xy: number[];
     time_left: number;
+	range: number;
+	moveoptions: type_movetopos_options;
 }
 interface RoomMemory {
     energy_filling_list ? : Id < AnyStoreStructure > [];
@@ -97,15 +100,11 @@ interface CreepMemory {
     harvesting ? : boolean;
     home_room_name ? : string;
     external_room_name ? : string;
-    transfer_target ? : string;
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
-    carrying_mineral ? : boolean;
-    lab_carrying_target_id ? : Id < StructureLab > ;
-    lab_carrying_resource ? : ResourceConstant;
-    lab_carrying_forward ? : boolean;
     stored_path ? : type_stored_path;
+	withdraw_target ?: Id < AnyStoreStructure >;
 	rooms_forwardpath ?: string[];
 	poses_forwardpath ?: number[];
 	rooms_backwardpath ?: string[];

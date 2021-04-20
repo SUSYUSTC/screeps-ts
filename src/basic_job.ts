@@ -27,8 +27,9 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
         costmatrix = functions.get_costmatrix_road(creep.room.name);
     }
     out: if (creep.memory.stored_path !== undefined && creep.memory.stored_path.time_left > 0) {
-        let target = creep.memory.stored_path.target;
-        if (pos.isEqualTo(target[0], target[1])) {
+        let stored_path = creep.memory.stored_path;
+        let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
+        if (pos.isEqualTo(target_pos) && range == stored_path.range) {
             let path = creep.memory.stored_path.path;
             if (path.length == 0) {
                 regenerate_path = true;
@@ -98,8 +99,13 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
             "path": path.path.map(function(e) {
                 return [e.x, e.y];
             }),
-            "target": [pos.x, pos.y],
+            "target_room": pos.roomName,
+            "target_xy": [pos.x, pos.y],
             "time_left": 8,
+            "range": range,
+            "moveoptions": {
+                "setmovable": options.setmovable
+            },
         };
     } else {
         creep.memory.stored_path.time_left -= 1;
@@ -127,6 +133,21 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
         }
     }
     return 0;
+}
+
+export function move_with_path_in_memory(creep: Creep) {
+    // 0: moving, 1: fail to move
+    if (creep.memory.next_time !== undefined && Game.time < creep.memory.next_time.wakeup) {
+        let stored_path = creep.memory.stored_path;
+		if (stored_path == undefined) {
+			return 1;
+		}
+        let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
+        let out = movetopos(creep, target_pos, stored_path.range, stored_path.moveoptions);
+        return out;
+    } else {
+        return 1;
+    }
 }
 
 export function moveto_stayxy(creep: Creep, xy: number[], moveoptions: type_movetopos_options = {}) {
@@ -305,7 +326,8 @@ export function select_linkcontainer(creep: Creep, min_energy: number = 0): AnyS
 export function get_energy(creep: Creep, options: {
     moveoptions ? : type_movetopos_options,
     min_energy ? : number,
-    left ? : number
+    left ? : number,
+    cache_time ? : number,
 } = {}) {
     // 0: found, 1: not found
     if (options.moveoptions == undefined) {
@@ -317,7 +339,27 @@ export function get_energy(creep: Creep, options: {
     if (options.left == undefined) {
         options.left = 0;
     }
-    let store_structure = select_linkcontainer(creep, options.min_energy);
+    if (options.cache_time == undefined) {
+        options.cache_time = 3;
+    }
+    if (creep.memory.next_time == undefined) {
+        creep.memory.next_time = {};
+    }
+    if (creep.memory.next_time.select_linkcontainer == undefined) {
+        creep.memory.next_time.select_linkcontainer = Game.time;
+    }
+    let store_structure: AnyStoreStructure;
+    if (Game.time >= creep.memory.next_time.select_linkcontainer) {
+        store_structure = select_linkcontainer(creep, options.min_energy);
+        if (store_structure == null) {
+            creep.memory.next_time.select_linkcontainer = Game.time + 1;
+        } else {
+            creep.memory.next_time.select_linkcontainer = Game.time + options.cache_time;
+            creep.memory.withdraw_target = store_structure.id;
+        }
+    } else {
+        store_structure = Game.getObjectById(creep.memory.withdraw_target);
+    }
     if (store_structure !== null) {
         withdraw(creep, store_structure, {
             left: options.left,

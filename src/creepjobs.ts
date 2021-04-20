@@ -5,6 +5,7 @@ import * as creepjobs_maincarrier from "./creepjobs_maincarrier"
 import * as creepjobs_combat from "./creepjobs_combat"
 import * as creepjobs_resources from "./creepjobs_resources"
 import * as config from "./config"
+import * as basic_job from "./basic_job"
 var creepjob_dict: {[key in type_creep_role] ?: any} = {
 };
 for (let role of config.creep_roles_home) {
@@ -26,6 +27,9 @@ export function creepjob(creep: Creep) {
     if (creep.spawning || creep.ticksToLive == undefined) {
         return;
     }
+	if (basic_job.move_with_path_in_memory(creep) == 0) {
+		return;
+	}
     if (creep.memory.role !== undefined) {
 		creepjob_dict[creep.memory.role](creep);
     }
