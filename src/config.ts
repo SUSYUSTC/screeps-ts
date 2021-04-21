@@ -301,11 +301,15 @@ export var resources_balance: type_resources_balance = {
 	},
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
-	"XKH2O": "E21N49",
-	"XKHO2": "E21N49",
 	"XUH2O": "E15N58",
-	"XUHO2": "E15N58",
-	"XGH2O": "E16N58",
+	"XUHO2": "E16N58",
+	"XLHO2": "E9N54",
+	"XZH2O": "E14N51",
+	"XZHO2": "E14N59",
+	"XKH2O": "E19N55",
+	"XKHO2": "E21N49",
+	"XGHO2": "E19N51",
+	"XGH2O": "E19N53",
 }
 export var protected_sources: {
     [key: string]: string[]

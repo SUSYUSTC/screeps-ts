@@ -75,6 +75,9 @@ interface type_log {
 	};
 }
 export function log() {
+	if (!Memory.output_mode) {
+		return 0;
+	}
 	let log: type_log = {
 		time: null,
 		GCL: null,
@@ -111,10 +114,6 @@ export function log() {
 	log.credits = Game.market.credits;
 	log.Averaged_CPU = mymath.array_mean(Memory.history_cpus);
 	log.bucket = Game.cpu.bucket;
-	if (!Memory.output_mode) {
-		console.log("Stringified log");
-		console.log(JSON.stringify(log));
-	}
 	for (let order_type of ['sell', 'buy']) {
 		for (let id in Game.market.orders) {
 			let order = Game.market.orders[id];
