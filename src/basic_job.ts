@@ -8,6 +8,16 @@ var vision_options: any = {
     visualizePathStyle: {}
 };
 
+var reverse_directions: {[key in DirectionConstant]: DirectionConstant} = {
+	[RIGHT]: LEFT,
+	[LEFT]: RIGHT,
+	[TOP]: BOTTOM,
+	[BOTTOM]: TOP,
+	[TOP_RIGHT]: BOTTOM_LEFT,
+	[TOP_LEFT]: BOTTOM_RIGHT,
+	[BOTTOM_RIGHT]: TOP_LEFT,
+	[BOTTOM_LEFT]: TOP_RIGHT,
+}
 export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}): number {
 	// 0: moving, 1: already arrived, 2: not in the same room
     if (creep.pos.getRangeTo(pos) <= range) {
@@ -16,149 +26,65 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 	if (creep.room.name !== pos.roomName) {
 		return 2;
 	}
+	/*
     let name_of_this_function = "movetopos";
     if (Game.tick_cpu[name_of_this_function] == undefined) {
         Game.tick_cpu[name_of_this_function] = 0
     }
     let cpu_used = Game.cpu.getUsed();
+    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+	*/
 
-    let regenerate_path;
     if (options.setmovable == undefined) {
         options.setmovable = true;
     }
-    let costmatrix = options.costmatrix;
-    if (costmatrix == undefined) {
-        costmatrix = functions.get_costmatrix_road(creep.room.name);
-    }
-    out: if (creep.memory.stored_path !== undefined && creep.memory.stored_path.time_left > 0) {
-        let stored_path = creep.memory.stored_path;
-        let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
-        if (pos.isEqualTo(target_pos) && range == stored_path.range) {
-            let path = creep.memory.stored_path.path;
-            if (path.length == 0) {
-                regenerate_path = true;
-                //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                break out;
-            }
-            let last_xy = path.slice(-1)[0];
-            if (pos.getRangeTo(last_xy[0], last_xy[1]) > range) {
-                regenerate_path = true;
-                //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                break out;
-            }
-            let arg_pos;
-            let i = 0;
-            if (creep.pos.isEqualTo(path[0][0], path[0][1])) {
-                creep.memory.stored_path.path = creep.memory.stored_path.path.slice(1);
-                path = creep.memory.stored_path.path;
-            }
-            if (path.length == 0) {
-                regenerate_path = true;
-                //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                break out;
-            }
-            if (!creep.pos.isNearTo(path[0][0], path[0][1])) {
-                regenerate_path = true;
-                //console.log(creep.room.name, creep.memory.role, "Regenerating path because path is wrong");
-                break out;
-            }
-            let next_xy = path[0];
-            if (costmatrix == undefined) {
-                costmatrix = functions.get_costmatrix_road(creep.room.name);
-            }
-            if (costmatrix.get(next_xy[0], next_xy[1]) !== 255) {
-                regenerate_path = false;
-                break out;
-            } else {
-                regenerate_path = true;
-                //console.log(creep.room.name, creep.memory.role, "Regenerating path because blocked");
-                break out;
-            }
-        } else {
-            regenerate_path = true;
-            //console.log(creep.room.name, creep.memory.role, "Regenerating path because target changed");
-            break out;
-        }
-    }
-    else {
-        regenerate_path = true;
-        //console.log(creep.room.name, creep.memory.role, "Regenerating path because long time passed");
-    }
-    if (regenerate_path) {
-        if (costmatrix == undefined) {
-            costmatrix = functions.get_costmatrix_road(creep.room.name);
-        }
-        let pathfinderoptions = {
-            //visualizePathStyle: {},
-            maxRooms: 1,
-            roomCallback: function(room_name: string) {
-                return costmatrix;
-            },
-        };
-		let name_of_this_function = "pathfinder";
-		if (Game.tick_cpu[name_of_this_function] == undefined) {
-			Game.tick_cpu[name_of_this_function] = 0
+	function costCallback(roomName: string, costMatrix: CostMatrix) {
+		let costmatrix = options.costmatrix;
+		if (costmatrix == undefined) {
+			costmatrix = functions.get_costmatrix_road(roomName);
 		}
-		let cpu_used = Game.cpu.getUsed();
-
-        let path = PathFinder.search(creep.pos, {
-            pos: pos,
-            range: range
-        }, pathfinderoptions);
-
-		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
-
-        creep.memory.stored_path = {
-            "path": path.path.map(function(e) {
-                return [e.x, e.y];
-            }),
-            "target_room": pos.roomName,
-            "target_xy": [pos.x, pos.y],
-            "time_left": 8,
-            "range": range,
-            "moveoptions": {
-                "setmovable": options.setmovable
-            },
-        };
-    } else {
-        creep.memory.stored_path.time_left -= 1;
-    }
-    let path_pos = creep.memory.stored_path.path.slice(0, 1).map((e) => creep.room.getPositionAt(e[0], e[1]));
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+		return costmatrix;
+	}
+	creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range});
 
 	// cross
-    if (path_pos.length > 0) {
-        let potential_creep = path_pos[0].lookFor("creep")[0]
+	if_cross: if (creep.memory._move !== undefined) {
+		let next_path = Room.deserializePath(creep.memory._move.path)[0];
+		if (next_path == undefined) {
+			break if_cross;
+		}
+		let next_pos = creep.room.getPositionAt(next_path.x, next_path.y);
+		if (creep.pos.isEqualTo(next_pos)) {
+			break if_cross;
+		}
+		let reverse_direction = reverse_directions[next_path.direction];
+        let potential_creep = next_pos.lookFor("creep")[0];
         if (potential_creep !== undefined && !potential_creep.memory.movable && potential_creep.memory.crossable) {
-            potential_creep.moveByPath([creep.pos]);
+			potential_creep.move(reverse_direction);
         }
-        let potential_pc = path_pos[0].lookFor("powerCreep")[0]
+        let potential_pc = next_pos.lookFor("powerCreep")[0];
         if (potential_pc !== undefined && !potential_pc.memory.movable && potential_pc.memory.crossable) {
-            potential_pc.moveByPath([creep.pos]);
+			potential_pc.move(reverse_direction);
         }
     }
-    if (creep.moveByPath(path_pos) == ERR_NOT_FOUND) {
-        console.log("Creep moving outside path!");
-        //console.log(JSON.stringify(creep.pos), creep.memory.stored_path.path);
-        creep.memory.stored_path.time_left = 0;
-    } else {
-        if (options.setmovable) {
-            creep.memory.movable = true;
-        }
-    }
+	if (options.setmovable) {
+		creep.memory.movable = true;
+	}
     return 0;
 }
 
+/*
 export function move_with_path_in_memory(creep: Creep) {
     // 0: moving, 1: fail to move
-	let stored_path = creep.memory.stored_path;
+	let stored_path = creep.memory._move;
 	if (stored_path == undefined) {
 		return 1;
 	}
-	let target_pos = new RoomPosition(stored_path.target_xy[0], stored_path.target_xy[1], stored_path.target_room);
-	let out = movetopos(creep, target_pos, stored_path.range, stored_path.moveoptions);
+	let target_pos = new RoomPosition(stored_path.dest.x, stored_path.dest.y, stored_path.dest.room);
+	let out = movetopos(creep, target_pos, stored_path.range);
 	return out;
 }
+*/
 
 export function moveto_stayxy(creep: Creep, xy: number[], moveoptions: type_movetopos_options = {}) {
     let stay_pos = creep.room.getPositionAt(xy[0], xy[1]);
@@ -228,11 +154,11 @@ export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydista
 
 export function charge_all(creep: Creep, moveoptions: type_movetopos_options = {}): number {
     // 0: found, 1: not found
-    if (creep.room.memory.energy_filling_list.length == 0) {
+    if (global.memory[creep.room.name].energy_filling_list.length == 0) {
         return 1;
     }
     let game_memory = Game.memory[creep.room.name];
-    let store_list = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id));
+    let store_list = global.memory[creep.room.name].energy_filling_list.map((id) => Game.getObjectById(id));
     let distance = store_list.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distance);
     let obj = store_list[argmin];
@@ -322,7 +248,7 @@ export function build_structure(creep: Creep, moveoptions: type_movetopos_option
 }
 export function select_linkcontainer(creep: Creep, min_energy: number = 0): AnyStoreStructure {
     var metric = config.distance_metric;
-    var structures: AnyStoreStructure[] = creep.room.memory.energy_storage_list.map((e) => < AnyStoreStructure > Game.getObjectById(e));
+    var structures: AnyStoreStructure[] = global.memory[creep.room.name].energy_storage_list.map((e) => < AnyStoreStructure > Game.getObjectById(e));
     structures = structures.filter((e) => ( < GeneralStore > e.store).getUsedCapacity("energy") >= min_energy);
     if (structures.length == 0) {
         return null;
@@ -423,7 +349,7 @@ function number_of_specific_bodypart_not_boosted(creep: Creep, bodypart: BodyPar
 }
 export function process_boost_request(creep: Creep, request: type_creep_boost_request, moveoptions: type_movetopos_options = {}): number {
     // return 0 for boost finished, 1 for processing, 2 for energy not enough, 3 for compound not enough, 4 for no lab or terminal
-    if (!creep.room.memory.named_structures_status.lab.B1.finished || !creep.room.terminal) {
+    if (!global.memory[creep.room.name].named_structures_status.lab.B1.finished || !creep.room.terminal) {
         return 4;
     }
     if (creep.memory.boost_status == undefined) {
@@ -436,7 +362,7 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
         return 0;
     }
     if (creep.memory.boost_status.boosting) {
-        let labs_status = creep.room.memory.named_structures_status.lab;
+        let labs_status = global.memory[creep.room.name].named_structures_status.lab;
         let lab_id = labs_status.B1.id;
         let lab = Game.getObjectById(lab_id);
         if (creep.pos.getRangeTo(lab) > 1) {
@@ -482,7 +408,7 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
             // energy not enough
             return 2;
         } else {
-            let labs_status = creep.room.memory.named_structures_status.lab;
+            let labs_status = global.memory[creep.room.name].named_structures_status.lab;
             let lab_id = labs_status.B1.id;
             let lab = Game.getObjectById(lab_id);
             if (creep.pos.isNearTo(lab)) {
@@ -540,7 +466,7 @@ export function repair_container(creep: Creep, container: StructureContainer = u
 }
 export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options) {
     let metric = config.distance_metric;
-    let spawns: StructureSpawn[] = creep.room.memory.spawn_list.map((e) => Game.getObjectById(e));
+    let spawns: StructureSpawn[] = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e));
     let distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
     let argmin = mymath.argmin(distances);
     let closest_spawn = spawns[argmin];
@@ -552,8 +478,8 @@ export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options)
 }
 export function unboost(creep: Creep, moveoptions: type_movetopos_options) {
     // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found
-    let container_status = creep.room.memory.named_structures_status.container.Lab;
-    let lab_status = creep.room.memory.named_structures_status.lab.B1;
+    let container_status = global.memory[creep.room.name].named_structures_status.container.Lab;
+    let lab_status = global.memory[creep.room.name].named_structures_status.lab.B1;
     if (!container_status.finished) {
         return 2;
     }
@@ -603,7 +529,7 @@ export function get_structure_from_carry_end(creep: Creep, carry_end: {
     } else if (carry_end.type == 'termina') {
         return creep.room.terminal;
     } else if (carry_end.type == 'link') {
-        let link_status = creep.room.memory.named_structures_status.link[carry_end.name];
+        let link_status = global.memory[creep.room.name].named_structures_status.link[carry_end.name];
         if (link_status == undefined || !link_status.finished) {
             return null;
         }

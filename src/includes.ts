@@ -8,19 +8,7 @@ type type_external_room_status = {
     }
 }
 type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
-type type_stored_path = {
-    path: number[][];
-    target_room: string;
-    target_xy: number[];
-    time_left: number;
-	range: number;
-	moveoptions: type_movetopos_options;
-}
 interface RoomMemory {
-    energy_filling_list ? : Id < AnyStoreStructure > [];
-    energy_storage_list ? : Id < AnyStoreStructure > [];
-	repair_list ? : Id < Structure > [];
-	ramparts_to_repair ?: Id< StructureRampart > [];
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
     n_needed_wallrepair ? : number;
@@ -38,8 +26,6 @@ interface RoomMemory {
         [key: string]: type_object_to_trade;
     }
     market_cooldown ? : boolean;
-    named_structures_status ? : type_all_named_structures_status
-    unique_structures_status ? : type_all_unique_structures_status
     maincarrier_link_amount ? : number;
     is_mainlink_source ? : boolean;
     current_boost_creep ? : string;
@@ -56,21 +42,13 @@ interface RoomMemory {
 	external_sites_total_progressleft ?:  {
 		[key: string]: number;
 	};
-	tower_list ? : Id < StructureTower > [];
-    spawn_list ? : Id < StructureSpawn > [];
 	resource_sending_request ?: type_resource_sending_request[];
 	kept_resources ?: {
 		[key: string] : {
 			[key in ResourceConstant] ?: number;
 		}
 	}
-	/*
-	external_harvester ? : {
-		[key: string]: {
-			[key: string]: string;
-		}
-	}
-	*/
+	next_time ?: any;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -92,7 +70,18 @@ interface type_resource_sending_request {
 	resource: ResourceConstant;
 	amount: number;
 }
+interface type_creep_move {
+	dest: {
+		x: number;
+		y: number;
+		room: string;
+	};
+	time: number;
+	path: string;
+	room: string;
+}
 interface CreepMemory {
+	_move ?: type_creep_move;
     movable ?: boolean;
 	crossable ?: boolean;
     role ?: type_creep_role;
@@ -103,7 +92,6 @@ interface CreepMemory {
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
-    stored_path ? : type_stored_path;
 	withdraw_target ?: Id < AnyStoreStructure >;
 	rooms_forwardpath ?: string[];
 	poses_forwardpath ?: number[];
@@ -120,9 +108,9 @@ interface CreepMemory {
 	advanced ?: boolean;
 }
 interface PowerCreepMemory {
-    movable: boolean;
-	crossable: boolean;
-    stored_path ? : type_stored_path;
+    movable ?: boolean;
+	crossable ?: boolean;
+	_move ?: type_creep_move;
 	current_source_target ?: string;
 	home_room_name ?: string;
 }
@@ -467,7 +455,7 @@ interface Game {
 	}
     mineral_storage_amount ? : type_mineral_storage_amount;
 	powered_rooms ?: string[];
-    memory: {
+    memory ?: {
         [key: string]: {
             danger_mode ? : boolean;
             link_modes ? : string[];
@@ -520,7 +508,19 @@ declare module NodeJS {
         basic_costmatrices: {
             [key: string]: CostMatrix;
         }
-        test_var: boolean;
+		memory ?: {
+			[key: string]: {
+				named_structures_status ? : type_all_named_structures_status
+				unique_structures_status ? : type_all_unique_structures_status
+				tower_list ? : Id < StructureTower > [];
+				spawn_list ? : Id < StructureSpawn > [];
+				energy_filling_list ? : Id < AnyStoreStructure > [];
+				energy_storage_list ? : Id < AnyStoreStructure > [];
+				repair_list ? : Id < Structure > [];
+				ramparts_to_repair ?: Id< StructureRampart > [];
+			}
+		}
+        test_var ?: boolean;
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];

@@ -3,7 +3,7 @@ import * as mymath from "./mymath"
 
 export function produce(room_name: string) {
     let room = Game.rooms[room_name];
-	let factory_status = room.memory.unique_structures_status.factory;
+	let factory_status = global.memory[room_name].unique_structures_status.factory;
 	if (!factory_status.finished) {
 		return 1;
 	}

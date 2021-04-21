@@ -47,13 +47,13 @@ export function spawn(room_name: string) {
     }
     let game_memory = Game.memory[room_name];
     let enemies = room.find(FIND_HOSTILE_CREEPS).filter((e) => e.owner.username == 'Invader');
-    if (enemies.length > 0 && room.memory.tower_list.length == 0) {
+    if (enemies.length > 0 && global.memory[room_name].tower_list.length == 0) {
         room.find(FIND_MY_CREEPS).forEach((e) => e.suicide());
         return;
     }
     let conf = config.conf_rooms[room.name];
-    let containers_status = room.memory.named_structures_status.container;
-    let links_status = room.memory.named_structures_status.link;
+    let containers_status = global.memory[room_name].named_structures_status.container;
+    let links_status = global.memory[room_name].named_structures_status.link;
     let sources_name = Object.keys(conf.sources);
     let room_creeps = _.filter(Game.creeps, (creep) => creep.room.name == room.name);
     if (room.energyCapacityAvailable < 550) {

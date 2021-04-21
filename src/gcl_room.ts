@@ -96,7 +96,7 @@ export function run() {
 		unique_pos = undefined;
 		priority_list = [2, 1, 0];
 	} else {
-		let container_status = room.memory.named_structures_status.container.CT;
+		let container_status = global.memory[room.name].named_structures_status.container.CT;
 		if (container_status.finished) {
 			store = Game.getObjectById(container_status.id);
 		}

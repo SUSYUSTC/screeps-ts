@@ -21,7 +21,7 @@ export function creepjob(creep: Creep): number {
         creep.say("H")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		let containers_status = creep.room.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
 		let link_modes = game_memory.link_modes;
         let source_name = creep.memory.source_name;
         let source_id = conf.sources[source_name];
@@ -32,7 +32,7 @@ export function creepjob(creep: Creep): number {
         if (true) {
             link_mode = link_modes.includes(source_name);
             if (link_mode) {
-                let conf_link_source = creep.room.memory.named_structures_status.link[source_name];
+                let conf_link_source = global.memory[creep.room.name].named_structures_status.link[source_name];
                 if (!conf_link_source.finished) {
 					creep.say("Hf1")
                     return 0;
@@ -101,7 +101,7 @@ export function creepjob(creep: Creep): number {
         creep.say("U")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		let containers_status = creep.room.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
 		if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound}, false, moveoptions_noset) == 1) {
 			creep.say("Ub");
 			return 0;
@@ -128,7 +128,7 @@ export function creepjob(creep: Creep): number {
         let use_link = false;
         let link;
         if (link_mode) {
-            link = Game.getObjectById(creep.room.memory.named_structures_status.link.CT.id);
+            link = Game.getObjectById(global.memory[creep.room.name].named_structures_status.link.CT.id);
             let link_energy = link.store.getUsedCapacity("energy");
             if (link_energy > container_energy) {
                 use_link = true;
@@ -150,7 +150,7 @@ export function creepjob(creep: Creep): number {
         creep.say("C")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		let containers_status = creep.room.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
         let source_name = creep.memory.source_name;
         let container_source;
         if (creep.memory.source_name == 'storage') {
@@ -185,7 +185,7 @@ export function creepjob(creep: Creep): number {
         creep.say("MH")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		let containers_status = creep.room.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
         if (!game_memory.mine_status.harvestable) {
 			creep.say("MHf");
             return 0;
@@ -232,7 +232,7 @@ export function creepjob(creep: Creep): number {
         creep.say("mC")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		let containers_status = creep.room.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
         let mineral_type = game_memory.mine_status.type;
         if (game_memory.mine_status.harvestable) {
             let container = Game.getObjectById(containers_status.MINE.id);

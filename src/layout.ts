@@ -7,10 +7,10 @@ export function update_named_structures(room_name: string, structuretype: type_n
 	// 0 if all finished, 1 if not finished, 2 if create new constructionsite
     let room = Game.rooms[room_name];
 	let output = 0;
-	if (room.memory.named_structures_status[structuretype] == undefined) {
-		room.memory.named_structures_status[structuretype] = {};
+	if (global.memory[room_name].named_structures_status[structuretype] == undefined) {
+		global.memory[room_name].named_structures_status[structuretype] = {};
 	}
-	let memory_conf = room.memory.named_structures_status[structuretype];
+	let memory_conf = global.memory[room_name].named_structures_status[structuretype];
     for (let structure_name in conf) {
 		if (memory_conf[structure_name] == undefined) {
 			memory_conf[structure_name] = {};
@@ -61,10 +61,10 @@ export function update_named_structures(room_name: string, structuretype: type_n
 export function update_unique_structures(room_name: string, structuretype: type_unique_structures, conf: conf_unique_structures, create_site: boolean): number {
     let room = Game.rooms[room_name];
 	let output = 0;
-	if (room.memory.unique_structures_status[structuretype] == undefined) {
-		room.memory.unique_structures_status[structuretype] = {};
+	if (global.memory[room_name].unique_structures_status[structuretype] == undefined) {
+		global.memory[room_name].unique_structures_status[structuretype] = {};
 	}
-	let memory_conf = room.memory.unique_structures_status[structuretype];
+	let memory_conf = global.memory[room_name].unique_structures_status[structuretype];
     for (let structure_name in conf) {
         if (room.controller.level < conf.RCL) {
             memory_conf.exists = false;

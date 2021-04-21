@@ -24,43 +24,13 @@ type type_reactants_number = {
 }
 
 function get_number_labs(room_name: string): number {
-    let labs_status = Game.rooms[room_name].memory.named_structures_status.lab;
+    let labs_status = global.memory[room_name].named_structures_status.lab;
     let n = Object.keys(labs_status).filter((e) => labs_status[e].finished).length;
     return n;
 }
 
-/*
-function get_reaction_priortiy(): type_reaction_priority {
-    let reaction_products = < Array < MineralCompoundConstant >> Object.keys(Memory.product_request).filter((e) => Memory.product_request[ < MineralCompoundConstant > e] > 0);
-    reaction_products = reaction_products.sort((x, y) => Memory.product_request[x] - Memory.product_request[y]);
-    let reaction_priority: type_reaction_priority = {};
-    let temp_all_reactants: {
-        [key in MineralCompoundConstant] ? : number
-    } = {};
-    for (let i = 0; i < reaction_products.length; i++) {
-        let product = reaction_products[i];
-        let reactants = get_all_reactants(product);
-        for (let r of reactants) {
-            if (temp_all_reactants[ < MineralCompoundConstant > r] == undefined) {
-                temp_all_reactants[ < MineralCompoundConstant > r] = constants.mineral_level[ < GeneralMineralConstant > r] - i * 5;
-            }
-        }
-    }
-    let rooms_ready = config.controlled_rooms.filter((e) => get_number_labs(e) == 10 && config.mineral_storage_room[e] !== undefined);
-    for (let room_name of rooms_ready) {
-        reaction_priority[room_name] = {};
-        for (let r in temp_all_reactants) {
-            if (config.mineral_storage_room[room_name].includes( < MineralCompoundConstant > r)) {
-                reaction_priority[room_name][ < MineralCompoundConstant > r] = temp_all_reactants[ < MineralBoostConstant > r];
-            }
-        }
-    }
-    return reaction_priority;
-}
-*/
-
 function get_priority_score(n: number, level: number): number {
-    return Math.ceil(n / 2000) - level * 5;
+    return Math.ceil(n / 5000) - level * 20;
 }
 
 function get_reaction_priortiy(): type_reaction_priority {
@@ -89,7 +59,7 @@ function determine_reaction_request(room_name: string) {
         delete room.memory.reaction_request;
     }
 	if (room.memory.reaction_request !== undefined) {
-		priority[room.memory.reaction_request.product] += 8;
+		priority[room.memory.reaction_request.product] += 10;
 	}
     let available_list = keys.filter((e) => mymath.all(constants.allowed_reactions[e].map((i) => room.terminal.store.getUsedCapacity(i) >= config.react_init_amount)));
     if (available_list.length == 0) {
@@ -160,7 +130,7 @@ export function reaction(room_name: string) {
 		return;
 	}
     let conf = config.conf_rooms[room_name].labs;
-    let labs_status = room.memory.named_structures_status.lab;
+    let labs_status = global.memory[room_name].named_structures_status.lab;
     if (_.map(labs_status, (e) => e.finished).length == 10) {
         let source1_id = labs_status.S1.id;
         let source2_id = labs_status.S2.id;

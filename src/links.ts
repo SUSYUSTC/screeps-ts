@@ -6,7 +6,7 @@ export function work(room_name: string) {
 	}
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
-	let links_status = room.memory.named_structures_status.link;
+	let links_status = global.memory[room_name].named_structures_status.link;
     let game_memory = Game.memory[room_name];
     if (!("links" in conf)) {
         return;

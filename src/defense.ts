@@ -165,7 +165,7 @@ export function defend(creep: Creep) {
         let argmin = mymath.argmin(distance);
         creep.heal(creeps[argmin]);
         creep.moveTo(creeps[argmin], {
-            maxRooms: 0,
+            maxRooms: 1,
             reusePath: 0,
             costCallback: functions.avoid_exits
         });
@@ -176,7 +176,7 @@ export function defend(creep: Creep) {
     let argmin = mymath.argmin(distance)
     let target = enemies[argmin];
     creep.moveTo(target, {
-        maxRooms: 0,
+        maxRooms: 1,
         reusePath: 0,
         costCallback: functions.avoid_exits
     });
@@ -242,7 +242,7 @@ export function defend_home(room_name: string) {
 	let defenders = room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'home_defender');
 	let boosted_defenders = defenders.filter((creep) => basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}, true) == 0);
 	let n_active = boosted_defenders.map((creep) => get_number_active(creep, "attack"));
-    let towers = room.memory.tower_list.map((e) => Game.getObjectById(e));
+    let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
     let damages = [];
     for (let i = 0; i < enemies.length; i++) {
         let amount = 0;

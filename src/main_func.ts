@@ -36,25 +36,18 @@ let unique_structures = ["factory", "nuker", "storage", "terminal", "observer", 
 let multiple_structures = ["road", "extension", "tower"];
 
 function update_structures(room_name: string) {
-    let name_of_this_function = "update_structures";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let room = Game.rooms[room_name];
-    if (room.memory.named_structures_status == undefined) {
+    if (global.memory[room_name].named_structures_status == undefined) {
         let named_structures_status: any = {};
         named_structures.forEach((e) => named_structures_status[e] = {});
-        room.memory.named_structures_status = < type_all_named_structures_status > named_structures_status;
+        global.memory[room_name].named_structures_status = < type_all_named_structures_status > named_structures_status;
     }
-    if (room.memory.unique_structures_status == undefined) {
+    if (global.memory[room_name].unique_structures_status == undefined) {
         let unique_structures_status: any = {};
         unique_structures.forEach((e) => unique_structures_status[e] = {});
-        room.memory.unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
+        global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
-    let structures_defined = (room.memory.energy_filling_list !== undefined) && (room.memory.energy_storage_list !== undefined) && (room.memory.spawn_list !== undefined) && (room.memory.tower_list !== undefined)
-    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 20 == 0 || !structures_defined) {
+    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 20 == 0 || !global.test_var) {
         let structures = room.find(FIND_STRUCTURES);
         room.memory.objects_updated = false;
         let n_structures = structures.length;
@@ -64,37 +57,29 @@ function update_structures(room_name: string) {
         }
         let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
         let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
-        room.memory.tower_list = towers.map((e) => e.id);
-        room.memory.spawn_list = spawns.map((e) => e.id);
+        global.memory[room_name].tower_list = towers.map((e) => e.id);
+        global.memory[room_name].spawn_list = spawns.map((e) => e.id);
         let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
 		let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
 		let energy_filling_exts = exts.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
 		let energy_filling_towers = towers.filter((e) => e.store.getFreeCapacity("energy") > 400).map((e) => < Id < AnyStoreStructure >> e.id);
-        room.memory.energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
-        room.memory.energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
-		room.memory.repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
-		room.memory.ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
+        global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
+        global.memory[room_name].energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
+		global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+		global.memory[room_name].ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
     } else {
-        room.memory.energy_filling_list = room.memory.energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
-		room.memory.repair_list = room.memory.repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
-		room.memory.ramparts_to_repair = room.memory.ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.wall_strength);
+        global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
+		global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
+		global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.wall_strength);
 	}
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_link_and_container(room_name: string) {
-    let name_of_this_function = "update_link_and_container";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
     let game_memory = Game.memory[room_name];
-    let containers_status = room.memory.named_structures_status.container;
-    let links_status = room.memory.named_structures_status.link;
+    let containers_status = global.memory[room_name].named_structures_status.container;
+    let links_status = global.memory[room_name].named_structures_status.link;
     let container_modes = ['S1', 'S2', 'CT'].map((e) => containers_status[e].finished);
     let link_modes = Object.keys(conf.links).filter((e) => links_status[e].finished);
     game_memory.container_modes_all = mymath.all(container_modes);
@@ -144,19 +129,10 @@ function update_link_and_container(room_name: string) {
 		}
         room.visual.text(room.memory.maincarrier_link_amount.toString(), conf.links.MAIN.pos[0], conf.links.MAIN.pos[1]);
     }
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_layout(room_name: string, check_all: boolean = false) {
-    let name_of_this_function = "update_layout";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
-    if (Game.time % 50 !== 0 && !check_all) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+    if (Game.time % 50 !== 0 && !check_all && global.test_var) {
         return;
     }
     let conf = config.conf_rooms[room_name];
@@ -174,7 +150,6 @@ function update_layout(room_name: string, check_all: boolean = false) {
     //console.log("containers", containers_finished, "links", links_finished, "spawns", spawns_finished, "roads", roads_finished, "extension", extensions_finished, "towers", towers_finished)
     level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
     if (!level_finished) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
     let storage_finished = (layout.update_unique_structures(room_name, "storage", conf.storage, true) == 0);
@@ -183,7 +158,6 @@ function update_layout(room_name: string, check_all: boolean = false) {
     level_finished = level_finished && storage_finished && terminal_finished && extractor_finished;
     //console.log("storage", storage_finished, "terminal", terminal_finished, "extractor", extractor_finished);
     if (!level_finished) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
     let labs_finished = (layout.update_named_structures(room_name, "lab", conf.labs, true) == 0);
@@ -192,17 +166,9 @@ function update_layout(room_name: string, check_all: boolean = false) {
     let nuker_finished = (layout.update_unique_structures(room_name, "nuker", conf.nuker, true) == 0);
     let observer_finished = (layout.update_unique_structures(room_name, "observer", conf.observer, true) == 0);
     //console.log("labs", labs_finished, "ps", ps_finished, "factory", factory_finished, "nuker", nuker_finished, "observer", observer_finished);
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_construction_sites(room_name: string) {
-    let name_of_this_function = "update_construction_sites";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let room = Game.rooms[room_name];
     if (Game.time % 5 == 0) {
         let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
@@ -236,21 +202,13 @@ function update_construction_sites(room_name: string) {
     if (room.memory.ticks_to_spawn_builder > 0) {
         room.memory.ticks_to_spawn_builder -= 1;
     }
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_mine(room_name: string) {
-    let name_of_this_function = "update_mine";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let room = Game.rooms[room_name];
     let game_memory = Game.memory[room_name];
     let conf = config.conf_rooms[room_name];
-    let containers_MINE = room.memory.named_structures_status.container.MINE;
+    let containers_MINE = global.memory[room_name].named_structures_status.container.MINE;
     if ("mine" in conf) {
         let mine = Game.getObjectById(conf.mine);
         let exist_extrator = mine.pos.lookFor("structure").filter((e) => e.structureType == 'extractor').length > 0;
@@ -261,17 +219,9 @@ function update_mine(room_name: string) {
             "amount": mine.mineralAmount,
         }
     }
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_external(room_name: string) {
-    let name_of_this_function = "update_external";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let game_memory = Game.memory[room_name];
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
@@ -297,7 +247,6 @@ function update_external(room_name: string) {
     }
 	*/
     if (Game.time % 5 !== 0) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
     for (let external_room_name in conf.external_rooms) {
@@ -356,34 +305,19 @@ function update_external(room_name: string) {
     if (Memory.debug_mode) {
         console.log(room.name, JSON.stringify(room.memory.external_room_status))
     }
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function is_danger_mode(room_name: string): boolean {
-    let name_of_this_function = "is_danger_mode";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let enemies_components = defense.get_room_invading_ability(room_name)
     let enemies_CE = mymath.array_sum(Object.values(enemies_components));
     if (enemies_CE >= 50 && enemies_components.heal >= 20) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return true;
     } else {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return false;
     }
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function detect_resources(room_name: string) {
-    let name_of_this_function = "detect_resources";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
     if (Memory.pb_cooldown_time == undefined) {
         Memory.pb_cooldown_time = 0;
     }
@@ -395,13 +329,11 @@ function detect_resources(room_name: string) {
 
     let room = Game.rooms[room_name];
     if (room.controller.level < 8) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
     let game_memory = Game.memory[room_name];
     let external_rooms = config.highway_resources[room_name];
-    if (external_rooms == undefined || !room.memory.unique_structures_status.observer.finished) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+    if (external_rooms == undefined || !global.memory[room_name].unique_structures_status.observer.finished) {
         return;
     }
     if (room.memory.external_resources == undefined) {
@@ -418,7 +350,7 @@ function detect_resources(room_name: string) {
     }
     for (let i = 0; i < external_rooms.length; i++) {
         if (Game.time % 100 == i) {
-            let observer = Game.getObjectById(room.memory.unique_structures_status.observer.id);
+            let observer = Game.getObjectById(global.memory[room_name].unique_structures_status.observer.id);
             let external_room_name = external_rooms[i];
             observer.observeRoom(external_room_name);
         }
@@ -463,7 +395,7 @@ function detect_resources(room_name: string) {
                     if (!ok) {
                         continue;
                     }
-                    let path = PathFinder.search(Game.getObjectById(room.memory.spawn_list[0]).pos, {
+                    let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
                         "pos": pb.pos,
                         "range": 1
                     }, {
@@ -565,20 +497,11 @@ function detect_resources(room_name: string) {
 			*/
         }
     }
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function update_resources(room_name: string) {
-    let name_of_this_function = "update_resources";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let room = Game.rooms[room_name];
     if (room.controller.level < 8) {
-        Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return;
     }
     if (room.memory.external_resources == undefined) {
@@ -696,27 +619,18 @@ function update_resources(room_name: string) {
         } else if (depo_status.status == 1) {}
     }
 	*/
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
 
 function get_power_effects(room_name: string) {
-    let name_of_this_function = "get_power_effects";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
 	if (Game.time % 5 == 0) {
-		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 		return;
 	}
 	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0]) !== undefined;
 	if (!powered) {
-		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 		return;
 	}
 	let room = Game.rooms[room_name];
-	let lab_status = room.memory.named_structures_status.lab;
+	let lab_status = global.memory[room_name].named_structures_status.lab;
 	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']) {
 		if (lab_status[lab_name] !== undefined && lab_status[lab_name].finished) {
 			let lab = Game.getObjectById(lab_status[lab_name].id);
@@ -731,9 +645,21 @@ function get_power_effects(room_name: string) {
 			}
 		}
 	}
-
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 }
+
+var set_room_memory_functions: {[key: string]: any} = {
+	"update_structures": update_structures,
+	"update_layout": update_layout,
+	"update_construction_sites": update_construction_sites,
+	"update_link_and_container": update_link_and_container,
+	"update_mine": update_mine,
+	"update_external": update_external,
+	"detect_resources": detect_resources,
+	"update_resources": update_resources,
+	"get_power_effects": get_power_effects,
+}
+
+var set_room_memory_functions_order = ["update_structures", "update_layout", "update_construction_sites", "update_link_and_container", "update_mine", "update_external", "detect_resources", "update_resources", "get_power_effects"];
 
 export function set_room_memory(room_name: string) {
     let name_of_this_function = "set_room_memory"
@@ -745,15 +671,24 @@ export function set_room_memory(room_name: string) {
     let room = Game.rooms[room_name];
     let game_memory = Game.memory[room_name];
 
-    update_structures(room_name);
-    update_layout(room_name);
-    update_construction_sites(room_name);
-    update_link_and_container(room_name);
-    update_mine(room_name);
-    update_external(room_name);
-    detect_resources(room_name);
-    update_resources(room_name);
-	get_power_effects(room_name);
+	if (room.memory.next_time == undefined) {
+		room.memory.next_time = {};
+	}
+	if (global.memory[room_name] == undefined) {
+		global.memory[room_name] = {};
+	}
+	for (let function_name of set_room_memory_functions_order) {
+		/*
+		if (Game.tick_cpu[function_name] == undefined) {
+			Game.tick_cpu[function_name] = 0
+		}
+		let cpu_used = Game.cpu.getUsed();
+		*/
+
+		set_room_memory_functions[function_name](room_name);
+
+		//Game.tick_cpu[function_name] += Game.cpu.getUsed() - cpu_used;
+	}
 
     game_memory.danger_mode = is_danger_mode(room_name)
     if (game_memory.danger_mode) {
@@ -782,19 +717,25 @@ function update_gcl_room() {
 	if (room == undefined || !room.controller.my) {
 		return;
 	}
-    if (room.memory.named_structures_status == undefined) {
+	if (room.memory.next_time == undefined) {
+		room.memory.next_time = {};
+	}
+	if (global.memory[room_name] == undefined) {
+		global.memory[room_name] = {};
+	}
+    if (global.memory[room_name].named_structures_status == undefined) {
         let named_structures_status: any = {};
         named_structures.forEach((e) => named_structures_status[e] = {});
-        room.memory.named_structures_status = < type_all_named_structures_status > named_structures_status;
+        global.memory[room_name].named_structures_status = < type_all_named_structures_status > named_structures_status;
     }
-    if (room.memory.unique_structures_status == undefined) {
+    if (global.memory[room_name].unique_structures_status == undefined) {
         let unique_structures_status: any = {};
         unique_structures.forEach((e) => unique_structures_status[e] = {});
-        room.memory.unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
+        global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
 	if (Game.time % 50 == 0 || global.test_var == undefined) {
 		let towers = < StructureTower[] > _.filter(room.find(FIND_STRUCTURES), (structure) => structure.structureType == "tower");
-		room.memory.tower_list = towers.map((e) => e.id);
+		global.memory[room_name].tower_list = towers.map((e) => e.id);
 	}
 	if (Game.time % 50 == 0) {
 		layout.update_multiple_structures(room_name, "road", conf.roads, true, true);
@@ -814,11 +755,11 @@ function update_gcl_room() {
 		}
 		supporting_room.memory.external_sites_total_progressleft[room_name] = room.memory.sites_total_progressleft;
 	}
-	room.memory.ramparts_to_repair = [];
-	if (Game.time % 20 == 0) {
-		room.memory.repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => ["road", "container"].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+	global.memory[room_name].ramparts_to_repair = [];
+	if (Game.time % 20 == 0 || !global.test_var) {
+		global.memory[room_name].repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => ["road", "container"].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
 	} else {
-		room.memory.repair_list = room.memory.repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
+		global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
 	}
 
     Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
@@ -827,6 +768,9 @@ function update_gcl_room() {
 export function set_global_memory() {
 	Game.creep_actions_count = {};
     Game.memory = {};
+	if (global.memory == undefined) {
+		global.memory = {};
+	}
     let name_of_this_function = "set_global_memory";
     if (Game.tick_cpu_main[name_of_this_function] == undefined) {
         Game.tick_cpu_main[name_of_this_function] = 0;

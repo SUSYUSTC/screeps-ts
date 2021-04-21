@@ -80,7 +80,7 @@ function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: Res
 
 function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
     let request = creep.room.memory.current_boost_request;
-    let labs_status = creep.room.memory.named_structures_status.lab;
+    let labs_status = global.memory[creep.room.name].named_structures_status.lab;
     let lab_id = labs_status.B1.id;
     let lab = Game.getObjectById(lab_id);
     if (lab.store.getUsedCapacity("energy") < request.amount * 20) {
@@ -119,7 +119,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
     let cpu_used = Game.cpu.getUsed();
 
     let request = creep.room.memory.reaction_request;
-    let labs_status = creep.room.memory.named_structures_status.lab;
+    let labs_status = global.memory[creep.room.name].named_structures_status.lab;
     if (_.filter(labs_status, (e) => e.finished).length == 10) {
         let source1_id = labs_status.S1.id;
         let source2_id = labs_status.S2.id;
@@ -359,18 +359,18 @@ function structure_from_name(room_name: string, name: string): AnyStoreStructure
     } else if (name == 'terminal') {
         target = room.terminal;
     } else if (name == 'link') {
-        let links_status = room.memory.named_structures_status.link;
+        let links_status = global.memory[room_name].named_structures_status.link;
         let link_id = links_status.MAIN.id;
         let link = Game.getObjectById(link_id);
         target = link;
     } else if (name == 'factory') {
-        let factory_id = room.memory.unique_structures_status.factory.id;
+        let factory_id = global.memory[room_name].unique_structures_status.factory.id;
         target = Game.getObjectById(factory_id);
     } else if (name == 'powerspawn') {
-        let powerspawn_id = room.memory.unique_structures_status.powerSpawn.id;
+        let powerspawn_id = global.memory[room_name].unique_structures_status.powerSpawn.id;
         target = Game.getObjectById(powerspawn_id);
     } else if (name == 'nuker') {
-        let nuker_id = room.memory.unique_structures_status.nuker.id;
+        let nuker_id = global.memory[room_name].unique_structures_status.nuker.id;
         target = Game.getObjectById(nuker_id);
     }
     return target;
@@ -428,7 +428,7 @@ export function creepjob(creep: Creep): number {
         creep.say("MC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-        let links_status = creep.room.memory.named_structures_status.link;
+        let links_status = global.memory[creep.room.name].named_structures_status.link;
         let link_id = links_status.MAIN.id;
         let link = Game.getObjectById(link_id);
         let link_energy = link.store.getUsedCapacity("energy")
@@ -504,7 +504,7 @@ export function creepjob(creep: Creep): number {
             terminal_mineral = creep.room.terminal.store.getUsedCapacity(mineral_type);
         }
 
-        let factory_id = creep.room.memory.unique_structures_status.factory.id;
+        let factory_id = global.memory[creep.room.name].unique_structures_status.factory.id;
         let factory;
         let factory_energy;
         let factory_battery;
@@ -513,7 +513,7 @@ export function creepjob(creep: Creep): number {
             factory_energy = factory.store.getUsedCapacity("energy");
             factory_battery = factory.store.getUsedCapacity("battery");
         }
-        let powerspawn_id = creep.room.memory.unique_structures_status.powerSpawn.id;
+        let powerspawn_id = global.memory[creep.room.name].unique_structures_status.powerSpawn.id;
         let powerspawn;
         let powerspawn_energy;
         let powerspawn_power;
@@ -523,7 +523,7 @@ export function creepjob(creep: Creep): number {
             powerspawn_power = powerspawn.store.getUsedCapacity("power");
         }
 
-        let nuker_id = creep.room.memory.unique_structures_status.nuker.id;
+        let nuker_id = global.memory[creep.room.name].unique_structures_status.nuker.id;
         let nuker;
         let nuker_energy;
         let nuker_G;

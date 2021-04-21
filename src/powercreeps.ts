@@ -3,7 +3,7 @@ import * as external_room from "./external_room";
 import * as basic_job from "./basic_job";
 
 function operate_lab(pc: PowerCreep) {
-	let lab_status = pc.room.memory.named_structures_status.lab;
+	let lab_status = global.memory[pc.room.name].named_structures_status.lab;
 	let effects_time: {[key: string]: number} = {};
 	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']) {
 		if (lab_status[lab_name].finished && lab_status[lab_name].effect_time !== undefined) {
@@ -60,7 +60,7 @@ export function work(pc: PowerCreep) {
 	if (pc.room.name == conf.room_name) {
 		if (pc.ticksToLive < 500) {
 			pc.say("renew");
-			let powerspawn = Game.getObjectById(pc.room.memory.unique_structures_status.powerSpawn.id)
+			let powerspawn = Game.getObjectById(global.memory[pc.room.name].unique_structures_status.powerSpawn.id)
 			if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
 				basic_job.movetopos(pc, powerspawn.pos, 1);
 				pc.memory.movable = true;

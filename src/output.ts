@@ -192,14 +192,14 @@ export function log() {
 			"number": room.memory.n_ramparts,
 		};
 		let log_special = '';
-		if (room.memory.unique_structures_status.factory.finished) {
-			room_log.factory = Game.getObjectById(room.memory.unique_structures_status.factory.id).store;
+		if (global.memory[room_name].unique_structures_status.factory.finished) {
+			room_log.factory = Game.getObjectById(global.memory[room_name].unique_structures_status.factory.id).store;
 		}
-		if (room.memory.unique_structures_status.nuker.finished) {
-			room_log.nuker = Game.getObjectById(room.memory.unique_structures_status.nuker.id).store;
+		if (global.memory[room_name].unique_structures_status.nuker.finished) {
+			room_log.nuker = Game.getObjectById(global.memory[room_name].unique_structures_status.nuker.id).store;
 		}
-		if (room.memory.unique_structures_status.powerSpawn.finished) {
-			room_log.powerSpawn = Game.getObjectById(room.memory.unique_structures_status.powerSpawn.id).store;
+		if (global.memory[room_name].unique_structures_status.powerSpawn.finished) {
+			room_log.powerSpawn = Game.getObjectById(global.memory[room_name].unique_structures_status.powerSpawn.id).store;
 		}
 		if (room.storage !== undefined) {
 			room_log.storage = room.storage.store;

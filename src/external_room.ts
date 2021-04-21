@@ -43,7 +43,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
             return 1;
         } else {
 			creep.moveTo(standpoint_xy[0], standpoint_xy[1], {...{
-                maxRooms: 0,
+                maxRooms: 1,
                 costCallback: functions.avoid_exits
 			}, ...add_options});
             return 0;
@@ -77,7 +77,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
 			} else {
 				creep.moveTo(exit_xy[0], exit_xy[1], {...{
-					maxRooms: 0,
+					maxRooms: 1,
 					costCallback: functions.avoid_exits
 				}, ...add_options});
 			}

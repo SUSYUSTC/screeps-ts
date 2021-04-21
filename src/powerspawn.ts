@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 export function process(room_name: string) {
 	let room = Game.rooms[room_name];
-	let powerSpawn_status = room.memory.unique_structures_status.powerSpawn;
+	let powerSpawn_status = global.memory[room_name].unique_structures_status.powerSpawn;
 	if (!powerSpawn_status.finished) {
 		return 1;
 	}

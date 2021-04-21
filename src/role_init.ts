@@ -25,7 +25,7 @@ function assign_work(creep: Creep): type_work_result{
     let metric = config.distance_metric;
     let conf = config.conf_rooms[creep.room.name];
     let source = Game.getObjectById(conf.sources[creep.memory.source_name]);
-    let charge_list = creep.room.memory.energy_filling_list.map((id) => Game.getObjectById(id));
+    let charge_list = global.memory[creep.room.name].energy_filling_list.map((id) => Game.getObjectById(id));
 	charge_list = charge_list.filter((e) => (<GeneralStore>e.store).getFreeCapacity("energy") > 0)
     let sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
     let distance_charge = charge_list.map((obj) => metric(creep.room.name, creep.pos, obj.pos));
@@ -57,17 +57,17 @@ export function init_work(creep: Creep) {
         if (type == 'charge') {
             creep.say("IT")
             if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
-				creep.moveTo(obj, {maxRooms: 0});
+				creep.moveTo(obj, {maxRooms: 1});
             }
         } else if (type == 'build') {
             creep.say("IB")
             if (creep.build(obj) == ERR_NOT_IN_RANGE) {
-				creep.moveTo(obj, {maxRooms: 0});
+				creep.moveTo(obj, {maxRooms: 1});
             }
         } else if (type == 'upgrade') {
             creep.say("IU")
             if (creep.upgradeController(obj) == ERR_NOT_IN_RANGE) {
-				creep.moveTo(obj, {maxRooms: 0});
+				creep.moveTo(obj, {maxRooms: 1});
             }
         } else {
             throw Error("Wrong type");

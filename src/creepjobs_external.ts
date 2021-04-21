@@ -18,7 +18,7 @@ export function creepjob(creep: Creep): number {
 		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		let container_xy = conf_external.containers[source_name].pos;
 		let container_pos = Game.rooms[creep.memory.external_room_name].getPositionAt(container_xy[0], container_xy[1])
-		let container_status = creep.room.memory.named_structures_status.container[source_name];
+		let container_status = global.memory[creep.room.name].named_structures_status.container[source_name];
 		if (creep.room.name !== creep.memory.external_room_name) {
 			let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
 			external_room.movethroughrooms(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath);
@@ -49,7 +49,7 @@ export function creepjob(creep: Creep): number {
 		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		let room_external = Game.rooms[creep.memory.external_room_name];
 		let conf_container = conf_external.containers[source_name];
-		let containers_status = room_external.memory.named_structures_status.container;
+		let containers_status = global.memory[creep.memory.external_room_name].named_structures_status.container;
 		//let conf_external = Memory.rooms_conf[creep.memory.external_room_name];
 		let container_source_finished = containers_status[source_name].finished;
 		if (!container_source_finished) {
@@ -183,14 +183,6 @@ export function creepjob(creep: Creep): number {
 			basic_job.repair_road(creep);
 			creep.say("ECr");
 		}
-		if (creep.memory.next_time.wakeup !== undefined && Game.time < creep.memory.next_time.wakeup) {
-			if (basic_job.move_with_path_in_memory(creep) == 0) {
-				creep.say("Ec0");
-				return 0;
-			} else {
-				creep.memory.next_time.wakeup = Game.time;
-			}
-		}
 		let conf_external;
 		if (creep.memory.powered) {
 			conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
@@ -208,7 +200,6 @@ export function creepjob(creep: Creep): number {
 		if (creep.store.getFreeCapacity("energy") <= 10 || ((creep.room.name !== creep.memory.external_room_name || creep.pos.getRangeTo(pos) > 1) && creep.store.getUsedCapacity("energy") > 0)) {
 			if (creep.room.name !== creep.memory.home_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
-				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.memory.movable = true;
 				creep.say("ECe1");
 			} else {
@@ -229,13 +220,11 @@ export function creepjob(creep: Creep): number {
 			// The creep has no energy so heading toward the source or is waiting to get enough energy
 			if (creep.room.name !== creep.memory.external_room_name) {
 				external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
-				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.memory.movable = true;
 				creep.say("ECe2");
 				return 0;
 			}
 			if (basic_job.movetopos(creep, pos, 1) == 0) {
-				creep.memory.next_time.wakeup = Game.time + 5;
 				creep.say("ECm");
 				return 0;
 			}
@@ -405,7 +394,7 @@ export function creepjob(creep: Creep): number {
 			let container_pos = creep.room.getPositionAt(conf.containers.CT.pos[0], conf.containers.CT.pos[1]);
 			if (!creep.memory.ready) {
 				if (basic_job.trymovetopos(creep, container_pos) == 2) {
-					let tower = creep.room.memory.tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
+					let tower = global.memory[creep.room.name].tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
 					if (tower !== undefined && creep.room.terminal !== undefined) {
 						if (creep.store.getUsedCapacity("energy") == 0) {
 							creep.withdraw(creep.room.storage, "energy");
@@ -461,7 +450,7 @@ export function creepjob(creep: Creep): number {
 					creep.say("GCr");
 					return 0;
 				}
-				let tower = creep.room.memory.tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
+				let tower = global.memory[creep.room.name].tower_list.map((e) => Game.getObjectById(e)).filter((e) => e.store.getUsedCapacity("energy") < 600)[0];
 				if (tower !== undefined) {
 					if (creep.transfer(tower, "energy") == ERR_NOT_IN_RANGE) {
 						basic_job.movetopos(creep, tower.pos, 1);
@@ -475,7 +464,7 @@ export function creepjob(creep: Creep): number {
 				if (creep.room.storage !== undefined && creep.room.storage.isActive()) {
 					store = creep.room.storage;
 				} else {
-					let container_status = creep.room.memory.named_structures_status.container.CT;
+					let container_status = global.memory[creep.room.name].named_structures_status.container.CT;
 					if (container_status.finished) {
 						store = Game.getObjectById(container_status.id);
 					}

@@ -9,7 +9,7 @@ import * as basic_job from "./basic_job";
 var moveoptions = {
     reusePath: 5,
     //visualizePathStyle: {},
-    maxRooms: 0,
+    maxRooms: 1,
     costCallback: functions.avoid_exits,
 };
 export function creepjob(creep: Creep): number {
