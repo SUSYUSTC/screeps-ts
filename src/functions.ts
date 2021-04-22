@@ -1,9 +1,6 @@
 //screeps
 import * as mymath from "./mymath"
 import * as config from "./config"
-import * as constants from "./constants"
-import * as basic_job from "./basic_job"
-import * as attack from "./attack"
 
 export function signed_number(num: number, sign: number): number {
     if (sign == 1) {
@@ -50,32 +47,31 @@ export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
 }
 
 export function restrict_passing_rooms(room_name: string): CostMatrix {
-	let costMatrix = new PathFinder.CostMatrix;
-	let coor = room2coor(room_name);
-	let is_highway = false;
-	for (let value of coor) {
-		if (value > 0) {
-			if (value % 10 == 1) {
-				is_highway = true;
-			}
-		} else {
-			if (-value % 10 == 0) {
-				is_highway = true;
-			}
-		}
-	}
-	if (is_highway || config.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
-		return costMatrix;
-	}
-	else {
-		for (let i = 0; i < 50; i++) {
-			costMatrix.set(1, i, 255);
-			costMatrix.set(48, i, 255);
-			costMatrix.set(i, 48, 255);
-			costMatrix.set(i, 1, 255);
-		}
-		return costMatrix;
-	}
+    let costMatrix = new PathFinder.CostMatrix;
+    let coor = room2coor(room_name);
+    let is_highway = false;
+    for (let value of coor) {
+        if (value > 0) {
+            if (value % 10 == 1) {
+                is_highway = true;
+            }
+        } else {
+            if (-value % 10 == 0) {
+                is_highway = true;
+            }
+        }
+    }
+    if (is_highway || config.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
+        return costMatrix;
+    } else {
+        for (let i = 0; i < 50; i++) {
+            costMatrix.set(1, i, 255);
+            costMatrix.set(48, i, 255);
+            costMatrix.set(i, 48, 255);
+            costMatrix.set(i, 1, 255);
+        }
+        return costMatrix;
+    }
 }
 
 global.restrict_passing_rooms = restrict_passing_rooms;
@@ -122,16 +118,16 @@ export function get_costmatrix_road(room_name: string) {
         if (Game.rooms[room_name] !== undefined) {
             let room = Game.rooms[room_name];
             let mycreeps = room.find(FIND_MY_CREEPS);
-			let mypcs = room.find(FIND_MY_POWER_CREEPS);
+            let mypcs = room.find(FIND_MY_POWER_CREEPS);
             mycreeps.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             mypcs.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
             let hostilecreeps = room.find(FIND_HOSTILE_CREEPS);
             hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-			if (config.conf_rooms[room_name] !== undefined) {
-				for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
-					costmatrix.set(xy[0], xy[1], 255);
-				}
-			}
+            if (config.conf_rooms[room_name] !== undefined) {
+                for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
+                    costmatrix.set(xy[0], xy[1], 255);
+                }
+            }
             Game.costmatrices[room_name] = costmatrix.clone();
         } else {
             Game.costmatrices[room_name] = costmatrix.clone();
@@ -168,3 +164,7 @@ global.visualize_cost = function(room_name: string, x_center: number, y_center: 
     return 0;
 }
 
+export function is_boost_resource_enough(resource: ResourceConstant, n_boost_parts: number) {
+    let expected_amount = (n_boost_parts * 30 + config.resources_balance[resource].gap) * (config.controlled_rooms.length - 1) + n_boost_parts * 2;
+    return global.terminal_store[resource] >= expected_amount;
+}

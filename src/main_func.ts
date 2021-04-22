@@ -84,7 +84,7 @@ function update_link_and_container(room_name: string) {
     let link_modes = Object.keys(conf.links).filter((e) => links_status[e].finished);
     game_memory.container_modes_all = mymath.all(container_modes);
     game_memory.link_modes = link_modes;
-	if (!Game.powered_rooms.includes(room_name) && Game.time % 3 !== 0) {
+	if (Game.powered_rooms[room_name] == undefined && Game.time % 3 !== 0) {
 		return;
 	}
     game_memory.are_links_source = {};
@@ -365,33 +365,9 @@ function detect_resources(room_name: string) {
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
             if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
                 if (room.memory.external_resources.pb[external_room_name] == undefined) {
-                    let requested_resources: {
-                        [key in ResourceConstant] ? : number
-                    } = {};
-                    for (let part of < Array < BodyPartConstant >> Object.keys(config.pb_attacker_body)) {
-                        let boost_mineral = config.pb_attacker_body[part].boost;
-                        if (boost_mineral !== undefined) {
-                            if (requested_resources[boost_mineral] == undefined) {
-                                requested_resources[boost_mineral] = 0;
-                            }
-                            requested_resources[boost_mineral] += config.pb_attacker_body[part].number;
-                        }
-                    }
-                    for (let part of < Array < BodyPartConstant >> Object.keys(config.pb_healer_body)) {
-                        let boost_mineral = config.pb_healer_body[part].boost;
-                        if (boost_mineral !== undefined) {
-                            if (requested_resources[boost_mineral] == undefined) {
-                                requested_resources[boost_mineral] = 0;
-                            }
-                            requested_resources[boost_mineral] += config.pb_healer_body[part].number;
-                        }
-                    }
-                    let ok = true;
-                    for (let mineral of < Array < ResourceConstant >> Object.keys(requested_resources)) {
-                        if (room.terminal.store.getUsedCapacity(mineral) < requested_resources[mineral]) {
-                            ok = false;
-                        }
-                    }
+                    let ok_attacker = mymath.all(_.filter(config.pb_attacker_body, (e) => e.boost !== undefined).map((e) => functions.is_boost_resource_enough(e.boost, e.number)));
+                    let ok_healer = mymath.all(_.filter(config.pb_healer_body, (e) => e.boost !== undefined).map((e) => functions.is_boost_resource_enough(e.boost, e.number)));
+					let ok = ok_attacker && ok_healer;
                     if (!ok) {
                         continue;
                     }
@@ -795,16 +771,16 @@ export function set_global_memory() {
         }
         spawn.memory.spawning_time += 1;
     }
-	if (Game.time % 100 == 0 || Memory.total_energies == undefined) {
-		let tot_amounts = global.summarize_terminal();
-		Memory.total_energies = tot_amounts.energy += tot_amounts.battery * 10;
+	if (Game.time % 20 == 0 || Memory.total_energies == undefined || global.terminal_store == undefined) {
+		global.terminal_store = global.summarize_terminal();
+		Memory.total_energies = global.terminal_store.energy += global.terminal_store.battery * 10;
 	}
-	Game.powered_rooms = [];
+	Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
         if (config.pc_conf[pc_name].source) {
             let level = Game.powerCreeps[pc_name].powers[PWR_REGEN_SOURCE].level;
             Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = level;
-			Game.powered_rooms.push(config.pc_conf[pc_name].room_name);
+			Game.powered_rooms[config.pc_conf[pc_name].room_name] = pc_name;
         }
     }
 	update_gcl_room();

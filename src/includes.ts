@@ -454,7 +454,9 @@ interface Game {
 		[key in type_creep_role] ?: number;
 	}
     mineral_storage_amount ? : type_mineral_storage_amount;
-	powered_rooms ?: string[];
+	powered_rooms ?: {
+		[key: string]: string;
+	};
     memory ?: {
         [key: string]: {
             danger_mode ? : boolean;
@@ -466,6 +468,7 @@ interface Game {
                 [key: string]: boolean;
             }
 			pc_source_level ? : number;
+			terminal_send_requested ? : boolean;
         }
     }
 }
@@ -520,6 +523,7 @@ declare module NodeJS {
 				ramparts_to_repair ?: Id< StructureRampart > [];
 			}
 		}
+		terminal_store ?: type_resource_number;
         test_var ?: boolean;
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;

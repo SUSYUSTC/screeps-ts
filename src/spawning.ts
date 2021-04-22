@@ -4,6 +4,7 @@ import * as spawning_func from "./spawning_func";
 import * as spawning_init from "./spawning_init";
 import * as defense from "./defense";
 import * as config from "./config";
+import * as functions from "./functions";
 
 function is_valid_creep(creep: Creep, rolename: type_creep_role, livetime: number): boolean {
     return creep.memory.role == rolename && (creep.ticksToLive == undefined || creep.ticksToLive > livetime);
@@ -808,7 +809,7 @@ export function spawn(room_name: string) {
 			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  'gcl_upgrader', config.conf_gcl.conf_map.single_distance + 150));
 			let has_spawning = mymath.any(raw_upgraders.map((e) => e.spawning));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
-			if (upgraders.length < n_upgrades_needed && gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 && Game.cpu.bucket >= 9000 && !has_spawning) {
+			if (upgraders.length < n_upgrades_needed && gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 && functions.is_boost_resource_enough('GH2O', 32) && functions.is_boost_resource_enough('ZO', 8) && Game.cpu.bucket >= 9000 && !has_spawning) {
 				let added_memory = {
 					"advanced": true,
 				};

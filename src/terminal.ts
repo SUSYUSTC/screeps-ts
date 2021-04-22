@@ -52,10 +52,13 @@ export function process_resource_sending_request(room_name: string) {
 	}
 	let request = requests[requests.length - 1];
 	if (room.terminal.store.getUsedCapacity(request.resource) >= request.amount) {
-		let out = room.terminal.send(request.resource, request.amount, request.room_to);
-		if (out == 0) {
-			requests.pop();
-			return;
+		if (!Game.memory[room_name].terminal_send_requested) {
+			Game.memory[room_name].terminal_send_requested = true;
+			let out = room.terminal.send(request.resource, request.amount, request.room_to);
+			if (out == 0) {
+				requests.pop();
+				return;
+			}
 		}
 	}
 }
@@ -71,8 +74,11 @@ function supply_gcl_room() {
 			let source_storage = helping_room.storage.store.getUsedCapacity("energy");
 			let source_terminal = helping_room.terminal.store.getUsedCapacity("energy");
 			if (source_storage >= config.storage_full - 50000 && source_terminal >= 50000) {
-				helping_room.terminal.send("energy", 25000, helped_room.name);
-				break;
+				if (!Game.memory[helping_room.name].terminal_send_requested) {
+					Game.memory[helping_room.name].terminal_send_requested = true;
+					helping_room.terminal.send("energy", 25000, helped_room.name);
+					break;
+				}
 			}
 		}
 	}
@@ -91,8 +97,11 @@ function support_developing_rooms() {
         let target_storage = Game.rooms[helped_room].storage.store.getUsedCapacity("energy");
         let target_terminal = Game.rooms[helped_room].terminal.store.getUsedCapacity("energy");
         if (source_storage >= config.storage_full && source_terminal >= 50000 && target_storage < config.storage_full && target_terminal < 100000) {
-            Game.rooms[helping_room_name].terminal.send("energy", 25000, helped_room);
-            break;
+			if (!Game.memory[helping_room_name].terminal_send_requested) {
+				Game.memory[helping_room_name].terminal_send_requested = true;
+				Game.rooms[helping_room_name].terminal.send("energy", 25000, helped_room);
+				break;
+			}
         }
     }
 }
@@ -102,8 +111,12 @@ function balance_resource(resource: ResourceConstant, gap: number, min: number, 
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
 	if (ns[argmax] - ns[argmin] >= gap && ns[argmin] < min) {
-		console.log("Sending resource", resource, "from", rooms[argmax], "to", rooms[argmin]);
-		Game.rooms[rooms[argmax]].terminal.send(resource, amount, rooms[argmin]);
+		let sending_room_name = rooms[argmax];
+		if (!Game.memory[sending_room_name].terminal_send_requested) {
+			Game.memory[sending_room_name].terminal_send_requested = true;
+			console.log("Sending resource", resource, "from", sending_room_name, "to", rooms[argmin]);
+			Game.rooms[sending_room_name].terminal.send(resource, amount, rooms[argmin]);
+		}
 	}
 }
 function balance_power() {
@@ -117,10 +130,13 @@ function balance_power() {
 		let room_max = Game.rooms[rooms[argmax]];
 		let amount = Math.min(Math.floor(amount_diff/2), room_max.terminal.store.getUsedCapacity("power"));
 		if (amount > 0) {
-			let out = room_max.terminal.send("power", amount, rooms[argmin]) == 0;
-			if (out) {
-				console.log("Sending resource", "power", "from", rooms[argmax], "to", rooms[argmin]);
-				return;
+			if (!Game.memory[room_max.name].terminal_send_requested) {
+				Game.memory[room_max.name].terminal_send_requested = true;
+				let out = room_max.terminal.send("power", amount, rooms[argmin]) == 0;
+				if (out) {
+					console.log("Sending resource", "power", "from", rooms[argmax], "to", rooms[argmin]);
+					return;
+				}
 			}
 		}
 	}
@@ -131,8 +147,11 @@ function gather_resource(room_name: string, resource: ResourceConstant, min_amou
 		if (controlled_room !== room_name) {
 			let room = Game.rooms[controlled_room];
 			if (room.terminal !== undefined && room.terminal.store.getUsedCapacity(resource) >= min_amount) {
-				if (room.terminal.send(resource, room.terminal.store.getUsedCapacity(resource), room_name) == 0) {
-					console.log("Sending resource", resource, "from", controlled_room, "to", room_name);
+				if (!Game.memory[room.name].terminal_send_requested) {
+					Game.memory[room.name].terminal_send_requested = true;
+					if (room.terminal.send(resource, room.terminal.store.getUsedCapacity(resource), room_name) == 0) {
+						console.log("Sending resource", resource, "from", controlled_room, "to", room_name);
+					}
 				}
 			}
 		}

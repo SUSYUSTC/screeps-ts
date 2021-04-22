@@ -172,8 +172,8 @@ export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 2.4e6;
-//export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e7, 1.1e7, 1.2e7, 1.3e7, 1.4e7, 1.5e7];
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e7, 1.1e7, 1.2e7, 1.3e7, 1.4e7, 1.5e7];
+//export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
@@ -271,14 +271,14 @@ export var resources_balance: type_resources_balance = {
 		amount: 2000,
 	},
 	"GH2O": {
-		gap: 2000,
-		min: 2000,
-		amount: 1000,
+		gap: 960,
+		min: 960,
+		amount: 960,
 	},
 	"LH2O": {
-		gap: 2000,
-		min: 2000,
-		amount: 1000,
+		gap: 600,
+		min: 600,
+		amount: 600,
 	},
 	"UH2O": {
 		gap: 600,
@@ -296,9 +296,9 @@ export var resources_balance: type_resources_balance = {
 		amount: 150,
 	},
 	"ZO": {
-		gap: 600,
-		min: 600,
-		amount: 600,
+		gap: 240,
+		min: 240,
+		amount: 240,
 	},
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
