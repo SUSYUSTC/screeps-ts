@@ -6,6 +6,7 @@ import * as creepjobs_combat from "./creepjobs_combat"
 import * as creepjobs_resources from "./creepjobs_resources"
 import * as config from "./config"
 import * as basic_job from "./basic_job"
+import { Timer } from "./timer"
 var creepjob_dict: {[key in type_creep_role] ?: any} = {
 };
 for (let role of config.creep_roles_home) {
@@ -31,6 +32,8 @@ export function creepjob(creep: Creep) {
 		creep.memory.next_time = {};
 	}
     if (creep.memory.role !== undefined) {
+		let timer = new Timer(creep.memory.role, false);
 		creepjob_dict[creep.memory.role](creep);
+		timer.end();
     }
 }

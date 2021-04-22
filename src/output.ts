@@ -15,7 +15,7 @@ type type_store_log = {
 	[key in ResourceConstant] ?: number;
 }
 interface type_wall_strength_log {
-	mean_strength: number;
+	min_strength: number;
 	number: number;
 }
 interface type_mine_log {
@@ -151,22 +151,6 @@ export function log() {
 		let room = Game.rooms[room_name];
 		let game_memory = Game.memory[room_name];
 		let conf = config.conf_rooms[room_name];
-		if (Game.time % 20 == 0) {
-			let walls = room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits));
-			let ramparts = room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'rampart');
-			let wall_strength = 0;
-			let rampart_strength = 0;
-			if (walls.length > 0) {
-				wall_strength = mymath.array_mean(walls.map((e) => e.hits));
-			}
-			if (ramparts.length > 0) {
-				rampart_strength = mymath.array_mean(ramparts.map((e) => e.hits));
-			}
-			room.memory.mean_wall_strength = wall_strength;
-			room.memory.mean_rampart_strength = rampart_strength;
-			room.memory.n_walls = walls.length;
-			room.memory.n_ramparts = ramparts.length;
-		}
 		if (room.controller.level == 8) {
 			room_log.RCL = {
 				"level": room.controller.level,
@@ -184,11 +168,11 @@ export function log() {
 		room_log.room_energy = room.energyAvailable;
 		room_log.room_total_energy = room.energyCapacityAvailable;
 		room_log.wall = {
-			"mean_strength": room.memory.mean_wall_strength,
+			"min_strength": room.memory.min_wall_strength,
 			"number": room.memory.n_walls,
 		};
 		room_log.rampart = {
-			"mean_strength": room.memory.mean_rampart_strength,
+			"min_strength": room.memory.min_rampart_strength,
 			"number": room.memory.n_ramparts,
 		};
 		let log_special = '';

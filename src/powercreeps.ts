@@ -109,6 +109,7 @@ function operate_extension(pc: PowerCreep) {
 	if (pc.room.energyCapacityAvailable - pc.room.energyAvailable <= 4000) {
 		return -1;
 	}
+	pc.say("ext");
 	if (pc.pos.getRangeTo(pc.room.storage) > 3) {
 		basic_job.movetopos(pc, pc.room.storage.pos, 3);
 		return 1;

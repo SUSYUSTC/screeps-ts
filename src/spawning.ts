@@ -27,6 +27,31 @@ function get_defender_json(room_name: string, typename: string): type_spawn_json
     let json = spawning_func.prepare_role("defender", room.energyAvailable, added_memory, options, added_json);
     return json;
 }
+function creep_statistics() {
+	if (Game.creep_statistics !== undefined) {
+		return;
+	}
+	Game.creep_statistics = {};
+	for (let creepname in Game.creeps) {
+		let creep = Game.creeps[creepname];
+		let role = creep.memory.role;
+		if (role !== undefined) {
+			if (Game.creep_statistics[role] == undefined) {
+				Game.creep_statistics[role] = {};
+			}
+			let room_name: string;
+			if (creep.memory.home_room_name !== undefined) {
+				room_name = creep.memory.home_room_name;
+			} else {
+				room_name = creep.room.name;
+			}
+			if (Game.creep_statistics[role][room_name] == undefined) {
+				Game.creep_statistics[role][room_name] = [];
+			}
+			Game.creep_statistics[role][room_name].push(creep);
+		}
+	}
+}
 export function spawn(room_name: string) {
     let room = Game.rooms[room_name];
     let queue = room.memory.additional_spawn_queue;
@@ -46,6 +71,7 @@ export function spawn(room_name: string) {
     if (Game.time % 5 !== 0) {
         return;
     }
+	creep_statistics();
     let game_memory = Game.memory[room_name];
     let enemies = room.find(FIND_HOSTILE_CREEPS).filter((e) => e.owner.username == 'Invader');
     if (enemies.length > 0 && global.memory[room_name].tower_list.length == 0) {
@@ -357,7 +383,7 @@ export function spawn(room_name: string) {
 
     // wall _repairer
     let wall_repairers = room_creeps.filter((e) => e.memory.role == 'wall_repairer');
-    if (wall_repairers.length < config.wall_rates[room_name] && !game_memory.danger_mode) {
+    if (wall_repairers.length == 0 && Math.min(room.memory.min_wall_strength, room.memory.min_rampart_strength) < 2.0e6 && !game_memory.danger_mode) {
         let added_memory = {};
         let options = {};
         let priority = -1;
@@ -779,7 +805,9 @@ export function spawn(room_name: string) {
 			let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl.conf_map.single_distance + (n_work + n_move + n_carry) * 3));
 			let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl.conf_map.single_distance + 150));
 			if (upgraders.length == 0) {
-				let added_memory = { };
+				let added_memory = { 
+					"home_room_name": room_name,
+				};
 				let options = {
 					"n_work": n_work,
 					"n_carry": n_carry,

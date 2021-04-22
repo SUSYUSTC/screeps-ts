@@ -23,6 +23,7 @@ import * as output from "./output";
 import * as attack from "./attack";
 import * as powercreeps from "./powercreeps"
 import * as gcl_room from "./gcl_room";
+import { Timer } from "./timer";
 import * as control from "./control";
 Memory.rerunning = true;
 action_counter.warpActions();
@@ -30,9 +31,10 @@ action_counter.warpActions();
 module.exports.loop = function() {
 	console.log()
 	console.log("Beginning of tick", Game.time);
-	let cpu_used;
+	let timer;
 	Game.tick_cpu_main = {};
 	Game.tick_cpu = {};
+	Game.function_actions_count = {};
 
     main_func.clear_creep();
 	main_func.set_global_memory()
@@ -45,7 +47,7 @@ module.exports.loop = function() {
 		}
 	}
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("towers", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			if (towers.attack_all(room_name) == 1) {
@@ -69,9 +71,9 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
 	}
-	Game.tick_cpu_main.towers = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("links", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			links.work(room_name)
@@ -79,19 +81,13 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.links = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
+	timer = new Timer("creeps", true);
     for (var name in Game.creeps) {
 		var creep = Game.creeps[name];
 		try {
-			cpu_used = Game.cpu.getUsed();
 			creepjobs.creepjob(creep);
-			if (creep.memory.role !== undefined) {
-				if (Game.tick_cpu_main[creep.memory.role] == undefined) {
-					Game.tick_cpu_main[creep.memory.role] = 0;
-				}
-				Game.tick_cpu_main[creep.memory.role] += Game.cpu.getUsed() - cpu_used;
-			}
 		} catch (err) {
 			creep.say("Error");
 			creep.memory.movable = false;
@@ -99,17 +95,18 @@ module.exports.loop = function() {
 			console.log("Error", creep.room.name, creep.name, err.stack);
 		}
     }
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("gcl_room", true);
 	try {
 		gcl_room.run();
 	} catch (err) {
 		creep.say("Error");
 		console.log("Error at gcl room", err.stack);
 	}
-	Game.tick_cpu_main.gcl_room = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("pc", true);
     for (var name in Game.powerCreeps) {
 		var pc = Game.powerCreeps[name];
 		try {
@@ -119,9 +116,9 @@ module.exports.loop = function() {
 			console.log("Error", pc.room.name, err.stack);
 		}
     }
-	Game.tick_cpu_main.pc = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("spawning", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			spawning.spawn(room_name);
@@ -129,9 +126,9 @@ module.exports.loop = function() {
 			console.log("Error", err.stack);
 		}
     }
-	Game.tick_cpu_main.spawning = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("terminal", true);
 	terminal.terminal_balance();
     for (var room_name of config.controlled_rooms) {
 		try {
@@ -140,13 +137,13 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.terminal = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("lab_prepare", true);
 	labs.prepare();
-	Game.tick_cpu_main.lab_prepare = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("lab_reaction", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			labs.reaction(room_name);
@@ -154,9 +151,9 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.lab_reaction = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("factory", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			factory.produce(room_name);
@@ -164,9 +161,9 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.factory = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("powerspawn", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			powerspawn.process(room_name);
@@ -174,18 +171,16 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.powerspawn = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("market", true);
 	try {
 		market.clear_used();
 		market.regulate_all_order_prices();
 	} catch (err) {
 		console.log("Error", err.stack);
 	}
-	Game.tick_cpu_main.market_regulate = Game.cpu.getUsed() - cpu_used;
 
-	cpu_used = Game.cpu.getUsed();
     for (var room_name of config.controlled_rooms) {
 		try {
 			market.process_buy_order(room_name);
@@ -194,15 +189,16 @@ module.exports.loop = function() {
 			console.log("Error", room_name, err.stack);
 		}
     }
-	Game.tick_cpu_main.market_process = Game.cpu.getUsed() - cpu_used;
+	timer.end();
 
-	cpu_used = Game.cpu.getUsed();
+	timer = new Timer("control", true);
 	try {
 		control.action();
 	} catch (err) {
 		console.log("Error", err.stack);
 	}
-	Game.tick_cpu_main.control = Game.cpu.getUsed() - cpu_used;
+	timer.end();
+
 	try {
 		final_command.log();
 	} catch (err) {
@@ -210,4 +206,7 @@ module.exports.loop = function() {
 	}
 	output.log();
 	global.test_var = true;
+	if (Memory.debug_mode) {
+		console.log("Final Real CPU:", Game.cpu.getUsed());
+	}
 }

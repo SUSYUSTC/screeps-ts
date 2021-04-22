@@ -1,4 +1,3 @@
-/*
 let functionsToWarp = [
     {name: 'Game.notify', parent: Game, val: Game.notify},
     {name: 'Market.cancelOrder', parent: Game.market, val: Game.market.cancelOrder},
@@ -70,8 +69,8 @@ let functionsToWarp = [
     {name: 'StructureTower.heal', parent: StructureTower.prototype, val: StructureTower.prototype.heal},
     {name: 'StructureTower.repair', parent: StructureTower.prototype, val: StructureTower.prototype.repair},
 ]
-*/
 
+/*
 let functionsToWarp_creep = [
     {name: 'Creep.attack', parent: Creep.prototype, val: Creep.prototype.attack},
     {name: 'Creep.attackController', parent: Creep.prototype, val: Creep.prototype.attackController},
@@ -96,29 +95,24 @@ let functionsToWarp_creep = [
     {name: 'Creep.upgradeController', parent: Creep.prototype, val: Creep.prototype.upgradeController},
     {name: 'Creep.withdraw', parent: Creep.prototype, val: Creep.prototype.withdraw},
 ]
+*/
 
 /**
  * Warp functions, it should be call when global reset.
  */
 export function warpActions(){
-    functionsToWarp_creep.forEach(({name, parent, val}) => warpAction(name, parent, val))
+    functionsToWarp.forEach(({name, parent, val}) => warpAction(name, parent, val))
 }
 
 function warpAction(name: string, parent: any, action: any){
     let actionName = name.split('.').pop();
 
     function warppedAction() {
-        const start = Game.cpu.getUsed();
 
         let code = action.apply(this, arguments);
-		let role: type_creep_role = this.memory.role;
 
-        const end = Game.cpu.getUsed();
-        if(code === OK && end - start > 0.1 && role !== undefined) {
-			if (Game.creep_actions_count[role] == undefined) {
-				Game.creep_actions_count[role] = 0;
-			}
-			Game.creep_actions_count[role] += 1;
+        if(code === OK) {
+			Game.actions_count += 1;
         }
 
         return code;

@@ -27,12 +27,6 @@ function movetopos_restricted(creep: Creep, pos: RoomPosition, range: number): n
 
 function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
     // 0: moving, 1: arrived
-    let name_of_this_function = "move_to_working_pos";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let arrived = false;
     let occupied = false;
     for (let pos of conf_maincarrier.working_zone) {
@@ -59,10 +53,8 @@ function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
 			let main_pos = creep.room.getPositionAt(conf_maincarrier.main_pos[0], conf_maincarrier.main_pos[1]);
             basic_job.movetopos(creep, main_pos, 0, {costmatrix: costmatrix});
         }
-		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
         return 0;
     }
-	Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
     return 1;
 }
 
@@ -112,12 +104,6 @@ function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
 }
 
 function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
-    let name_of_this_function = "react_serve";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-
     let request = creep.room.memory.reaction_request;
     let labs_status = global.memory[creep.room.name].named_structures_status.lab;
     if (_.filter(labs_status, (e) => e.finished).length == 10) {
@@ -131,7 +117,6 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 creep.room.memory.reaction_ready = false;
             }
 			if (request == undefined) {
-				Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 				return 1;
 			}
         } else {
@@ -157,13 +142,11 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                     } else {
                         withdraw(creep, lab, lab.mineralType);
                     }
-					Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 					return 0;
                 }
             }
             if (!has_enough_source) {
                 delete creep.room.memory.reaction_request;
-				Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
                 return 0;
             }
             for (let i of [0, 1]) {
@@ -186,7 +169,6 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 							movetopos_restricted(creep, creep.room.terminal.pos, 1);
 						}
 					}
-					Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 					return 0;
                 } else if (lab.mineralType !== reactant){
 					// change reactant
@@ -195,7 +177,6 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                     } else {
                         transfer(creep, creep.room.terminal, creep.memory.resource_type);
                     }
-					Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
 					return 0;
                 }
 				// else: lab.mineralType == reactant && lab.mineralAmount >= config.react_init_amount
@@ -204,15 +185,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 	} else {
 		creep.room.memory.reaction_ready = true;
 	}
-	Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
     return 1;
-}
-
-interface type_resource_status {
-    source: string;
-    sink: string;
-    withdraw_amount: number;
-    transfer_amount: number;
 }
 
 function get_energy_status(creep_amount: number, link_amount: number, link_target_amount: number, storage_amount: number, terminal_amount: number | undefined, factory_amount: number | undefined, powerspawn_amount: number | undefined, nuker_amount: number | undefined): type_resource_status {
@@ -376,25 +349,25 @@ function structure_from_name(room_name: string, name: string): AnyStoreStructure
     return target;
 }
 
+var structure_names: {
+	[key: string]: string
+} = {
+	"storage": "S",
+	"terminal": "T",
+	"link": "L",
+	"factory": "F",
+	"powerspawn": "P",
+	"nuker": "N",
+}
+var resource_names: {
+	[key in ResourceConstant] ? : string
+} = {
+	"energy": "E",
+	"battery": "B",
+	"power": "P",
+	"G": "G",
+}
 function transfer_resource(creep: Creep, resource_type: ResourceConstant, resource_status: type_resource_status) {
-    let structure_names: {
-        [key: string]: string
-    } = {
-        "storage": "S",
-        "terminal": "T",
-        "link": "L",
-        "factory": "F",
-        "powerspawn": "P",
-        "nuker": "N",
-    }
-    let resource_names: {
-        [key in ResourceConstant] ? : string
-    } = {
-        "energy": "E",
-        "battery": "B",
-        "power": "P",
-        "G": "G",
-    }
     creep.say(resource_names[resource_type] + ": " + structure_names[resource_status.source] + ">" + structure_names[resource_status.sink]);
     if (creep.memory.resource_type == undefined) {
         let target = structure_from_name(creep.room.name, resource_status.source);
@@ -433,7 +406,7 @@ export function creepjob(creep: Creep): number {
         let link = Game.getObjectById(link_id);
         let link_energy = link.store.getUsedCapacity("energy")
 		if (link_energy == creep.room.memory.maincarrier_link_amount) {
-			if (creep.memory.next_time.wakeup !== undefined && Game.time < creep.memory.next_time.wakeup) {
+			if (Game.time < creep.memory.next_time.wakeup) {
 				creep.say("sleep");
 				return 0;
 			}
@@ -453,15 +426,26 @@ export function creepjob(creep: Creep): number {
         } else {
             creep.memory.resource_type = < ResourceConstant > Object.keys(creep.store)[0]
         }
+		if (creep.memory.maincarrier_transfer_job !== undefined) {
+			transfer_resource(creep, creep.memory.maincarrier_transfer_job.resource_type, creep.memory.maincarrier_transfer_job.resource_status);
+			creep.say("job");
+			delete creep.memory.maincarrier_transfer_job;
+			return 0;
+		}
         if (creep.room.memory.current_boost_request !== undefined && creep.room.terminal) {
             creep.say("boost");
             boost_serve(creep, conf_maincarrier);
             return 0;
         }
-        if (creep.room.terminal && (creep.room.memory.reaction_request !== undefined || creep.room.memory.reaction_ready)) {
+		if (creep.memory.next_time.react_serve == undefined) {
+			creep.memory.next_time.react_serve = Game.time;
+		}
+        if (Game.time >= creep.memory.next_time.react_serve && creep.room.terminal && (creep.room.memory.reaction_request !== undefined || creep.room.memory.reaction_ready)) {
             creep.say("react");
             if (react_serve(creep, conf_maincarrier) == 0) {
                 return 0;
+			} else {
+				creep.memory.next_time.react_serve = Game.time + 10;
 			}
         }
         creep.say("MC");
@@ -476,11 +460,6 @@ export function creepjob(creep: Creep): number {
         }
 
 		let name_of_this_function = "count_resource";
-		if (Game.tick_cpu[name_of_this_function] == undefined) {
-			Game.tick_cpu[name_of_this_function] = 0
-		}
-		let cpu_used = Game.cpu.getUsed();
-
         let mineral_type = Game.memory[creep.room.name].mine_status.type;
 
         let creep_energy = creep.store.getUsedCapacity("energy");
@@ -549,13 +528,17 @@ export function creepjob(creep: Creep): number {
 			[mineral_type]: mineral_status,
         }
 
-		Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
-
-        for (let resource_type of ["energy", "power", "G", "battery", mineral_type]) {
+        for (let resource_type of <Array<ResourceConstant>>(["energy", "power", "G", "battery", mineral_type])) {
             if (creep.memory.resource_type == undefined || creep.memory.resource_type == resource_type) {
-                let resource_status = resources_status[ < ResourceConstant > resource_type];
+                let resource_status = resources_status[resource_type];
                 if (resource_status.source !== resource_status.sink) {
-                    transfer_resource(creep, < ResourceConstant > resource_type, resource_status);
+                    transfer_resource(creep, resource_type, resource_status);
+					if (creep.memory.resource_type == undefined) {
+						creep.memory.maincarrier_transfer_job = {
+							"resource_type": resource_type,
+							"resource_status": resource_status,
+						}
+					}
                     return 0;
                 }
             }
@@ -573,7 +556,11 @@ export function creepjob(creep: Creep): number {
 				creep.transfer(creep.room.storage, creep.memory.resource_type)
 			}
 		}
-		creep.memory.next_time.wakeup = Game.time + 4;
+		if (Game.powered_rooms[creep.room.name] == undefined) {
+			creep.memory.next_time.wakeup = Game.time + 8;
+		} else {
+			creep.memory.next_time.wakeup = Game.time + 4;
+		}
     }
     return 0;
 }

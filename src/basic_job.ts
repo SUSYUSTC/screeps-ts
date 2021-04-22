@@ -3,6 +3,7 @@ import * as mymath from "./mymath";
 import * as config from "./config";
 import * as external_room from "./external_room";
 import * as functions from "./functions";
+import { Timer } from "./timer";
 
 var vision_options: any = {
     visualizePathStyle: {}
@@ -26,15 +27,8 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 	if (creep.room.name !== pos.roomName) {
 		return 2;
 	}
-	/*
-    let name_of_this_function = "movetopos";
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
-	*/
 
+	let timer = new Timer("movetopos", false);
     if (options.setmovable == undefined) {
         options.setmovable = true;
     }
@@ -70,6 +64,7 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 	if (options.setmovable) {
 		creep.memory.movable = true;
 	}
+	timer.end();
     return 0;
 }
 

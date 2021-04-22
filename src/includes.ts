@@ -33,8 +33,8 @@ interface RoomMemory {
         first: type_additional_spawn[];
         last: type_additional_spawn[];
     }
-    mean_wall_strength ? : number;
-    mean_rampart_strength ? : number;
+    min_wall_strength ? : number;
+    min_rampart_strength ? : number;
     n_walls ? : number;
     n_ramparts ? : number;
     external_resources ? : type_external_resources;
@@ -80,6 +80,12 @@ interface type_creep_move {
 	path: string;
 	room: string;
 }
+interface type_resource_status {
+    source: string;
+    sink: string;
+    withdraw_amount: number;
+    transfer_amount: number;
+}
 interface CreepMemory {
 	_move ?: type_creep_move;
     movable ?: boolean;
@@ -100,6 +106,10 @@ interface CreepMemory {
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
     boost_status ? : type_boost_status;
     resource_type ? : ResourceConstant;
+	maincarrier_transfer_job ? : {
+		resource_type: ResourceConstant;
+		resource_status: type_resource_status;
+	}
     ready ? : boolean;
 	pc_level ?: number;
 	powered ?: boolean;
@@ -450,8 +460,9 @@ interface Game {
     tick_cpu_main ? : {
         [key: string]: number;
     }
-	creep_actions_count: {
-		[key in type_creep_role] ?: number;
+	actions_count: number;
+	function_actions_count: {
+		[key: string]: number;
 	}
     mineral_storage_amount ? : type_mineral_storage_amount;
 	powered_rooms ?: {
@@ -471,6 +482,11 @@ interface Game {
 			terminal_send_requested ? : boolean;
         }
     }
+	creep_statistics: {
+		[key in type_creep_role] ?: {
+			[key: string]: Creep[];
+		}
+	}
 }
 
 type type_order_result = {

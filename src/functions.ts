@@ -1,6 +1,7 @@
 //screeps
 import * as mymath from "./mymath"
 import * as config from "./config"
+import { Timer } from "./timer"
 
 export function signed_number(num: number, sign: number): number {
     if (sign == 1) {
@@ -77,11 +78,8 @@ export function restrict_passing_rooms(room_name: string): CostMatrix {
 global.restrict_passing_rooms = restrict_passing_rooms;
 
 export function get_costmatrix_road(room_name: string) {
-    let name_of_this_function = "costmatrices"
-    if (Game.tick_cpu[name_of_this_function] == undefined) {
-        Game.tick_cpu[name_of_this_function] = 0
-    }
-    let cpu_used = Game.cpu.getUsed();
+	let timer = new Timer("get_costmatrix_road", false);
+
     if (Game.costmatrices == undefined) {
         Game.costmatrices = {};
     }
@@ -133,7 +131,7 @@ export function get_costmatrix_road(room_name: string) {
             Game.costmatrices[room_name] = costmatrix.clone();
         }
     }
-    Game.tick_cpu[name_of_this_function] += Game.cpu.getUsed() - cpu_used;
+	timer.end();
     return Game.costmatrices[room_name];
 }
 export function analyze_component(creep: Creep): type_creep_components {

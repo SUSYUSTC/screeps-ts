@@ -2,8 +2,10 @@ import * as mymath from "./mymath"
 import * as functions from "./functions"
 import * as config from "./config"
 import * as basic_job from "./basic_job"
+import { Timer } from "./timer";
 
 export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: any = {}) {
+	let timer = new Timer("movethroughrooms", false);
     if (rooms_path.length != poses_path.length + 1) {
         throw Error("Unexpected length of arguments")
     }
@@ -15,6 +17,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 	 */
     if (!(rooms_path.includes(creep.room.name))) {
         console.log(creep.name, "is missing in a unknown room")
+		timer.end();
         return;
     }
 	//var room_info = room_list.room_list.rooms[creep.room.name];
@@ -40,12 +43,14 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
             }
         }
         if (creep.pos.x == standpoint_xy[0] && creep.pos.y == standpoint_xy[1]) {
+			timer.end();
             return 1;
         } else {
 			creep.moveTo(standpoint_xy[0], standpoint_xy[1], {...{
                 maxRooms: 1,
                 costCallback: functions.avoid_exits
 			}, ...add_options});
+			timer.end();
             return 0;
         }
     } else {
@@ -82,6 +87,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 				}, ...add_options});
 			}
         }
+		timer.end();
         return 0;
     }
 }
