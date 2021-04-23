@@ -18,34 +18,34 @@ interface type_moving_request {
 	negative: number[];
 }
 function generate_moving_request(queue: number[], unique_pos: number, priority_list: number[]): type_moving_request {
-        let result: type_moving_request = {
-                        "positive": [],
-                        "negative": [],
-        }
-        let index_list = [];
-        let pos_list = []
-        let n = 0;
-        for (let i = queue.length - 1; i >= 0; i--) {
-                if (queue[i] !== undefined) {
-                        index_list.push(queue[i]);
-                        pos_list.push(i);
-                        n += 1;
-                }
-        }
-        if (n == 1 && unique_pos !== undefined) {
-                priority_list = [unique_pos];
-        }
-        if (priority_list.length > n) {
-                priority_list = priority_list.slice(0, n);
-        }
-        for (let i = 0; i < n; i++) {
-                if(pos_list[i] > priority_list[i]) {
-                        result.negative.push(index_list[i]);
-                } else if (pos_list[i] < priority_list[i]) {
-                        result.positive.push(index_list[i]);
-                }
-        }
-        return result;
+	let result: type_moving_request = {
+		"positive": [],
+		"negative": [],
+	}
+	let index_list = [];
+	let pos_list = []
+	let n = 0;
+	for (let i = queue.length - 1; i >= 0; i--) {
+		if (queue[i] !== undefined) {
+			index_list.push(queue[i]);
+			pos_list.push(i);
+			n += 1;
+		}
+	}
+	if (n == 1 && unique_pos !== undefined) {
+		priority_list = [unique_pos];
+	}
+	if (priority_list.length > n) {
+		priority_list = priority_list.slice(0, n);
+	}
+	for (let i = 0; i < n; i++) {
+		if(pos_list[i] > priority_list[i]) {
+			result.negative.push(index_list[i]);
+		} else if (pos_list[i] < priority_list[i]) {
+			result.positive.push(index_list[i]);
+		}
+	}
+	return result;
 }
 export function run() {
 	let conf = config.conf_gcl.conf;

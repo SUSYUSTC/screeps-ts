@@ -38,7 +38,7 @@ global.summarize_terminal = function(): type_resource_number {
             }
         }
     }
-    return result
+    return result;
 }
 
 export function process_resource_sending_request(room_name: string) {
@@ -64,9 +64,6 @@ export function process_resource_sending_request(room_name: string) {
 }
 
 function supply_gcl_room() {
-	if (Game.time % 20 !== 0) {
-		return;
-	}
 	let helped_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
 	if (helped_room !== undefined && helped_room.terminal !== undefined && helped_room.terminal.isActive() && helped_room.terminal.store.getUsedCapacity("energy") < 240000) {
 		for (let helping_room_name of config.conf_gcl.conf_map.energy_supply_rooms) {
@@ -84,9 +81,6 @@ function supply_gcl_room() {
 	}
 }
 function support_developing_rooms() {
-	if (Game.time % 20 !== 10) {
-		return;
-	}
 	let helping_rooms = config.controlled_rooms.filter((e) => Game.rooms[e].controller.level >= 8);
 	let helped_rooms = config.controlled_rooms.filter((e) => Game.rooms[e].controller.level < 8 && Game.rooms[e].terminal !== undefined);
     for (let helped_room of helped_rooms) {
@@ -159,15 +153,25 @@ function gather_resource(room_name: string, resource: ResourceConstant, min_amou
 }
 
 export function terminal_balance() {
-	support_developing_rooms();
-	supply_gcl_room();
-	for (let resource of <Array<ResourceConstant>>Object.keys(config.resources_balance)) {
-		let conf = config.resources_balance[resource];
-		balance_resource(resource, conf.gap, conf.min, conf.amount);
+	if (Game.time % 20 == 0) {
+		supply_gcl_room();
 	}
-	for (let resource in config.resource_gathering_pos) {
-		let room_name = config.resource_gathering_pos[<ResourceConstant> resource];
-		gather_resource(room_name, <ResourceConstant> resource, 1);
+	if (Game.time % 20 == 5) {
+		support_developing_rooms();
 	}
-	balance_power();
+	if (Game.time % 20 == 10) {
+		for (let resource of <Array<ResourceConstant>>Object.keys(config.resources_balance)) {
+			let conf = config.resources_balance[resource];
+			balance_resource(resource, conf.gap, conf.min, conf.amount);
+		}
+	}
+	if (Game.time % 20 == 15) {
+		balance_power();
+	}
+	if (Game.time % 200 == 0) {
+		for (let resource in config.resource_gathering_pos) {
+			let room_name = config.resource_gathering_pos[<ResourceConstant> resource];
+			gather_resource(room_name, <ResourceConstant> resource, 1);
+		}
+	}
 }

@@ -93,13 +93,6 @@ export function log() {
 		rooms: {},
 	}
 	log.time = Game.time;
-	if (Memory.history_cpus == undefined) {
-		Memory.history_cpus = [];
-	}
-	Memory.history_cpus.push(Game.cpu.getUsed());
-	if (Memory.history_cpus.length > 20) {
-		Memory.history_cpus.shift();
-	}
 	log.GCL = {
 		"level": Game.gcl.level,
 		"progress": Game.gcl.progress,

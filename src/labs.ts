@@ -3,6 +3,7 @@ import * as functions from "./functions"
 import * as mymath from "./mymath"
 import * as config from "./config"
 import * as constants from "./constants"
+import { Timer } from "./timer"
 
 global.set_reaction_request = function(room_name: string, compound: MineralCompoundConstant): number {
     let room = Game.rooms[room_name];
@@ -96,15 +97,18 @@ function get_reaction_supply(room_name: string) {
     }
 }
 export function prepare() {
-    if (global.reaction_priority == undefined || Game.time % 50 == 0 || global.test_var) {
+    if (global.reaction_priority == undefined || Game.time % 50 == 0 || !global.test_var) {
         global.reaction_priority = get_reaction_priortiy();
+		global.reset_product_request();
     }
+	if (Game.time % 10 !== 0) {
+		return;
+	}
     for (let room_name of config.controlled_rooms) {
         if (global.reaction_priority[room_name] == undefined) {
             continue;
         }
         if (Game.time % 20 == 0) {
-            global.reset_product_request()
             get_reaction_supply(room_name);
         }
         if (Game.time % 20 == 10) {
@@ -192,7 +196,7 @@ global.reset_product_request = function(): number {
 			delete Memory.final_product_request[resource];
 		}
 	}
-    let terminal_amounts = global.summarize_terminal()
+    let terminal_amounts = _.clone(global.terminal_store);
     Memory.product_request = {};
 	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
 	let n_store_rooms = Object.keys(config.mineral_storage_room).length;

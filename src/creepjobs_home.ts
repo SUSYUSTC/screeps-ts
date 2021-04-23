@@ -21,6 +21,9 @@ export function creepjob(creep: Creep): number {
         creep.say("H")
         creep.memory.movable = false;
         creep.memory.crossable = false;
+		if (creep.memory.half_time && Game.time % 2 == 0) {
+			return 0;
+		}
 		let containers_status = global.memory[creep.room.name].named_structures_status.container;
 		let link_modes = game_memory.link_modes;
         let source_name = creep.memory.source_name;

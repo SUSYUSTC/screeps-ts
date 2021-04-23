@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
+import { Timer } from "./timer"
 const body_cost: {
     [key in BodyPartConstant]: number
 } = {
@@ -242,7 +243,9 @@ export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {
     if (creeps.length == 0) {
         return 0;
     }
+	let timer = new Timer("get_nbody", false);
     let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
+	timer.end();
     return n;
 }
 export function prepare_role(rolename: type_creep_role, energy: number, added_memory: CreepMemory, options: any, added_json: {priority: number, require_full: boolean}) {

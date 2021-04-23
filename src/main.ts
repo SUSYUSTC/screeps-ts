@@ -183,6 +183,7 @@ module.exports.loop = function() {
 
     for (var room_name of config.controlled_rooms) {
 		try {
+			market.auto_supply_basic_minerals(room_name);
 			market.process_buy_order(room_name);
 			market.process_sell_order(room_name);
 		} catch (err) {

@@ -193,7 +193,7 @@ function get_energy_status(creep_amount: number, link_amount: number, link_targe
     let sink = "storage";
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
-    if (storage_amount + creep_amount >= 700000 && factory_amount !== undefined) {
+    if (storage_amount + creep_amount >= 600000 && factory_amount !== undefined && factory_amount < 10000) {
         sink = "factory";
     } else if (storage_amount < config.storage_full && factory_amount + creep_amount >= 5000) {
         source = "factory";
@@ -309,7 +309,7 @@ function get_mineral_status(creep_amount: number, storage_amount: number, termin
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 100000 && storage_amount < 100000) {
+        if (terminal_amount + creep_amount >= 50000 && storage_amount < 200000) {
             source = "terminal";
 		} else if (terminal_amount < 20000 && storage_amount + creep_amount >= 1000) {
             sink = "terminal";

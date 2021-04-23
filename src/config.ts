@@ -172,7 +172,7 @@ export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 2.4e6;
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e7, 1.1e7, 1.2e7, 1.3e7, 1.4e7, 1.5e7];
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.7e7, 0.8e7, 0.9e7, 1.0e7, 1.1e7, 1.2e7];
 //export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
@@ -227,7 +227,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: 1000,
 		},
 		"X": {
-			price: 0.8,
+			price: 1.2,
 			interval: 1000,
 		},
 		"H": {
@@ -364,6 +364,7 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
 };
 export var help_list: type_help_list = {
+	/*
     "E14N51": {
         "E9N54": {
             "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
@@ -375,6 +376,7 @@ export var help_list: type_help_list = {
             }
         }
     }
+	*/
 };
 export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
@@ -458,22 +460,22 @@ export var powered_harvester: type_powered_harvester = {
     2: {
         n_harvest: 9,
         n_carry: 3,
-        n_move: 2,
+        n_move: 3,
     },
     3: {
         n_harvest: 10,
         n_carry: 4,
-        n_move: 2,
+        n_move: 3,
     },
     4: {
         n_harvest: 12,
         n_carry: 5,
-        n_move: 2,
+        n_move: 3,
     },
     5: {
         n_harvest: 14,
         n_carry: 6,
-        n_move: 3,
+        n_move: 4,
     },
 }
 export var powered_external_harvester: type_powered_harvester = {
@@ -509,3 +511,4 @@ export var creep_roles_maincarrier: type_creep_role[] = ["maincarrier"]
 export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "hunter", "home_defender"]
 export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "newroom_claimer", "gcl_upgrader", "gcl_carrier"]
 export var creep_roles_resources: type_creep_role[] = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]
+export var creep_roles_all = creep_roles_home.concat(creep_roles_external).concat(creep_roles_maincarrier).concat(creep_roles_resources).concat(creep_roles_combat);

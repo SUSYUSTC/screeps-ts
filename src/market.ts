@@ -182,31 +182,31 @@ global.regulate_order_price = function(id: Id < Order > ): number {
     let amount = 0;
     if (order.type == 'buy') {
         orders = orders.filter((e) => e.price > order.price && Game.market.orders[e.id] == undefined).sort((x, y) => y.price - x.price);
-		let acceptable_price = config.acceptable_prices.buy[order.resourceType];
-		if (acceptable_price == undefined) {
-			return -2;
-		}
+        let acceptable_price = config.acceptable_prices.buy[order.resourceType];
+        if (acceptable_price == undefined) {
+            return -2;
+        }
         for (let o of orders) {
             amount += o.amount;
             if (amount > order.amount / 3) {
                 if (o.price < acceptable_price.price) {
                     console.log("Going to change order", order.resourceType, "to", o.price + 0.001);
                     Game.market.changeOrderPrice(id, o.price + 0.001);
-					return o.price + 0.001;
+                    return o.price + 0.001;
                 }
-				return 0;
+                return 0;
             }
         }
-		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
-			Game.market.changeOrderPrice(id, order.price * 1.02);
-			return 0;
-		}
+        if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
+            Game.market.changeOrderPrice(id, order.price * 1.02);
+            return 0;
+        }
     } else if (order.type == 'sell') {
         orders = orders.filter((e) => e.price < order.price && Game.market.orders[e.id] == undefined).sort((x, y) => x.price - y.price);
-		let acceptable_price = config.acceptable_prices.sell[order.resourceType];
-		if (acceptable_price == undefined) {
-			return -2;
-		}
+        let acceptable_price = config.acceptable_prices.sell[order.resourceType];
+        if (acceptable_price == undefined) {
+            return -2;
+        }
         for (let o of orders) {
             amount += o.amount;
             if (amount > order.amount / 3) {
@@ -214,37 +214,67 @@ global.regulate_order_price = function(id: Id < Order > ): number {
                 if (o.price > acceptable_price.price) {
                     console.log("Going to change order", order.resourceType, "to", o.price - 0.001);
                     Game.market.changeOrderPrice(id, o.price - 0.001);
-					return o.price - 0.001;
+                    return o.price - 0.001;
                 }
-				return 0;
+                return 0;
             }
         }
-		if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price > acceptable_price.price) {
-			Game.market.changeOrderPrice(id, order.price * 0.98);
-			return 0;
-		}
+        if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price > acceptable_price.price) {
+            Game.market.changeOrderPrice(id, order.price * 0.98);
+            return 0;
+        }
     } else {
-		return -1;
-	}
-	return 0;
+        return -1;
+    }
+    return 0;
 }
 
 export function regulate_all_order_prices(): number {
-	if (Game.time % 100 !== 0) {
-		return 1;
-	}
-	for (let id of <Array<Id<Order>>>Object.keys(Game.market.orders)) {
-		let order = Game.market.orders[id];
-		let acceptable_price = config.acceptable_prices[<keyof typeof config.acceptable_prices>order.type][order.resourceType];
-		if (acceptable_price == undefined) {
-			continue;
-		}
-		global.regulate_order_price(id);
-	}
-	return 0;
+    if (Game.time % 100 !== 0) {
+        return 1;
+    }
+    for (let id of < Array < Id < Order >>> Object.keys(Game.market.orders)) {
+        let order = Game.market.orders[id];
+        let acceptable_price = config.acceptable_prices[ < keyof typeof config.acceptable_prices > order.type][order.resourceType];
+        if (acceptable_price == undefined) {
+            continue;
+        }
+        global.regulate_order_price(id);
+    }
+    return 0;
 }
 
 global.set_resource_price = function(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number {
-	let orders = _.filter(Game.market.orders, (e) => e.type == type && e.resourceType == resource).forEach((e) => Game.market.changeOrderPrice(e.id, price));
-	return 0;
+    let orders = _.filter(Game.market.orders, (e) => e.type == type && e.resourceType == resource).forEach((e) => Game.market.changeOrderPrice(e.id, price));
+    return 0;
+}
+
+global.auto_supply_from_market = function(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number {
+    let room = Game.rooms[room_name];
+    let current_amount = room.storage.store.getUsedCapacity(resource) + room.terminal.store.getUsedCapacity(resource);
+    let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource).map((e) => e.remainingAmount);
+    current_amount += mymath.array_sum(orders_amount);
+    if (current_amount < expected_amount) {
+		console.log("create mineral order", resource, "at", room_name);
+        Game.market.createOrder({
+            "type": "buy",
+            "resourceType": resource,
+            "price": 0.001,
+            "totalAmount": order_amount,
+            "roomName": room_name,
+        });
+    }
+    return 0;
+}
+
+export function auto_supply_basic_minerals(room_name: string) {
+    let room = Game.rooms[room_name];
+    if (Game.time % 200 !== 0 || room == undefined || room.storage == undefined || room.terminal == undefined || Game.memory[room_name] == undefined || Game.memory[room_name].mine_status == undefined) {
+        return 1;
+    }
+	if (room.controller.level == 8) {
+		let mineral = Game.memory[room_name].mine_status.type
+		global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
+		global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
+	}
 }

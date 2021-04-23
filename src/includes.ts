@@ -39,16 +39,16 @@ interface RoomMemory {
     n_ramparts ? : number;
     external_resources ? : type_external_resources;
     sites_total_progressleft ? : number;
-	external_sites_total_progressleft ?:  {
-		[key: string]: number;
-	};
-	resource_sending_request ?: type_resource_sending_request[];
-	kept_resources ?: {
-		[key: string] : {
-			[key in ResourceConstant] ?: number;
-		}
-	}
-	next_time ?: any;
+    external_sites_total_progressleft ? : {
+        [key: string]: number;
+    };
+    resource_sending_request ? : type_resource_sending_request[];
+    kept_resources ? : {
+        [key: string]: {
+            [key in ResourceConstant] ? : number;
+        }
+    }
+    next_time ? : any;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -66,19 +66,19 @@ interface type_all_unique_structures_status {
     extractor: type_unique_structures_status < StructureExtractor > ;
 };
 interface type_resource_sending_request {
-	room_to: string;
-	resource: ResourceConstant;
-	amount: number;
+    room_to: string;
+    resource: ResourceConstant;
+    amount: number;
 }
 interface type_creep_move {
-	dest: {
-		x: number;
-		y: number;
-		room: string;
-	};
-	time: number;
-	path: string;
-	room: string;
+    dest: {
+        x: number;
+        y: number;
+        room: string;
+    };
+    time: number;
+    path: string;
+    room: string;
 }
 interface type_resource_status {
     source: string;
@@ -87,10 +87,10 @@ interface type_resource_status {
     transfer_amount: number;
 }
 interface CreepMemory {
-	_move ?: type_creep_move;
-    movable ?: boolean;
-	crossable ?: boolean;
-    role ?: type_creep_role;
+    _move ? : type_creep_move;
+    movable ? : boolean;
+    crossable ? : boolean;
+    role ? : type_creep_role;
     source_name ? : string;
     harvesting ? : boolean;
     home_room_name ? : string;
@@ -98,31 +98,32 @@ interface CreepMemory {
     cost ? : number;
     defender_type ? : string;
     defending_room ? : string;
-	withdraw_target ?: Id < AnyStoreStructure >;
-	rooms_forwardpath ?: string[];
-	poses_forwardpath ?: number[];
-	rooms_backwardpath ?: string[];
-	poses_backwardpath ?: number[];
+    withdraw_target ? : Id < AnyStoreStructure > ;
+    rooms_forwardpath ? : string[];
+    poses_forwardpath ? : number[];
+    rooms_backwardpath ? : string[];
+    poses_backwardpath ? : number[];
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
     boost_status ? : type_boost_status;
     resource_type ? : ResourceConstant;
-	maincarrier_transfer_job ? : {
-		resource_type: ResourceConstant;
-		resource_status: type_resource_status;
-	}
+    maincarrier_transfer_job ? : {
+        resource_type: ResourceConstant;
+        resource_status: type_resource_status;
+    }
     ready ? : boolean;
-	pc_level ?: number;
-	powered ?: boolean;
-	request_boost ?: boolean;
-	next_time ?: any;
-	advanced ?: boolean;
+    pc_level ? : number;
+    powered ? : boolean;
+    request_boost ? : boolean;
+    next_time ? : any;
+    advanced ? : boolean;
+    half_time ? : boolean;
 }
 interface PowerCreepMemory {
-    movable ?: boolean;
-	crossable ?: boolean;
-	_move ?: type_creep_move;
-	current_source_target ?: string;
-	home_room_name ?: string;
+    movable ? : boolean;
+    crossable ? : boolean;
+    _move ? : type_creep_move;
+    current_source_target ? : string;
+    home_room_name ? : string;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -144,7 +145,7 @@ interface type_named_structures_status < T > {
         exists ? : boolean;
         finished ? : boolean;
         id ? : Id < T > ;
-		effect_time ?: number;
+        effect_time ? : number;
     }
 }
 interface type_unique_structures_status < T > {
@@ -190,67 +191,67 @@ interface conf_maincarrier {
     waiting_pos: number[];
 }
 interface type_external_half_map {
-	rooms_forwardpath: string[];
-	poses_forwardpath: number[];
+    rooms_forwardpath: string[];
+    poses_forwardpath: number[];
 }
 interface type_external_map {
-	rooms_forwardpath: string[];
-	poses_forwardpath: number[];
-	rooms_backwardpath: string[];
-	poses_backwardpath: number[];
+    rooms_forwardpath: string[];
+    poses_forwardpath: number[];
+    rooms_backwardpath: string[];
+    poses_backwardpath: number[];
 }
 interface type_external_controller extends type_external_map {
-	reserve: boolean;
-	path_time: number;
-	rooms_forwardpath: string[];
-	poses_forwardpath: number[];
-	rooms_backwardpath: string[];
-	poses_backwardpath: number[];
+    reserve: boolean;
+    path_time: number;
+    rooms_forwardpath: string[];
+    poses_forwardpath: number[];
+    rooms_backwardpath: string[];
+    poses_backwardpath: number[];
 }
 interface type_external_source extends type_external_map {
-	id: Id < Source > ;
-	harvester_pos: number[];
-	single_distance: number;
-	carrier_distance: number;
-	n_carry_tot: number;
-	carry_end: {
-		"type": string;
-		"name": string;
-	};
-	rooms_forwardpath: string[];
-	poses_forwardpath: number[];
-	rooms_backwardpath: string[];
-	poses_backwardpath: number[];
+    id: Id < Source > ;
+    harvester_pos: number[];
+    single_distance: number;
+    carrier_distance: number;
+    n_carry_tot: number;
+    carry_end: {
+        "type": string;
+        "name": string;
+    };
+    rooms_forwardpath: string[];
+    poses_forwardpath: number[];
+    rooms_backwardpath: string[];
+    poses_backwardpath: number[];
 }
 interface type_external_powered_source extends type_external_map {
-	source_name: string;
-	carrier_distance: number;
-	carry_end: {
-		type: string;
-		name: string;
-	};
-	roads: number[][];
-	id: Id<Source>;
-	harvester_pos: number[];
-	single_distance: number;
-	rooms_forwardpath: string[];
-	rooms_backwardpath: string[];
-	poses_forwardpath: number[];
-	poses_backwardpath: number[];
+    source_name: string;
+    carrier_distance: number;
+    carry_end: {
+        type: string;
+        name: string;
+    };
+    roads: number[][];
+    id: Id < Source > ;
+    harvester_pos: number[];
+    single_distance: number;
+    rooms_forwardpath: string[];
+    rooms_backwardpath: string[];
+    poses_forwardpath: number[];
+    poses_backwardpath: number[];
 }
 interface conf_external_rooms {
     [key: string]: {
         active: boolean;
-		//container: boolean;
+        //container: boolean;
         controller: type_external_controller;
         sources: {
-			[key: string]: type_external_source;
-		}
-		powered_source ?: type_external_powered_source;
+            [key: string]: type_external_source;
+        }
+        powered_source ? : type_external_powered_source;
     }
 }
 interface type_pb_status {
-	name: string;
+    name: string;
     id: Id < StructurePowerBank > ;
     xy: number[];
     status: number;
@@ -260,12 +261,12 @@ interface type_pb_status {
     distance: number;
     pb_attacker_name: string;
     pb_healer_name: string;
-	pb_carrier_names: string[];
-	pb_carrier_sizes: number[];
+    pb_carrier_names: string[];
+    pb_carrier_sizes: number[];
     amount: number;
 }
 interface type_depo_status {
-	name: string;
+    name: string;
     id: Id < Deposit > ;
     xy: number[];
     status: number;
@@ -273,20 +274,20 @@ interface type_depo_status {
     rooms_path: string[];
     poses_path: number[];
     distance: number;
-	last_cooldown: number;
-	container_progress: number;
-	depo_container_builder_name ?: string;
-	depo_harvester_name ?: string;
-	depo_energy_carrier_name ?: string;
-	depo_carrier_name ?: string;
+    last_cooldown: number;
+    container_progress: number;
+    depo_container_builder_name ? : string;
+    depo_harvester_name ? : string;
+    depo_energy_carrier_name ? : string;
+    depo_carrier_name ? : string;
 }
 interface type_external_resources {
     pb: {
         [key: string]: type_pb_status;
     }
-	depo: {
-		[key: string]: type_depo_status;
-	}
+    depo: {
+        [key: string]: type_depo_status;
+    }
 }
 interface type_conf_hunting {
     room_name: string;
@@ -326,20 +327,20 @@ interface type_conf_room {
     readonly defense_boundary: number[][];
 }
 interface type_config_gcl {
-	containers: conf_named_structures;
-	towers: conf_multiple_structures;
-	roads: conf_multiple_structures
-	terminal: conf_unique_structures;
-	storage: conf_unique_structures;
-	direction: number[];
-	queue1_direction: number[];
-	queue1_poses: number[][];
-	queue2_direction: number[];
-	queue2_poses: number[][];
-	positive_orient ?: DirectionConstant;
-	negative_orient ?: DirectionConstant;
-	queue1_orient ?: DirectionConstant;
-	queue2_orient ?: DirectionConstant;
+    containers: conf_named_structures;
+    towers: conf_multiple_structures;
+    roads: conf_multiple_structures
+    terminal: conf_unique_structures;
+    storage: conf_unique_structures;
+    direction: number[];
+    queue1_direction: number[];
+    queue1_poses: number[][];
+    queue2_direction: number[];
+    queue2_poses: number[][];
+    positive_orient ? : DirectionConstant;
+    negative_orient ? : DirectionConstant;
+    queue1_orient ? : DirectionConstant;
+    queue2_orient ? : DirectionConstant;
 }
 type type_body_components = {
     [key in BodyPartConstant] ? : number
@@ -372,10 +373,11 @@ interface Memory {
     output_mode ? : boolean;
     rerunning ? : boolean;
     history_cpus ? : number[];
-	pb_cooldown_time ?: number;
-	product_request ?: type_product_request;
-	final_product_request ?: type_product_request;
-	total_energies ?: number;
+    pb_cooldown_time ? : number;
+    product_request ? : type_product_request;
+    final_product_request ? : type_product_request;
+    total_energies ? : number;
+	look_broken_ramparts ? : boolean;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -460,15 +462,15 @@ interface Game {
     tick_cpu_main ? : {
         [key: string]: number;
     }
-	actions_count: number;
-	function_actions_count: {
-		[key: string]: number;
-	}
+    actions_count: number;
+    function_actions_count: {
+        [key: string]: number;
+    }
     mineral_storage_amount ? : type_mineral_storage_amount;
-	powered_rooms ?: {
-		[key: string]: string;
-	};
-    memory ?: {
+    powered_rooms ? : {
+        [key: string]: string;
+    };
+    memory ? : {
         [key: string]: {
             danger_mode ? : boolean;
             link_modes ? : string[];
@@ -478,15 +480,16 @@ interface Game {
             are_links_source ? : {
                 [key: string]: boolean;
             }
-			pc_source_level ? : number;
-			terminal_send_requested ? : boolean;
+            pc_source_level ? : number;
+            terminal_send_requested ? : boolean;
         }
     }
-	creep_statistics: {
-		[key in type_creep_role] ?: {
-			[key: string]: Creep[];
-		}
-	}
+    creep_statistics_done: boolean;
+    creep_statistics: {
+        [key: string]: {
+            [key in type_creep_role] ? : Creep[];
+        }
+    }
 }
 
 type type_order_result = {
@@ -516,31 +519,36 @@ type type_reaction_priority = {
     }
 }
 type type_product_request = {
-	[key in GeneralMineralConstant] ? : number;
+    [key in GeneralMineralConstant] ? : number;
 }
 interface type_movetopos_options {
-	costmatrix ?: CostMatrix;
-	setmovable ?: boolean;
+    costmatrix ? : CostMatrix;
+    setmovable ? : boolean;
 }
 declare module NodeJS {
     interface Global {
         basic_costmatrices: {
             [key: string]: CostMatrix;
         }
-		memory ?: {
-			[key: string]: {
-				named_structures_status ? : type_all_named_structures_status
-				unique_structures_status ? : type_all_unique_structures_status
-				tower_list ? : Id < StructureTower > [];
-				spawn_list ? : Id < StructureSpawn > [];
-				energy_filling_list ? : Id < AnyStoreStructure > [];
-				energy_storage_list ? : Id < AnyStoreStructure > [];
-				repair_list ? : Id < Structure > [];
-				ramparts_to_repair ?: Id< StructureRampart > [];
-			}
-		}
-		terminal_store ?: type_resource_number;
-        test_var ?: boolean;
+        memory ? : {
+            [key: string]: {
+                named_structures_status ? : type_all_named_structures_status
+                unique_structures_status ? : type_all_unique_structures_status
+                tower_list ? : Id < StructureTower > [];
+                spawn_list ? : Id < StructureSpawn > [];
+                energy_filling_list ? : Id < AnyStoreStructure > [];
+                energy_storage_list ? : Id < AnyStoreStructure > [];
+                repair_list ? : Id < Structure > [];
+                ramparts_to_repair ? : Id < StructureRampart > [];
+            }
+        }
+        creep_number: {
+            [key: string]: {
+                [key in type_creep_role] ? : number;
+            }
+        }
+        terminal_store ? : type_resource_number;
+        test_var ? : boolean;
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
@@ -550,15 +558,16 @@ declare module NodeJS {
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
         spawn_dismantler_group_x2(room_name: string, suffix: string): number;
         do_dismantler_group_x2(suffix: string, flagname: string): number;
-		request_resource_sending(room_from: string, room_to: string, resource: ResourceConstant, amount: number): number;
-		restrict_passing_rooms(room_name: string): CostMatrix;
-		reaction_priority: type_reaction_priority
-		set_product_request(resource: MineralCompoundConstant, number: number): number;
-		init_product_request(): number;
-		reset_product_request(): number;
-		refresh_product_request(): number;
-		regulate_order_price(id: Id<Order>): number;
-		set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
-		update_layout(room_name: string, check_all: boolean): any;
+        request_resource_sending(room_from: string, room_to: string, resource: ResourceConstant, amount: number): number;
+        restrict_passing_rooms(room_name: string): CostMatrix;
+        reaction_priority: type_reaction_priority
+        set_product_request(resource: MineralCompoundConstant, number: number): number;
+        init_product_request(): number;
+        reset_product_request(): number;
+        refresh_product_request(): number;
+        regulate_order_price(id: Id < Order > ): number;
+        set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
+		auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number;
+        update_layout(room_name: string, check_all: boolean): any;
     }
 }

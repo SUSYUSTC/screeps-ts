@@ -42,7 +42,7 @@ function update_structures(room_name: string) {
         unique_structures.forEach((e) => unique_structures_status[e] = {});
         global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
-    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 20 == 0 || !global.test_var) {
+    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 40 == 0 || !global.test_var) {
         let structures = room.find(FIND_STRUCTURES);
         room.memory.objects_updated = false;
         let n_structures = structures.length;
@@ -50,29 +50,21 @@ function update_structures(room_name: string) {
             room.memory.objects_updated = true;
             room.memory.n_structures = n_structures;
         }
-        let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
-        let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
-        global.memory[room_name].tower_list = towers.map((e) => e.id);
-        global.memory[room_name].spawn_list = spawns.map((e) => e.id);
-        let exts = < StructureExtension[] > _.filter(structures, (structure) => structure.structureType == "extension");
-		let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
-		let energy_filling_exts = exts.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
-		let energy_filling_towers = towers.filter((e) => e.store.getFreeCapacity("energy") > 400).map((e) => < Id < AnyStoreStructure >> e.id);
-		if (Game.powered_rooms[room_name] !== undefined) {
-			if (room.energyAvailable >= 5000) {
-				global.memory[room_name].energy_filling_list = energy_filling_towers;
-			} else {
-				global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers);
-			}
-		} else {
-			global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
-		}
-		global.memory[room_name].energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
-		global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
-		global.memory[room_name].ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
-		if (Game.time % 20 == 0) {
+		if (Game.time % 200 == 0 || !global.test_var) {
+			let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
+			global.memory[room_name].spawn_list = spawns.map((e) => e.id);
+
+			let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
+			global.memory[room_name].tower_list = towers.map((e) => e.id);
+
+			global.memory[room_name].energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
+
+			global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+
 			let walls = structures.filter((e) => (e.structureType == 'constructedWall' && e.hits));
-			let ramparts = structures.filter((e) => e.structureType == 'rampart');
+			let ramparts = <Array<StructureRampart>> structures.filter((e) => e.structureType == 'rampart');
+			global.memory[room_name].ramparts_to_repair = ramparts.filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
+
 			let wall_strength = 0;
 			let rampart_strength = 0;
 			if (walls.length > 0) {
@@ -85,6 +77,23 @@ function update_structures(room_name: string) {
 			room.memory.min_rampart_strength = rampart_strength;
 			room.memory.n_walls = walls.length;
 			room.memory.n_ramparts = ramparts.length;
+		} else if (Memory.look_broken_ramparts) {
+			global.memory[room_name].ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
+		}
+		let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
+		let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
+		let energy_filling_towers = towers.filter((e) => e.store.getFreeCapacity("energy") > 400).map((e) => < Id < AnyStoreStructure >> e.id);
+		if (Game.powered_rooms[room_name] !== undefined) {
+			if (room.energyAvailable >= 5000) {
+				global.memory[room_name].energy_filling_list = energy_filling_towers;
+			} else {
+				let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
+				global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers);
+			}
+		} else {
+			let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
+			let energy_filling_exts = _.filter(structures, (structure) => structure.structureType == "extension" && is_not_full(structure)).map((e) => <Id<AnyStoreStructure>> e.id);
+			global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
 		}
     } else {
         global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
@@ -151,7 +160,7 @@ function update_link_and_container(room_name: string) {
 }
 
 function update_layout(room_name: string, check_all: boolean = false) {
-    if (Game.time % 50 !== 0 && !check_all && global.test_var) {
+    if (Game.time % 100 !== 0 && !check_all && global.test_var) {
         return;
     }
     let conf = config.conf_rooms[room_name];
@@ -746,9 +755,9 @@ export function set_global_memory() {
         }
         spawn.memory.spawning_time += 1;
     }
-	if (Game.time % 20 == 0 || Memory.total_energies == undefined || global.terminal_store == undefined) {
+	if (Game.time % 50 == 0 || Memory.total_energies == undefined || global.terminal_store == undefined) {
 		global.terminal_store = global.summarize_terminal();
-		Memory.total_energies = global.terminal_store.energy += global.terminal_store.battery * 10;
+		Memory.total_energies = global.terminal_store.energy + global.terminal_store.battery * 10;
 	}
 	Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
