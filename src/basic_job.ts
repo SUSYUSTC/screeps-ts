@@ -32,10 +32,13 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
     if (options.setmovable == undefined) {
         options.setmovable = true;
     }
+	if (options.safe_level == undefined) {
+		options.safe_level = 0;
+	}
 	function costCallback(roomName: string, costMatrix: CostMatrix) {
 		let costmatrix = options.costmatrix;
 		if (costmatrix == undefined) {
-			costmatrix = functions.get_costmatrix_road(roomName);
+			costmatrix = functions.get_costmatrix_road(roomName, options.safe_level);
 		}
 		return costmatrix;
 	}

@@ -1,11 +1,12 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
+import * as functions from "./functions"
 import * as defense from "./defense";
 export function attack_all(room_name: string) {
     let room = Game.rooms[room_name]
     let game_memory = Game.memory[room_name];
-    let enemies = room.find(FIND_HOSTILE_CREEPS);
+    let enemies = functions.find_hostile(room);
     if (enemies.length > 0) {
         let hits = enemies.map((e) => e.hits);
         let index = mymath.argmin(hits);

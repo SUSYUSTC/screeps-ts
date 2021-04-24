@@ -86,7 +86,7 @@ export function run() {
 	let priority_list: number[];
 	if (room.terminal !== undefined && room.terminal.store.getUsedCapacity("energy") >= 5000) {
 		store = room.terminal;
-		if (room.storage.store.getUsedCapacity("energy") < 8.0e5 && room.terminal.store.getUsedCapacity("energy") >= 1.5e5) {
+		if (room.storage.store.getUsedCapacity("energy") < 9.6e5 && room.terminal.store.getUsedCapacity("energy") >= 1.5e5) {
 			do_transfer = true;
 		}
 		unique_pos = 2;

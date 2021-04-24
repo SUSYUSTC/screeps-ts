@@ -120,7 +120,7 @@ function operate_extension(pc: PowerCreep) {
 }
 
 export function work(pc: PowerCreep) {
-	if (pc == undefined || pc.shard == undefined) {
+	if (pc == undefined || pc.room == undefined) {
 		return;
 	}
 	pc.memory.movable = false;

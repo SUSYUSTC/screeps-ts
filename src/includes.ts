@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -49,6 +49,7 @@ interface RoomMemory {
         }
     }
     next_time ? : any;
+	military_exercise ? : boolean;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -117,6 +118,9 @@ interface CreepMemory {
     next_time ? : any;
     advanced ? : boolean;
     half_time ? : boolean;
+	tough_conf ? : type_tough_conf;
+	heal_ability ? : number;
+	flagname ? : string;
 }
 interface PowerCreepMemory {
     movable ? : boolean;
@@ -325,6 +329,7 @@ interface type_conf_room {
     readonly safe_pos: number[];
     readonly external_rooms: conf_external_rooms;
     readonly defense_boundary: number[][];
+    readonly safe_boundary: number[][];
 }
 interface type_config_gcl {
     containers: conf_named_structures;
@@ -453,9 +458,9 @@ type type_mine_status = {
     harvestable: boolean;
 }
 interface Game {
-    costmatrices: {
-        [key: string]: CostMatrix
-    }
+    costmatrices: type_costmatrices;
+    costmatrices_safe: type_costmatrices;
+    costmatrices_defense: type_costmatrices;
     tick_cpu ? : {
         [key: string]: number;
     }
@@ -473,6 +478,7 @@ interface Game {
     memory ? : {
         [key: string]: {
             danger_mode ? : boolean;
+            n_defenders_needed ? : number;
             link_modes ? : string[];
             container_modes_all ? : boolean;
             lack_energy ? : boolean;
@@ -524,12 +530,20 @@ type type_product_request = {
 interface type_movetopos_options {
     costmatrix ? : CostMatrix;
     setmovable ? : boolean;
+	safe_level ? : 0 | 1 | 2;
+}
+interface type_tough_conf {
+	ratio: number;
+	hits: number;
+}
+interface type_costmatrices {
+	[key: string]: CostMatrix;
 }
 declare module NodeJS {
     interface Global {
-        basic_costmatrices: {
-            [key: string]: CostMatrix;
-        }
+        basic_costmatrices: type_costmatrices,
+        basic_costmatrices_safe: type_costmatrices,
+        basic_costmatrices_defense: type_costmatrices,
         memory ? : {
             [key: string]: {
                 named_structures_status ? : type_all_named_structures_status
@@ -569,5 +583,6 @@ declare module NodeJS {
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
 		auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number;
         update_layout(room_name: string, check_all: boolean): any;
+		get_tough_conf(creep: Creep): type_tough_conf;
     }
 }

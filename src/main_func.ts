@@ -176,18 +176,12 @@ function update_layout(room_name: string, check_all: boolean = false) {
     let extensions_finished = (layout.update_multiple_structures(room_name, "extension", conf.extensions, true, check_all) == 0);
     let towers_finished = (layout.update_multiple_structures(room_name, "tower", conf.towers, true, check_all) == 0);
     //console.log("containers", containers_finished, "links", links_finished, "spawns", spawns_finished, "roads", roads_finished, "extension", extensions_finished, "towers", towers_finished)
-    level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
-    if (!level_finished) {
-        return;
-    }
+    //level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
     let storage_finished = (layout.update_unique_structures(room_name, "storage", conf.storage, true) == 0);
     let terminal_finished = (layout.update_unique_structures(room_name, "terminal", conf.terminal, true) == 0);
     let extractor_finished = (layout.update_unique_structures(room_name, "extractor", conf.extractor, true) == 0);
-    level_finished = level_finished && storage_finished && terminal_finished && extractor_finished;
+    //level_finished = level_finished && storage_finished && terminal_finished && extractor_finished;
     //console.log("storage", storage_finished, "terminal", terminal_finished, "extractor", extractor_finished);
-    if (!level_finished) {
-        return;
-    }
     let labs_finished = (layout.update_named_structures(room_name, "lab", conf.labs, true) == 0);
     let ps_finished = (layout.update_unique_structures(room_name, "powerSpawn", conf.powerspawn, true) == 0);
     let factory_finished = (layout.update_unique_structures(room_name, "factory", conf.factory, true) == 0);
@@ -314,13 +308,15 @@ function update_external(room_name: string) {
     }
 }
 
-function is_danger_mode(room_name: string): boolean {
+function set_danger_mode(room_name: string) {
     let enemies_components = defense.get_room_invading_ability(room_name)
     let enemies_CE = mymath.array_sum(Object.values(enemies_components));
     if (enemies_CE >= 50 && enemies_components.heal >= 20) {
-        return true;
+		console.log("Invasion detected!");
+		console.log("CE:", enemies_CE, "#heal:", enemies_components.heal);
+		Game.memory[room_name].danger_mode = true;
     } else {
-        return false;
+		Game.memory[room_name].danger_mode = false;
     }
 }
 
@@ -662,10 +658,7 @@ export function set_room_memory(room_name: string) {
 		//timer.end();
 	}
 
-    game_memory.danger_mode = is_danger_mode(room_name)
-    if (game_memory.danger_mode) {
-        console.log("Warning: room", room_name, "invaded!")
-    }
+	set_danger_mode(room_name);
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
         game_memory.lack_energy = false;
     } else {
@@ -685,6 +678,8 @@ function update_gcl_room() {
 	if (room == undefined || !room.controller.my) {
 		return;
 	}
+	Game.memory[room_name] = {};
+	set_danger_mode(room_name);
 	if (room.memory.next_time == undefined) {
 		room.memory.next_time = {};
 	}
@@ -761,7 +756,7 @@ export function set_global_memory() {
 	}
 	Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
-        if (Game.powerCreeps[pc_name].shard !== undefined) {
+        if (Game.powerCreeps[pc_name].room !== undefined) {
             let level = Game.powerCreeps[pc_name].powers[PWR_REGEN_SOURCE].level;
             Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = level;
 			Game.powered_rooms[config.pc_conf[pc_name].room_name] = pc_name;

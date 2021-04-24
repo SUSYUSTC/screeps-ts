@@ -24,6 +24,7 @@ import * as attack from "./attack";
 import * as powercreeps from "./powercreeps"
 import * as gcl_room from "./gcl_room";
 import { Timer } from "./timer";
+import * as defense from "./defense";
 import * as control from "./control";
 Memory.rerunning = true;
 action_counter.warpActions();
@@ -50,9 +51,13 @@ module.exports.loop = function() {
 	timer = new Timer("towers", true);
     for (var room_name of config.controlled_rooms) {
 		try {
-			if (towers.attack_all(room_name) == 1) {
-				if (towers.heal_all(room_name) == 1) {
-					towers.repair_all(room_name);
+			if (Game.memory[room_name].danger_mode) {
+				defense.defend_home(room_name);
+			} else {
+				if (towers.attack_all(room_name) == 1) {
+					if (towers.heal_all(room_name) == 1) {
+						towers.repair_all(room_name);
+					}
 				}
 			}
 		} catch (err) {

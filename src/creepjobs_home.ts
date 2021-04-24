@@ -10,6 +10,9 @@ import * as config from "./config";
 var moveoptions_noset: type_movetopos_options = {
 	setmovable: false,
 };
+var moveoptions_safe: type_movetopos_options = {
+	safe_level: 1,
+};
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.room.name];
     var game_memory = Game.memory[creep.room.name];
@@ -91,11 +94,11 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         if (creep.store.getUsedCapacity("energy") < min_fill_energy) {
-			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2)});
+			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2), moveoptions: moveoptions_safe});
 			creep.say("Tg");
 			return 0;
 		} else {
-			basic_job.charge_all(creep);
+			basic_job.charge_all(creep, moveoptions_safe);
 			creep.say("Tc");
 			return 0;
 		}
@@ -263,12 +266,12 @@ export function creepjob(creep: Creep): number {
         creep.say("WR");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false) == 1) {
+		if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false, moveoptions_safe) == 1) {
 			creep.say("WRb");
 			return 0;
 		}
         if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.get_energy(creep, {min_energy: 200});
+			basic_job.get_energy(creep, {min_energy: 200, moveoptions: moveoptions_safe});
 			creep.say("WRg");
         } else {
             let wall_ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits) || e.structureType == 'rampart');
@@ -291,7 +294,7 @@ export function creepjob(creep: Creep): number {
 				creep.say("WRs");
             }
             if (creep.repair(wall) == ERR_NOT_IN_RANGE) {
-                basic_job.movetopos(creep, wall.pos, 3);
+                basic_job.movetopos(creep, wall.pos, 3, moveoptions_safe);
 				creep.say("WRm");
             }
 			creep.say("WRr");

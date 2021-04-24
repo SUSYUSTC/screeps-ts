@@ -20,11 +20,13 @@ export function creepjob(creep: Creep): number {
     if (creep.memory.role == 'hunter') {
         creep.say("HT")
         creep.memory.movable = false;
+        creep.memory.crossable = false;
         hunting.hunt(creep, config.hunting[creep.memory.home_room_name]);
 		return 0;
     } else if (creep.memory.role == 'invader_core_attacker') {
         creep.say("A");
         creep.memory.movable = false;
+        creep.memory.crossable = true;
         let external_room_status = Game.rooms[creep.memory.home_room_name].memory.external_room_status;
         let rooms_with_invader_core = Object.keys(external_room_status).filter((e) => external_room_status[e].invader_core_existance)
         // Add defending_room if not existing
@@ -72,6 +74,7 @@ export function creepjob(creep: Creep): number {
     } else if (creep.memory.role == 'defender') {
         creep.say("D");
         creep.memory.movable = false;
+        creep.memory.crossable = false;
         let external_room_status = Game.rooms[creep.memory.home_room_name].memory.external_room_status;
         if ("defending_room" in creep.memory) {
             let defense_type_of_defending_room = external_room_status[creep.memory.defending_room].defense_type;
@@ -116,27 +119,18 @@ export function creepjob(creep: Creep): number {
         }
 		return 0;
 	} else if (creep.memory.role == 'home_defender') {
-		let output = basic_job.boost_request(creep, {"attack": "UH2O", "move": "ZO"}, true);
-		if (output > 0) {
-			return 0;
+		creep.say("HD");
+        creep.memory.movable = false;
+        creep.memory.crossable = false;
+		return 0;
+	} else if (creep.memory.role == 'enemy') {
+		creep.say("E");
+        creep.memory.movable = false;
+        creep.memory.crossable = false;
+		if (creep.memory.flagname !== undefined) {
+			let flag = Game.flags[creep.memory.flagname];
+			basic_job.movetopos(creep, flag.pos, 0);
 		}
-		let hostile_creeps = creep.room.find(FIND_HOSTILE_CREEPS);
-		if (hostile_creeps.length == 0) {
-			return 0;
-		}
-		let ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'rampart')
-		if (ramparts.length == 0) {
-			return 0;
-		}
-		let distances_ramparts_to_hostile = ramparts.map((r) => mymath.min(hostile_creeps.map((hc) => r.pos.getRangeTo(hc))));
-		let argmin_ramparts_to_hostile = mymath.argmin(distances_ramparts_to_hostile);
-		let target = ramparts[argmin_ramparts_to_hostile];
-		let avoid_boundary = function avoid_exits(room_name: string, costMatrix: CostMatrix) {
-			for (let xy of conf.defense_boundary) {
-				costMatrix.set(xy[0], xy[1], 255);
-			}
-		}
-		creep.moveTo(target, {maxRooms: 1, reusePath: 0, costCallback: avoid_boundary});
 	}
 	return 1;
 }
