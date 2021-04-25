@@ -56,7 +56,7 @@ function update_structures(room_name: string) {
             room.memory.objects_updated = true;
             room.memory.n_structures = n_structures;
         }
-		if (Game.time % 200 == 0 || !global.test_var) {
+		if (Game.time % 200 == 0 || !global.test_var || room.memory.objects_updated) {
 			let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
 			global.memory[room_name].spawn_list = spawns.map((e) => e.id);
 
@@ -148,7 +148,7 @@ function update_link_and_container(room_name: string) {
     for (let source_name of ['S1', 'S2']) {
         if (link_modes.includes(source_name)) {
             let this_container = Game.getObjectById(containers_status[source_name].id);
-            if (this_container.store.getUsedCapacity("energy") >= 800) {
+            if (this_container !== null && this_container.store.getUsedCapacity("energy") >= 800) {
                 game_memory.are_links_source[source_name] = true;
             }
         }
@@ -185,7 +185,7 @@ function update_link_and_container(room_name: string) {
 }
 
 function update_layout(room_name: string, check_all: boolean = false) {
-    if (Game.time % 100 !== 0 && !check_all && global.test_var) {
+    if (Game.time % 100 !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated) {
         return;
     }
     let conf = config.conf_rooms[room_name];
