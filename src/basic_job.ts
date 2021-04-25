@@ -20,7 +20,7 @@ var reverse_directions: {[key in DirectionConstant]: DirectionConstant} = {
 	[BOTTOM_LEFT]: TOP_RIGHT,
 }
 export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}): number {
-	// 0: moving, 1: already arrived, 2: not in the same room
+	// 0: moving, 1: already arrived, 2: not in the same room, 3: path not found
     if (creep.pos.getRangeTo(pos) <= range) {
         return 1;
     }
@@ -42,7 +42,10 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 		}
 		return costmatrix;
 	}
-	creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range});
+	if (creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range}) == ERR_NO_PATH) {
+		timer.end();
+		return 3;
+	}
 
 	// cross
 	if_cross: if (creep.memory._move !== undefined) {
@@ -244,17 +247,29 @@ export function build_structure(creep: Creep, moveoptions: type_movetopos_option
     }
     return 1;
 }
-export function select_linkcontainer(creep: Creep, min_energy: number = 0): AnyStoreStructure {
-    var metric = config.distance_metric;
-    var structures: AnyStoreStructure[] = global.memory[creep.room.name].energy_storage_list.map((e) => < AnyStoreStructure > Game.getObjectById(e));
-    structures = structures.filter((e) => ( < GeneralStore > e.store).getUsedCapacity("energy") >= min_energy);
+export function select_linkcontainer(creep: Creep, options: {min_energy ?: number, require_safe ?: boolean} = {}): AnyStoreStructure {
+	if (options.min_energy == undefined) {
+		options.min_energy = 0;
+	}
+	if (options.require_safe == undefined) {
+		options.require_safe = false;
+	}
+    let metric = config.distance_metric;
+	let energy_storage_list;
+	if (options.require_safe) {
+		energy_storage_list = global.memory[creep.room.name].energy_storage_list_safe;
+	} else {
+		energy_storage_list = global.memory[creep.room.name].energy_storage_list;
+	}
+    let structures: AnyStoreStructure[] = energy_storage_list.map((e) => < AnyStoreStructure > Game.getObjectById(e));
+    structures = structures.filter((e) => ( < GeneralStore > e.store).getUsedCapacity("energy") >= options.min_energy);
     if (structures.length == 0) {
         return null;
     }
-    var distances = structures.map((e) => metric(creep.room.name, creep.pos, e.pos));
+    let distances = structures.map((e) => metric(creep.room.name, creep.pos, e.pos));
     //var energy = structures.map((e) => e.store["energy"]);
     //var preference = mymath.array_minus(energy, distances * 100);
-    var arg = mymath.argmin(distances);
+    let arg = mymath.argmin(distances);
     return structures[arg];
 }
 export function get_energy(creep: Creep, options: {
@@ -262,6 +277,7 @@ export function get_energy(creep: Creep, options: {
     min_energy ? : number,
     left ? : number,
     cache_time ? : number,
+	require_safe ? : boolean,
 } = {}) {
     // 0: found, 1: not found
     if (options.moveoptions == undefined) {
@@ -284,7 +300,7 @@ export function get_energy(creep: Creep, options: {
     }
     let store_structure: AnyStoreStructure;
     if (Game.time >= creep.memory.next_time.select_linkcontainer) {
-        store_structure = select_linkcontainer(creep, options.min_energy);
+        store_structure = select_linkcontainer(creep, {min_energy: options.min_energy, require_safe: options.require_safe});
         if (store_structure == null) {
             creep.memory.next_time.select_linkcontainer = Game.time + 1;
         } else {
@@ -328,7 +344,7 @@ export function return_energy_before_die(creep: Creep, moveoptions: type_movetop
         creep.suicide();
         return 0;
     } else {
-        let linkcontainer = select_linkcontainer(creep, 0);
+        let linkcontainer = select_linkcontainer(creep, {min_energy: 0});
         if (linkcontainer !== null && ( < GeneralStore > linkcontainer.store).getFreeCapacity("energy") > 0) {
             transfer(creep, linkcontainer, {
                 moveoptions: moveoptions

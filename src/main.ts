@@ -51,15 +51,7 @@ module.exports.loop = function() {
 	timer = new Timer("towers", true);
     for (var room_name of config.controlled_rooms) {
 		try {
-			if (Game.memory[room_name].danger_mode) {
-				defense.defend_home(room_name);
-			} else {
-				if (towers.attack_all(room_name) == 1) {
-					if (towers.heal_all(room_name) == 1) {
-						towers.repair_all(room_name);
-					}
-				}
-			}
+			defense.defend_home(room_name);
 		} catch (err) {
 			console.log("Error", room_name, err.stack);
 		}

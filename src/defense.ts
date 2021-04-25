@@ -246,7 +246,7 @@ function random_attack(creep: Creep, enemies: Creep[]) {
     }
 }
 
-function group_enemies(n: number, distance_matrix: number[][]): number[][] {
+export function group_enemies(n: number, distance_matrix: number[][]): number[][] {
     let result: {
         [key: string]: number[];
     } = {
@@ -254,8 +254,7 @@ function group_enemies(n: number, distance_matrix: number[][]): number[][] {
     };
     let key = 1;
     for (let i = 1; i < n; i++) {
-		let groupnames = Object.keys(result).filter((e) => result[e]);
-		//let groups = Object.keys(result).filter((e) => mymath.any(result[e].map((j) => distance_matrix[i][j] <= 3)));
+		let groupnames = Object.keys(result).filter((e) => mymath.any(result[e].map((j) => distance_matrix[i][j] <= 3)));
 		if (groupnames.length == 0) {
 			result[key.toString()] = [i];
 		} else if (groupnames.length == 1) {
@@ -283,12 +282,59 @@ function get_pure_damage(tough_conf: type_tough_conf, damage_amount: number) {
 	}
 }
 
+function creep_assignment_score(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[], assignment: number[]): number {
+	let score = 0;
+	for (let i = 0; i < creeps_poses.length; i++) {
+		score += creeps_poses[i].getRangeTo(ramparts_poses[assignment[i]]);
+	}
+	return score;
+}
+
+function assign_creeps_try(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[]): number[] {
+	let result: number[] = [];
+	creeps_poses.forEach((e) => result.push(-1));
+	if (creeps_poses.length > ramparts_poses.length) {
+		for (let i of mymath.shuffle(mymath.range(ramparts_poses.length))) {
+			let valid_indexes = mymath.range(creeps_poses.length).filter((j) => result[j] >= 0);
+			let argmin = mymath.min(valid_indexes.map((j) => ramparts_poses[i].getRangeTo(creeps_poses[j])));
+			result[valid_indexes[argmin]] = i;
+		}
+	} else {
+		for (let i of mymath.shuffle(mymath.range(creeps_poses.length))) {
+			let is_valid: boolean[] = [];
+			ramparts_poses.forEach((e) => is_valid.push(true));
+			result.filter((j) => result[j] >= 0).forEach((j) => is_valid[result[j]] = false);
+			let valid_indexes = mymath.where(is_valid);
+			let argmin = mymath.min(valid_indexes.map((j) => ramparts_poses[i].getRangeTo(creeps_poses[j])));
+			result[i] = argmin;
+		}
+	}
+	return result;
+}
+
+export function assign_creeps(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[]): number[] {
+	let assignments: number[][] = [];
+	let scores: number[] = [];
+	for (let i = 0; i < 10; i++) {
+		let assignment = assign_creeps_try(creeps_poses, ramparts_poses);
+		let score = creep_assignment_score(creeps_poses, ramparts_poses, assignment);
+		assignments.push(assignment);
+		scores.push(score);
+	}
+	let argmin = mymath.min(scores);
+	return assignments[argmin];
+}
+
 export function defend_home(room_name: string) {
+	// 0: tower used, 1: tower not used
     let room = Game.rooms[room_name]
     let game_memory = Game.memory[room_name];
     let enemies = functions.find_hostile(room);
     if (enemies.length == 0) {
-        return;
+		if (towers.heal_all(room_name) == 1) {
+			towers.repair_all(room_name);
+		}
+		return;
     }
 	let heal_abilities = enemies.map((creep) => get_creep_invading_ability(creep).heal);
     let distance_matrix = get_distance_matrix(enemies.map((e) => e.pos));
@@ -296,9 +342,11 @@ export function defend_home(room_name: string) {
     for (let i = 0; i < enemies.length; i++) {
         let amount = 0;
         for (let j = 0; j < enemies.length; j++) {
-            if (distance_matrix[i][j] <= 3) {
+            if (distance_matrix[i][j] <= 2) {
                 amount += heal_abilities[j] * 12;
-            }
+            } else if (distance_matrix[i][j] <= 4) {
+                amount += heal_abilities[j] * 4;
+			}
         }
         max_healed_amount.push(amount);
     }
@@ -317,7 +365,7 @@ export function defend_home(room_name: string) {
         damages.push(amount);
     }
 	let pure_damages = mymath.range(enemies.length).map((i) => get_pure_damage(get_tough_conf(enemies[i]), damages[i]) - max_healed_amount[i]);
-	mymath.range(enemies.length).forEach((i) => room.visual.text(pure_damages[i].toFixed(4), enemies[i].pos));
+	mymath.range(enemies.length).forEach((i) => room.visual.text(Math.floor(pure_damages[i]).toString(), enemies[i].pos));
     let priorities = [];
     for (let i = 0; i < enemies.length; i++) {
         if (pure_damages[i] > 0) {
@@ -349,15 +397,26 @@ export function defend_home(room_name: string) {
             random_attack(defender, enemies);
         }
     }
+	if (boosted_defenders.length == 0) {
+		return;
+	}
 	let group_indices = group_enemies(enemies.length, distance_matrix);
+	let main_ramparts = global.memory[room_name].main_ramparts_id.map((e) => Game.getObjectById(e));
+	Game.memory[room_name].n_defenders_needed = group_indices.length;
+	let defense_poses: RoomPosition[] = [];
 	for (let i = 0; i < group_indices.length; i++) {
 		group_indices[i].forEach((j) => room.visual.text(i.toString(), enemies[j].pos.x, enemies[j].pos.y + 1));
+		let enemies_in_this_group = group_indices[i].map((j) => enemies[j]);
+		let distances_ramparts_to_hostile = main_ramparts.map((r) => mymath.min(enemies_in_this_group.map((hc) => r.pos.getRangeTo(hc))));
+		let argmin_ramparts_to_hostile = mymath.argmin(distances_ramparts_to_hostile);
+		let defense_rampart = main_ramparts[argmin_ramparts_to_hostile];
+		defense_poses.push(defense_rampart.pos);
+		room.visual.text("d"+i.toString(), defense_rampart.pos);
 	}
-	Game.memory[room_name].n_defenders_needed = group_indices.length;
 
-	let ramparts = room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'rampart')
-	let distances_ramparts_to_hostile = ramparts.map((r) => mymath.min(enemies.map((hc) => r.pos.getRangeTo(hc))));
-	let argmin_ramparts_to_hostile = mymath.argmin(distances_ramparts_to_hostile);
-	let target = ramparts[argmin_ramparts_to_hostile];
-	boosted_defenders.forEach((creep) => basic_job.movetopos(creep, target.pos, 0, {safe_level: 2, setmovable: false}));
+	let assigned_indices = assign_creeps(boosted_defenders.map((e) => e.pos), defense_poses);
+	for (let i = 0; i < boosted_defenders.length; i++) {
+		basic_job.movetopos(boosted_defenders[i], defense_poses[assigned_indices[i]], 0, {safe_level: 2, setmovable: false});
+		boosted_defenders[i].say("d"+assigned_indices[i].toString());
+	}
 }

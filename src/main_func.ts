@@ -14,6 +14,10 @@ function need_to_repair(structure: Structure): boolean {
     return (structure.hits < structure.hitsMax * 0.6);
 }
 
+function is_safely_connected(pos1: RoomPosition, pos2: RoomPosition): boolean {
+	return !(PathFinder.search(pos1, {pos: pos2, range: 1}, {maxOps: 200, roomCallback: (room_name) => functions.get_basic_costmatrices(room_name, 1)}).incomplete);
+}
+
 export function clear_creep() {
 	let timer = new Timer("clear_creep", true);
     if (Game.time % 50 == 0) {
@@ -32,6 +36,8 @@ let multiple_structures = ["road", "extension", "tower"];
 
 function update_structures(room_name: string) {
     let room = Game.rooms[room_name];
+	let game_memory = Game.memory[room_name];
+	let conf = config.conf_rooms[room_name];
     if (global.memory[room_name].named_structures_status == undefined) {
         let named_structures_status: any = {};
         named_structures.forEach((e) => named_structures_status[e] = {});
@@ -42,7 +48,7 @@ function update_structures(room_name: string) {
         unique_structures.forEach((e) => unique_structures_status[e] = {});
         global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
-    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 40 == 0 || !global.test_var) {
+    if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 40 == 0 || (game_memory.danger_mode && Game.time % 5 == 0) || !global.test_var) {
         let structures = room.find(FIND_STRUCTURES);
         room.memory.objects_updated = false;
         let n_structures = structures.length;
@@ -57,28 +63,47 @@ function update_structures(room_name: string) {
 			let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
 			global.memory[room_name].tower_list = towers.map((e) => e.id);
 
-			global.memory[room_name].energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType)).map((e) => < Id < AnyStoreStructure >> e.id)
+			let energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType));
+			let energy_storage_list_safe = energy_storage_list.filter((e) => is_safely_connected(spawns[0].pos, e.pos));
+			global.memory[room_name].energy_storage_list = energy_storage_list.map((e) => < Id < AnyStoreStructure >> e.id)
+			global.memory[room_name].energy_storage_list_safe = energy_storage_list_safe.map((e) => < Id < AnyStoreStructure >> e.id)
 
-			global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+			if (room.find(FIND_HOSTILE_CREEPS).length > 0) {
+				global.memory[room_name].repair_list = [];
+			} else {
+				global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+			}
 
-			let walls = structures.filter((e) => (e.structureType == 'constructedWall' && e.hits));
-			let ramparts = <Array<StructureRampart>> structures.filter((e) => e.structureType == 'rampart');
-			global.memory[room_name].ramparts_to_repair = ramparts.filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
+			let walls = conf.walls.map((xy) => (<StructureWall> room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'constructedWall')[0])).filter((e) => e !== undefined);
+			let main_ramparts = conf.main_ramparts.map((xy) => (<StructureRampart> room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
+			let secondary_ramparts = conf.secondary_ramparts.map((xy) => (<StructureRampart> room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
+			global.memory[room_name].walls_id = walls.map((e) => e.id);
+			global.memory[room_name].main_ramparts_id = main_ramparts.map((e) => e.id);
+			global.memory[room_name].secondary_ramparts_id = secondary_ramparts.map((e) => e.id);
+			global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
 
 			let wall_strength = 0;
-			let rampart_strength = 0;
+			let main_rampart_strength = 0;
+			let secondary_rampart_strength = 0;
 			if (walls.length > 0) {
 				wall_strength = mymath.min(walls.map((e) => e.hits));
 			}
-			if (ramparts.length > 0) {
-				rampart_strength = mymath.min(ramparts.map((e) => e.hits));
+			if (main_ramparts.length > 0) {
+				main_rampart_strength = mymath.min(main_ramparts.map((e) => e.hits));
+			}
+			if (secondary_ramparts.length > 0) {
+				secondary_rampart_strength = mymath.min(secondary_ramparts.map((e) => e.hits));
 			}
 			room.memory.min_wall_strength = wall_strength;
-			room.memory.min_rampart_strength = rampart_strength;
+			room.memory.min_main_rampart_strength = main_rampart_strength;
+			room.memory.min_secondary_rampart_strength = secondary_rampart_strength;
 			room.memory.n_walls = walls.length;
-			room.memory.n_ramparts = ramparts.length;
+			room.memory.n_main_ramparts = main_ramparts.length;
+			room.memory.n_secondary_ramparts = secondary_ramparts.length;
 		} else if (Memory.look_broken_ramparts) {
-			global.memory[room_name].ramparts_to_repair = _.filter(structures, (structure) => structure.structureType == 'rampart' && structure.hits < config.wall_strength).map((e) => <Id<StructureRampart>> e.id);
+			let main_ramparts = conf.main_ramparts.map((xy) => (<StructureRampart> room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
+			let secondary_ramparts = conf.secondary_ramparts.map((xy) => (<StructureRampart> room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
+			global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
 		}
 		let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
 		let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
@@ -652,13 +677,14 @@ export function set_room_memory(room_name: string) {
 	if (global.memory[room_name] == undefined) {
 		global.memory[room_name] = {};
 	}
+	set_danger_mode(room_name);
+
 	for (let function_name of set_room_memory_functions_order) {
 		//let timer = new Timer(function_name, false);
 		set_room_memory_functions[function_name](room_name);
 		//timer.end();
 	}
 
-	set_danger_mode(room_name);
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
         game_memory.lack_energy = false;
     } else {

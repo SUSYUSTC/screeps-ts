@@ -397,7 +397,7 @@ export function spawn(room_name: string) {
 
     // wall _repairer
     let wall_repairers = room_statistics.wall_repairer;
-    if (wall_repairers.length == 0 && Math.min(room.memory.min_wall_strength, room.memory.min_rampart_strength) < 2.0e7) {
+    if (wall_repairers.length == 0 && Math.min(room.memory.min_wall_strength, room.memory.min_main_rampart_strength, room.memory.min_secondary_rampart_strength * 5) < 2.0e7) {
         let added_memory = {};
         let options = {};
         let priority = -1;

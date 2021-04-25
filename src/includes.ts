@@ -34,9 +34,11 @@ interface RoomMemory {
         last: type_additional_spawn[];
     }
     min_wall_strength ? : number;
-    min_rampart_strength ? : number;
+    min_main_rampart_strength ? : number;
+    min_secondary_rampart_strength ? : number;
     n_walls ? : number;
-    n_ramparts ? : number;
+    n_main_ramparts ? : number;
+    n_secondary_ramparts ? : number;
     external_resources ? : type_external_resources;
     sites_total_progressleft ? : number;
     external_sites_total_progressleft ? : {
@@ -105,6 +107,7 @@ interface CreepMemory {
     rooms_backwardpath ? : string[];
     poses_backwardpath ? : number[];
     wall_to_repair ? : Id < Structure_Wall_Rampart > ;
+	wall_min_hits ? : number;
     boost_status ? : type_boost_status;
     resource_type ? : ResourceConstant;
     maincarrier_transfer_job ? : {
@@ -328,6 +331,9 @@ interface type_conf_room {
     readonly mineral_stay_pos: number[];
     readonly safe_pos: number[];
     readonly external_rooms: conf_external_rooms;
+    readonly walls: number[][];
+    readonly main_ramparts: number[][];
+    readonly secondary_ramparts: number[][];
     readonly defense_boundary: number[][];
     readonly safe_boundary: number[][];
 }
@@ -457,6 +463,7 @@ type type_mine_status = {
     amount: number;
     harvestable: boolean;
 }
+
 interface Game {
     costmatrices: type_costmatrices;
     costmatrices_safe: type_costmatrices;
@@ -541,6 +548,9 @@ interface type_costmatrices {
 }
 declare module NodeJS {
     interface Global {
+        //Game: Game,
+        Memory: Memory,
+        _: _.LoDashStatic,
         basic_costmatrices: type_costmatrices,
         basic_costmatrices_safe: type_costmatrices,
         basic_costmatrices_defense: type_costmatrices,
@@ -552,8 +562,12 @@ declare module NodeJS {
                 spawn_list ? : Id < StructureSpawn > [];
                 energy_filling_list ? : Id < AnyStoreStructure > [];
                 energy_storage_list ? : Id < AnyStoreStructure > [];
+                energy_storage_list_safe ? : Id < AnyStoreStructure > [];
                 repair_list ? : Id < Structure > [];
                 ramparts_to_repair ? : Id < StructureRampart > [];
+				walls_id ? : Id < StructureWall > [];
+				main_ramparts_id ? : Id < StructureRampart > [];
+				secondary_ramparts_id ? : Id < StructureRampart > [];
             }
         }
         creep_number: {

@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import * as _ from "lodash";
 import * as role_init from "./role_init";
 import * as mymath from "./mymath";
 import * as basic_job from "./basic_job";
@@ -94,7 +94,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         if (creep.store.getUsedCapacity("energy") < min_fill_energy) {
-			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2), moveoptions: moveoptions_safe});
+			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2), moveoptions: moveoptions_safe, require_safe: true});
 			creep.say("Tg");
 			return 0;
 		} else {
@@ -271,31 +271,43 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.get_energy(creep, {min_energy: 200, moveoptions: moveoptions_safe});
+			basic_job.get_energy(creep, {min_energy: 200, moveoptions: moveoptions_safe, require_safe: true});
 			creep.say("WRg");
         } else {
-            let wall_ramparts = creep.room.find(FIND_STRUCTURES).filter((e) => (e.structureType == 'constructedWall' && e.hits) || e.structureType == 'rampart');
-            let hits = wall_ramparts.map((e) => e.hits);
-            let hits_max = Math.max(...hits);
-            let hits_min = Math.min(...hits);
-            let wall;
-            if (creep.memory.wall_to_repair) {
+			let global_memory = global.memory[creep.room.name]
+			let wall;
+            if (creep.memory.wall_to_repair !== undefined && creep.memory.wall_min_hits !== undefined) {
                 wall = Game.getObjectById(creep.memory.wall_to_repair);
-                if (wall.hits - hits_min > 500000) {
-                    delete creep.memory.wall_to_repair;
+				let this_hits;
+				if ((<Array<Id<Structure_Wall_Rampart>>>global_memory.secondary_ramparts_id).includes(creep.memory.wall_to_repair)) {
+					this_hits = wall.hits * 5;
+				} else {
+					this_hits = wall.hits;
+				}
+				if (this_hits - creep.memory.wall_min_hits >= 500000) {
+					delete creep.memory.wall_to_repair;
+					delete creep.memory.wall_min_hits;
 					creep.say("WRd");
-                    return 0;
-                }
+					return 0;
+				}
             } else {
+				let walls = global_memory.walls_id.map((e) => <Structure_Wall_Rampart> Game.getObjectById(e));
+				let main_ramparts = global_memory.main_ramparts_id.map((e) => <Structure_Wall_Rampart> Game.getObjectById(e));
+				let secondary_ramparts = global_memory.secondary_ramparts_id.map((e) => <Structure_Wall_Rampart> Game.getObjectById(e));
+				let wall_ramparts= walls.concat(main_ramparts).concat(secondary_ramparts);
+				let hits = walls.map((e) => e.hits).concat(main_ramparts.map((e) => e.hits)).concat(secondary_ramparts.map((e) => e.hits*5));
+				let hits_min = mymath.min(hits);
                 let wall_ramparts_left = mymath.range(wall_ramparts.length).filter((i) => hits[i] < hits_min + 20000).map((i) => wall_ramparts[i]);
                 let closest_id = mymath.argmin(wall_ramparts_left.map((e) => creep.pos.getRangeTo(e)));
                 wall = wall_ramparts_left[closest_id];
                 creep.memory.wall_to_repair = < Id < Structure_Wall_Rampart >> wall.id;
+				creep.memory.wall_min_hits = hits_min;
 				creep.say("WRs");
             }
             if (creep.repair(wall) == ERR_NOT_IN_RANGE) {
                 basic_job.movetopos(creep, wall.pos, 3, moveoptions_safe);
 				creep.say("WRm");
+				return 0;
             }
 			creep.say("WRr");
         }

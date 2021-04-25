@@ -17,6 +17,7 @@ type type_store_log = {
 interface type_wall_strength_log {
 	min_strength: number;
 	number: number;
+	expected_number: number;
 }
 interface type_mine_log {
 	type: MineralConstant;
@@ -39,7 +40,8 @@ interface type_room_log {
 	factory: type_store_log;
 	powerSpawn: type_store_log;
 	wall: type_wall_strength_log;
-	rampart: type_wall_strength_log;
+	main_rampart: type_wall_strength_log;
+	secondary_rampart: type_wall_strength_log;
 	mine: type_mine_log;
 	reaction: GeneralMineralConstant;
 	boosting: MineralBoostConstant;
@@ -132,7 +134,8 @@ export function log() {
 			factory: null,
 			powerSpawn: null,
 			wall: null,
-			rampart: null,
+			main_rampart: null,
+			secondary_rampart: null,
 			objects_to_buy: {},
 			objects_to_sell: {},
 			mine: null,
@@ -163,10 +166,17 @@ export function log() {
 		room_log.wall = {
 			"min_strength": room.memory.min_wall_strength,
 			"number": room.memory.n_walls,
+			"expected_number": conf.walls.length,
 		};
-		room_log.rampart = {
-			"min_strength": room.memory.min_rampart_strength,
-			"number": room.memory.n_ramparts,
+		room_log.main_rampart = {
+			"min_strength": room.memory.min_main_rampart_strength,
+			"number": room.memory.n_main_ramparts,
+			"expected_number": conf.main_ramparts.length,
+		};
+		room_log.secondary_rampart = {
+			"min_strength": room.memory.min_secondary_rampart_strength,
+			"number": room.memory.n_secondary_ramparts,
+			"expected_number": conf.secondary_ramparts.length,
 		};
 		let log_special = '';
 		if (global.memory[room_name].unique_structures_status.factory.finished) {

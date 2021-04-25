@@ -85,7 +85,7 @@ export function find_hostile(room: Room): Creep[] {
 	}
 }
 
-function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2) {
+export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2) {
 	let timer = new Timer("get_basic_costmatrices", false);
 
 	if (global.basic_costmatrices == undefined) {

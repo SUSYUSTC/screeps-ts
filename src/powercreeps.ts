@@ -14,10 +14,14 @@ function is_time_for_source(pc: PowerCreep) {
 	let source_id = config.conf_rooms[pc.room.name].sources[source_name];
 	let source = Game.getObjectById(source_id);
 	let effect: RoomObjectEffect = undefined;
+	let effect_time = 0;
 	if (source.effects !== undefined) {
 		effect = source.effects.filter((e) => e.effect == PWR_REGEN_SOURCE)[0];
 	}
-	if (effect == undefined || effect.ticksRemaining < pc.pos.getRangeTo(source) + 5) {
+	if (effect !== undefined) {
+		effect_time = effect.ticksRemaining;
+	}
+	if (Math.max(effect_time, pc.powers[PWR_REGEN_SOURCE].cooldown) < pc.pos.getRangeTo(source) + 5) {
 		return true;
 	}
 	return false;

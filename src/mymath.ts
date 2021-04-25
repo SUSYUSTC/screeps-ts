@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 const plus = (a: number, b: number): number => a + b;
 const minus = (a: number, b: number): number => a - b;
 const multiply = (a: number, b: number): number => a * b;
@@ -98,4 +99,15 @@ export function argsort(array: number[]) {
     });
     const argIndices = arrayObject.map(data => data.idx);
     return argIndices;
+}
+
+export function shuffle<Type>(array: Array<Type>): Array<Type> {
+	let newarray = _.clone(array);
+    for (var i = newarray.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = newarray[i];
+        newarray[i] = newarray[j];
+        newarray[j] = temp;
+    }
+	return newarray;
 }
