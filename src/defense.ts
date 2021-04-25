@@ -285,34 +285,36 @@ function get_pure_damage(tough_conf: type_tough_conf, damage_amount: number) {
 function creep_assignment_score(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[], assignment: number[]): number {
 	let score = 0;
 	for (let i = 0; i < creeps_poses.length; i++) {
-		score += creeps_poses[i].getRangeTo(ramparts_poses[assignment[i]]);
+		if (assignment[i] !== undefined) {
+			score += creeps_poses[i].getRangeTo(ramparts_poses[assignment[i]]);
+		}
 	}
 	return score;
 }
 
 function assign_creeps_try(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[]): number[] {
 	let result: number[] = [];
-	creeps_poses.forEach((e) => result.push(-1));
+	creeps_poses.forEach((e) => result.push(undefined));
 	if (creeps_poses.length > ramparts_poses.length) {
 		for (let i of mymath.shuffle(mymath.range(ramparts_poses.length))) {
-			let valid_indexes = mymath.range(creeps_poses.length).filter((j) => result[j] >= 0);
-			let argmin = mymath.min(valid_indexes.map((j) => ramparts_poses[i].getRangeTo(creeps_poses[j])));
+			let valid_indexes = mymath.range(creeps_poses.length).filter((j) => result[j] == undefined);
+			let argmin = mymath.argmin(valid_indexes.map((j) => ramparts_poses[i].getRangeTo(creeps_poses[j])));
 			result[valid_indexes[argmin]] = i;
 		}
 	} else {
 		for (let i of mymath.shuffle(mymath.range(creeps_poses.length))) {
 			let is_valid: boolean[] = [];
 			ramparts_poses.forEach((e) => is_valid.push(true));
-			result.filter((j) => result[j] >= 0).forEach((j) => is_valid[result[j]] = false);
+			result.filter((j) => j !== undefined).forEach((j) => is_valid[j] = false);
 			let valid_indexes = mymath.where(is_valid);
-			let argmin = mymath.min(valid_indexes.map((j) => ramparts_poses[i].getRangeTo(creeps_poses[j])));
-			result[i] = argmin;
+			let argmin = mymath.argmin(valid_indexes.map((j) => creeps_poses[i].getRangeTo(ramparts_poses[j])));
+			result[i] = valid_indexes[argmin];
 		}
 	}
 	return result;
 }
 
-export function assign_creeps(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[]): number[] {
+export function assign_creeps(creeps_poses: RoomPosition[], ramparts_poses: RoomPosition[], verbose: boolean = false): number[] {
 	let assignments: number[][] = [];
 	let scores: number[] = [];
 	for (let i = 0; i < 10; i++) {
@@ -320,8 +322,11 @@ export function assign_creeps(creeps_poses: RoomPosition[], ramparts_poses: Room
 		let score = creep_assignment_score(creeps_poses, ramparts_poses, assignment);
 		assignments.push(assignment);
 		scores.push(score);
+		if (verbose) {
+			console.log(score, assignment);
+		}
 	}
-	let argmin = mymath.min(scores);
+	let argmin = mymath.argmin(scores);
 	return assignments[argmin];
 }
 
@@ -416,7 +421,9 @@ export function defend_home(room_name: string) {
 
 	let assigned_indices = assign_creeps(boosted_defenders.map((e) => e.pos), defense_poses);
 	for (let i = 0; i < boosted_defenders.length; i++) {
-		basic_job.movetopos(boosted_defenders[i], defense_poses[assigned_indices[i]], 0, {safe_level: 2, setmovable: false});
-		boosted_defenders[i].say("d"+assigned_indices[i].toString());
+		if (assigned_indices[i] !== undefined) {
+			basic_job.movetopos(boosted_defenders[i], defense_poses[assigned_indices[i]], 0, {safe_level: 2, setmovable: false});
+			boosted_defenders[i].say("d"+assigned_indices[i].toString());
+		}
 	}
 }

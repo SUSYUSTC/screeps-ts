@@ -7,6 +7,9 @@
 	  "sourceMap": true,
 	  "target": "es6"
 	},
+	"paths": {
+		"@mock/*": ["test/mock/*"]
+	},
 	"include": ["src/*.ts"],
 	"exclude": ["node_modules"]
 }
