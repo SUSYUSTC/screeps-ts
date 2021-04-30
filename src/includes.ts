@@ -389,6 +389,9 @@ interface Memory {
     final_product_request ? : type_product_request;
     total_energies ? : number;
 	look_broken_ramparts ? : boolean;
+	reaction_log ? : {
+		[key in MineralCompoundConstant] ?: number;
+	}
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {

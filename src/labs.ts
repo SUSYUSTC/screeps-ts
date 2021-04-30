@@ -133,6 +133,9 @@ export function reaction(room_name: string) {
 	if (Game.cpu.bucket < 2000) {
 		return;
 	}
+	if (Memory.reaction_log == undefined) {
+		Memory.reaction_log = {};
+	}
     let conf = config.conf_rooms[room_name].labs;
     let labs_status = global.memory[room_name].named_structures_status.lab;
     if (_.map(labs_status, (e) => e.finished).length == 10) {
@@ -153,6 +156,14 @@ export function reaction(room_name: string) {
                             product = < MineralCompoundConstant > (Object.keys(constants.allowed_reactions).filter((p) => compare_product([source1_lab.mineralType, source2_lab.mineralType], < MineralCompoundConstant > p))[0]);
                         }
                     }
+					let reaction_amount = 5;
+					if (lab.effects !== undefined && lab.effects.length > 0) {
+						reaction_amount += POWER_INFO[PWR_OPERATE_LAB].effect[(<PowerEffect>lab.effects[0]).level - 1];
+					}
+					if (Memory.reaction_log[product] == undefined) {
+						Memory.reaction_log[product] = 0;
+					}
+					Memory.reaction_log[product] += reaction_amount;
                 }
             }
         }

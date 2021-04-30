@@ -852,7 +852,7 @@ export function spawn(room_name: string) {
 			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  config.conf_gcl.conf_map.single_distance + 150));
 			let has_spawning = mymath.any(raw_upgraders.map((e) => e.spawning));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
-			let energy_condition = (room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
+			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
 			if (upgraders.length < n_upgrades_needed && energy_condition && functions.is_boost_resource_enough('GH2O', 32) && functions.is_boost_resource_enough('ZO', 8) && Game.cpu.bucket >= 9000 && !has_spawning) {
 				let added_memory = {
 					"home_room_name": room_name,

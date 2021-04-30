@@ -227,7 +227,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: 1000,
 		},
 		"X": {
-			price: 1.2,
+			price: 1.5,
 			interval: 1000,
 		},
 		"H": {
@@ -239,11 +239,11 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: 1000,
 		},
 		"energy": {
-			price: 0.3,
-			interval: -1,
+			price: 0.4,
+			interval: 3000,
 		},
 		"battery": {
-			price: 4.8,
+			price: 4.0,
 			interval: 3000,
 		}
 	},
@@ -273,31 +273,31 @@ export var resources_balance: type_resources_balance = {
 	"GH2O": {
 		gap: 960,
 		min: 960,
-		amount: 960,
+		amount: 480,
 	},
 	"LH2O": {
 		gap: 600,
 		min: 600,
-		amount: 600,
+		amount: 300,
 	},
 	"UH2O": {
-		gap: 600,
-		min: 600,
+		gap: 1200,
+		min: 1200,
 		amount: 600,
 	},
 	"LO": {
 		gap: 600,
 		min: 600,
-		amount: 600,
+		amount: 300,
 	},
 	"GHO2": {
-		gap: 150,
-		min: 150,
+		gap: 300,
+		min: 300,
 		amount: 150,
 	},
 	"ZO": {
-		gap: 240,
-		min: 240,
+		gap: 480,
+		min: 480,
 		amount: 240,
 	},
 }

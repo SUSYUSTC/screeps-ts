@@ -276,5 +276,6 @@ export function auto_supply_basic_minerals(room_name: string) {
 		let mineral = Game.memory[room_name].mine_status.type
 		global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
 		global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
+		global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
 	}
 }
