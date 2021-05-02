@@ -392,6 +392,7 @@ interface Memory {
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
 	}
+	invade_costmatrices ?: type_costmatrices;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -516,6 +517,11 @@ type type_order_result = {
     score: number;
     amount: number;
 };
+type type_history_order = {
+	time: number;
+    price: number;
+    amount: number;
+};
 type type_object_to_trade = {
     max_score: number;
     resource: MarketResourceConstant;
@@ -583,6 +589,8 @@ declare module NodeJS {
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
+        history_orders(resource: MarketResourceConstant): type_history_order[];
+        format_objs(objs: any[]): string;
         summarize_terminal(): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;

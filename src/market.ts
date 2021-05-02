@@ -22,7 +22,6 @@ global.get_best_order = function(room_name: string, typ: "sell" | "buy", resourc
     let argsort = mymath.argsort(scores);
     let result: type_order_result[] = [];
     for (let index of argsort.slice(0, num)) {
-        console.log(orders[index].id, orders[index].price, costs[index], orders[index].amount, scores[index]);
         result.push({
             "id": orders[index].id,
             "price": orders[index].price,
@@ -33,6 +32,10 @@ global.get_best_order = function(room_name: string, typ: "sell" | "buy", resourc
         });
     }
     return result;
+}
+
+global.history_orders = function(resource: MarketResourceConstant): type_history_order[] {
+	return Game.market.incomingTransactions.filter((e) => e.resourceType == resource && e.order !== undefined).map((e) => <type_history_order> {time: e.time, amount: e.amount, price: e.order.price});
 }
 
 global.auto_buy = function(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number = 0.2): number {
@@ -255,7 +258,7 @@ global.auto_supply_from_market = function(room_name: string, resource: ResourceC
     let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource).map((e) => e.remainingAmount);
     current_amount += mymath.array_sum(orders_amount);
     if (current_amount < expected_amount) {
-		console.log("create mineral order", resource, "at", room_name);
+        console.log("create mineral order", resource, "at", room_name);
         Game.market.createOrder({
             "type": "buy",
             "resourceType": resource,
@@ -272,10 +275,10 @@ export function auto_supply_basic_minerals(room_name: string) {
     if (Game.time % 200 !== 0 || room == undefined || room.storage == undefined || room.terminal == undefined || Game.memory[room_name] == undefined || Game.memory[room_name].mine_status == undefined) {
         return 1;
     }
-	if (room.controller.level == 8) {
-		let mineral = Game.memory[room_name].mine_status.type
-		global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
-		global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
-		global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
-	}
+    if (room.controller.level == 8) {
+        let mineral = Game.memory[room_name].mine_status.type
+        global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
+        global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
+        global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
+    }
 }

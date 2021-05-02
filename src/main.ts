@@ -20,7 +20,7 @@ import * as terminal from "./terminal";
 import * as main_func from "./main_func";
 import * as final_command from "./final_command";
 import * as output from "./output";
-import * as attack from "./attack";
+import * as invade from "./invade";
 import * as powercreeps from "./powercreeps"
 import * as gcl_room from "./gcl_room";
 import { Timer } from "./timer";

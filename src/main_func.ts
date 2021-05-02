@@ -378,7 +378,11 @@ function detect_resources(room_name: string) {
     }
     for (let i = 0; i < external_rooms.length; i++) {
         if (Game.time % 100 == i) {
-            let observer = Game.getObjectById(global.memory[room_name].unique_structures_status.observer.id);
+			let observer_status = global.memory[room_name].unique_structures_status.observer
+			let observer = Game.getObjectById(observer_status.id);
+			if (observer == undefined) {
+				continue;
+			}
             let external_room_name = external_rooms[i];
             observer.observeRoom(external_room_name);
         }

@@ -206,16 +206,6 @@ function get_tough_conf(creep: Creep): type_tough_conf {
 
 global.get_tough_conf = get_tough_conf;
 
-function tower_damage(dis: number): number {
-    if (dis < 5) {
-        return 600;
-    } else if (dis > 20) {
-        return 150;
-    } else {
-        return 3000 / dis;
-    }
-}
-
 function get_distance_matrix(poses: RoomPosition[]): number[][] {
     let distance_matrix = [];
     for (let i = 0; i < poses.length; i++) {
@@ -365,7 +355,7 @@ export function defend_home(room_name: string) {
     for (let i = 0; i < enemies.length; i++) {
         let amount = 0;
         let enemy = enemies[i];
-        amount += mymath.array_sum(room_towers.map((e) => tower_damage(e.pos.getRangeTo(enemy))));
+        amount += mymath.array_sum(room_towers.map((e) => functions.tower_damage(e.pos.getRangeTo(enemy))));
         amount += mymath.array_sum(boosted_defenders.filter((e) => e.pos.isNearTo(enemy)).map((e) => e.getActiveBodyparts(ATTACK))) * 90;
         damages.push(amount);
     }

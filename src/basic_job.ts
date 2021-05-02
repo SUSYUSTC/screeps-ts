@@ -42,7 +42,7 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 		}
 		return costmatrix;
 	}
-	if (creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range}) == ERR_NO_PATH) {
+	if (creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range, plainCost: 2, swampCost: 10}) == ERR_NO_PATH) {
 		timer.end();
 		return 3;
 	}
