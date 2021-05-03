@@ -121,7 +121,7 @@ export function moveawayexit(creep: Creep | PowerCreep): number {
 	}
 }
 
-export function moveawayexit_group_x2(follower: Creep | PowerCreep, decider: Creep | PowerCreep): number {
+export function moveawayexit_group_x2(follower: Creep, decider: Creep): number {
 	if (decider.pos.x == 0) {
 		decider.move(RIGHT);
 		if (follower.room.name !== decider.room.name) {
@@ -147,20 +147,36 @@ export function moveawayexit_group_x2(follower: Creep | PowerCreep, decider: Cre
 		}
 		return 0;
 	} else if (follower.pos.x == 0) {
-		follower.move(RIGHT);
-		decider.move(BOTTOM);
+		if (decider.fatigue == 0) {
+			follower.move(RIGHT);
+			decider.move(BOTTOM);
+		} else {
+			follower.move(TOP_RIGHT);
+		}
 		return 0;
 	} else if (follower.pos.x == 49) {
-		follower.move(LEFT);
-		decider.move(TOP);
+		if (decider.fatigue == 0) {
+			follower.move(LEFT);
+			decider.move(TOP);
+		} else {
+			follower.move(BOTTOM_LEFT);
+		}
 		return 0;
 	} else if (follower.pos.y == 0) {
-		follower.move(BOTTOM);
-		decider.move(LEFT);
+		if (decider.fatigue == 0) {
+			follower.move(BOTTOM);
+			decider.move(LEFT);
+		} else {
+			follower.move(BOTTOM_RIGHT);
+		}
 		return 0;
 	} else if (follower.pos.y == 49) {
-		follower.move(TOP);
-		decider.move(RIGHT);
+		if (decider.fatigue == 0) {
+			follower.move(TOP);
+			decider.move(RIGHT);
+		} else {
+			follower.move(TOP_LEFT);
+		}
 		return 0;
 	} else {
 		return 1;

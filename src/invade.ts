@@ -215,16 +215,20 @@ export function automove_group_x2(groupname: string, flagname: string, rooms_pat
     if (sameroom && !close) {
 		healer.moveTo(invader, {range: 1});
 		invader.moveTo(healer, {range: 1});
-	} else if (external_room.moveawayexit_group_x2(healer, invader) == 1) {
+	} else if (external_room.moveawayexit_group_x2(healer, invader) == 1 && sameroom && healer.fatigue == 0 && invader.fatigue == 0) {
 		if (invader.room.name == flag.room.name) {
+			let range = 1;
+			if (group.invade_type == 'ranged_attack') {
+				range = 3;
+			}
 			if (flag.pos.lookFor("structure").length > 0) {
-				invader.moveTo(flag, {range: 1, costCallback: (e1, e2) => costmatrix, maxRooms: 1});
+				invader.moveTo(flag, {range: range, costCallback: (e1, e2) => costmatrix, maxRooms: 1});
 				healer.move(healer.pos.getDirectionTo(invader));
 			} else {
 				let towers = <Array<StructureTower>> invader.room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
 				if (towers.length > 0) {
-					let target = invader.pos.findClosestByPath(towers, {range: 1});
-					invader.moveTo(target, {range: 1, costCallback: (e1, e2) => costmatrix, maxRooms: 1});
+					let target = invader.pos.findClosestByPath(towers, {range: range});
+					invader.moveTo(target, {range: range, costCallback: (e1, e2) => costmatrix, maxRooms: 1});
 					healer.move(healer.pos.getDirectionTo(invader));
 				}
 			}
