@@ -323,3 +323,13 @@ global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], na
 	}
     return 0;
 }
+
+global.get_body = function(components: type_body_components): BodyPartConstant[] {
+	let body: BodyPartConstant[] = [];
+	for (let part of [TOUGH, CARRY, WORK, ATTACK, RANGED_ATTACK, CLAIM, MOVE]) {
+		if (components[part] !== undefined) {
+			mymath.range(components[TOUGH]).forEach((e) => body.push(part));
+		}
+	}
+	return body;
+}

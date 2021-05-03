@@ -105,6 +105,7 @@ export var conf_E9N54: type_conf_room =
             [31, 37],
             [32, 36],
             [34, 35],
+            [35, 35],
             [33, 35],
             [15, 47],
             [14, 47],
@@ -148,11 +149,10 @@ export var conf_E9N54: type_conf_room =
             [31, 43],
             [26, 40],
             [28, 46],
-            [35, 35],
             [36, 35],
             [37, 35],
             [38, 34],
-            [34, 34]
+            [35, 34]
         ],
         "6": [
             [28, 38],
@@ -234,10 +234,6 @@ export var conf_E9N54: type_conf_room =
             "pos": [26, 37],
             "RCL": 8
         },
-        "L2": {
-            "pos": [39, 34],
-            "RCL": 8
-        },
         "MAIN": {
             "pos": [25, 44],
             "RCL": 5
@@ -247,7 +243,7 @@ export var conf_E9N54: type_conf_room =
             "RCL": 6
         },
         "S2": {
-            "pos": [33, 34],
+            "pos": [36, 34],
             "RCL": 7
         }
     },
@@ -265,7 +261,7 @@ export var conf_E9N54: type_conf_room =
             "RCL": 1
         },
         "S2": {
-            "pos": [34, 35],
+            "pos": [35, 35],
             "RCL": 1
         }
     },
@@ -274,15 +270,15 @@ export var conf_E9N54: type_conf_room =
             [19, 43]
         ],
         "5": [
-            [37, 34]
+            [39, 34]
         ],
         "7": [
             [17, 43]
         ],
         "8": [
-            [36, 34],
+            [37, 34],
             [18, 43],
-            [35, 34]
+            [34, 34]
         ]
     },
     "storage": {
@@ -319,7 +315,7 @@ export var conf_E9N54: type_conf_room =
             "commuting_time": 78
         },
         "S2": {
-            "commuting_time": 45
+            "commuting_time": 48
         }
     },
     "extractor": {

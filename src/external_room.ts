@@ -9,19 +9,13 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
     if (rooms_path.length != poses_path.length + 1) {
         throw Error("Unexpected length of arguments")
     }
-	/*
-	var check_defined = rooms_path.map((e) => Object.keys(room_list.room_list.rooms).includes(e));
-    if (!(mymath.all(check_defined))) {
-        throw Error("Contain room not defined in config")
-    }
-	 */
     if (!(rooms_path.includes(creep.room.name))) {
         console.log(creep.name, "is missing in a unknown room")
 		timer.end();
         return;
     }
 	//var room_info = room_list.room_list.rooms[creep.room.name];
-    var arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
+    let arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
     if (arg == rooms_path.length - 1) {
         let room1_coor = functions.room2coor(rooms_path[arg - 1]);
         let room2_coor = functions.room2coor(rooms_path[arg]);
@@ -109,7 +103,7 @@ export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], roo
     }
 }
 
-export function moveawayexit(creep: Creep | PowerCreep) {
+export function moveawayexit(creep: Creep | PowerCreep): number {
 	if (creep.pos.x == 0) {
 		creep.move(RIGHT);
 		return 0;
@@ -121,6 +115,52 @@ export function moveawayexit(creep: Creep | PowerCreep) {
 		return 0;
 	} else if (creep.pos.y == 49) {
 		creep.move(TOP);
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+export function moveawayexit_group_x2(follower: Creep | PowerCreep, decider: Creep | PowerCreep): number {
+	if (decider.pos.x == 0) {
+		decider.move(RIGHT);
+		if (follower.room.name !== decider.room.name) {
+			follower.move(follower.pos.getDirectionTo(49, decider.pos.y));
+		}
+		return 0;
+	} else if (decider.pos.x == 49) {
+		decider.move(LEFT);
+		if (follower.room.name !== decider.room.name) {
+			follower.move(follower.pos.getDirectionTo(0, decider.pos.y));
+		}
+		return 0;
+	} else if (decider.pos.y == 0) {
+		decider.move(BOTTOM);
+		if (follower.room.name !== decider.room.name) {
+			follower.move(follower.pos.getDirectionTo(decider.pos.x, 49));
+		}
+		return 0;
+	} else if (decider.pos.y == 49) {
+		decider.move(TOP);
+		if (follower.room.name !== decider.room.name) {
+			follower.move(follower.pos.getDirectionTo(decider.pos.x, 0));
+		}
+		return 0;
+	} else if (follower.pos.x == 0) {
+		follower.move(RIGHT);
+		decider.move(BOTTOM);
+		return 0;
+	} else if (follower.pos.x == 49) {
+		follower.move(LEFT);
+		decider.move(TOP);
+		return 0;
+	} else if (follower.pos.y == 0) {
+		follower.move(BOTTOM);
+		decider.move(LEFT);
+		return 0;
+	} else if (follower.pos.y == 49) {
+		follower.move(TOP);
+		decider.move(RIGHT);
 		return 0;
 	} else {
 		return 1;

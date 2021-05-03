@@ -331,13 +331,13 @@ export function spawn(room_name: string) {
 		let n_mineharvesters;
 		let n_minecarriers;
 		if (full_mine) {
-			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 300));
-			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 100));
+			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 150));
+			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 50));
 			n_mineharvesters = mineharvesters.length;
 			n_minecarriers = minecarriers.length;
 		} else {
-			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 150));
-			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 50));
+			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 75));
+			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 25));
 			n_mineharvesters = mineharvesters.length;
 			n_minecarriers = minecarriers.length;
 		}

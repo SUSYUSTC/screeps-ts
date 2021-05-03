@@ -364,6 +364,15 @@ interface type_defender_responsible_types {
         cost: number;
     };
 }
+type invade_types = "attack" | "dismantle" | "ranged_attack";
+interface type_invader_group_x2 {
+    healer_name: string;
+	invader_name: string;
+	invade_type: invade_types;
+	invade_level: number;
+	home_room_name: string;
+}
+
 interface Memory {
     creeps: {
         [name: string]: CreepMemory
@@ -392,7 +401,10 @@ interface Memory {
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
 	}
-	invade_costmatrices ?: type_costmatrices;
+	invade_costmatrices ?: {[key: string]: number[]};
+	invade_groups_x2 ?: {
+		[key: string]: type_invader_group_x2;
+	}
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -595,8 +607,6 @@ declare module NodeJS {
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
-        spawn_dismantler_group_x2(room_name: string, suffix: string): number;
-        do_dismantler_group_x2(suffix: string, flagname: string): number;
         request_resource_sending(room_from: string, room_to: string, resource: ResourceConstant, amount: number): number;
         restrict_passing_rooms(room_name: string): CostMatrix;
         reaction_priority: type_reaction_priority
@@ -609,5 +619,7 @@ declare module NodeJS {
 		auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number;
         update_layout(room_name: string, check_all: boolean): any;
 		get_tough_conf(creep: Creep): type_tough_conf;
+		get_body(components: type_body_components): BodyPartConstant[];
+		spawn_invader_group_x2(home_room_name: string, invade_type: invade_types, level: number, groupname: string): number;
     }
 }
