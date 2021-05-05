@@ -80,18 +80,23 @@ module.exports.loop = function() {
     }
 	timer.end();
 
-	timer = new Timer("creeps", true);
-    for (var name in Game.creeps) {
-		var creep = Game.creeps[name];
-		try {
-			creepjobs.creepjob(creep);
-		} catch (err) {
-			creep.say("Error");
-			creep.memory.movable = false;
-			creep.memory.crossable = false;
-			console.log("Error", creep.room.name, creep.name, err.stack);
+	timer = new Timer("classify_creeps", true);
+	try {
+		for (var name in Game.creeps) {
+			var creep = Game.creeps[name];
+				creepjobs.creepjob(creep);
 		}
-    }
+	} catch (err) {
+		console.log("Error", err.stack);
+	}
+	timer.end();
+
+	timer = new Timer("run_creeps", true);
+	try {
+		creepjobs.run();
+	} catch (err) {
+		console.log("Error", err.stack);
+	}
 	timer.end();
 
 	timer = new Timer("gcl_room", true);

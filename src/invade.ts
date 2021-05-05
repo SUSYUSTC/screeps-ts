@@ -281,16 +281,10 @@ export function run_invader_group_x2(invade_type: invade_types, group: type_inva
 }
 */
 
-type type_conf_boost = {
-	[key in BodyPartConstant] ?: {
-		number: number;
-		boost: MineralBoostConstant;
-	}
-}
 type type_invader_conf_levels = {
 	[key: number]: {
 		boost: {
-			[key in invade_types | "heal"]: type_conf_boost;
+			[key in invade_types | "heal"]: type_body_conf;
 		};
 		damage: number;
 	}
@@ -481,30 +475,14 @@ let invader_conf_levels: type_invader_conf_levels = {
 	}
 }
 
-function conf_boost_to_boost_request(conf: type_conf_boost): type_creep_boost_request {
-	let result: type_creep_boost_request = {};
-	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {
-		result[part] = conf[part].boost;
-	}
-	return result;
-}
-
-function conf_boost_to_body_components(conf: type_conf_boost): type_body_components {
-	let result: type_body_components = {};
-	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {
-		result[part] = conf[part].number;
-	}
-	return result;
-}
-
 export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string, rooms_path: string[], poses_path: number[]) {
 	let group = Memory.invade_groups_x2[groupname];
     let invader = Game.creeps[group.invader_name];
     let healer = Game.creeps[group.healer_name];
 	invader.memory.crossable = true;
 	healer.memory.crossable = true;
-	let invader_boost_request = conf_boost_to_boost_request(invader_conf_levels[group.invade_level].boost[group.invade_type]);
-	let healer_boost_request = conf_boost_to_boost_request(invader_conf_levels[group.invade_level].boost.heal);
+	let invader_boost_request = functions.conf_body_to_boost_request(invader_conf_levels[group.invade_level].boost[group.invade_type]);
+	let healer_boost_request = functions.conf_body_to_boost_request(invader_conf_levels[group.invade_level].boost.heal);
     let output_invader = basic_job.boost_request(invader, invader_boost_request, true);
     let output_healer = basic_job.boost_request(healer, healer_boost_request, true);
     let flag = Game.flags[flagname];
@@ -532,8 +510,8 @@ export function run_invader_group_x2(groupname: string, target_room_name: string
 global.spawn_invader_group_x2 = function(home_room_name: string, invade_type: invade_types, level: number, groupname: string): number {
 	let invader_name = "invader"+groupname+Game.time.toString();
 	let healer_name = "healer"+groupname+Game.time.toString();
-	let invader_body = conf_boost_to_body_components(invader_conf_levels[level].boost[invade_type]);
-	let heal_body = conf_boost_to_body_components(invader_conf_levels[level].boost.heal);
+	let invader_body = functions.conf_body_to_body_components(invader_conf_levels[level].boost[invade_type]);
+	let heal_body = functions.conf_body_to_body_components(invader_conf_levels[level].boost.heal);
 	global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
 	global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
 	if (Memory.invade_groups_x2 == undefined) {

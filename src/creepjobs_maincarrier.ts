@@ -7,9 +7,13 @@ import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
+import * as constants from "./constants"
 
 function movetopos_restricted(creep: Creep, pos: RoomPosition, range: number): number {
 	// target has to be in the range of working zone
+	if (creep.pos.getRangeTo(pos) <= range) {
+		return 0;
+	}
     let output = 1;
     let costmatrix = functions.get_costmatrix_road(creep.room.name).clone()
     let conf_maincarrier = config.conf_rooms[creep.room.name].maincarrier;
@@ -58,16 +62,32 @@ function move_to_working_pos(creep: Creep, conf_maincarrier: conf_maincarrier) {
     return 1;
 }
 
-function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant) {
-    if (creep.transfer(structure, resource_type) == ERR_NOT_IN_RANGE) {
+function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {next_structure ?: AnyStoreStructure, amount ?: number} = {}) {
+	let out: number;
+	if (options.amount == undefined) {
+		out = creep.transfer(structure, resource_type)
+	} else {
+		out = creep.transfer(structure, resource_type, options.amount)
+	}
+    if (out == ERR_NOT_IN_RANGE) {
         movetopos_restricted(creep, structure.pos, 1);
-    }
+    } else if (options.next_structure !== undefined) {
+        movetopos_restricted(creep, options.next_structure.pos, 1);
+	}
 }
 
-function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant) {
-    if (creep.withdraw(structure, resource_type) == ERR_NOT_IN_RANGE) {
+function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {next_structure ?: AnyStoreStructure, amount ?: number} = {}) {
+	let out: number;
+	if (options.amount == undefined) {
+		out = creep.withdraw(structure, resource_type);
+	} else {
+		out = creep.withdraw(structure, resource_type, options.amount);
+	}
+    if (out == ERR_NOT_IN_RANGE) {
         movetopos_restricted(creep, structure.pos, 1);
-    }
+    } else if (options.next_structure !== undefined) {
+        movetopos_restricted(creep, options.next_structure.pos, 1);
+	}
 }
 
 function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
@@ -75,32 +95,55 @@ function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
     let labs_status = global.memory[creep.room.name].named_structures_status.lab;
     let lab_id = labs_status.B1.id;
     let lab = Game.getObjectById(lab_id);
-    if (lab.store.getUsedCapacity("energy") < request.amount * 20) {
-        // energy is not enough
-        if (creep.memory.resource_type == undefined) {
-            withdraw(creep, creep.room.terminal, "energy");
-        } else if (creep.memory.resource_type == "energy") {
-            transfer(creep, lab, "energy");
-        } else {
-            transfer(creep, creep.room.terminal, creep.memory.resource_type);
-        }
-    } else if (lab.mineralType !== undefined && lab.mineralType !== request.compound) {
-        // mineral in lab does not match request
-        if (creep.store.getUsedCapacity() !== 0) {
-            transfer(creep, creep.room.terminal, creep.memory.resource_type);
-        } else {
-            withdraw(creep, lab, lab.mineralType);
-        }
-    } else if (lab.mineralType == undefined || lab.mineralAmount < request.amount * 30) {
-        // mineral is not enough
-        if (creep.memory.resource_type == undefined) {
-            withdraw(creep, creep.room.terminal, request.compound);
-        } else if (creep.memory.resource_type == request.compound) {
-            transfer(creep, lab, request.compound);
-        } else {
-            transfer(creep, creep.room.terminal, creep.memory.resource_type);
-        }
-    }
+	if (request.finished) {
+		if (lab.store.getUsedCapacity("energy") < 2000) {
+			if (creep.memory.resource_type == undefined) {
+				withdraw(creep, creep.room.terminal, "energy", {next_structure: lab});
+			} else if (creep.memory.resource_type == "energy") {
+				transfer(creep, lab, "energy", {next_structure: creep.room.terminal});
+			} else {
+				// wrong type
+				transfer(creep, creep.room.terminal, creep.memory.resource_type);
+			}
+		} else {
+			delete creep.room.memory.current_boost_request;
+		}
+	} else {
+		if (lab.store.getUsedCapacity("energy") < request.amount * 20) {
+			// energy is not enough
+			if (creep.memory.resource_type == undefined) {
+				withdraw(creep, creep.room.terminal, "energy", {next_structure: lab});
+			} else if (creep.memory.resource_type == "energy") {
+				transfer(creep, lab, "energy", {next_structure: creep.room.terminal});
+			} else {
+				// wrong type
+				transfer(creep, creep.room.terminal, creep.memory.resource_type);
+			}
+		} else if (lab.mineralType !== undefined && lab.mineralType !== request.compound && !Game.memory[creep.room.name].exact_boost) {
+			// mineral in lab does not match request
+			if (creep.store.getUsedCapacity() !== 0) {
+				transfer(creep, creep.room.terminal, creep.memory.resource_type);
+			} else {
+				withdraw(creep, lab, lab.mineralType, {next_structure: creep.room.terminal});
+			}
+		} else if (lab.mineralType == undefined || lab.mineralAmount < request.amount * 30 || Game.memory[creep.room.name].exact_boost) {
+			// mineral is not enough
+			if (creep.memory.resource_type == undefined) {
+				let amount: number;
+				if (Game.memory[creep.room.name].exact_boost) {
+					amount = Math.min(creep.store.getFreeCapacity(), request.amount * 30);
+				} else {
+					amount = Math.min(creep.store.getFreeCapacity(), request.amount * 30 - lab.mineralAmount);
+				}
+				withdraw(creep, creep.room.terminal, request.compound, {next_structure: lab, amount: amount});
+			} else if (creep.memory.resource_type == request.compound) {
+				transfer(creep, lab, request.compound, {next_structure: creep.room.terminal});
+			} else {
+				// wrong type
+				transfer(creep, creep.room.terminal, creep.memory.resource_type);
+			}
+		}
+	}
 }
 
 function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
@@ -109,7 +152,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
     if (_.filter(labs_status, (e) => e.finished).length == 10) {
         let source1_id = labs_status.S1.id;
         let source2_id = labs_status.S2.id;
-        let react_ids = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'].map((e) => labs_status[e].id);
+        let react_ids = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1'].map((e) => labs_status[e].id);
         let source1_lab = Game.getObjectById(source1_id);
         let source2_lab = Game.getObjectById(source2_id);
         if (creep.room.memory.reaction_ready) {
@@ -135,12 +178,12 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
             let has_enough_source = mymath.all(reactants.map((e) => creep.room.terminal.store.getUsedCapacity(e) + creep.store.getUsedCapacity(e) + temp_source_labs[e].store.getUsedCapacity(e) >= config.react_init_amount));
             for (let lab_id of react_ids) {
 				let lab = Game.getObjectById(lab_id);
-                if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= config.react_init_amount)) {
+                if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= creep.store.getCapacity())) {
 					// react labs exceeds amount or does not match
                     if (creep.store.getUsedCapacity() !== 0) {
-                        transfer(creep, creep.room.terminal, creep.memory.resource_type);
+                        transfer(creep, creep.room.terminal, creep.memory.resource_type, {next_structure: lab});
                     } else {
-                        withdraw(creep, lab, lab.mineralType);
+                        withdraw(creep, lab, lab.mineralType, {next_structure: creep.room.terminal});
                     }
 					return 0;
                 }
@@ -149,6 +192,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 delete creep.room.memory.reaction_request;
                 return 0;
             }
+			// supply the source labs
             for (let i of [0, 1]) {
                 let lab = source_labs[i];
                 let reactant = reactants[i];
@@ -160,22 +204,22 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 							movetopos_restricted(creep, creep.room.terminal.pos, 1);
 						} else if (output == ERR_NOT_ENOUGH_RESOURCES) {
 							delete creep.room.memory.reaction_request;
+						} else {
+							movetopos_restricted(creep, lab.pos, 1);
 						}
 					} else if (creep.memory.resource_type == reactant) {
-						transfer(creep, lab, reactant);
+						transfer(creep, lab, reactant, {next_structure: creep.room.terminal});
 					} else {
-						let output = creep.transfer(creep.room.terminal, creep.memory.resource_type);
-						if (output == ERR_NOT_IN_RANGE) {
-							movetopos_restricted(creep, creep.room.terminal.pos, 1);
-						}
+						// return wrong resource, so don't move
+						transfer(creep, creep.room.terminal, creep.memory.resource_type);
 					}
 					return 0;
                 } else if (lab.mineralType !== reactant){
 					// change reactant
                     if (creep.memory.resource_type == undefined) {
-                        withdraw(creep, lab, lab.mineralType);
+                        withdraw(creep, lab, lab.mineralType, {next_structure: creep.room.terminal});
                     } else {
-                        transfer(creep, creep.room.terminal, creep.memory.resource_type);
+                        transfer(creep, creep.room.terminal, creep.memory.resource_type, {next_structure: lab});
                     }
 					return 0;
                 }
@@ -309,9 +353,9 @@ function get_mineral_status(creep_amount: number, storage_amount: number, termin
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 50000 && storage_amount < 200000) {
+        if (terminal_amount + creep_amount >= 20000 && storage_amount < 200000) {
             source = "terminal";
-		} else if (terminal_amount < 20000 && storage_amount + creep_amount >= 1000) {
+		} else if (terminal_amount < 15000 && storage_amount + creep_amount > 0) {
             sink = "terminal";
         }
     }
@@ -367,8 +411,16 @@ var resource_names: {
 	"power": "P",
 	"G": "G",
 }
+
+function get_resource_name(resource: ResourceConstant): string {
+	if (resource_names[resource] !== undefined) {
+		return resource_names[resource];
+	} else {
+		return resource;
+	}
+}
 function transfer_resource(creep: Creep, resource_type: ResourceConstant, resource_status: type_resource_status) {
-    creep.say(resource_names[resource_type] + ": " + structure_names[resource_status.source] + ">" + structure_names[resource_status.sink]);
+    creep.say(get_resource_name(resource_type) + ": " + structure_names[resource_status.source] + ">" + structure_names[resource_status.sink]);
     if (creep.memory.resource_type == undefined) {
         let target = structure_from_name(creep.room.name, resource_status.source);
         let output;
@@ -395,6 +447,15 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
     return 0;
 }
 
+function get_mineral_urgent_score(storage_amount: number, terminal_amount: number): number {
+	if (terminal_amount > 20000) {
+		return terminal_amount - 20000;
+	} else if (terminal_amount < 15000 && storage_amount > 0) {
+		return Math.min(15000 - terminal_amount, storage_amount);
+	}
+	return 0;
+}
+
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.room.name];
     if (creep.memory.role == 'maincarrier') {
@@ -405,7 +466,7 @@ export function creepjob(creep: Creep): number {
         let link_id = links_status.MAIN.id;
         let link = Game.getObjectById(link_id);
         let link_energy = link.store.getUsedCapacity("energy")
-		if (link_energy == creep.room.memory.maincarrier_link_amount) {
+		if (link_energy == creep.room.memory.maincarrier_link_amount && creep.room.memory.current_boost_request == undefined) {
 			if (Game.time < creep.memory.next_time.wakeup) {
 				creep.say("sleep");
 				return 0;
@@ -459,8 +520,16 @@ export function creepjob(creep: Creep): number {
 			return 0;
         }
 
-		let name_of_this_function = "count_resource";
-        let mineral_type = Game.memory[creep.room.name].mine_status.type;
+		if (creep.memory.resource_type == undefined && (Game.time % 20 == 0 || creep.memory.mineral_type == undefined)) {
+			let scores = constants.t012_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
+			let argmax = mymath.argmax(scores);
+			if (scores[argmax] > 0) {
+				creep.memory.mineral_type = constants.t012_minerals[argmax];
+			} else { 
+				creep.memory.mineral_type = Game.memory[creep.room.name].mine_status.type
+			}
+		}
+		let mineral_type = creep.memory.mineral_type;
 
         let creep_energy = creep.store.getUsedCapacity("energy");
         let creep_power = creep.store.getUsedCapacity("power");
@@ -524,11 +593,16 @@ export function creepjob(creep: Creep): number {
             "energy": energy_status,
             "power": power_status,
             "battery": battery_status,
-            "G": G_status,
 			[mineral_type]: mineral_status,
         }
+		if (mineral_type !== "G") {
+			resources_status.G = G_status;
+		}
 
         for (let resource_type of <Array<ResourceConstant>>(["energy", "power", "G", "battery", mineral_type])) {
+			if (resources_status[resource_type] == undefined) {
+				continue;
+			}
             if (creep.memory.resource_type == undefined || creep.memory.resource_type == resource_type) {
                 let resource_status = resources_status[resource_type];
                 if (resource_status.source !== resource_status.sink) {

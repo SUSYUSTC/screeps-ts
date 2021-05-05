@@ -88,9 +88,10 @@ function get_reaction_supply(room_name: string) {
                 let argmax = mymath.argmax(terminal_amounts);
                 if (terminal_amounts[argmax] > minimum_amount * 2) {
                     let supply_room_name = supplied_rooms[argmax];
-                    console.log("Sending resource", reactant, "from", supply_room_name, "to", room_name);
-                    Game.rooms[supply_room_name].terminal.send(reactant, minimum_amount, room_name);
-                    return;
+					let out = functions.send_resource(supply_room_name, room_name, reactant, minimum_amount);
+					if (out == 0) {
+						return;
+					}
                 }
             }
         }
@@ -142,6 +143,9 @@ export function reaction(room_name: string) {
         let source1_id = labs_status.S1.id;
         let source2_id = labs_status.S2.id;
         let react_ids = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'].map((e) => labs_status[e].id);
+		if (room.memory.current_boost_request == undefined) {
+			react_ids.push(labs_status.B1.id);
+		}
         let source1_lab = Game.getObjectById(source1_id);
         let source2_lab = Game.getObjectById(source2_id);
         let react_labs = react_ids.map((e) => Game.getObjectById(e));

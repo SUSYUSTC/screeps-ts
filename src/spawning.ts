@@ -853,15 +853,15 @@ export function spawn(room_name: string) {
 			let has_spawning = mymath.any(raw_upgraders.map((e) => e.spawning));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
 			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
-			if (upgraders.length < n_upgrades_needed && energy_condition && functions.is_boost_resource_enough('GH2O', 32) && functions.is_boost_resource_enough('ZO', 8) && Game.cpu.bucket >= 9000 && !has_spawning) {
+			if (upgraders.length < n_upgrades_needed && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body) && Game.cpu.bucket >= 9000 && !has_spawning) {
 				let added_memory = {
 					"home_room_name": room_name,
 					"advanced": true,
 				};
 				let options = {
-					"n_work": 32,
-					"n_carry": 10,
-					"n_move": 8,
+					"n_work": config.gcl_upgrader_body.work.number,
+					"n_carry": config.gcl_upgrader_body.carry.number,
+					"n_move":config.gcl_upgrader_body.move.number,
 				};
 				let priority = 10;
 				let added_json = {

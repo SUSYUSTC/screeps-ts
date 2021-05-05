@@ -72,6 +72,7 @@ interface type_resource_sending_request {
     room_to: string;
     resource: ResourceConstant;
     amount: number;
+	onetime_max: number;
 }
 interface type_creep_move {
     dest: {
@@ -88,6 +89,12 @@ interface type_resource_status {
     sink: string;
     withdraw_amount: number;
     transfer_amount: number;
+}
+type type_body_conf = {
+    [key in BodyPartConstant] ? : {
+        number: number;
+        boost ? : MineralBoostConstant;
+    }
 }
 interface CreepMemory {
     _move ? : type_creep_move;
@@ -124,6 +131,7 @@ interface CreepMemory {
 	tough_conf ? : type_tough_conf;
 	heal_ability ? : number;
 	flagname ? : string;
+	mineral_type ?: GeneralMineralConstant;
 }
 interface PowerCreepMemory {
     movable ? : boolean;
@@ -462,6 +470,7 @@ type type_reaction_request = {
 type type_current_boost_request = {
     compound: MineralBoostConstant;
     amount: number;
+	finished: boolean;
 }
 
 type type_boost_status = {
@@ -480,6 +489,7 @@ type type_mine_status = {
     harvestable: boolean;
 }
 
+type type_creep_jobtypes = "home" | "external" | "maincarrier" | "combat" | "resource";
 interface Game {
     costmatrices: type_costmatrices;
     costmatrices_safe: type_costmatrices;
@@ -511,6 +521,7 @@ interface Game {
             }
             pc_source_level ? : number;
             terminal_send_requested ? : boolean;
+			exact_boost ? : boolean;
         }
     }
     creep_statistics_done: boolean;
@@ -519,6 +530,9 @@ interface Game {
             [key in type_creep_role] ? : Creep[];
         }
     }
+	creep_jobtypes : {
+		[key in type_creep_jobtypes]: Creep[];
+	}
 }
 
 type type_order_result = {
@@ -602,12 +616,13 @@ declare module NodeJS {
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
         history_orders(resource: MarketResourceConstant): type_history_order[];
-        format_objs(objs: any[]): string;
+		my_orders(): Order[];
+        format_objs(objs: any[], json: boolean): string;
         summarize_terminal(): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
-        request_resource_sending(room_from: string, room_to: string, resource: ResourceConstant, amount: number): number;
+        send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number, onetime_max: number): number;
         restrict_passing_rooms(room_name: string): CostMatrix;
         reaction_priority: type_reaction_priority
         set_product_request(resource: MineralCompoundConstant, number: number): number;

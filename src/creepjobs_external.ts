@@ -374,7 +374,7 @@ export function creepjob(creep: Creep): number {
 		let supporting_room_name = conf_map.supporting_room;
 		if (creep.room.name == supporting_room_name) {
 			if (creep.memory.advanced) {
-				if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound, "move": "ZO"}, true) == 1) {
+				if (basic_job.boost_request(creep, functions.conf_body_to_boost_request(config.gcl_upgrader_body), true) == 1) {
 					creep.say("GUb");
 					return 0;
 				}

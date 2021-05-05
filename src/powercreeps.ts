@@ -82,7 +82,7 @@ function operate_lab(pc: PowerCreep) {
 	}
 	let lab_status = global.memory[pc.room.name].named_structures_status.lab;
 	let effects_time: {[key: string]: number} = {};
-	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']) {
+	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1']) {
 		if (lab_status[lab_name].finished && lab_status[lab_name].effect_time !== undefined) {
 			effects_time[lab_name] = lab_status[lab_name].effect_time;
 		}

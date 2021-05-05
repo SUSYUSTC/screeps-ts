@@ -397,8 +397,8 @@ function detect_resources(room_name: string) {
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
             if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
                 if (room.memory.external_resources.pb[external_room_name] == undefined) {
-                    let ok_attacker = mymath.all(_.filter(config.pb_attacker_body, (e) => e.boost !== undefined).map((e) => functions.is_boost_resource_enough(e.boost, e.number)));
-                    let ok_healer = mymath.all(_.filter(config.pb_healer_body, (e) => e.boost !== undefined).map((e) => functions.is_boost_resource_enough(e.boost, e.number)));
+					let ok_attacker = functions.is_boost_resource_enough(config.pb_attacker_body);
+					let ok_healer = functions.is_boost_resource_enough(config.pb_healer_body);
 					let ok = ok_attacker && ok_healer;
                     if (!ok) {
                         continue;
@@ -528,16 +528,8 @@ function update_resources(room_name: string) {
         let pb_status = room.memory.external_resources.pb[external_room_name]
         if (pb_status.status == 0) {
             // pb detected
-            let pb_attacker_body: BodyPartConstant[] = [];
-            for (let part in config.pb_attacker_body) {
-                let num = config.pb_attacker_body[ < BodyPartConstant > part].number;
-                mymath.range(num).forEach((e) => pb_attacker_body.push( < BodyPartConstant > part));
-            }
-            let pb_healer_body: BodyPartConstant[] = [];
-            for (let part in config.pb_healer_body) {
-                let num = config.pb_healer_body[ < BodyPartConstant > part].number;
-                mymath.range(num).forEach((e) => pb_healer_body.push( < BodyPartConstant > part));
-            }
+			let pb_attacker_body = global.get_body(functions.conf_body_to_body_components(config.pb_attacker_body));
+			let pb_healer_body = global.get_body(functions.conf_body_to_body_components(config.pb_healer_body));
             let pb_attacker_memory = {
                 "home_room_name": room_name,
                 "role": "pb_attacker",
@@ -639,7 +631,7 @@ function get_power_effects(room_name: string) {
 	}
 	let room = Game.rooms[room_name];
 	let lab_status = global.memory[room_name].named_structures_status.lab;
-	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']) {
+	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1']) {
 		if (lab_status[lab_name] !== undefined && lab_status[lab_name].finished) {
 			let lab = Game.getObjectById(lab_status[lab_name].id);
 			let effect: RoomObjectEffect = undefined;
@@ -773,6 +765,13 @@ export function set_global_memory() {
     for (let room_name of config.controlled_rooms) {
         Game.memory[room_name] = {};
     }
+	Game.creep_jobtypes = {
+		home: [],
+		external: [],
+		maincarrier: [],
+		combat: [],
+		resource: [],
+	}
     for (let spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name];
         if (!("spawning_time" in spawn.memory)) {

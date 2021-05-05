@@ -235,26 +235,39 @@ global.visualize_cost = function(room_name: string, x_center: number, y_center: 
     return 0;
 }
 
-export function is_boost_resource_enough(resource: ResourceConstant, n_boost_parts: number) {
+export function is_single_boost_resource_enough(resource: ResourceConstant, n_boost_parts: number) {
     let expected_amount = (n_boost_parts * 30 + config.resources_balance[resource].gap) * (config.controlled_rooms.length - 1) + n_boost_parts * 2;
     return global.terminal_store[resource] >= expected_amount;
+}
+
+export function is_boost_resource_enough(request: type_body_conf): boolean {
+	let parts = <Array<BodyPartConstant>> Object.keys(request);
+	return mymath.all(parts.filter((e) => request[e].boost !== undefined).map((e) => is_single_boost_resource_enough(request[e].boost, request[e].number)));
 }
 
 function arrange_string(str: string, length: number): string {
     return ' '.repeat(Math.max(length - str.length, 0)) + str;
 }
 
-function obj2string(obj: any) {
-    if (isNaN(obj)) {
+function obj2string(obj: any, json: boolean) {
+	if (obj == undefined) {
+		return 'undefined';
+	} else if (typeof obj == 'object') {
+		if (json) {
+			return JSON.stringify(obj)
+		} else {
+			return obj.toString()
+		}
+	} else if (typeof obj == 'string') {
         return obj;
-    } else if (Number.isInteger(obj)) {
-        return obj.toString();
-    } else {
+    } else if (typeof obj == 'number' && !Number.isInteger(obj)) {
         return obj.toFixed(3);
+    } else {
+        return obj.toString();
     }
 }
 
-global.format_objs = function(objs: any[]): string {
+global.format_objs = function(objs: any[], json: boolean = false): string {
     let str = '\n'
 	if (objs.length == 0) {
 		return str;
@@ -262,7 +275,7 @@ global.format_objs = function(objs: any[]): string {
     let keys = Object.keys(objs[0]);
     let lengths: {[key: string]: number} = {};
     for (let key of keys) {
-        lengths[key] = mymath.max(objs.map((e) => obj2string(e[key]).length))
+        lengths[key] = mymath.max(objs.map((e) => obj2string(e[key], json).length))
         lengths[key] = Math.max(lengths[key], key.length) + 2;
     }
     for (let key of keys) {
@@ -271,8 +284,43 @@ global.format_objs = function(objs: any[]): string {
     for (let obj of objs) {
         str += '\n'
         for (let key of keys) {
-            str += arrange_string(obj2string(obj[key]), lengths[key])
+            str += arrange_string(obj2string(obj[key], json), lengths[key])
         }
     }
     return str;
 }
+
+export function send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number) {
+	// -1: terminal not existing or cooling down, 0: successful, 1: other sending already requested, 2: sending fail
+	let terminal = Game.rooms[room_from].terminal;
+	if (terminal == undefined || terminal.cooldown > 0) {
+		return -1;
+	}
+	if (Game.memory[room_from].terminal_send_requested) {
+		return 1;
+	}
+	let out = terminal.send(resource, amount, room_to);
+	if (out == 0) {
+		console.log("Sending", amount.toString(), resource, "from", room_from, "to", room_to)
+		Game.memory[room_from].terminal_send_requested = true;
+		return 0;
+	}
+	return 2;
+}
+
+export function conf_body_to_boost_request(conf: type_body_conf): type_creep_boost_request {
+	let result: type_creep_boost_request = {};
+	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {
+		result[part] = conf[part].boost;
+	}
+	return result;
+}
+
+export function conf_body_to_body_components(conf: type_body_conf): type_body_components {
+	let result: type_body_components = {};
+	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {
+		result[part] = conf[part].number;
+	}
+	return result;
+}
+

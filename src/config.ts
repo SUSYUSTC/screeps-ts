@@ -60,12 +60,6 @@ type type_conf_rooms = {
 type type_hunting = {
     [key: string]: type_conf_hunting;
 }
-type type_body_conf = {
-    [key in BodyPartConstant] ? : {
-        number: number;
-        boost ? : MineralBoostConstant;
-    }
-}
 interface type_pc_conf {
     [key: string]: {
         room_name: string;
@@ -172,7 +166,7 @@ export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 2.4e6;
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.7e7, 0.8e7, 0.9e7, 1.0e7, 1.1e7, 1.2e7];
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.7e6, 0.8e6, 0.9e6, 1.0e6, 1.1e6, 1.2e6].map((e) => e * controlled_rooms.length);
 //export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
@@ -192,7 +186,7 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 		}
 	}
 }
-export var react_init_amount: number = 1000;
+export var react_init_amount: number = 1200;
 export var react_min_amount: number = 50;
 type type_acceptable_prices = {
 	buy: {
@@ -291,6 +285,11 @@ export var resources_balance: type_resources_balance = {
 		amount: 300,
 	},
 	"GHO2": {
+		gap: 300,
+		min: 300,
+		amount: 150,
+	},
+	"KH": {
 		gap: 300,
 		min: 300,
 		amount: 150,
@@ -449,6 +448,20 @@ export var pb_healer_body: type_body_conf = {
     "move": {
         number: 20,
     }
+}
+export var gcl_upgrader_body: type_body_conf = {
+	"work": {
+		number: 40,
+		boost: "GH2O",
+	},
+	"carry": {
+		number: 5,
+		boost: "KH"
+	},
+	"move": {
+		number: 5,
+		boost: "ZO",
+	},
 }
 export var depo_last_cooldown = 20000;
 export var powered_harvester: type_powered_harvester = {

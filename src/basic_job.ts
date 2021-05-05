@@ -382,26 +382,34 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
         if (creep.pos.getRangeTo(lab) > 1) {
             movetopos(creep, lab.pos, 1, moveoptions);
         }
-        for (let temp_bodypart in request) {
-            let bodypart = < BodyPartConstant > temp_bodypart;
+        for (let bodypart of <Array<BodyPartConstant>> Object.keys(request)) {
             let n_not_boosted = number_of_specific_bodypart_not_boosted(creep, bodypart, request[bodypart])
             if (n_not_boosted == 0) {
                 continue;
             } else {
-                if (lab.mineralType == request[bodypart] && lab.store.getUsedCapacity(lab.mineralType) >= n_not_boosted * 30 && lab.store.getUsedCapacity("energy") >= n_not_boosted * 20) {
+				let mineral_left = lab.store.getUsedCapacity(lab.mineralType) - n_not_boosted * 30;
+				let energy_left = lab.store.getUsedCapacity("energy") - n_not_boosted * 20;
+                if (lab.mineralType == request[bodypart] && mineral_left >= 0 && energy_left >= 0) {
                     let output = lab.boostCreep(creep);
                     if (output == 0) {
-                        return 1;
-                    }
-                }
-                creep.room.memory.current_boost_request = {
-                    compound: request[bodypart],
-                    amount: n_not_boosted
-                };
-                return 1;
+						if (mineral_left == 0) {
+							Game.memory[creep.room.name].exact_boost = true;
+						}
+						continue;
+                    } else {
+						return 1;
+					}
+                } else {
+					creep.room.memory.current_boost_request = {
+						compound: request[bodypart],
+						amount: n_not_boosted,
+						finished: false,
+					};
+					return 1;
+				}
             }
         }
-        delete creep.room.memory.current_boost_request;
+        creep.room.memory.current_boost_request.finished = true;
         delete creep.room.memory.current_boost_creep;
         creep.memory.boost_status.boosting = false;
         creep.memory.boost_status.boost_finished = true;

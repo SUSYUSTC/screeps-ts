@@ -17,7 +17,11 @@ global.get_best_order = function(room_name: string, typ: "sell" | "buy", resourc
             scores = mymath.array_ele_minus(costs.map((e) => e * energy_price), prices);
         }
     } else {
-        scores = mymath.array_ele_plus(prices, costs.map((e) => e * energy_price));
+        if (resource == "energy") {
+            scores = mymath.array_ele_divide(prices, costs.map((e) => 1 - e));
+        } else {
+			scores = mymath.array_ele_plus(prices, costs.map((e) => e * energy_price));
+		}
     }
     let argsort = mymath.argsort(scores);
     let result: type_order_result[] = [];
@@ -36,6 +40,10 @@ global.get_best_order = function(room_name: string, typ: "sell" | "buy", resourc
 
 global.history_orders = function(resource: MarketResourceConstant): type_history_order[] {
 	return Game.market.incomingTransactions.filter((e) => e.resourceType == resource && e.order !== undefined).map((e) => <type_history_order> {time: e.time, amount: e.amount, price: e.order.price});
+}
+
+global.my_orders = function (): Order[] {
+	return <Array<Order>>Object.values(Game.market.orders).sort((a, b) => Number(a.resourceType > b.resourceType) - Number(a.resourceType < b.resourceType))
 }
 
 global.auto_buy = function(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number = 0.2): number {
