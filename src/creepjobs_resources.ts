@@ -56,7 +56,7 @@ export function creepjob(creep: Creep): number {
 				creep.say("PAm");
             } else {
                 let healer = Game.creeps[pb_status.pb_healer_name];
-                if (healer.room.name !== creep.room.name) {
+                if (healer == undefined || healer.room.name !== creep.room.name) {
 					creep.say("PAw");
                     return 0;
                 }

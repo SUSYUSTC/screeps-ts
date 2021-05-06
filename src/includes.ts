@@ -584,8 +584,7 @@ interface type_costmatrices {
 declare module NodeJS {
     interface Global {
         //Game: Game,
-        Memory: Memory,
-        _: _.LoDashStatic,
+		controlled_rooms: string[];
         basic_costmatrices: type_costmatrices,
         basic_costmatrices_safe: type_costmatrices,
         basic_costmatrices_defense: type_costmatrices,

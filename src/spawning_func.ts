@@ -326,9 +326,9 @@ global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], na
 
 global.get_body = function(components: type_body_components): BodyPartConstant[] {
 	let body: BodyPartConstant[] = [];
-	for (let part of [TOUGH, CARRY, WORK, ATTACK, RANGED_ATTACK, CLAIM, MOVE]) {
+	for (let part of [TOUGH, WORK, ATTACK, RANGED_ATTACK, HEAL, CARRY, CLAIM, MOVE]) {
 		if (components[part] !== undefined) {
-			mymath.range(components[TOUGH]).forEach((e) => body.push(part));
+			mymath.range(components[part]).forEach((e) => body.push(part));
 		}
 	}
 	return body;

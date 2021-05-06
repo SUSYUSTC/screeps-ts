@@ -31,6 +31,7 @@ import {
 	config_gcl
 } from "./config_gcl"
 import * as _ from "lodash"
+import * as constants from "./constants"
 
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
@@ -116,6 +117,7 @@ export var conf_gcl: type_conf_gcl = {
 	}
 }
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
+global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
 occupied_rooms.push(conf_gcl.conf_map.gcl_room);
 for (let room_name of controlled_rooms) {
@@ -187,6 +189,12 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 	}
 }
 export var react_init_amount: number = 1200;
+let condition1 = (constants.amount_mapping[0] >= react_init_amount);
+let condition2 = (constants.amount_mapping[1] >= react_init_amount);
+let condition3 = (constants.amount_mapping[2] >= react_init_amount);
+if (!(condition1 && condition2 && condition3)) {
+	throw Error("react_init_amount too small");
+}
 export var react_min_amount: number = 50;
 type type_acceptable_prices = {
 	buy: {
@@ -265,9 +273,9 @@ export var resources_balance: type_resources_balance = {
 		amount: 2000,
 	},
 	"GH2O": {
-		gap: 960,
-		min: 960,
-		amount: 480,
+		gap: 1200,
+		min: 1200,
+		amount: 600,
 	},
 	"LH2O": {
 		gap: 600,

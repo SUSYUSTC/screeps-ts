@@ -45,25 +45,33 @@ global.summarize_terminal = function(): type_resource_number {
 
 export function process_resource_sending_request(room_name: string) {
 	let room = Game.rooms[room_name];
-	if (room.terminal == undefined || room.terminal.cooldown > 0) {
+	if (room.terminal == undefined) {
 		return;
 	}
-	let requests = room.memory.resource_sending_request
+	let requests = room.memory.resource_sending_request;
 	if (requests == undefined || requests.length == 0) {
 		return;
 	}
-	let request = requests[requests.length - 1];
+	let request = requests.slice(-1)[0];
+	let transaction = Game.market.outgoingTransactions.find((e) => e.time < Game.time -1 || e.from == room_name);
+	if (transaction !== undefined && transaction.time == Game.time - 1 && transaction.from == room_name && transaction.to == request.room_to && transaction.resourceType == request.resource) {
+		request.amount -= Math.min(transaction.amount, request.amount);
+		if (request.amount <= 0) {
+			requests.pop();
+		}
+	}
+	if (room.terminal.cooldown > 0) {
+		return;
+	}
 	let current_amount = room.terminal.store.getUsedCapacity(request.resource);
 	if (current_amount > 0) {
-		let available_amount = Math.min(current_amount, request.amount, request.onetime_max)
-		let out = functions.send_resource(room_name, request.room_to, request.resource, available_amount);
-		if (out == 0) {
-			request.amount -= available_amount;
-			if (request.amount == 0) {
-				requests.pop();
-			}
-			return;
+		let available_amount;
+		if (request.onetime_max) {
+			available_amount = Math.min(current_amount, request.amount, request.onetime_max)
+		} else {
+			available_amount = Math.min(current_amount, request.amount)
 		}
+		functions.send_resource(room_name, request.room_to, request.resource, available_amount);
 	}
 }
 
