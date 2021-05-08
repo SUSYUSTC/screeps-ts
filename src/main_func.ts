@@ -403,6 +403,11 @@ function detect_resources(room_name: string) {
                     if (!ok) {
                         continue;
                     }
+                    let name = "pb_" + external_room_name + Game.time.toString();
+					let pb_attacker_name = "pb_attacker" + external_room_name + Game.time.toString()
+					let pb_healer_name = "pb_healer" + external_room_name + Game.time.toString()
+                    let pb_carrier_names: string[] = [];
+                    let pb_carrier_sizes: number[] = [];
                     let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
                         "pos": pb.pos,
                         "range": 1
@@ -413,7 +418,6 @@ function detect_resources(room_name: string) {
                     if (path.incomplete) {
                         continue;
                     }
-                    let name = "pb_" + Game.time.toString();
                     let rooms_path: string[] = [room_name];
                     let poses_path: number[] = [];
                     let status = 0;
@@ -429,8 +433,6 @@ function detect_resources(room_name: string) {
                         }
                     }
                     let n_moves = Math.ceil(pb.power / 100);
-                    let pb_carrier_names: string[] = [];
-                    let pb_carrier_sizes: number[] = [];
                     while (true) {
                         if (n_moves > 16) {
                             n_moves -= 16;
@@ -441,7 +443,7 @@ function detect_resources(room_name: string) {
                         }
                     }
                     for (let i = 0; i < pb_carrier_sizes.length; i++) {
-                        let pb_carrier_name = "pb_carrier" + Game.time.toString() + i.toString();
+                        let pb_carrier_name = "pb_carrier" + external_room_name + Game.time.toString() + i.toString();
                         pb_carrier_names.push(pb_carrier_name);
                     }
                     room.memory.external_resources.pb[external_room_name] = {
@@ -454,8 +456,8 @@ function detect_resources(room_name: string) {
                         "poses_path": poses_path,
                         "distance": path.cost,
                         "amount": pb.power,
-                        "pb_attacker_name": "pb_attacker" + Game.time.toString(),
-                        "pb_healer_name": "pb_healer" + Game.time.toString(),
+                        "pb_attacker_name": pb_attacker_name,
+                        "pb_healer_name": pb_healer_name,
                         "pb_carrier_names": pb_carrier_names,
                         "pb_carrier_sizes": pb_carrier_sizes,
                     }

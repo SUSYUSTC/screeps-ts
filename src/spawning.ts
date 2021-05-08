@@ -38,6 +38,7 @@ function creep_statistics() {
 		let empty: {[key in type_creep_role] ? : Creep[]} = {};
 		config.creep_roles_all.forEach((e) => empty[e] = []);
 		Game.creep_statistics[room_name] = empty;
+		Game.rooms[room_name].memory.creep_statistics = {};
 	}
 	for (let creepname in Game.creeps) {
 		let creep = Game.creeps[creepname];
@@ -50,15 +51,13 @@ function creep_statistics() {
 				room_name = creep.room.name;
 			}
 			Game.creep_statistics[room_name][role].push(creep);
+			let memory_stat = Game.rooms[room_name].memory.creep_statistics;
+			if (memory_stat[role] == undefined) {
+				memory_stat[role] = 0;
+			}
+			memory_stat[role] += 1;
 		}
 	}
-	/*
-	for (let room_name of config.controlled_rooms) {
-		for (let role of config.creep_roles_all) {
-			console.log(room_name, role, Game.creep_statistics[room_name][role].length);
-		}
-	}
-	*/
 	Game.creep_statistics_done = true;
 	timer.end();
 }
@@ -850,7 +849,7 @@ export function spawn(room_name: string) {
 		} else {
 			let raw_upgraders = room_statistics.gcl_upgrader;
 			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  config.conf_gcl.conf_map.single_distance + 150));
-			let all_successful = mymath.all(raw_upgraders.map((e) => e.room.name == gcl_room.name));
+			let all_successful = mymath.all(raw_upgraders.map((e) => e.memory.boost_status !== undefined && e.memory.boost_status.boost_finished));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
 			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
 			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body) && Game.cpu.bucket >= 9000) {

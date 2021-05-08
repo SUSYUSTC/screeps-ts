@@ -168,7 +168,7 @@ export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 2.4e6;
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.7e6, 0.8e6, 0.9e6, 1.0e6, 1.1e6, 1.2e6].map((e) => e * controlled_rooms.length);
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [0.7e6, 0.8e6, 0.9e6, 1.0e6, 1.1e6, 1.2e6, 1.4e6, 1.6e6].map((e) => e * controlled_rooms.length);
 //export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";

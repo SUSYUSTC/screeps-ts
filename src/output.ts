@@ -55,6 +55,9 @@ interface type_room_log {
 	pb_status: {
 		[key: string]: type_pb_log;
 	}
+	statistics: {
+		[key in type_creep_role] ?: number;
+	}
 }
 interface type_log {
 	time: number;
@@ -143,6 +146,7 @@ export function log() {
 			boosting: null,
 			construction_sites_progressleft: null,
 			pb_status: {},
+			statistics: {},
 		};
 		let room = Game.rooms[room_name];
 		let game_memory = Game.memory[room_name];
@@ -224,6 +228,7 @@ export function log() {
 				"amount": room.memory.external_resources.pb[external_room_name].amount,
 			}
 		}
+		room_log.statistics = room.memory.creep_statistics;
 		log.rooms[room_name] = room_log;
 	}
 	console.log("Stringified log");

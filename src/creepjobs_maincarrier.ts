@@ -493,6 +493,10 @@ export function creepjob(creep: Creep): number {
 			delete creep.memory.maincarrier_transfer_job;
 			return 0;
 		}
+		if (creep.room.memory.current_boost_creep !== undefined && Game.creeps[creep.room.memory.current_boost_creep] == undefined) {
+			delete creep.room.memory.current_boost_request;
+			delete creep.room.memory.current_boost_creep;
+		}
         if (creep.room.memory.current_boost_request !== undefined && creep.room.terminal) {
             creep.say("boost");
             boost_serve(creep, conf_maincarrier);

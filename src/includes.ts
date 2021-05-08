@@ -52,6 +52,9 @@ interface RoomMemory {
     }
     next_time ? : any;
 	military_exercise ? : boolean;
+    creep_statistics: {
+		[key in type_creep_role] ? : number;
+    }
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;

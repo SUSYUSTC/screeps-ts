@@ -72,10 +72,8 @@ export function run() {
 		let n_occ_queue1 = occ_queue1.filter((e) => e !== undefined).length;
 		let n_occ_queue2 = occ_queue2.filter((e) => e !== undefined).length;
 		if (n_occ_queue1 <= n_occ_queue2) {
-			//ready_upgraders[occ_container].say(orient_names[conf.queue1_orient]);
 			ready_upgraders[occ_container].move(conf.queue1_orient);
 		} else {
-			//ready_upgraders[occ_container].say(orient_names[conf.queue2_orient]);
 			ready_upgraders[occ_container].move(conf.queue2_orient);
 		}
 	}
@@ -90,7 +88,7 @@ export function run() {
 			do_transfer = true;
 		}
 		unique_pos = 2;
-		priority_list = [3, 2, 1];
+		priority_list = [3, 2, 1, 0];
 	} else if (room.storage !== undefined && room.storage.store.getUsedCapacity("energy") >= 5000) {
 		store = room.storage;
 		unique_pos = undefined;
@@ -115,12 +113,16 @@ export function run() {
 
 	for (let upgrader of ready_upgraders) {
 		if (upgrader.store.getUsedCapacity("energy") < upgrader.getActiveBodyparts(WORK) * 2) {
-			upgrader.withdraw(store, "energy");
+			if (store.structureType == 'terminal' && upgrader.pos.isNearTo(store)) {
+				upgrader.withdraw(store, "energy");
+			} else {
+				upgrader.withdraw(room.storage, "energy");
+			}
 		}
 	}
 	if (do_transfer) {
 		for (let upgrader of ready_upgraders) {
-			if (upgrader.pos.isNearTo(room.storage) && upgrader.store.getUsedCapacity("energy") > upgrader.getActiveBodyparts(WORK) * 2) {
+			if (upgrader.pos.isNearTo(room.storage) && upgrader.pos.isNearTo(room.terminal) && upgrader.store.getFreeCapacity("energy") <= upgrader.getActiveBodyparts(WORK)) {
 				upgrader.transfer(room.storage, "energy", upgrader.store.getUsedCapacity("energy") - upgrader.getActiveBodyparts(WORK) * 2);
 			}
 		}
