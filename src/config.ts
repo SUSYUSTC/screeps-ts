@@ -160,6 +160,8 @@ export var pc_conf: type_pc_conf = {
     },
 }
 export var hunting: type_hunting = {};
+export var source_container_upper_limit: number = 1200;
+export var source_container_lower_limit: number = 800;
 export var link_transfer_to_main_gap: number = 800;
 export var link_transfer_from_main_gap: number = 600;
 export var main_link_amount_source: number = 800;
@@ -213,7 +215,7 @@ type type_acceptable_prices = {
 export var acceptable_prices: type_acceptable_prices = {
 	"buy": {
 		"U": {
-			price: 0.4,
+			price: 0.6,
 			interval: 1000,
 		},
 		"L": {
@@ -241,11 +243,11 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: 1000,
 		},
 		"energy": {
-			price: 0.4,
+			price: 0.3,
 			interval: 3000,
 		},
 		"battery": {
-			price: 4.0,
+			price: 3.2,
 			interval: 3000,
 		}
 	},
@@ -335,12 +337,11 @@ export var protected_sources: {
 export var highway_resources: {
     [key: string]: string[]
 } = {
-    "E16N58": ['E17N60', 'E18N60', 'E19N60', 'E20N60'],
     "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
     "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59'],
     "E14N51": ['E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
-    "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60'],
+    "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60', 'E20N60'],
 	"E9N54": ['E10N51', 'E10N52', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];

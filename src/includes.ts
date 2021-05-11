@@ -268,6 +268,12 @@ interface conf_external_rooms {
         powered_source ? : type_external_powered_source;
     }
 }
+interface type_pb_log {
+	home_room_name: string;
+	external_room_name: string;
+    amount: number;
+	amount_received: number;
+}
 interface type_pb_status {
     name: string;
     id: Id < StructurePowerBank > ;
@@ -281,7 +287,9 @@ interface type_pb_status {
     pb_healer_name: string;
     pb_carrier_names: string[];
     pb_carrier_sizes: number[];
+    n_pb_carrier_finished: number;
     amount: number;
+	amount_received: number;
 }
 interface type_depo_status {
     name: string;
@@ -384,6 +392,28 @@ interface type_invader_group_x2 {
 	home_room_name: string;
 }
 
+type type_order_total_amount = {
+	buy: {
+		[key in MarketResourceConstant] ?: number;
+	};
+	sell: {
+		[key in MarketResourceConstant] ?: number;
+	};
+}
+type type_market_stat = {
+	buy: {
+		[key in MarketResourceConstant] ?: {
+			tot_number: number,
+			tot_price: number,
+		}
+	};
+	sell: {
+		[key in MarketResourceConstant] ?: {
+			tot_number: number,
+			tot_price: number,
+		}
+	};
+}
 interface Memory {
     creeps: {
         [name: string]: CreepMemory
@@ -412,10 +442,15 @@ interface Memory {
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
 	}
+	pb_log ? : {
+		[key: string]: type_pb_log;
+	}
 	invade_costmatrices ?: {[key: string]: number[]};
 	invade_groups_x2 ?: {
 		[key: string]: type_invader_group_x2;
-	}
+	};
+	market_accumulation_stat: type_market_stat;
+	stat_reset_time: number;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -620,6 +655,8 @@ declare module NodeJS {
         history_orders(resource: MarketResourceConstant): type_history_order[];
 		my_orders(): Order[];
         format_objs(objs: any[], json: boolean): string;
+        format_json(obj: any, json: boolean): string;
+        format_json2(obj: any, json: boolean): string;
         summarize_terminal(): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
@@ -638,5 +675,10 @@ declare module NodeJS {
 		get_tough_conf(creep: Creep): type_tough_conf;
 		get_body(components: type_body_components): BodyPartConstant[];
 		spawn_invader_group_x2(home_room_name: string, invade_type: invade_types, level: number, groupname: string): number;
+		is_pos_accessable(pos: RoomPosition): boolean;
+		reset_market_stat(): number;
+		get_market_stat(): type_order_total_amount;
+		init_stat(): number;
+		display_stat(): string;
     }
 }

@@ -164,6 +164,12 @@ export function creepjob(creep: Creep): number {
 			creep.say("EHe");
 		} else {
 			let pos = creep.room.getPositionAt(conf_external.harvester_pos[0], conf_external.harvester_pos[1]);
+			if (creep.pos.getRangeTo(pos) == 1) {
+				let container = <StructureContainer> pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
+				if (container !== undefined && basic_job.discard_useless_from_container(creep, container, "energy") == 0) {
+					return 0;
+				}
+			}
 			if (basic_job.trymovetopos(creep, pos) !== 2) {
 				creep.say("EHm");
 				return 0;

@@ -124,7 +124,11 @@ function operate_extension(pc: PowerCreep) {
 }
 
 export function work(pc: PowerCreep) {
-	if (pc == undefined || pc.room == undefined) {
+	if (pc == undefined) {
+		return;
+	}
+	if (pc.room == undefined) {
+		console.log(`Warning: pc ${pc.name} does not exist at time ${Game.time}`);
 		return;
 	}
 	pc.memory.movable = false;

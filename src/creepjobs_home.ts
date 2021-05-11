@@ -52,6 +52,9 @@ export function creepjob(creep: Creep): number {
             }
             container_source = Game.getObjectById(conf_container_source.id);
         }
+		if (basic_job.discard_useless_from_container(creep, container_source, "energy") == 0) {
+			return 0;
+		}
 		if (basic_job.trymovetopos(creep, container_source.pos, moveoptions_noset) !== 2) {
 			creep.say("Hm")
 			return 0;
@@ -69,13 +72,18 @@ export function creepjob(creep: Creep): number {
 		creep.say("Hh")
 		let harvest_rate = creep.getActiveBodyparts(WORK) * 2;
         if (link_mode) {
-            if (container_source.store.getUsedCapacity("energy") > 1600 && creep.store.getUsedCapacity("energy") <= harvest_rate) {
+			let container_amount = container_source.store.getUsedCapacity("energy");
+			let creep_amount = creep.store.getUsedCapacity("energy");
+			if (container_amount == 2000) {
+				console.log(`Warning: Source ${creep.memory.source_name} at room ${creep.room.name} overflows at time ${Game.time}`);
+			}
+            if (container_amount >= config.source_container_upper_limit && creep_amount <= harvest_rate) {
                 creep.withdraw(container_source, "energy");
 				creep.say("Hw")
-            } else if (creep.store.getFreeCapacity() < harvest_rate && container_source.store.getUsedCapacity("energy") >= 1200) {
+            } else if (creep.store.getFreeCapacity() < harvest_rate && container_amount >= config.source_container_lower_limit) {
                 creep.transfer(link_source, "energy");
 				creep.say("Ht")
-            }
+			}
         }
         return 0;
     } else if (creep.memory.role == 'transferer') {
@@ -198,12 +206,15 @@ export function creepjob(creep: Creep): number {
         }
         let xy = conf.containers.MINE.pos;
         let pos = creep.room.getPositionAt(xy[0], xy[1]);
+        let mine = Game.getObjectById(conf.mine);
+        let mine_container = Game.getObjectById(containers_status.MINE.id);
+		if (basic_job.discard_useless_from_container(creep, mine_container, Game.memory[creep.room.name].mine_status.type) == 0) {
+			return 0;
+		}
 		if (basic_job.trymovetopos(creep, pos, moveoptions_noset) !== 2) {
 			creep.say("MHm");
 			return 0;
 		}
-        let mine = Game.getObjectById(conf.mine);
-        let mine_container = Game.getObjectById(containers_status.MINE.id);
         basic_job.harvest_source(creep, mine);
 		creep.say("MHh");
         return 0;

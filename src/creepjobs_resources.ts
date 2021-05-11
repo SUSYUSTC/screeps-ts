@@ -10,6 +10,10 @@ var moveoptions = {
     maxRooms: 1,
     costCallback: functions.avoid_exits,
 };
+
+function modify_poses_path(creep: Creep) {
+}
+
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.memory.home_room_name];
     var game_memory = Game.memory[creep.memory.home_room_name];
@@ -65,7 +69,7 @@ export function creepjob(creep: Creep): number {
                         creep.memory.ready = true;
                         creep.attack(pb);
 						creep.say("PAa1");
-                    } else if (creep.ticksToLive < 5 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
+                    } else if (creep.ticksToLive < 3 || healer.ticksToLive < 3 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
                         creep.attack(pb);
 						creep.say("PAa2");
                     }
@@ -165,13 +169,17 @@ export function creepjob(creep: Creep): number {
 				creep.memory.movable = true;
 				creep.say("PCe1");
             } else {
-				basic_job.transfer(creep, creep.room.terminal, {sourcetype: "power"});
+				let out = basic_job.transfer(creep, creep.room.terminal, {sourcetype: "power"});
+				if (out == 0) {
+					pb_status.amount_received += creep.store.getUsedCapacity("power");
+				}
 				creep.say("PCt");
             }
             return 0;
         }
         if (creep.memory.ready && creep.room.name == creep.memory.home_room_name) {
 			creep.say("PCd");
+			pb_status.n_pb_carrier_finished += 1;
             creep.suicide();
         }
         if (creep.room.name !== target_room) {

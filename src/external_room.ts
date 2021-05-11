@@ -5,37 +5,24 @@ import * as basic_job from "./basic_job"
 import { Timer } from "./timer";
 
 export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: any = {}) {
+	// -1: error, 0: normal success, 1: already done, 2: correcting path
 	let timer = new Timer("movethroughrooms", false);
     if (rooms_path.length != poses_path.length + 1) {
-        throw Error("Unexpected length of arguments")
+        console.log(`Warning: Unexpected length of arguments in movethroughrooms for creep ${creep.name} at ${creep.room.name} at time ${Game.time}`);
+		return -1;
     }
     if (!(rooms_path.includes(creep.room.name))) {
-        console.log(creep.name, "is missing in a unknown room")
+        console.log(`Warning: Creep ${creep.name} is missing in a unknown room ${creep.room.name} at time ${Game.time}`);
 		timer.end();
-        return;
+        return -1;
     }
-	//var room_info = room_list.room_list.rooms[creep.room.name];
     let arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
     if (arg == rooms_path.length - 1) {
         let room1_coor = functions.room2coor(rooms_path[arg - 1]);
         let room2_coor = functions.room2coor(rooms_path[arg]);
-        let coor_diff = mymath.array_ele_minus(room2_coor, room1_coor);
-        let standpoint_xy;
+        let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
         let pos = poses_path[arg - 1];
-        if (coor_diff[0] == 0) {
-            if (coor_diff[1] == 1) {
-                standpoint_xy = [pos, 1];
-            } else {
-                standpoint_xy = [pos, 48];
-            }
-        }
-        else {
-            if (coor_diff[1] == 1) {
-                standpoint_xy = [1, pos];
-            } else {
-                standpoint_xy = [48, pos];
-            }
-        }
+        let standpoint_xy = functions.get_exit_xy(coor_diff, pos, [1, 48]);
         if (creep.pos.x == standpoint_xy[0] && creep.pos.y == standpoint_xy[1]) {
 			timer.end();
             return 1;
@@ -48,25 +35,25 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
             return 0;
         }
     } else {
+		let return_value = 0;
         let room1_coor = functions.room2coor(rooms_path[arg]);
         let room2_coor = functions.room2coor(rooms_path[arg + 1]);
-        let coor_diff = mymath.array_ele_minus(room2_coor, room1_coor);
+        let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
         let pos = poses_path[arg];
-        let exit_xy;
-        if (coor_diff[0] == 0) {
-            if (coor_diff[1] == 1) {
-                exit_xy = [pos, 49];
-            } else {
-                exit_xy = [pos, 0];
-            }
-        }
-        else {
-            if (coor_diff[0] == 1) {
-                exit_xy = [49, pos];
-            } else {
-                exit_xy = [0, pos];
-            }
-        }
+        let exit_xy = functions.get_exit_xy(coor_diff, pos, [49, 0]);
+		let walls = creep.room.getPositionAt(exit_xy[0], exit_xy[1]).lookFor("structure").filter((e) => e.structureType == 'constructedWall');
+		if (walls.length > 0) {
+			let findconstant = functions.coordiff_to_exitconstant(coor_diff);
+			let exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
+			let distances = exits.map((e) => e.getRangeTo(exit_xy[0], exit_xy[1]));
+			let argmin = mymath.argmin(distances);
+			let exit_pos = exits[argmin]
+			exit_xy = [exit_pos.x, exit_pos.y];
+			let correct_pos = exit_xy.filter((e) => e > 0 && e < 49)[0];
+			poses_path[arg] = correct_pos;
+			console.log("Invalid exit position detected. Automatically change to closest position");
+			return_value = 2;
+		}
         let creeps_at_exit = creep.room.lookForAt("creep", exit_xy[0], exit_xy[1]);
         if (creep.pos.getRangeTo(exit_xy[0], exit_xy[1]) < 3 && creeps_at_exit.length > 0 && creeps_at_exit[0].name !== creep.name) {
 			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
@@ -82,7 +69,7 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 			}
         }
 		timer.end();
-        return 0;
+        return return_value;
     }
 }
 

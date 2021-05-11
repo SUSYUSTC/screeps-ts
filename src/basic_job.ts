@@ -344,6 +344,12 @@ export function return_energy_before_die(creep: Creep, moveoptions: type_movetop
         creep.suicide();
         return 0;
     } else {
+		if (creep.room.storage !== undefined) {
+            transfer(creep, creep.room.storage, {
+                moveoptions: moveoptions
+            });
+			return 0;
+		}
         let linkcontainer = select_linkcontainer(creep, {min_energy: 0});
         if (linkcontainer !== null && ( < GeneralStore > linkcontainer.store).getFreeCapacity("energy") > 0) {
             transfer(creep, linkcontainer, {
@@ -480,7 +486,7 @@ export function repair_container(creep: Creep, container: StructureContainer = u
     if (container == undefined) {
         return 2;
     }
-    if (container.hitsMax - container.hits >= 100000 && creep.store.getUsedCapacity("energy") >= creep.getActiveBodyparts(WORK) * 5) {
+    if (container.hitsMax - container.hits >= 10000 && creep.store.getUsedCapacity("energy") >= creep.getActiveBodyparts(WORK) * 5) {
         creep.repair(container);
         return 0;
     }
@@ -541,6 +547,29 @@ export function repair_road(creep: Creep, options: {
         return 0;
     }
     return 1;
+}
+
+export function discard_useless_from_container(creep: Creep, container: StructureContainer, resource_to_keep: ResourceConstant): number {
+	// 0: working, 1: no work needed, 2: distance is not 1
+	if (creep.pos.getRangeTo(container) !== 1) {
+		return 2;
+	}
+	if (creep.store.getUsedCapacity(resource_to_keep) > 0) {
+		console.log(`Wanring: creep ${creep.name} at room ${creep.room.name} have resource to keep when discarding useless resources`);
+		return 1;
+	}
+	if (creep.store.getUsedCapacity() > 0) {
+		let current_resource = _.filter(<Array<ResourceConstant>> Object.keys(creep.store), (e) => creep.store[e] > 0)[0];
+		creep.drop(current_resource);
+		return 0;
+	}
+	for (let key of <Array<ResourceConstant>>(Object.keys(container.store))) {
+		if (key !== resource_to_keep) {
+			creep.withdraw(container, key);
+			return 0;
+		}
+	}
+	return 1;
 }
 export function get_structure_from_carry_end(creep: Creep, carry_end: {
     type: string,

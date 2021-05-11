@@ -42,8 +42,25 @@ global.history_orders = function(resource: MarketResourceConstant): type_history
 	return Game.market.incomingTransactions.filter((e) => e.resourceType == resource && e.order !== undefined).map((e) => <type_history_order> {time: e.time, amount: e.amount, price: e.order.price});
 }
 
+function order_score_sort(order1: Order, order2: Order): number {
+	if (order1.type !== order2.type) {
+		if (order1.type == 'sell') {
+			return 1;
+		} else {
+			return -1;
+		}
+	}
+	if (order1.resourceType.length !== order2.resourceType.length) {
+		return order1.resourceType.length - order2.resourceType.length;
+	}
+	if (order1.resourceType > order2.resourceType) {
+		return 1;
+	} else {
+		return -1;
+	}
+}
 global.my_orders = function (): Order[] {
-	return <Array<Order>>Object.values(Game.market.orders).sort((a, b) => Number(a.resourceType > b.resourceType) - Number(a.resourceType < b.resourceType))
+	return <Array<Order>>Object.values(Game.market.orders).sort((a, b) => order_score_sort(a, b));
 }
 
 global.auto_buy = function(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number = 0.2): number {
@@ -278,7 +295,7 @@ global.auto_supply_from_market = function(room_name: string, resource: ResourceC
     return 0;
 }
 
-export function auto_supply_basic_minerals(room_name: string) {
+export function auto_supply_resources(room_name: string) {
     let room = Game.rooms[room_name];
     if (Game.time % 200 !== 0 || room == undefined || room.storage == undefined || room.terminal == undefined || Game.memory[room_name] == undefined || Game.memory[room_name].mine_status == undefined) {
         return 1;
@@ -286,7 +303,75 @@ export function auto_supply_basic_minerals(room_name: string) {
     if (room.controller.level == 8) {
         let mineral = Game.memory[room_name].mine_status.type
         global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
-        global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
-        global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
+		if (Memory.total_energies <= 1.2e7) {
+			global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
+			global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
+		}
     }
+}
+
+function order_stat(): type_order_total_amount {
+	let order_total_amount: type_order_total_amount = {
+		sell: {}, 
+		buy: {},
+	};
+	for (let order of <Array<Order>> Object.values(Game.market.orders)) {
+		if (order_total_amount[<"sell" | "buy" >order.type][order.resourceType] == undefined) {
+			order_total_amount[<"sell" | "buy" >order.type][order.resourceType] = order.remainingAmount;
+		} else {
+			order_total_amount[<"sell" | "buy" >order.type][order.resourceType] += order.remainingAmount;
+		}
+	}
+	return order_total_amount;
+}
+
+global.reset_market_stat = function(): number {
+	Memory.market_accumulation_stat = {
+		sell: {},
+		buy: {},
+	}
+	return 0;
+}
+
+export function market_stat() {
+	if (Game.time % 50 !== 0) {
+		return;
+	}
+	for (let transaction of Game.market.incomingTransactions) {
+		if (transaction.time < Game.time - 50) {
+			break;
+		}
+		if (transaction.order == undefined) {
+			continue;
+		}
+		let order = transaction.order;
+		if (Memory.market_accumulation_stat.buy[transaction.resourceType] == undefined) {
+			Memory.market_accumulation_stat.buy[transaction.resourceType] = {
+				tot_number: 0,
+				tot_price: 0,
+			}
+		}
+		let stat = Memory.market_accumulation_stat.buy[transaction.resourceType];
+		stat.tot_number += transaction.amount;
+		stat.tot_price += transaction.amount * order.price;
+	}
+
+	for (let transaction of Game.market.outgoingTransactions) {
+		if (transaction.time < Game.time - 50) {
+			break;
+		}
+		if (transaction.order == undefined) {
+			continue;
+		}
+		let order = transaction.order;
+		if (Memory.market_accumulation_stat.sell[transaction.resourceType] == undefined) {
+			Memory.market_accumulation_stat.sell[transaction.resourceType] = {
+				tot_number: 0,
+				tot_price: 0,
+			}
+		}
+		let stat = Memory.market_accumulation_stat.sell[transaction.resourceType];
+		stat.tot_number += transaction.amount;
+		stat.tot_price += transaction.amount * order.price;
+	}
 }

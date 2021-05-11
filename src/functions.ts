@@ -12,7 +12,7 @@ export function signed_number(num: number, sign: number): number {
         return 0 - num;
     }
 }
-export function room2coor(room: string): number[] {
+export function room2coor(room: string): [number, number] {
     let pos = []
     let sign = []
     let str = room;
@@ -38,6 +38,38 @@ export function room2coor(room: string): number[] {
     pos.push(parseInt(split[0]))
     pos.push(parseInt(split[1]))
     return [signed_number(pos[0], sign[0]), signed_number(pos[1], sign[1])];
+}
+
+export function coordiff_to_exitconstant(coor_diff: [number, number]): ExitConstant {
+	if (coor_diff[0] == 0) {
+		if (coor_diff[1] == 1) {
+			return FIND_EXIT_BOTTOM
+		} else {
+			return FIND_EXIT_TOP
+		}
+	}
+	else {
+		if (coor_diff[0] == 1) {
+			return FIND_EXIT_RIGHT
+		} else {
+			return FIND_EXIT_LEFT
+		}
+	}
+}
+
+var exitconstant_to_pos: {[key in ExitConstant]: [number, number]} = {
+	[FIND_EXIT_BOTTOM]: [0, 0],
+	[FIND_EXIT_TOP]: [0, 1],
+	[FIND_EXIT_RIGHT]: [1, 0],
+	[FIND_EXIT_LEFT]: [1, 1],
+}
+
+export function get_exit_xy(coor_diff: [number, number], pos: number, poses: [number, number]){
+	let [pos_index, poses_index] = exitconstant_to_pos[coordiff_to_exitconstant(coor_diff)];
+	let exit_xy: [number, number] = [undefined, undefined];
+	exit_xy[pos_index] = pos;
+	exit_xy[1-pos_index] = poses[poses_index];
+	return exit_xy;
 }
 
 export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
@@ -268,7 +300,7 @@ function obj2string(obj: any, json: boolean) {
 }
 
 global.format_objs = function(objs: any[], json: boolean = false): string {
-    let str = '\n'
+    let str = '\n'	
 	if (objs.length == 0) {
 		return str;
 	}
@@ -288,6 +320,24 @@ global.format_objs = function(objs: any[], json: boolean = false): string {
         }
     }
     return str;
+}
+
+global.format_json = function(obj: any, json: boolean = false): string {
+	let arr: any[] = [];
+	for (let key of Object.keys(obj)) {
+		let item: any = {...{keyname: key}, ...{value: obj[key]}};
+		arr.push(item);
+	}
+	return global.format_objs(arr, json);
+}
+
+global.format_json2 = function(obj: any, json: boolean = false): string {
+	let arr: any[] = [];
+	for (let key of Object.keys(obj)) {
+		let item: any = {...{keyname: key}, ...(_.clone(obj[key]))};
+		arr.push(item);
+	}
+	return global.format_objs(arr, json);
 }
 
 export function send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number) {
@@ -324,3 +374,20 @@ export function conf_body_to_body_components(conf: type_body_conf): type_body_co
 	return result;
 }
 
+global.init_stat = function(): number {
+	global.reset_market_stat();
+	Memory.reaction_log = {};
+	Memory.pb_log = {}
+	Memory.stat_reset_time = Game.time;
+	return 0;
+}
+
+global.display_stat = function(): string {
+	let str:string = '';
+	str += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${Game.time - Memory.stat_reset_time} in total\n`;
+	str += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, true);
+	str += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, true);
+	str += '\npb stat' + global.format_json2(Memory.pb_log, true);
+	str += '\nreaction stat' + global.format_json(Memory.reaction_log, true);
+	return str;
+}

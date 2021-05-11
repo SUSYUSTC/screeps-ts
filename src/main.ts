@@ -179,13 +179,14 @@ module.exports.loop = function() {
 	try {
 		market.clear_used();
 		market.regulate_all_order_prices();
+		market.market_stat();
 	} catch (err) {
 		console.log("Error", err.stack);
 	}
 
     for (var room_name of config.controlled_rooms) {
 		try {
-			market.auto_supply_basic_minerals(room_name);
+			market.auto_supply_resources(room_name);
 			market.process_buy_order(room_name);
 			market.process_sell_order(room_name);
 		} catch (err) {

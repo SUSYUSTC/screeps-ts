@@ -74,6 +74,9 @@ function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: Res
     } else if (options.next_structure !== undefined) {
         movetopos_restricted(creep, options.next_structure.pos, 1);
 	}
+	if (out !== ERR_NOT_IN_RANGE && out !== OK) {
+		console.log(`Warning: transfer fail with return code ${out} for maincarrier at room ${creep.room.name} at time {Game.time}`);
+	}
 }
 
 function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {next_structure ?: AnyStoreStructure, amount ?: number} = {}) {
@@ -87,6 +90,9 @@ function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: Res
         movetopos_restricted(creep, structure.pos, 1);
     } else if (options.next_structure !== undefined) {
         movetopos_restricted(creep, options.next_structure.pos, 1);
+	}
+	if (out !== ERR_NOT_IN_RANGE && out !== OK) {
+		console.log(`Warning: withdraw fail with return code ${out} for maincarrier at room ${creep.room.name} at time {Game.time}`);
 	}
 }
 
@@ -494,6 +500,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (creep.room.memory.current_boost_creep !== undefined && Game.creeps[creep.room.memory.current_boost_creep] == undefined) {
+			console.log(`Warning: delete boost request of non-existant creep ${creep.room.memory.current_boost_creep} at room ${creep.room.name} at time ${Game.time}`);
 			delete creep.room.memory.current_boost_request;
 			delete creep.room.memory.current_boost_creep;
 		}

@@ -351,6 +351,9 @@ export function defend_home(room_name: string) {
         "move": "ZO"
     }, true) == 0);
     let room_towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
+	if (room_towers.filter((e) => e.store.getUsedCapacity("energy") <= 50).length > 0) {
+		console.log(`Warning: Some towers are draining at room ${room_name} at time ${Game.time}`);
+	}
     let damages: number[] = [];
     for (let i = 0; i < enemies.length; i++) {
         let amount = 0;

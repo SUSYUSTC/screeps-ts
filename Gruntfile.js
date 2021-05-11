@@ -8,7 +8,7 @@ module.exports = function(grunt) {
                     target: 'es5',
                     rootDir: "src/"
                 },
-                src: ["src/*.ts"],
+                src: ["src/*.ts", "!src/index.ts"],
                 outDir: 'dist/'
             }
         }

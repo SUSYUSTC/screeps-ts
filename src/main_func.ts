@@ -148,7 +148,7 @@ function update_link_and_container(room_name: string) {
     for (let source_name of ['S1', 'S2']) {
         if (link_modes.includes(source_name)) {
             let this_container = Game.getObjectById(containers_status[source_name].id);
-            if (this_container !== null && this_container.store.getUsedCapacity("energy") >= 800) {
+            if (this_container !== null && this_container.store.getUsedCapacity("energy") >= config.source_container_lower_limit) {
                 game_memory.are_links_source[source_name] = true;
             }
         }
@@ -345,6 +345,17 @@ function set_danger_mode(room_name: string) {
     }
 }
 
+function is_pos_accessable(pos: RoomPosition): boolean {
+	let room = Game.rooms[pos.roomName];
+	let xmin = Math.min(25, pos.x);
+	let xmax = Math.max(25, pos.x);
+	let ymin = Math.min(25, pos.y);
+	let ymax = Math.max(25, pos.y);
+	let n_walls = room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).filter((e) => e.structure.structureType == 'constructedWall').length;
+	return n_walls == 0;
+}
+global.is_pos_accessable = is_pos_accessable;
+
 function detect_resources(room_name: string) {
     if (Memory.pb_cooldown_time == undefined) {
         Memory.pb_cooldown_time = 0;
@@ -397,15 +408,20 @@ function detect_resources(room_name: string) {
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
             if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
                 if (room.memory.external_resources.pb[external_room_name] == undefined) {
+					let accessable = is_pos_accessable(pb.pos);
+					if (!accessable) {
+						continue;
+					}
 					let ok_attacker = functions.is_boost_resource_enough(config.pb_attacker_body);
 					let ok_healer = functions.is_boost_resource_enough(config.pb_healer_body);
 					let ok = ok_attacker && ok_healer;
                     if (!ok) {
+						console.log(`Warning: Boost resource not enough when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
                         continue;
                     }
-                    let name = "pb_" + external_room_name + Game.time.toString();
-					let pb_attacker_name = "pb_attacker" + external_room_name + Game.time.toString()
-					let pb_healer_name = "pb_healer" + external_room_name + Game.time.toString()
+                    let name = "pb_" + external_room_name + '_' + Game.time.toString();
+					let pb_attacker_name = "pb_attacker" + external_room_name + '_' + Game.time.toString()
+					let pb_healer_name = "pb_healer" + external_room_name + '_' + Game.time.toString()
                     let pb_carrier_names: string[] = [];
                     let pb_carrier_sizes: number[] = [];
                     let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
@@ -420,7 +436,6 @@ function detect_resources(room_name: string) {
                     }
                     let rooms_path: string[] = [room_name];
                     let poses_path: number[] = [];
-                    let status = 0;
                     for (let pos of path.path) {
                         if (pos.roomName != rooms_path[rooms_path.length - 1]) {
                             rooms_path.push(pos.roomName);
@@ -443,23 +458,25 @@ function detect_resources(room_name: string) {
                         }
                     }
                     for (let i = 0; i < pb_carrier_sizes.length; i++) {
-                        let pb_carrier_name = "pb_carrier" + external_room_name + Game.time.toString() + i.toString();
+                        let pb_carrier_name = "pb_carrier" + external_room_name + '_' + Game.time.toString() + i.toString();
                         pb_carrier_names.push(pb_carrier_name);
                     }
                     room.memory.external_resources.pb[external_room_name] = {
                         "name": name,
                         "xy": [pb.pos.x, pb.pos.y],
                         "id": pb.id,
-                        "status": status,
+                        "status": 0,
                         "time_last": 0,
                         "rooms_path": rooms_path,
                         "poses_path": poses_path,
                         "distance": path.cost,
                         "amount": pb.power,
+						"amount_received": 0,
                         "pb_attacker_name": pb_attacker_name,
                         "pb_healer_name": pb_healer_name,
                         "pb_carrier_names": pb_carrier_names,
                         "pb_carrier_sizes": pb_carrier_sizes,
+                        "n_pb_carrier_finished": 0,
                     }
                     Memory.pb_cooldown_time = 500;
                 }
@@ -568,14 +585,20 @@ function update_resources(room_name: string) {
         } else if (pb_status.status == 2) {
             // carrier spawned
             pb_status.time_last += 1;
-            if (pb_status.time_last >= 2000) {
-                delete room.memory.external_resources.pb[external_room_name]
-            }
-        } else if (pb_status.status == 3) {
-            if (Game.time % 100 == 50) {
-                if (Game.getObjectById(pb_status.id) == undefined) {
-                    delete room.memory.external_resources.pb[external_room_name]
-                }
+            if (pb_status.time_last >= 2000 || pb_status.n_pb_carrier_finished == pb_status.pb_carrier_names.length) {
+				if (Memory.pb_log == undefined) {
+					Memory.pb_log = {};
+				}
+				Memory.pb_log[pb_status.name] = {
+					"home_room_name": room_name,
+					"external_room_name": external_room_name,
+					"amount": pb_status.amount,
+					"amount_received": pb_status.amount_received,
+				};
+				if (pb_status.amount - pb_status.amount_received >= 100) {
+					console.log(`Warning: unexpected pb mining ${pb_status.name}`);
+				}
+                delete room.memory.external_resources.pb[external_room_name];
             }
         }
     }
