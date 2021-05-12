@@ -203,17 +203,9 @@ function process_product_request(obj: GeneralMineralConstant, amount: number) {
 }
 
 global.reset_product_request = function(): number {
-    if (Memory.final_product_request == undefined) {
-        Memory.final_product_request = {};
-    }
-	for (let resource of <Array<GeneralMineralConstant>>Object.keys(Memory.final_product_request)) {
-		if (Memory.final_product_request[resource] <= 0) {
-			delete Memory.final_product_request[resource];
-		}
-	}
     let terminal_amounts = _.clone(global.terminal_store);
     Memory.product_request = {};
-	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(Memory.final_product_request);
+	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(config.final_product_request);
 	let n_store_rooms = Object.keys(config.mineral_storage_room).length;
 	for (let resource of request_final_products) {
         let reactants = get_all_reactants(resource);
@@ -225,7 +217,7 @@ global.reset_product_request = function(): number {
 		}
     }
     for (let resource of request_final_products) {
-		process_product_request(resource, Memory.final_product_request[resource]);
+		process_product_request(resource, config.final_product_request[resource]);
     }
     return 0;
 }

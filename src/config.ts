@@ -28,7 +28,7 @@ import {
     conf_E9N54
 } from "./config_E9N54"
 import {
-	config_gcl
+    config_gcl
 } from "./config_gcl"
 import * as _ from "lodash"
 import * as constants from "./constants"
@@ -36,19 +36,20 @@ import * as constants from "./constants"
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 conf_E16N58.external_rooms.E17N58.active = true;
+
 function direction2orient(pos: number[]) {
-	if (pos[0] == 0 && pos[1] == 1) {
-		return BOTTOM;
-	}
-	if (pos[0] == 0 && pos[1] == -1) {
-		return TOP;
-	}
-	if (pos[0] == 1 && pos[1] == 0) {
-		return RIGHT;
-	}
-	if (pos[0] == -1 && pos[1] == 0) {
-		return LEFT;
-	}
+    if (pos[0] == 0 && pos[1] == 1) {
+        return BOTTOM;
+    }
+    if (pos[0] == 0 && pos[1] == -1) {
+        return TOP;
+    }
+    if (pos[0] == 1 && pos[1] == 0) {
+        return RIGHT;
+    }
+    if (pos[0] == -1 && pos[1] == 0) {
+        return LEFT;
+    }
 }
 config_gcl.queue1_orient = direction2orient(config_gcl.queue1_direction);
 config_gcl.queue2_orient = direction2orient(config_gcl.queue2_direction);
@@ -65,9 +66,9 @@ interface type_pc_conf {
     [key: string]: {
         room_name: string;
         source: boolean;
-		normal_ordered: boolean;
-		lab: boolean;
-		external_room ?: string;
+        normal_ordered: boolean;
+        lab: boolean;
+        external_room ? : string;
     }
 }
 interface type_powered_harvester {
@@ -89,48 +90,48 @@ export var conf_rooms: type_conf_rooms = {
     "E9N54": conf_E9N54,
 }
 interface type_conf_gcl {
-	conf: type_config_gcl;
-	conf_map: {
-		energy_supply_rooms: string[];
-		supporting_room: string;
-		gcl_room: string;
-		rooms_forwardpath: string[];
-		poses_forwardpath: number[];
-		rooms_backwardpath: string[];
-		poses_backwardpath: number[];
-		single_distance: number;
-		carrier_distance: number;
-	}
+    conf: type_config_gcl;
+    conf_map: {
+        energy_supply_rooms: string[];
+        supporting_room: string;
+        gcl_room: string;
+        rooms_forwardpath: string[];
+        poses_forwardpath: number[];
+        rooms_backwardpath: string[];
+        poses_backwardpath: number[];
+        single_distance: number;
+        carrier_distance: number;
+    }
 }
 export var conf_gcl: type_conf_gcl = {
-	conf: config_gcl,
-	conf_map: {
-		energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
-		supporting_room: 'E16N58',
-		gcl_room: 'E16N57',
-		rooms_forwardpath: ['E16N58', 'E16N57'],
-		poses_forwardpath: [28],
-		rooms_backwardpath: ['E16N57', 'E16N58'],
-		poses_backwardpath: [28],
-		single_distance: 41,
-		carrier_distance: 39,
-	}
+    conf: config_gcl,
+    conf_map: {
+        energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
+        supporting_room: 'E16N58',
+        gcl_room: 'E16N57',
+        rooms_forwardpath: ['E16N58', 'E16N57'],
+        poses_forwardpath: [28],
+        rooms_backwardpath: ['E16N57', 'E16N58'],
+        poses_backwardpath: [28],
+        single_distance: 41,
+        carrier_distance: 39,
+    }
 }
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
 occupied_rooms.push(conf_gcl.conf_map.gcl_room);
 for (let room_name of controlled_rooms) {
-	let conf_external = conf_rooms[room_name].external_rooms;
-	for (let external_room_name in conf_external) {
-		if (conf_external[external_room_name].active) {
-			for (let added_room_name of conf_external[external_room_name].controller.rooms_forwardpath) {
-				if (!occupied_rooms.includes(added_room_name)) {
-					occupied_rooms.push(added_room_name);
-				}
-			}
-		}
-	}
+    let conf_external = conf_rooms[room_name].external_rooms;
+    for (let external_room_name in conf_external) {
+        if (conf_external[external_room_name].active) {
+            for (let added_room_name of conf_external[external_room_name].controller.rooms_forwardpath) {
+                if (!occupied_rooms.includes(added_room_name)) {
+                    occupied_rooms.push(added_room_name);
+                }
+            }
+        }
+    }
 }
 export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
     return pos1.getRangeTo(pos2);
@@ -140,23 +141,23 @@ export var pc_conf: type_pc_conf = {
     "PC_A": {
         "room_name": "E14N59",
         "source": true,
-		"normal_ordered": true,
-		"lab": true,
-		"external_room": "E15N59",
+        "normal_ordered": true,
+        "lab": true,
+        "external_room": "E15N59",
     },
     "PC_B": {
         "room_name": "E19N55",
         "source": true,
-		"normal_ordered": true,
-		"lab": true,
-		"external_room": "E19N56",
+        "normal_ordered": true,
+        "lab": true,
+        "external_room": "E19N56",
     },
     "PC_C": {
         "room_name": "E16N58",
         "source": true,
-		"normal_ordered": false,
-		"lab": true,
-		"external_room": "E17N58",
+        "normal_ordered": false,
+        "lab": true,
+        "external_room": "E17N58",
     },
 }
 export var hunting: type_hunting = {};
@@ -178,148 +179,209 @@ export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 interface type_preclaiming_rooms {
-	[key: string]: {
-		[key: string]: type_external_half_map
-	}
+    [key: string]: {
+        [key: string]: type_external_half_map
+    }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
-	'E16N58': {
-		'E16N57': {
-			"rooms_forwardpath": ['E16N58', 'E16N57'],
-			"poses_forwardpath": [28],
-		}
-	}
+    'E16N58': {
+        'E16N57': {
+            "rooms_forwardpath": ['E16N58', 'E16N57'],
+            "poses_forwardpath": [28],
+        }
+    }
 }
+export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
+    "UH2O": 36000,
+    "GH2O": 50000,
+    "LO": 20000,
+    "GHO2": 5000,
+    "LH2O": 20000,
+    "XLHO2": 30000,
+    "XZH2O": 30000,
+    "ZO": 20000,
+    "XGHO2": 30000,
+    "XGH2O": 30000,
+    "XZHO2": 30000,
+    "XKHO2": 30000,
+    "XUH2O": 30000,
+    "XKH2O": 30000,
+    "KH": 20000
+};
 export var react_init_amount: number = 1200;
 let condition1 = (constants.amount_mapping[0] >= react_init_amount);
 let condition2 = (constants.amount_mapping[1] >= react_init_amount);
 let condition3 = (constants.amount_mapping[2] >= react_init_amount);
 if (!(condition1 && condition2 && condition3)) {
-	throw Error("react_init_amount too small");
+    throw Error("react_init_amount too small");
 }
 export var react_min_amount: number = 50;
 type type_acceptable_prices = {
-	buy: {
-		[key in MarketResourceConstant] ?: {
-			price: number;
-			interval: number;
-		}
-	},
-	sell: {
-		[key in MarketResourceConstant] ?: {
-			price: number;
-			interval: number;
-		}
-	},
+    buy: {
+        [key in MarketResourceConstant] ? : {
+            price: number;
+            interval: number;
+        }
+    },
+    sell: {
+        [key in MarketResourceConstant] ? : {
+            price: number;
+            interval: number;
+        }
+    },
 }
 export var acceptable_prices: type_acceptable_prices = {
-	"buy": {
-		"U": {
-			price: 0.6,
-			interval: 1000,
-		},
-		"L": {
-			price: 0.4,
-			interval: 1000,
-		},
-		"Z": {
-			price: 0.4,
-			interval: 1000,
-		},
-		"K": {
-			price: 0.4,
-			interval: 1000,
-		},
-		"X": {
-			price: 1.5,
-			interval: 1000,
-		},
-		"H": {
-			price: 0.6,
-			interval: 1000,
-		},
-		"O": {
-			price: 0.3,
-			interval: 1000,
-		},
-		"energy": {
-			price: 0.3,
-			interval: 3000,
-		},
-		"battery": {
-			price: 3.2,
-			interval: 3000,
-		}
-	},
-	"sell": {
-		"XGH2O": {
-			price: 8.8,
-			interval: -1,
-		}
-	}
+    "buy": {
+        "U": {
+            price: 0.6,
+            interval: 1000,
+        },
+        "L": {
+            price: 0.4,
+            interval: 1000,
+        },
+        "Z": {
+            price: 0.4,
+            interval: 1000,
+        },
+        "K": {
+            price: 0.4,
+            interval: 1000,
+        },
+        "X": {
+            price: 1.5,
+            interval: 1000,
+        },
+        "H": {
+            price: 0.6,
+            interval: 1000,
+        },
+        "O": {
+            price: 0.3,
+            interval: 1000,
+        },
+        "energy": {
+            price: 0.3,
+            interval: 3000,
+        },
+        "battery": {
+            price: 3.2,
+            interval: 3000,
+        }
+    },
+    "sell": {}
+}
+type type_auto_sell_list = {
+    [key in MarketResourceConstant] ? : {
+        room: string;
+        price: number;
+        amount: number;
+    }
+}
+export var auto_sell_list: type_auto_sell_list = {
+    "XUH2O": {
+        room: "E15N58",
+        price: 15,
+        amount: 30000,
+    },
+    "XLHO2": {
+        room: "E9N54",
+        price: 15,
+        amount: 30000,
+    },
+    "XZH2O": {
+        room: "E14N51",
+        price: 20,
+        amount: 30000,
+    },
+    "XZHO2": {
+        room: "E14N59",
+        price: 15,
+        amount: 30000,
+    },
+    "XKH2O": {
+        room: "E19N55",
+        price: 15,
+        amount: 30000,
+    },
+    "XKHO2": {
+        room: "E21N49",
+        price: 15,
+        amount: 30000,
+    },
+    "XGHO2": {
+        room: "E19N51",
+        price: 25,
+        amount: 30000,
+    },
+    "XGH2O": {
+        room: "E19N53",
+        price: 20,
+        amount: 30000,
+    },
 }
 type type_resources_balance = {
-	[key in ResourceConstant] ?: {
-		gap: number;
-		min: number;
-		amount: number;
-	}
+    [key in ResourceConstant] ? : {
+        gap: number;
+        min: number;
+        amount: number;
+    }
 }
 type type_resource_gathering_pos = {
-	[key in ResourceConstant] ? : string;
+    [key in ResourceConstant] ? : string;
 }
 export var resources_balance: type_resources_balance = {
-	"battery": {
-		gap: 10000,
-		min: 10000,
-		amount: 2000,
-	},
-	"GH2O": {
-		gap: 1200,
-		min: 1200,
-		amount: 600,
-	},
-	"LH2O": {
-		gap: 600,
-		min: 600,
-		amount: 300,
-	},
-	"UH2O": {
-		gap: 1200,
-		min: 1200,
-		amount: 600,
-	},
-	"LO": {
-		gap: 600,
-		min: 600,
-		amount: 300,
-	},
-	"GHO2": {
-		gap: 300,
-		min: 300,
-		amount: 150,
-	},
-	"KH": {
-		gap: 300,
-		min: 300,
-		amount: 150,
-	},
-	"ZO": {
-		gap: 480,
-		min: 480,
-		amount: 240,
-	},
+    "battery": {
+        gap: 10000,
+        min: 10000,
+        amount: 2000,
+    },
+    "GH2O": {
+        gap: 1200,
+        min: 1200,
+        amount: 600,
+    },
+    "LH2O": {
+        gap: 600,
+        min: 600,
+        amount: 300,
+    },
+    "UH2O": {
+        gap: 1200,
+        min: 1200,
+        amount: 600,
+    },
+    "LO": {
+        gap: 600,
+        min: 600,
+        amount: 300,
+    },
+    "GHO2": {
+        gap: 300,
+        min: 300,
+        amount: 150,
+    },
+    "KH": {
+        gap: 300,
+        min: 300,
+        amount: 150,
+    },
+    "ZO": {
+        gap: 480,
+        min: 480,
+        amount: 240,
+    },
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
-	"XUH2O": "E15N58",
-	"XUHO2": "E16N58",
-	"XLHO2": "E9N54",
-	"XZH2O": "E14N51",
-	"XZHO2": "E14N59",
-	"XKH2O": "E19N55",
-	"XKHO2": "E21N49",
-	"XGHO2": "E19N51",
-	"XGH2O": "E19N53",
+    "XUH2O": "E15N58",
+    "XUHO2": "E16N58",
+    "XLHO2": "E9N54",
+    "XZH2O": "E14N51",
+    "XZHO2": "E14N59",
+    "XKH2O": "E19N55",
+    "XKHO2": "E21N49",
+    "XGHO2": "E19N51",
+    "XGH2O": "E19N53",
 }
 export var protected_sources: {
     [key: string]: string[]
@@ -342,12 +404,14 @@ export var highway_resources: {
     "E14N51": ['E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
     "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60', 'E20N60'],
-	"E9N54": ['E10N51', 'E10N52', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+    "E9N54": ['E10N51', 'E10N52', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
 export var storage_full: number = 300000;
-export var wall_rates: {[key: string]: number} = {
+export var wall_rates: {
+    [key: string]: number
+} = {
     "E14N51": 0,
     "E19N51": 0,
     "E19N53": 0,
@@ -372,7 +436,7 @@ export var mineral_storage_room: type_mineral_storage_room = {
     "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
 };
 export var help_list: type_help_list = {
-	/*
+    /*
     "E14N51": {
         "E9N54": {
             "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
@@ -459,18 +523,18 @@ export var pb_healer_body: type_body_conf = {
     }
 }
 export var gcl_upgrader_body: type_body_conf = {
-	"work": {
-		number: 40,
-		boost: "GH2O",
-	},
-	"carry": {
-		number: 5,
-		boost: "KH"
-	},
-	"move": {
-		number: 5,
-		boost: "ZO",
-	},
+    "work": {
+        number: 40,
+        boost: "GH2O",
+    },
+    "carry": {
+        number: 5,
+        boost: "KH"
+    },
+    "move": {
+        number: 5,
+        boost: "ZO",
+    },
 }
 export var depo_last_cooldown = 20000;
 export var powered_harvester: type_powered_harvester = {

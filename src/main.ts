@@ -179,6 +179,7 @@ module.exports.loop = function() {
 	try {
 		market.clear_used();
 		market.regulate_all_order_prices();
+		market.auto_sell();
 		market.market_stat();
 	} catch (err) {
 		console.log("Error", err.stack);

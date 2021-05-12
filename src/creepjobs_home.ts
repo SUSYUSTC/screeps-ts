@@ -60,7 +60,11 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         if (creep.ticksToLive < 5) {
-			basic_job.return_energy_before_die(creep, moveoptions_noset);
+			if (creep.store.getUsedCapacity("energy") == 0) {
+				creep.suicide();
+			} else {
+				creep.transfer(container_source, "energy");
+			}
 			creep.say("Hd")
 			return 0;
         }
@@ -208,9 +212,6 @@ export function creepjob(creep: Creep): number {
         let pos = creep.room.getPositionAt(xy[0], xy[1]);
         let mine = Game.getObjectById(conf.mine);
         let mine_container = Game.getObjectById(containers_status.MINE.id);
-		if (basic_job.discard_useless_from_container(creep, mine_container, Game.memory[creep.room.name].mine_status.type) == 0) {
-			return 0;
-		}
 		if (basic_job.trymovetopos(creep, pos, moveoptions_noset) !== 2) {
 			creep.say("MHm");
 			return 0;
@@ -254,6 +255,9 @@ export function creepjob(creep: Creep): number {
         if (game_memory.mine_status.harvestable) {
             let container = Game.getObjectById(containers_status.MINE.id);
             if (creep.store.getUsedCapacity(mineral_type) == 0) {
+				if (creep.pos.getRangeTo(container) == 1) {
+					basic_job.discard_useless_from_container(creep, container, mineral_type);
+				}
                 if (creep.pos.isNearTo(container) && container.store.getUsedCapacity(mineral_type) >= creep.store.getCapacity()) {
                     creep.withdraw(container, mineral_type);
 					creep.say("mCw")

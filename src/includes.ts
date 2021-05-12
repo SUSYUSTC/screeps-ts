@@ -436,7 +436,6 @@ interface Memory {
     history_cpus ? : number[];
     pb_cooldown_time ? : number;
     product_request ? : type_product_request;
-    final_product_request ? : type_product_request;
     total_energies ? : number;
 	look_broken_ramparts ? : boolean;
 	reaction_log ? : {

@@ -310,6 +310,27 @@ export function auto_supply_resources(room_name: string) {
     }
 }
 
+export function auto_sell() {
+	if (Game.time % 200 !== 0) {
+		return 1;
+	}
+	for (let resource of <Array<MarketResourceConstant>> Object.keys(config.auto_sell_list)) {
+		let sell_conf = config.auto_sell_list[resource];
+		let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'sell' && e.resourceType == resource && e.roomName == sell_conf.room).map((e) => e.remainingAmount);
+		let total_amount = mymath.array_sum(orders_amount);
+		if (total_amount < sell_conf.amount / 2) {
+			console.log("create sell order", resource, "at", sell_conf.room);
+			Game.market.createOrder({
+				"type": "sell",
+				"resourceType": resource,
+				"price": sell_conf.price,
+				"totalAmount": sell_conf.amount,
+				"roomName": sell_conf.room,
+			});
+		}
+	}
+}
+
 function order_stat(): type_order_total_amount {
 	let order_total_amount: type_order_total_amount = {
 		sell: {}, 

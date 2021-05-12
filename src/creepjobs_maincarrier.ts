@@ -531,7 +531,17 @@ export function creepjob(creep: Creep): number {
 			return 0;
         }
 
-		if (creep.memory.resource_type == undefined && (Game.time % 20 == 0 || creep.memory.mineral_type == undefined)) {
+		if (creep.memory.resource_type !== undefined) {
+			if (creep.room.terminal !== undefined) {
+				creep.transfer(creep.room.terminal, creep.memory.resource_type)
+				return 0;
+			} else {
+				return 0;
+				creep.transfer(creep.room.storage, creep.memory.resource_type)
+			}
+		}
+
+		if (Game.time % 20 == 0 || creep.memory.mineral_type == undefined) {
 			let scores = constants.t012_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
 			let argmax = mymath.argmax(scores);
 			if (scores[argmax] > 0) {
@@ -614,33 +624,17 @@ export function creepjob(creep: Creep): number {
 			if (resources_status[resource_type] == undefined) {
 				continue;
 			}
-            if (creep.memory.resource_type == undefined || creep.memory.resource_type == resource_type) {
-                let resource_status = resources_status[resource_type];
-                if (resource_status.source !== resource_status.sink) {
-                    transfer_resource(creep, resource_type, resource_status);
-					if (creep.memory.resource_type == undefined) {
-						creep.memory.maincarrier_transfer_job = {
-							"resource_type": resource_type,
-							"resource_status": resource_status,
-						}
-					}
-                    return 0;
-                }
-            }
-            if (creep.memory.resource_type == resource_type) {
-                return 0;
-            }
+			let resource_status = resources_status[resource_type];
+			if (resource_status.source !== resource_status.sink) {
+				transfer_resource(creep, resource_type, resource_status);
+				creep.memory.maincarrier_transfer_job = {
+					"resource_type": resource_type,
+					"resource_status": resource_status,
+				}
+				return 0;
+			}
         }
 
-		if (creep.memory.resource_type !== undefined) {
-			if (creep.room.terminal !== undefined) {
-				creep.transfer(creep.room.terminal, creep.memory.resource_type)
-				return 0;
-			} else {
-				return 0;
-				creep.transfer(creep.room.storage, creep.memory.resource_type)
-			}
-		}
 		if (Game.powered_rooms[creep.room.name] == undefined) {
 			creep.memory.next_time.wakeup = Game.time + 8;
 		} else {

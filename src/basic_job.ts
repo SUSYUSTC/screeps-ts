@@ -555,7 +555,7 @@ export function discard_useless_from_container(creep: Creep, container: Structur
 		return 2;
 	}
 	if (creep.store.getUsedCapacity(resource_to_keep) > 0) {
-		console.log(`Wanring: creep ${creep.name} at room ${creep.room.name} have resource to keep when discarding useless resources`);
+		console.log(`Warning: creep ${creep.name} at room ${creep.room.name} have resource to keep when discarding useless resources at time ${Game.time}`);
 		return 1;
 	}
 	if (creep.store.getUsedCapacity() > 0) {
