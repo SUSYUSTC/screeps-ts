@@ -167,6 +167,42 @@ export var conf_E9N54: type_conf_room =
         "7": [
             [31, 47],
             [32, 48]
+        ],
+        "8": [
+            [23, 1],
+            [23, 2],
+            [23, 3],
+            [23, 4],
+            [23, 5],
+            [23, 6],
+            [23, 7],
+            [23, 8],
+            [23, 9],
+            [24, 10],
+            [25, 11],
+            [26, 12],
+            [27, 13],
+            [28, 14],
+            [29, 15],
+            [30, 16],
+            [31, 17],
+            [32, 18],
+            [33, 19],
+            [34, 20],
+            [34, 21],
+            [34, 22],
+            [34, 23],
+            [34, 24],
+            [34, 25],
+            [34, 26],
+            [34, 27],
+            [34, 28],
+            [34, 29],
+            [34, 30],
+            [33, 31],
+            [32, 32],
+            [31, 33],
+            [32, 34]
         ]
     },
     "spawns": {
@@ -229,6 +265,10 @@ export var conf_E9N54: type_conf_room =
         "CT": {
             "pos": [16, 45],
             "RCL": 5
+        },
+        "Ext": {
+            "pos": [31, 18],
+            "RCL": 8
         },
         "L1": {
             "pos": [26, 37],
@@ -318,6 +358,7 @@ export var conf_E9N54: type_conf_room =
             "commuting_time": 48
         }
     },
+    "minecarrier_distance": 10,
     "extractor": {
         "pos": [23, 38],
         "RCL": 6
@@ -416,6 +457,62 @@ export var conf_E9N54: type_conf_room =
                     "rooms_backwardpath": ["E8N54", "E9N54"],
                     "poses_backwardpath": [36]
                 }
+            }
+        },
+        "E9N55": {
+            "active": false,
+            "controller": {
+                "reserve": true,
+                "path_time": 100,
+                "rooms_forwardpath": ["E9N54", "E9N55"],
+                "poses_forwardpath": [20],
+                "rooms_backwardpath": ["E9N55", "E9N54"],
+                "poses_backwardpath": [20]
+            },
+            "sources": {
+                "S1": {
+                    "id": <Id<Source>>"5bbcad719099fc012e637479",
+                    "harvester_pos": [24, 37],
+                    "single_distance": 56,
+                    "carrier_distance": 56,
+                    "n_carry_tot": 25,
+                    "carry_end": {
+                        "type": "storage",
+                        "name": ""
+                    },
+                    "rooms_forwardpath": ["E9N54", "E9N55"],
+                    "poses_forwardpath": [20],
+                    "rooms_backwardpath": ["E9N55", "E9N54"],
+                    "poses_backwardpath": [20]
+                }
+            },
+            "powered_source": {
+                "source_name": "S1",
+                "carrier_distance": 28,
+                "carry_end": {
+                    "type": "link",
+                    "name": "Ext"
+                },
+                "roads": [
+                    [23, 38],
+                    [23, 39],
+                    [23, 40],
+                    [23, 41],
+                    [23, 43],
+                    [23, 42],
+                    [23, 44],
+                    [23, 45],
+                    [23, 46],
+                    [23, 47],
+                    [23, 48]
+                ],
+                "poses_forwardpath": [23],
+                "poses_backwardpath": [23],
+                "id": <Id<Source>>"5bbcad719099fc012e637479",
+                "harvester_pos": [24, 37],
+                "single_distance": 56,
+                "rooms_forwardpath": ["E9N54", "E9N55"],
+                "rooms_backwardpath": ["E9N55", "E9N54"]
             }
         }
     },

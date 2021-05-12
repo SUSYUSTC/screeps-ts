@@ -195,18 +195,19 @@ export var final_product_request: {[key in GeneralMineralConstant] ?: number} = 
     "UH2O": 36000,
     "GH2O": 50000,
     "LO": 20000,
-    "GHO2": 5000,
+    "GHO2": 10000,
+	"UHO2": 40000,
     "LH2O": 20000,
+    "KH": 30000,
+    "ZO": 20000,
+    "XUH2O": 30000,
     "XLHO2": 30000,
     "XZH2O": 30000,
-    "ZO": 20000,
-    "XGHO2": 30000,
-    "XGH2O": 30000,
     "XZHO2": 30000,
     "XKHO2": 30000,
-    "XUH2O": 30000,
     "XKH2O": 30000,
-    "KH": 20000
+    "XGHO2": 30000,
+    "XGH2O": 30000,
 };
 export var react_init_amount: number = 1200;
 let condition1 = (constants.amount_mapping[0] >= react_init_amount);
@@ -361,10 +362,15 @@ export var resources_balance: type_resources_balance = {
         min: 300,
         amount: 150,
     },
+    "UHO2": {
+        gap: 1200,
+        min: 1200,
+        amount: 600,
+    },
     "KH": {
-        gap: 300,
-        min: 300,
-        amount: 150,
+        gap: 960,
+        min: 960,
+        amount: 480,
     },
     "ZO": {
         gap: 480,

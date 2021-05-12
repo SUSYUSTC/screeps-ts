@@ -355,6 +355,7 @@ interface type_conf_room {
     readonly secondary_ramparts: number[][];
     readonly defense_boundary: number[][];
     readonly safe_boundary: number[][];
+	readonly minecarrier_distance: number;
 }
 interface type_config_gcl {
     containers: conf_named_structures;

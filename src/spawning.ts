@@ -11,23 +11,22 @@ function is_valid_creep(creep: Creep, livetime: number): boolean {
     return (creep.ticksToLive == undefined || creep.ticksToLive > livetime);
 }
 
-function get_defender_json(room_name: string, typename: string): type_spawn_json {
-    let room = Game.rooms[room_name];
-    let added_memory = {
-        "home_room_name": room.name,
-        "defender_type": typename
-    };
-    let options = {
-        "defender_type": typename
-    };
-    let priority = 120;
-    let added_json = {
-        "priority": priority,
-		"require_full": false,
-    };
-    let json = spawning_func.prepare_role("defender", room.energyAvailable, added_memory, options, added_json);
-    return json;
+function get_mine_conf(remaining_amount: number, distance: number, max_energy: number): {work: number, carry: number} {
+	let max_work = Math.min(remaining_amount * 6 / 1200 / 5, 40, max_energy / 450 * 4);
+	max_work = Math.floor(max_work / 4) * 4;
+	//let carry_match = Math.ceil(distance * 2 * (max_work * 5 / 6) / 100 / 2) * 2;
+	let carry_match = Math.ceil(distance * max_work / 60 / 2) * 2;
+	if (carry_match > 40) {
+		max_work = Math.ceil(2400 / distance / 2) * 2;
+		carry_match = 40;
+	}
+	let result = {
+		work: max_work,
+		carry: carry_match,
+	}
+	return result;
 }
+
 function creep_statistics() {
 	if (Game.creep_statistics_done) {
 		return;
@@ -92,13 +91,7 @@ export function spawn(room_name: string) {
     let containers_status = global.memory[room_name].named_structures_status.container;
     let links_status = global.memory[room_name].named_structures_status.link;
     let sources_name = Object.keys(conf.sources);
-    //let room_creeps = _.filter(Game.creeps, (creep) => creep.room.name == room.name);
     if (room.energyCapacityAvailable < 550) {
-        /*
-        for (let source_name of sources_name) {
-            spawning_init.spawn_init(room_name, source_name, conf.init[source_name].number, room.energyCapacityAvailable, room.energyAvailable);
-        }
-		 */
         return;
     }
     let link_modes = game_memory.link_modes;
@@ -367,6 +360,59 @@ export function spawn(room_name: string) {
 			jsons.push(json);
 		}
 	}
+
+	/*
+	real_if_mine: if (game_memory.mine_status.harvestable && room.energyCapacityAvailable >= 4500) {
+		let mine_conf = get_mine_conf(game_memory.mine_status.amount, conf.minecarrier_distance, room.energyCapacityAvailable);
+		let body_conf: type_body_conf = {
+			work: {
+				boost: "UHO2",
+				number: mine_conf.work,
+			},
+			carry: {
+				boost: "KH",
+				number: mine_conf.carry,
+			},
+		}
+		let ok = functions.is_boost_resource_enough(body_conf);
+		if (!ok) {
+			break real_if_mine; 
+		}
+		let mineharvesters = room_statistics.mineharvester;
+		let minecarriers = room_statistics.minecarrier;
+		let n_mineharvesters = mineharvesters.length;
+		let n_minecarriers = minecarriers.length;
+		if (n_mineharvesters == 0) {
+			let added_memory = {};
+			let options = {
+				work: mine_conf.work,
+				move: Math.ceil(mine_conf.work / 4),
+			};
+			let priority = 1;
+			let added_json = {
+				"priority": priority,
+				"require_full": true && game_memory.lack_energy,
+			};
+			let json = spawning_func.prepare_role("mineharvester", room.energyAvailable, added_memory, options, added_json);
+			jsons.push(json);
+		}
+		if (n_minecarriers == 0) {
+			let added_memory = {};
+			let options = {
+				carry: mine_conf.carry,
+				move: Math.ceil(mine_conf.carry / 2),
+			};
+			let priority = -1;
+			let added_json = {
+				"priority": priority,
+				"require_full": true && game_memory.lack_energy,
+			};
+			let json = spawning_func.prepare_role("minecarrier", room.energyAvailable, added_memory, options, added_json);
+			jsons.push(json);
+		}
+	}
+	*/
+
 	let powered = Game.powered_rooms[room_name] !== undefined;
 	let maincarrier_ncarry: number;
 	if (powered) {
@@ -757,7 +803,20 @@ export function spawn(room_name: string) {
                 if (costs[argmin] > room.energyCapacityAvailable) {
                     continue;
                 }
-                let json = get_defender_json(room_name, fightable_defender_types[argmin]);
+				let typename = fightable_defender_types[argmin]
+				let added_memory = {
+					"home_room_name": room.name,
+					"defender_type": typename
+				};
+				let options = {
+					"defender_type": typename
+				};
+				let priority = 120;
+				let added_json = {
+					"priority": priority,
+					"require_full": false,
+				};
+				let json = spawning_func.prepare_role("defender", room.energyAvailable, added_memory, options, added_json);
                 jsons.push(json);
                 break;
             }

@@ -334,6 +334,7 @@ export var conf_E19N55: type_conf_room =
             "commuting_time": 66
         }
     },
+    "minecarrier_distance": 23,
     "extractor": {
         "pos": [38, 40],
         "RCL": 6

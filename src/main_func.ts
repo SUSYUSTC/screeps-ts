@@ -432,6 +432,7 @@ function detect_resources(room_name: string) {
                         roomCallback: functions.restrict_passing_rooms,
                     })
                     if (path.incomplete) {
+						console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
                         continue;
                     }
                     let rooms_path: string[] = [room_name];
