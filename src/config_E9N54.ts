@@ -404,7 +404,7 @@ export var conf_E9N54: type_conf_room =
     },
     "transferer_stay_pos": [20, 48],
     "mineral_stay_pos": [24, 37],
-    "safe_pos": [5, 36],
+    "safe_pos": [23, 4],
     "upgraders": {
         "locations": [
             [17, 44],

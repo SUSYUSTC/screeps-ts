@@ -4,7 +4,10 @@ import * as config from "./config"
 import * as basic_job from "./basic_job"
 import { Timer } from "./timer";
 
-export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: any = {}) {
+type type_movethroughrooms_options = {
+	replace_pos ?: boolean;
+}
+export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
 	// -1: error, 0: normal success, 1: already done, 2: correcting path
 	let timer = new Timer("movethroughrooms", false);
     if (rooms_path.length != poses_path.length + 1) {
@@ -16,6 +19,9 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 		timer.end();
         return -1;
     }
+	if (options.replace_pos == undefined) {
+		options.replace_pos = false;
+	}
     let arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
     if (arg == rooms_path.length - 1) {
         let room1_coor = functions.room2coor(rooms_path[arg - 1]);
@@ -41,19 +47,6 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
         let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
         let pos = poses_path[arg];
         let exit_xy = functions.get_exit_xy(coor_diff, pos, [49, 0]);
-		let walls = creep.room.getPositionAt(exit_xy[0], exit_xy[1]).lookFor("structure").filter((e) => e.structureType == 'constructedWall');
-		if (walls.length > 0) {
-			let findconstant = functions.coordiff_to_exitconstant(coor_diff);
-			let exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
-			let distances = exits.map((e) => e.getRangeTo(exit_xy[0], exit_xy[1]));
-			let argmin = mymath.argmin(distances);
-			let exit_pos = exits[argmin]
-			exit_xy = [exit_pos.x, exit_pos.y];
-			let correct_pos = exit_xy.filter((e) => e > 0 && e < 49)[0];
-			poses_path[arg] = correct_pos;
-			console.log("Invalid exit position detected. Automatically change to closest position");
-			return_value = 2;
-		}
         let creeps_at_exit = creep.room.lookForAt("creep", exit_xy[0], exit_xy[1]);
         if (creep.pos.getRangeTo(exit_xy[0], exit_xy[1]) < 3 && creeps_at_exit.length > 0 && creeps_at_exit[0].name !== creep.name) {
 			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
@@ -62,10 +55,33 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 			if (config.occupied_rooms.includes(creep.room.name)) {
 				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
 			} else {
-				creep.moveTo(exit_xy[0], exit_xy[1], {...{
+				let exit_pos = creep.room.getPositionAt(exit_xy[0], exit_xy[1]);
+				creep.moveTo(exit_pos, {...{
 					maxRooms: 1,
 					costCallback: functions.avoid_exits
 				}, ...add_options});
+				// check is path valid
+				if_check_path: if (Game.time % 10 == 0) {
+					if (creep.memory._move == undefined || !options.replace_pos) {
+						break if_check_path;
+					}
+					let target_path = Room.deserializePath(creep.memory._move.path).slice(-1)[0];
+					if (target_path == undefined || !exit_pos.isEqualTo(target_path.x, target_path.y)) {
+						console.log(`Warning: Invalid _move.path in creep ${creep.name} at room ${creep.room.name} at time ${Game.time}`);;
+						let path = creep.pos.findPathTo(exit_pos, {range: 0, maxRooms: 1, maxOps: 200});
+						let last_pos = path.slice(-1)[0];
+						if (!exit_pos.isEqualTo(last_pos.x, last_pos.y)) {
+							let findconstant = functions.coordiff_to_exitconstant(coor_diff);
+							let all_exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
+							let new_exit_pos = creep.pos.findClosestByPath(all_exits);
+							let new_exit_xy = [new_exit_pos.x, new_exit_pos.y];
+							let correct_pos = new_exit_xy.filter((e) => e > 0 && e < 49)[0];
+							poses_path[arg] = correct_pos;
+							console.log("Warning: Invalid exit position detected. Automatically change to closest position");
+							return_value = 2;
+						}
+					}
+				}
 			}
         }
 		timer.end();

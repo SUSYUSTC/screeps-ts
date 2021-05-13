@@ -80,7 +80,7 @@ export function auto_ranged_attack(invader_name: string) {
 	let xmax = Math.min(invader.pos.x + 3, 49);
 	let ymin = Math.max(invader.pos.y - 3, 0);
 	let ymax = Math.min(invader.pos.y + 3, 49);
-	let creeps_in_range = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my && !with_rampart(e));
+	let creeps_in_range = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my && !with_rampart(e) && !e.spawning);
 	if (creeps_in_range.length > 0) {
 		let mass_damages = creeps_in_range.map((e) => mass_damage[invader.pos.getRangeTo(e)]);
 		if (mymath.array_sum(mass_damages) >= 10) {
@@ -475,7 +475,8 @@ let invader_conf_levels: type_invader_conf_levels = {
 	}
 }
 
-export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string, rooms_path: string[], poses_path: number[]) {
+//export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string, rooms_path: string[], poses_path: number[]) {
+export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string) {
 	let group = Memory.invade_groups_x2[groupname];
     let invader = Game.creeps[group.invader_name];
     let healer = Game.creeps[group.healer_name];
@@ -487,6 +488,7 @@ export function run_invader_group_x2(groupname: string, target_room_name: string
     let output_healer = basic_job.boost_request(healer, healer_boost_request, true);
     let flag = Game.flags[flagname];
     if (output_invader == 0 && output_healer == 0) {
+		/*
 		if (Memory.invade_costmatrices == undefined) {
 			Memory.invade_costmatrices = {}
 		}
@@ -503,6 +505,8 @@ export function run_invader_group_x2(groupname: string, target_room_name: string
 		} else {
 			automove_group_x2(groupname, flagname, rooms_path, poses_path);
 		}
+		*/
+		automove_with_flag_group_x2(groupname, flagname);
 		invade_functions[group.invade_type](invader);
     }
 }

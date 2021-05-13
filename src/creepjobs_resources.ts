@@ -37,7 +37,7 @@ export function creepjob(creep: Creep): number {
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10});
+            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
 			creep.memory.movable = true;
 			creep.say("PAe");
             return 0;
@@ -99,7 +99,7 @@ export function creepjob(creep: Creep): number {
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10});
+            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
 			creep.memory.movable = true;
 			creep.say("PHe");
             return 0;
@@ -165,7 +165,7 @@ export function creepjob(creep: Creep): number {
 						reusePath: 10,
                     };
                 }
-                external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, add_options);
+                external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, add_options, {replace_pos: true});
 				creep.memory.movable = true;
 				creep.say("PCe1");
             } else {
@@ -183,7 +183,7 @@ export function creepjob(creep: Creep): number {
             creep.suicide();
         }
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10});
+            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
 			creep.memory.movable = true;
 			creep.say("PCe2");
             return 0;

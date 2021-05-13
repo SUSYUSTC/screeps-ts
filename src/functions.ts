@@ -171,7 +171,7 @@ export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2)
     } else if (safe_level == 2) {
         basic_costmatrices = global.basic_costmatrices_defense;
     }
-    if (basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated) {
+    if (basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
         let costmatrix = new PathFinder.CostMatrix;
         let terrain = new Room.Terrain(room_name);
         if (Game.rooms[room_name] !== undefined) {

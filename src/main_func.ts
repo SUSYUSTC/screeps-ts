@@ -566,7 +566,7 @@ function update_resources(room_name: string) {
         } else if (pb_status.status == 1) {
             // attacker and healer spawned
             pb_status.time_last += 1;
-            if (pb_status.time_last >= 1000) {
+            if (pb_status.time_last >= 800) {
                 let pb_carrier_memory = {
                     "home_room_name": room_name,
                     "role": "pb_carrier",

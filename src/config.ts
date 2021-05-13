@@ -36,6 +36,7 @@ import * as constants from "./constants"
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 conf_E16N58.external_rooms.E17N58.active = true;
+conf_E9N54.external_rooms.E9N55.active = true;
 
 function direction2orient(pos: number[]) {
     if (pos[0] == 0 && pos[1] == 1) {
@@ -158,6 +159,13 @@ export var pc_conf: type_pc_conf = {
         "normal_ordered": false,
         "lab": true,
         "external_room": "E17N58",
+    },
+    "PC_D": {
+        "room_name": "E9N54",
+        "source": true,
+        "normal_ordered": false,
+        "lab": true,
+        "external_room": "E9N55",
     },
 }
 export var hunting: type_hunting = {};
@@ -407,10 +415,10 @@ export var highway_resources: {
 } = {
     "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
     "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59'],
-    "E14N51": ['E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
+    "E14N51": ['E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
     "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60', 'E20N60'],
-    "E9N54": ['E10N51', 'E10N52', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+    "E9N54": ['E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
