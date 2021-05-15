@@ -226,7 +226,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             }
         }
         if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
-            Game.market.changeOrderPrice(id, order.price * 1.02);
+            Game.market.changeOrderPrice(id, order.price + acceptable_price.price * 0.02);
             return 0;
         }
     } else if (order.type == 'sell') {
@@ -248,7 +248,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             }
         }
         if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price > acceptable_price.price) {
-            Game.market.changeOrderPrice(id, order.price * 0.98);
+            Game.market.changeOrderPrice(id, order.price - acceptable_price.price * 0.02);
             return 0;
         }
     } else {
@@ -277,10 +277,10 @@ global.set_resource_price = function(type: "buy" | "sell", resource: MarketResou
     return 0;
 }
 
-global.auto_supply_from_market = function(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number {
+export function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number, per_room: boolean): number {
     let room = Game.rooms[room_name];
     let current_amount = room.storage.store.getUsedCapacity(resource) + room.terminal.store.getUsedCapacity(resource);
-    let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource).map((e) => e.remainingAmount);
+    let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource && (!per_room || e.roomName == room_name)).map((e) => e.remainingAmount);
     current_amount += mymath.array_sum(orders_amount);
     if (current_amount < expected_amount) {
         console.log("create mineral order", resource, "at", room_name);
@@ -302,12 +302,19 @@ export function auto_supply_resources(room_name: string) {
     }
     if (room.controller.level == 8) {
         let mineral = Game.memory[room_name].mine_status.type
-        global.auto_supply_from_market(room_name, mineral, 1.0e5, 30000);
+		let amount = 1.5e5;
+		if (mineral == "X") {
+			amount = 1.0e5;
+		}
+        auto_supply_from_market(room_name, mineral, amount, 30000, true);
 		if (Memory.total_energies <= 1.2e7) {
-			global.auto_supply_from_market(room_name, 'battery', 1.0e5, 30000);
-			global.auto_supply_from_market(room_name, 'energy', 4.5e5, 120000);
+			auto_supply_from_market(room_name, 'battery', 8.0e4, 15000, true);
+			auto_supply_from_market(room_name, 'energy', 4.5e5, 60000, true);
 		}
     }
+	if (Game.powered_rooms[room_name] !== undefined) {
+		auto_supply_from_market(room_name, 'ops', 5000, 1500, true);
+	}
 }
 
 export function auto_sell() {
@@ -364,17 +371,18 @@ export function market_stat() {
 		}
 		if (transaction.order == undefined) {
 			continue;
-		}
-		let order = transaction.order;
-		if (Memory.market_accumulation_stat.buy[transaction.resourceType] == undefined) {
-			Memory.market_accumulation_stat.buy[transaction.resourceType] = {
-				tot_number: 0,
-				tot_price: 0,
+		} else {
+			let order = transaction.order;
+			if (Memory.market_accumulation_stat.buy[transaction.resourceType] == undefined) {
+				Memory.market_accumulation_stat.buy[transaction.resourceType] = {
+					tot_number: 0,
+					tot_price: 0,
+				}
 			}
+			let stat = Memory.market_accumulation_stat.buy[transaction.resourceType];
+			stat.tot_number += transaction.amount;
+			stat.tot_price += transaction.amount * order.price;
 		}
-		let stat = Memory.market_accumulation_stat.buy[transaction.resourceType];
-		stat.tot_number += transaction.amount;
-		stat.tot_price += transaction.amount * order.price;
 	}
 
 	for (let transaction of Game.market.outgoingTransactions) {
@@ -382,17 +390,18 @@ export function market_stat() {
 			break;
 		}
 		if (transaction.order == undefined) {
-			continue;
-		}
-		let order = transaction.order;
-		if (Memory.market_accumulation_stat.sell[transaction.resourceType] == undefined) {
-			Memory.market_accumulation_stat.sell[transaction.resourceType] = {
-				tot_number: 0,
-				tot_price: 0,
+			Memory.tot_transaction_cost += Game.market.calcTransactionCost(transaction.amount, transaction.from, transaction.to);
+		} else {
+			let order = transaction.order;
+			if (Memory.market_accumulation_stat.sell[transaction.resourceType] == undefined) {
+				Memory.market_accumulation_stat.sell[transaction.resourceType] = {
+					tot_number: 0,
+					tot_price: 0,
+				}
 			}
+			let stat = Memory.market_accumulation_stat.sell[transaction.resourceType];
+			stat.tot_number += transaction.amount;
+			stat.tot_price += transaction.amount * order.price;
 		}
-		let stat = Memory.market_accumulation_stat.sell[transaction.resourceType];
-		stat.tot_number += transaction.amount;
-		stat.tot_price += transaction.amount * order.price;
 	}
 }

@@ -415,6 +415,13 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
 				}
             }
         }
+		if (creep.room.memory.current_boost_request == undefined) {
+			creep.room.memory.current_boost_request = {
+				compound: undefined,
+				amount: 0,
+				finished: true,
+			}
+		}
         creep.room.memory.current_boost_request.finished = true;
         delete creep.room.memory.current_boost_creep;
         creep.memory.boost_status.boosting = false;

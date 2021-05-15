@@ -379,6 +379,9 @@ global.init_stat = function(): number {
 	Memory.reaction_log = {};
 	Memory.pb_log = {}
 	Memory.stat_reset_time = Game.time;
+	Memory.tot_transaction_cost = 0;
+	Memory.power_processed_stat = 0;
+	Memory.op_power_processed_stat = 0;
 	return 0;
 }
 
@@ -389,5 +392,64 @@ global.display_stat = function(): string {
 	str += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, true);
 	str += '\npb stat' + global.format_json2(Memory.pb_log, true);
 	str += '\nreaction stat' + global.format_json(Memory.reaction_log, true);
+	str += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
+	str += '\npower processed: ' + Memory.power_processed_stat.toString();
+	str += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 	return str;
+}
+
+export function is_pos_reachable(pos: RoomPosition): boolean {
+	let structures = pos.lookFor("structure");
+	if (structures.filter((e) => !['road', 'container', 'rampart'].includes(e.structureType) || (e.structureType == 'rampart' && !(<StructureRampart>e).my)).length > 0) {
+		return false;
+	}
+	let sites = pos.lookFor("constructionSite");
+	if (sites.filter((e) => e.my && !(['road', 'container', 'rampart'].includes(e.structureType))).length > 0) {
+		return false;
+	}
+	/*
+	let creeps = pos.lookFor("creep");
+	if (creeps.filter((e) => my_creep_ok && e.my).length > 0) {
+		return false;
+	}
+	let powercreeps = pos.lookFor("powerCreep");
+	if (powercreeps.filter((e) => my_creep_ok && e.my).length > 0) {
+		return false;
+	}
+	*/
+	return true;
+}
+export function is_pathfinding_complete(creep: Creep | PowerCreep, range: number): boolean {
+	let creep_move = creep.memory._move;
+	if (creep_move == undefined) {
+		return undefined;
+	}
+	let path = Room.deserializePath(creep_move.path);
+	let last_pos;
+	if (path.length > 0) {
+		let last = path.slice(-1)[0];
+		last_pos = creep.room.getPositionAt(last.x, last.y);
+		if (!is_pos_reachable(last_pos)) {
+			return false;
+		}
+	} else {
+		last_pos = creep.pos;
+	}
+	let dest_pos = creep.room.getPositionAt(creep_move.dest.x, creep_move.dest.y);
+	return dest_pos.getRangeTo(last_pos) <= range;
+}
+
+global.spawn_PC = function (name: string): number {
+	let pc = Game.powerCreeps[name];
+	let pc_conf = config.pc_conf[name]
+	if (pc_conf == undefined || pc == undefined) {
+		return 1;
+	}
+	let room = Game.rooms[pc_conf.room_name];
+	let powerspawn_status = global.memory[room.name].unique_structures_status.powerSpawn;
+	let powerspawn = Game.getObjectById(powerspawn_status.id);
+	if (powerspawn == undefined) {
+		return 2;
+	}
+	return pc.spawn(powerspawn);
 }

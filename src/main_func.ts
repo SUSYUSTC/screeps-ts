@@ -337,8 +337,8 @@ function set_danger_mode(room_name: string) {
     let enemies_components = defense.get_room_invading_ability(room_name)
     let enemies_CE = mymath.array_sum(Object.values(enemies_components));
     if (enemies_CE >= 50 && enemies_components.heal >= 20) {
-		console.log("Invasion detected!");
-		console.log("CE:", enemies_CE, "#heal:", enemies_components.heal);
+		console.log(`Warning: Invasion detected at room ${room_name}!`);
+		console.log("Warning: CE:", enemies_CE, "#heal:", enemies_components.heal);
 		Game.memory[room_name].danger_mode = true;
     } else {
 		Game.memory[room_name].danger_mode = false;
@@ -651,8 +651,7 @@ function get_power_effects(room_name: string) {
 	if (Game.time % 5 == 0) {
 		return;
 	}
-	let powered = (_.filter(config.pc_conf, (e) => e.room_name == room_name)[0]) !== undefined;
-	if (!powered) {
+	if (Game.powered_rooms[room_name] == undefined) {
 		return;
 	}
 	let room = Game.rooms[room_name];
@@ -670,6 +669,19 @@ function get_power_effects(room_name: string) {
 				lab_status[lab_name].effect_time = effect.ticksRemaining;
 			}
 		}
+	}
+	let powerspawn_status = global.memory[room_name].unique_structures_status.powerSpawn;
+	if (powerspawn_status.finished) {
+		let powerspawn = Game.getObjectById(powerspawn_status.id)
+		let effect;
+		let effect_time = 0;
+		if (powerspawn.effects !== undefined) {
+			effect = powerspawn.effects.filter((e) => e.effect == PWR_OPERATE_POWER)[0];
+		}
+		if (effect !== undefined) {
+			effect_time = effect.ticksRemaining;
+		}
+		powerspawn_status.effect_time = effect_time;
 	}
 }
 

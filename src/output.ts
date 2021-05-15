@@ -45,6 +45,7 @@ interface type_room_log {
 	mine: type_mine_log;
 	reaction: GeneralMineralConstant;
 	boosting: MineralBoostConstant;
+	op_power: boolean;
 	construction_sites_progressleft: number;
 	objects_to_buy: {
 		[key: string]: type_object_to_trade;
@@ -144,6 +145,7 @@ export function log() {
 			mine: null,
 			reaction: null,
 			boosting: null,
+			op_power: false,
 			construction_sites_progressleft: null,
 			pb_status: {},
 			statistics: {},
@@ -217,6 +219,9 @@ export function log() {
 		}
 		if (room.memory.current_boost_request !== undefined) {
 			room_log.boosting = room.memory.current_boost_request.compound;
+		}
+		if (global.memory[room_name].unique_structures_status.powerSpawn.effect_time > 0) {
+			room_log.op_power = true;
 		}
 		if (room.memory.sites_total_progressleft) {
 			room_log.construction_sites_progressleft = room.memory.sites_total_progressleft;

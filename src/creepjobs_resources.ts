@@ -11,9 +11,6 @@ var moveoptions = {
     costCallback: functions.avoid_exits,
 };
 
-function modify_poses_path(creep: Creep) {
-}
-
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.memory.home_room_name];
     var game_memory = Game.memory[creep.memory.home_room_name];

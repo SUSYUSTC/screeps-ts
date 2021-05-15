@@ -66,9 +66,7 @@ type type_hunting = {
 interface type_pc_conf {
     [key: string]: {
         room_name: string;
-        source: boolean;
         normal_ordered: boolean;
-        lab: boolean;
         external_room ? : string;
     }
 }
@@ -141,33 +139,26 @@ export function distance_metric(room_name: string, pos1: RoomPosition, pos2: Roo
 export var pc_conf: type_pc_conf = {
     "PC_A": {
         "room_name": "E14N59",
-        "source": true,
         "normal_ordered": true,
-        "lab": true,
         "external_room": "E15N59",
     },
     "PC_B": {
         "room_name": "E19N55",
-        "source": true,
         "normal_ordered": true,
-        "lab": true,
         "external_room": "E19N56",
     },
     "PC_C": {
         "room_name": "E16N58",
-        "source": true,
         "normal_ordered": false,
-        "lab": true,
         "external_room": "E17N58",
     },
     "PC_D": {
         "room_name": "E9N54",
-        "source": true,
         "normal_ordered": false,
-        "lab": true,
         "external_room": "E9N55",
     },
 }
+export var op_power: boolean = true;
 export var hunting: type_hunting = {};
 export var source_container_upper_limit: number = 1200;
 export var source_container_lower_limit: number = 800;
@@ -201,7 +192,7 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 }
 export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
     "UH2O": 36000,
-    "GH2O": 50000,
+    "GH2O": 80000,
     "LO": 20000,
     "GHO2": 10000,
 	"UHO2": 40000,
@@ -276,7 +267,11 @@ export var acceptable_prices: type_acceptable_prices = {
         "battery": {
             price: 3.2,
             interval: 3000,
-        }
+        },
+		"ops": {
+			price: 1.5,
+			interval: 1000,
+		}
     },
     "sell": {}
 }
@@ -423,19 +418,6 @@ export var highway_resources: {
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
 export var storage_full: number = 300000;
-export var wall_rates: {
-    [key: string]: number
-} = {
-    "E14N51": 0,
-    "E19N51": 0,
-    "E19N53": 0,
-    "E15N58": 0,
-    "E16N58": 0,
-    "E21N49": 0,
-    "E19N55": 0,
-    "E14N59": 0,
-    "E9N54": 1,
-}
 let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
 let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
 export var mineral_storage_room: type_mineral_storage_room = {

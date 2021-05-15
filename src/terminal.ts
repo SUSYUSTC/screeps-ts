@@ -119,17 +119,23 @@ function balance_resource(resource: ResourceConstant, gap: number, min: number, 
 		let out = functions.send_resource(sending_room_name, rooms[argmin], resource, amount);
 	}
 }
+
 function balance_power() {
 	let rooms = config.controlled_rooms.filter((e) => Game.rooms[e].storage !== undefined && Game.rooms[e].terminal !== undefined && global.memory[e].unique_structures_status.powerSpawn.finished);
 	let net_power_amounts = rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity("power") - (Game.rooms[e].storage.store.getUsedCapacity("energy") - config.storage_full)/50);
 	let argmin = mymath.argmin(net_power_amounts);
 	let argmax = mymath.argmax(net_power_amounts);
 	let amount_diff = net_power_amounts[argmax] - net_power_amounts[argmin];
-	if (amount_diff >= 1000) {
+	if (amount_diff >= 2000) {
 		let room_min = Game.rooms[rooms[argmin]];
 		let room_max = Game.rooms[rooms[argmax]];
-		let amount = Math.min(Math.floor(amount_diff/2), room_max.terminal.store.getUsedCapacity("power"));
-		if (amount > 0) {
+		let leave_amount = 0;
+		if (global.memory[room_max.name].unique_structures_status.powerSpawn.effect_time > 0) {
+			leave_amount = 2000;
+		}
+		let max_real_amount = room_max.terminal.store.getUsedCapacity("power");
+		let amount = Math.min(Math.floor(amount_diff/2), max_real_amount - leave_amount);
+		if (amount >= 500) {
 			let out = functions.send_resource(room_max.name, room_min.name, "power", amount);
 		}
 	}

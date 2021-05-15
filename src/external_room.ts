@@ -61,25 +61,16 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 					costCallback: functions.avoid_exits
 				}, ...add_options});
 				// check is path valid
-				if_check_path: if (Game.time % 10 == 0) {
-					if (creep.memory._move == undefined || !options.replace_pos) {
-						break if_check_path;
-					}
-					let target_path = Room.deserializePath(creep.memory._move.path).slice(-1)[0];
-					if (target_path == undefined || !exit_pos.isEqualTo(target_path.x, target_path.y)) {
-						console.log(`Warning: Invalid _move.path in creep ${creep.name} at room ${creep.room.name} at time ${Game.time}`);;
-						let path = creep.pos.findPathTo(exit_pos, {range: 0, maxRooms: 1, maxOps: 200});
-						let last_pos = path.slice(-1)[0];
-						if (!exit_pos.isEqualTo(last_pos.x, last_pos.y)) {
-							let findconstant = functions.coordiff_to_exitconstant(coor_diff);
-							let all_exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
-							let new_exit_pos = creep.pos.findClosestByPath(all_exits);
-							let new_exit_xy = [new_exit_pos.x, new_exit_pos.y];
-							let correct_pos = new_exit_xy.filter((e) => e > 0 && e < 49)[0];
-							poses_path[arg] = correct_pos;
-							console.log("Warning: Invalid exit position detected. Automatically change to closest position");
-							return_value = 2;
-						}
+				if_check_path: if (Game.time % 10 == 0 && options.replace_pos) {
+					if (!functions.is_pathfinding_complete(creep, 0)) {
+						let findconstant = functions.coordiff_to_exitconstant(coor_diff);
+						let all_exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
+						let new_exit_pos = creep.pos.findClosestByPath(all_exits);
+						let new_exit_xy = [new_exit_pos.x, new_exit_pos.y];
+						let correct_pos = new_exit_xy.filter((e) => e > 0 && e < 49)[0];
+						poses_path[arg] = correct_pos;
+						console.log(`Warning: Invalid exit position detected for creep ${creep.name} at ${creep.room.name} at time ${Game.time}. Automatically change to closest position`);
+						return_value = 2;
 					}
 				}
 			}

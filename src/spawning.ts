@@ -11,10 +11,9 @@ function is_valid_creep(creep: Creep, livetime: number): boolean {
     return (creep.ticksToLive == undefined || creep.ticksToLive > livetime);
 }
 
-function get_mine_conf(remaining_amount: number, distance: number, max_energy: number): {work: number, carry: number} {
-	let max_work = Math.min(remaining_amount * 6 / 1200 / 5, 40, max_energy / 450 * 4);
-	max_work = Math.floor(max_work / 4) * 4;
-	//let carry_match = Math.ceil(distance * 2 * (max_work * 5 / 6) / 100 / 2) * 2;
+export function get_mine_conf(remaining_amount: number, distance: number): {work: number, carry: number} {
+	let max_work = Math.min(remaining_amount * 6 / 1200 / 5, 40);
+	max_work = Math.ceil(max_work / 4) * 4;
 	let carry_match = Math.ceil(distance * max_work / 60 / 2) * 2;
 	if (carry_match > 40) {
 		max_work = Math.ceil(2400 / distance / 2) * 2;
@@ -363,7 +362,7 @@ export function spawn(room_name: string) {
 
 	/*
 	real_if_mine: if (game_memory.mine_status.harvestable && room.energyCapacityAvailable >= 4500) {
-		let mine_conf = get_mine_conf(game_memory.mine_status.amount, conf.minecarrier_distance, room.energyCapacityAvailable);
+		let mine_conf = get_mine_conf(game_memory.mine_status.amount, conf.minecarrier_distance);
 		let body_conf: type_body_conf = {
 			work: {
 				boost: "UHO2",
@@ -911,7 +910,7 @@ export function spawn(room_name: string) {
 			let all_successful = mymath.all(raw_upgraders.map((e) => e.memory.boost_status !== undefined && e.memory.boost_status.boost_finished));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
 			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
-			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body) && Game.cpu.bucket >= 9000) {
+			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body) && Game.cpu.bucket >= 8000) {
 				let added_memory = {
 					"home_room_name": room_name,
 					"advanced": true,

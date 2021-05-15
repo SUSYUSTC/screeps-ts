@@ -170,6 +170,7 @@ interface type_unique_structures_status < T > {
     exists ? : boolean;
     finished ? : boolean;
     id ? : Id < T > ;
+	effect_time ? : number;
 }
 interface conf_named_structures {
     [key: string]: {
@@ -451,6 +452,9 @@ interface Memory {
 	};
 	market_accumulation_stat: type_market_stat;
 	stat_reset_time: number;
+	tot_transaction_cost: number;
+	power_processed_stat: number;
+	op_power_processed_stat: number;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -670,7 +674,6 @@ declare module NodeJS {
         refresh_product_request(): number;
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
-		auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number;
         update_layout(room_name: string, check_all: boolean): any;
 		get_tough_conf(creep: Creep): type_tough_conf;
 		get_body(components: type_body_components): BodyPartConstant[];
@@ -680,5 +683,6 @@ declare module NodeJS {
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;
+		spawn_PC(name: string): number;
     }
 }

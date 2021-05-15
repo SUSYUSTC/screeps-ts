@@ -2,6 +2,97 @@ import * as config from "./config";
 import * as external_room from "./external_room";
 import * as basic_job from "./basic_job";
 
+function generate_ops(pc: PowerCreep): number {
+	// -1: not ready, 0: scheduled
+	if (pc.usePower(PWR_GENERATE_OPS) == 0) {
+		return 0;
+	}
+	return -1;
+}
+
+function check_status(pc: PowerCreep): number {
+	// -1: good, 0: bad
+	let conf = config.pc_conf[pc.name];
+	pc.memory.home_room_name = conf.room_name;
+	if (pc.room.name !== conf.room_name) {
+		if (conf.external_room == undefined) {
+			pc.say("miss1");
+			return 0;
+		}
+		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
+		if (!conf_external.rooms_forwardpath.includes(pc.room.name)) {
+			pc.say("miss2");
+			return 0;
+		}
+	}
+	return -1;
+}
+
+function enable(pc: PowerCreep): number {
+	// -1: not ready, 0: scheduled
+	if (!pc.room.controller.isPowerEnabled) {
+		pc.say("enable");
+		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
+			pc.moveTo(pc.room.controller, {range: 1});
+		} else {
+			pc.enableRoom(pc.room.controller);
+		}
+		return 0;
+	}
+	return -1;
+}
+
+function renew(pc: PowerCreep): number {
+	// -1: not ready, 0: scheduled
+	let conf = config.pc_conf[pc.name];
+	if (pc.room.name !== conf.room_name) {
+		return -1;
+	}
+	if (pc.ticksToLive < 500) {
+		pc.say("renew");
+		let powerspawn = Game.getObjectById(global.memory[pc.room.name].unique_structures_status.powerSpawn.id)
+		if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
+			basic_job.movetopos(pc, powerspawn.pos, 1);
+			pc.memory.movable = true;
+		} else {
+			pc.renew(powerspawn);
+		}
+		return 0;
+	}
+	return -1;
+}
+
+var ops_lower_space = 250
+var ops_upper_space = 50
+var ops_exchange_space = ops_lower_space + ops_upper_space + 200;
+function exchange_ops(pc: PowerCreep): number {
+	// -1: not ready, 0: scheduled
+	let conf = config.pc_conf[pc.name];
+	if (pc.room.name !== conf.room_name) {
+		return -1;
+	}
+	if (pc.carry.getUsedCapacity("ops") >= pc.carryCapacity - ops_upper_space) {
+		pc.say("ops>");
+		if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
+			basic_job.movetopos(pc, pc.room.terminal.pos, 1);
+			pc.memory.movable = true;
+		} else {
+			pc.transfer(pc.room.terminal, "ops", pc.carryCapacity - ops_exchange_space);
+		}
+		return 0;
+	} else if (pc.carry.getUsedCapacity("ops") < ops_lower_space && pc.room.terminal.store.getUsedCapacity("ops") >= pc.carryCapacity - ops_exchange_space) {
+		pc.say("ops<");
+		if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
+			basic_job.movetopos(pc, pc.room.terminal.pos, 1);
+			pc.memory.movable = true;
+		} else {
+			pc.withdraw(pc.room.terminal, "ops", pc.carryCapacity - ops_exchange_space);
+		}
+		return 0;
+	}
+	return -1;
+}
+
 function is_time_for_source(pc: PowerCreep) {
 	let source_name = pc.memory.current_source_target;
 	if (source_name == 'external') {
@@ -27,11 +118,46 @@ function is_time_for_source(pc: PowerCreep) {
 	return false;
 }
 
-function operate_source(pc: PowerCreep, next_target: string) {
+function get_next_source_target(pc: PowerCreep): string {
+	let conf = config.pc_conf[pc.name];
+	let dict_next: {[key: string]: string};
+	let source_first: string;
+	let source_second: string;
+	if (conf.normal_ordered) {
+		source_first = "S1";
+		source_second = "S2";
+	} else {
+		source_first = "S2";
+		source_second = "S1";
+	}
+	if (conf.external_room !== undefined) {
+		dict_next = {
+			[source_first]: source_second,
+			[source_second]: "external",
+			"external": source_first,
+		}
+	} else {
+		dict_next = {
+			[source_first]: source_second,
+			[source_second]: source_first,
+		}
+	}
+	if (dict_next[pc.memory.current_source_target] == undefined) {
+		pc.memory.current_source_target = source_first;
+	}
+	return dict_next[pc.memory.current_source_target];
+}
+
+function operate_source(pc: PowerCreep) {
 	// -1: not ready, 0: operate, 1: wait, 2: moving inside room, 3: moving between rooms, 4: find invader in external room
+	if (pc.powers[PWR_REGEN_SOURCE] == undefined) {
+		return -1;
+	}
+	let next_target = get_next_source_target(pc);
 	if (!is_time_for_source(pc)) {
 		return -1;
 	}
+	pc.say(pc.memory.current_source_target);
 	let conf = config.pc_conf[pc.name];
 	if (pc.memory.current_source_target == 'external' && Game.rooms[conf.room_name].memory.external_room_status[conf.external_room].defense_type !== '') {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
@@ -75,9 +201,56 @@ function operate_source(pc: PowerCreep, next_target: string) {
 	}
 }
 
+function operate_extension(pc: PowerCreep) {
+	// -1: not ready, 0: operate, 1: moving
+	if (pc.powers[PWR_OPERATE_EXTENSION] == undefined) {
+		return -1;
+	}
+	if (pc.room.energyCapacityAvailable - pc.room.energyAvailable <= 4000) {
+		return -1;
+	}
+	pc.say("ext");
+	if (pc.pos.getRangeTo(pc.room.storage) > 3) {
+		basic_job.movetopos(pc, pc.room.storage.pos, 3);
+		return 1;
+	} else {
+		pc.usePower(PWR_OPERATE_EXTENSION, pc.room.storage);
+		return 0;
+	}
+}
+
+function operate_power(pc: PowerCreep) {
+	// -1: not ready, 0: operate, 1: moving
+	if (pc.powers[PWR_OPERATE_POWER] == undefined) {
+		return -1;
+	}
+	if (pc.carry.getUsedCapacity("ops") < 200) {
+		return -1;
+	}
+	if (pc.room.terminal.store.getUsedCapacity("power") < 2000) {
+		return -1;
+	}
+	let powerspawn_status = global.memory[pc.room.name].unique_structures_status.powerSpawn;
+	if (powerspawn_status.effect_time > 0) {
+		return -1;
+	}
+	let powerspawn = Game.getObjectById(powerspawn_status.id)
+	pc.say("power");
+	if (pc.pos.getRangeTo(powerspawn) > 3) {
+		basic_job.movetopos(pc, powerspawn.pos, 3);
+		return 1;
+	} else {
+		pc.usePower(PWR_OPERATE_POWER, powerspawn);
+		return 0;
+	}
+}
+
 function operate_lab(pc: PowerCreep) {
 	// -1: not ready, 0: operate, 1: moving
 	if (pc.powers[PWR_OPERATE_LAB] == undefined) {
+		return -1;
+	}
+	if (pc.carry.getUsedCapacity("ops") < 10) {
 		return -1;
 	}
 	let lab_status = global.memory[pc.room.name].named_structures_status.lab;
@@ -105,24 +278,6 @@ function operate_lab(pc: PowerCreep) {
 	return -1;
 }
 
-function operate_extension(pc: PowerCreep) {
-	// -1: not ready, 0: operate, 1: moving
-	if (pc.powers[PWR_OPERATE_EXTENSION] == undefined) {
-		return -1;
-	}
-	if (pc.room.energyCapacityAvailable - pc.room.energyAvailable <= 4000) {
-		return -1;
-	}
-	pc.say("ext");
-	if (pc.pos.getRangeTo(pc.room.storage) > 3) {
-		basic_job.movetopos(pc, pc.room.storage.pos, 3);
-		return 1;
-	} else {
-		pc.usePower(PWR_OPERATE_EXTENSION, pc.room.storage);
-		return 0;
-	}
-}
-
 export function work(pc: PowerCreep) {
 	if (pc == undefined) {
 		return;
@@ -133,87 +288,9 @@ export function work(pc: PowerCreep) {
 	}
 	pc.memory.movable = false;
 	pc.memory.crossable = true;
-	if (pc.usePower(PWR_GENERATE_OPS) == 0) {
-		return;
-	}
-	let conf = config.pc_conf[pc.name];
-	pc.memory.home_room_name = conf.room_name;
-	if (pc.room.name !== conf.room_name) {
-		if (conf.external_room == undefined) {
-			pc.say("miss1");
+	for (let func of [generate_ops, check_status, enable, renew, exchange_ops, operate_source, operate_extension, operate_power, operate_lab]) {
+		if (func(pc) >= 0) {
 			return;
 		}
-		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
-		if (!conf_external.rooms_forwardpath.includes(pc.room.name)) {
-			pc.say("miss2");
-			return;
-		}
-	}
-	if (!pc.room.controller.isPowerEnabled) {
-		pc.say("enable");
-		if (pc.pos.getRangeTo(pc.room.controller.pos) > 1) {
-			pc.moveTo(pc.room.controller, {range: 1});
-		} else {
-			pc.enableRoom(pc.room.controller);
-		}
-		return;
-	}
-	if (pc.room.name == conf.room_name) {
-		if (pc.ticksToLive < 500) {
-			pc.say("renew");
-			let powerspawn = Game.getObjectById(global.memory[pc.room.name].unique_structures_status.powerSpawn.id)
-			if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
-				basic_job.movetopos(pc, powerspawn.pos, 1);
-				pc.memory.movable = true;
-			} else {
-				pc.renew(powerspawn);
-			}
-			return;
-		}
-		if (pc.carry.getUsedCapacity("ops") > pc.carryCapacity - 50) {
-			pc.say("ops");
-			if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
-				basic_job.movetopos(pc, pc.room.terminal.pos, 1);
-				pc.memory.movable = true;
-			} else {
-				pc.transfer(pc.room.terminal, "ops", pc.carryCapacity - 150);
-			}
-			return;
-		}
-	}
-	let dict_next: {[key: string]: string};
-	let source_first: string;
-	let source_second: string;
-	if (conf.normal_ordered) {
-		source_first = "S1";
-		source_second = "S2";
-	} else {
-		source_first = "S2";
-		source_second = "S1";
-	}
-	if (conf.external_room !== undefined) {
-		dict_next = {
-			[source_first]: source_second,
-			[source_second]: "external",
-			"external": source_first,
-		}
-	} else {
-		dict_next = {
-			[source_first]: source_second,
-			[source_second]: source_first,
-		}
-	}
-	if (dict_next[pc.memory.current_source_target] == undefined) {
-		pc.memory.current_source_target = source_first;
-	}
-	pc.say(pc.memory.current_source_target);
-	if (operate_source(pc, dict_next[pc.memory.current_source_target]) >= 0) {
-		return;
-	}
-	if (operate_extension(pc) >= 0) {
-		return;
-	}
-	if (operate_lab(pc) >= 0) {
-		return;
 	}
 }
