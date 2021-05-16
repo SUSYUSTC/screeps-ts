@@ -18,7 +18,7 @@ export function log() {
 		Memory.history_cpus = [];
 	}
 	Memory.history_cpus.push(Game.cpu.getUsed());
-	if (Memory.history_cpus.length > 20) {
+	if (Memory.history_cpus.length > 50) {
 		Memory.history_cpus.shift();
 	}
 	console.log("Averaged CPU:", mymath.array_mean(Memory.history_cpus));

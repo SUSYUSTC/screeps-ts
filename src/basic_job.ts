@@ -369,9 +369,6 @@ function number_of_specific_bodypart_not_boosted(creep: Creep, bodypart: BodyPar
 }
 export function process_boost_request(creep: Creep, request: type_creep_boost_request, moveoptions: type_movetopos_options = {}): number {
     // return 0 for boost finished, 1 for processing, 2 for energy not enough, 3 for compound not enough, 4 for no lab or terminal
-    if (!global.memory[creep.room.name].named_structures_status.lab.B1.finished || !creep.room.terminal) {
-        return 4;
-    }
     if (creep.memory.boost_status == undefined) {
         creep.memory.boost_status = {
             boosting: false,
@@ -380,6 +377,9 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
     }
     if (creep.memory.boost_status.boost_finished) {
         return 0;
+    }
+    if (!global.memory[creep.room.name].named_structures_status.lab.B1.finished || !creep.room.terminal) {
+        return 4;
     }
     if (creep.memory.boost_status.boosting) {
         let labs_status = global.memory[creep.room.name].named_structures_status.lab;
@@ -453,7 +453,7 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
                     return 1;
                 }
                 creep.memory.boost_status.boosting = true;
-            } else {
+            } else if (creep.room.memory.current_boost_creep == undefined) {
                 movetopos(creep, lab.pos, 1, moveoptions);
             }
             return 1;

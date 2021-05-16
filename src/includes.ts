@@ -142,6 +142,7 @@ interface PowerCreepMemory {
     _move ? : type_creep_move;
     current_source_target ? : string;
     home_room_name ? : string;
+    next_time ? : any;
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -385,12 +386,16 @@ interface type_defender_responsible_types {
         cost: number;
     };
 }
-type invade_types = "attack" | "dismantle" | "ranged_attack";
-interface type_invader_group_x2 {
+type type_invade_assign = {
+	attack ?: number;
+	ranged_attack ?: number;
+	work ?: number;
+}
+interface type_invade_group_x2 {
     healer_name: string;
 	invader_name: string;
-	invade_type: invade_types;
 	invade_level: number;
+	assign: type_invade_assign;
 	home_room_name: string;
 }
 
@@ -448,7 +453,7 @@ interface Memory {
 	}
 	invade_costmatrices ?: {[key: string]: number[]};
 	invade_groups_x2 ?: {
-		[key: string]: type_invader_group_x2;
+		[key: string]: type_invade_group_x2;
 	};
 	market_accumulation_stat: type_market_stat;
 	stat_reset_time: number;
@@ -677,7 +682,7 @@ declare module NodeJS {
         update_layout(room_name: string, check_all: boolean): any;
 		get_tough_conf(creep: Creep): type_tough_conf;
 		get_body(components: type_body_components): BodyPartConstant[];
-		spawn_invader_group_x2(home_room_name: string, invade_type: invade_types, level: number, groupname: string): number;
+		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number;
 		is_pos_accessable(pos: RoomPosition): boolean;
 		reset_market_stat(): number;
 		get_market_stat(): type_order_total_amount;

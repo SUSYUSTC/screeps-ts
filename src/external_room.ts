@@ -6,6 +6,7 @@ import { Timer } from "./timer";
 
 type type_movethroughrooms_options = {
 	replace_pos ?: boolean;
+	ignore_creep_xys ?: [number, number][],
 }
 export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
 	// -1: error, 0: normal success, 1: already done, 2: correcting path
@@ -21,6 +22,9 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
     }
 	if (options.replace_pos == undefined) {
 		options.replace_pos = false;
+	}
+	if (options.ignore_creep_xys == undefined) {
+		options.ignore_creep_xys = [];
 	}
     let arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
     if (arg == rooms_path.length - 1) {
@@ -56,10 +60,22 @@ export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[]
 				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
 			} else {
 				let exit_pos = creep.room.getPositionAt(exit_xy[0], exit_xy[1]);
-				creep.moveTo(exit_pos, {...{
+				creep.moveTo(exit_pos, {...{add_options}, ...{
 					maxRooms: 1,
-					costCallback: functions.avoid_exits
-				}, ...add_options});
+					costCallback: function(roomName: string, costMatrix: CostMatrix) {
+						if (add_options.costCallback !== undefined) {
+							let result = add_options.costCallback(roomName, costMatrix);
+							if (result) {
+								costMatrix = result;
+							}
+						}
+						functions.avoid_exits(roomName, costMatrix);
+						costMatrix.set(exit_pos.x, exit_pos.y, 1);
+						for (let xy of options.ignore_creep_xys) {
+							costMatrix.set(xy[0], xy[1], 0);
+						}
+					}
+				}});
 				// check is path valid
 				if_check_path: if (Game.time % 10 == 0 && options.replace_pos) {
 					if (!functions.is_pathfinding_complete(creep, 0)) {
@@ -115,6 +131,7 @@ export function moveawayexit(creep: Creep | PowerCreep): number {
 	}
 }
 
+/*
 export function moveawayexit_group_x2(follower: Creep, decider: Creep): number {
 	if (decider.pos.x == 0) {
 		decider.move(RIGHT);
@@ -175,5 +192,56 @@ export function moveawayexit_group_x2(follower: Creep, decider: Creep): number {
 	} else {
 		return 1;
 	}
+}
+*/
+
+export function movethroughrooms_group_x2(invader: Creep, healer: Creep, rooms_path: string[], poses_path: number[], add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
+	// -1: error, 0: normal success, 1: already done
+	let out_invader = moveawayexit(invader);
+	let out_healer = moveawayexit(healer);
+	if (out_invader == 0 && out_healer == 0) {
+		return 0;
+	} else if (out_invader == 0 || out_healer == 0) {
+		console.log(`Warning: movethroughrooms_group_x2 fail at exit for invader ${invader.name} and healer ${healer.name} at time ${Game.time}`)
+		return -1;
+	}
+	let target_room_name = rooms_path.slice(-1)[0];
+	if (invader.room.name == target_room_name && healer.room.name == target_room_name) {
+		return 1;
+	}
+	if (invader.fatigue > 0 || healer.fatigue > 0) {
+		return 0;
+	}
+    let arg = mymath.where(rooms_path.map((e) => e == invader.room.name))[0];
+	let room1_coor = functions.room2coor(rooms_path[arg]);
+	let room2_coor = functions.room2coor(rooms_path[arg + 1]);
+	let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
+	let pos = poses_path[arg];
+	let exit_xy = functions.get_exit_xy(coor_diff, pos, [49, 0]);
+	let exit_pos = invader.room.getPositionAt(exit_xy[0], exit_xy[1]);
+	if (invader.pos.getRangeTo(exit_pos) > 1) {
+		movethroughrooms(invader, rooms_path, poses_path, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]]}, ...options});
+		healer.move(healer.pos.getDirectionTo(invader.pos));
+		return 0;
+	}
+	let findconstant = functions.coordiff_to_exitconstant(coor_diff);
+	let all_exits = invader.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
+	let closest_exit = all_exits.filter((e) => exit_pos.getRangeTo(e) == 1)[0];
+	if (closest_exit == undefined) {
+		console.log(`Warning: movethroughrooms_group_x2 fail at exit for invader ${invader.name} and healer ${healer.name} at time ${Game.time}`)
+		return -1;
+	}
+	let healer_target_pos = invader.room.getPositionAt(invader.pos.x + closest_exit.x - exit_pos.x, invader.pos.y + closest_exit.y - exit_pos.y);
+	if (healer.pos.isEqualTo(healer_target_pos)) {
+		let direction = invader.pos.getDirectionTo(exit_pos);
+		invader.move(direction);
+		healer.move(direction);
+	} else {
+		healer.moveTo(healer_target_pos, {
+			maxRooms: 1,
+			costCallback: functions.avoid_exits
+		})
+	}
+	return 0;
 }
 
