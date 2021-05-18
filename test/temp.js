@@ -41,7 +41,9 @@ console.log(global.format_objs(orders))
 
 
 var spawning = require("../dist/spawning")
-console.log(spawning.get_mine_conf(15000, 30, 4600))
-console.log("expected: {work: 16, carry: 8}");
-console.log(spawning.get_mine_conf(70000, 30, 4600))
-console.log("expected: {work: 40, carry: 20}");
+console.log(spawning.get_mine_conf(15000, 30))
+console.log("expected: {work: 15, carry: 8}");
+console.log(spawning.get_mine_conf(65000, 40))
+console.log("expected: {work: 27, carry: 18}");
+console.log(spawning.get_mine_conf(25000, 17))
+console.log("expected: {work: 25, carry: 8}");

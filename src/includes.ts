@@ -134,7 +134,8 @@ interface CreepMemory {
 	tough_conf ? : type_tough_conf;
 	heal_ability ? : number;
 	flagname ? : string;
-	mineral_type ?: GeneralMineralConstant;
+	mineral_type ? : GeneralMineralConstant;
+	need_boost ? : boolean;
 }
 interface PowerCreepMemory {
     movable ? : boolean;
@@ -460,6 +461,7 @@ interface Memory {
 	tot_transaction_cost: number;
 	power_processed_stat: number;
 	op_power_processed_stat: number;
+	produce_battery_stat: number;
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {

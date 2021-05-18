@@ -81,7 +81,7 @@ interface type_log {
 	};
 }
 export function log() {
-	if (!Memory.output_mode) {
+	if (!Memory.output_mode || Game.time % 5 !== 0) {
 		return 0;
 	}
 	let log: type_log = {

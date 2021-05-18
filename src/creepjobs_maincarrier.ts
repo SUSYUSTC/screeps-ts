@@ -287,10 +287,10 @@ function get_power_status(creep_amount: number, terminal_amount: number | undefi
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined && powerspawn_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 100 && powerspawn_amount == 0) {
+        if (terminal_amount + creep_amount >= 100 && powerspawn_amount < 5) {
             sink = "powerspawn";
-            withdraw_amount = 100;
-            transfer_amount = 100;
+            withdraw_amount = 96;
+            transfer_amount = 96;
         } else if (powerspawn_amount > 0 && creep_amount > 0) {
             source = "powerspawn";
         }

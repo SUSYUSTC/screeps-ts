@@ -203,11 +203,15 @@ export function creepjob(creep: Creep): number {
         creep.say("MH")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		let containers_status = global.memory[creep.room.name].named_structures_status.container;
         if (!game_memory.mine_status.harvestable) {
 			creep.say("MHf");
             return 0;
         }
+		if (creep.memory.need_boost && basic_job.boost_request(creep, {"work": "UHO2"}, true) !== 0) {
+			creep.say("MHb");
+			return 0;
+		}
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
         let xy = conf.containers.MINE.pos;
         let pos = creep.room.getPositionAt(xy[0], xy[1]);
         let mine = Game.getObjectById(conf.mine);
@@ -216,8 +220,47 @@ export function creepjob(creep: Creep): number {
 			creep.say("MHm");
 			return 0;
 		}
-        basic_job.harvest_source(creep, mine);
-		creep.say("MHh");
+		if (mine_container.store.getFreeCapacity() >= creep.getActiveBodyparts(WORK) * 5) {
+			basic_job.harvest_source(creep, mine);
+			creep.say("MHh");
+		}
+        return 0;
+    } else if (creep.memory.role == 'minecarrier') {
+        creep.say("mC")
+        creep.memory.movable = false;
+        creep.memory.crossable = true;
+		if (creep.memory.need_boost && basic_job.boost_request(creep, {"carry": "KH"}, true) !== 0) {
+			creep.say("mCb");
+			return 0;
+		}
+		let containers_status = global.memory[creep.room.name].named_structures_status.container;
+        let mineral_type = game_memory.mine_status.type;
+        if (game_memory.mine_status.harvestable) {
+            let container = Game.getObjectById(containers_status.MINE.id);
+            if (creep.store.getUsedCapacity(mineral_type) == 0) {
+				if (creep.pos.getRangeTo(container) == 1) {
+					if (basic_job.discard_useless_from_container(creep, container, mineral_type) == 0) {
+						return 0;
+					}
+				}
+                if (creep.pos.isNearTo(container) && container.store.getUsedCapacity(mineral_type) >= creep.store.getCapacity()) {
+                    creep.withdraw(container, mineral_type);
+					creep.say("mCw")
+                } else {
+					basic_job.movetopos(creep, container.pos, 1);
+					creep.say("mCs1")
+                }
+            } else {
+				let target = (creep.room.terminal ? creep.room.terminal : creep.room.storage);
+				if (target !== undefined) {
+					basic_job.transfer(creep, target, {sourcetype: mineral_type})
+					creep.say("mCt")
+				}
+            }
+        } else {
+			basic_job.moveto_stayxy(creep, conf.mineral_stay_pos);
+			creep.say("mCs2")
+        }
         return 0;
     } else if (creep.memory.role == 'builder') {
         creep.say("B")
@@ -245,37 +288,6 @@ export function creepjob(creep: Creep): number {
 			basic_job.build_structure(creep);
 			creep.say("Bb");
 		}
-        return 0;
-    } else if (creep.memory.role == 'minecarrier') {
-        creep.say("mC")
-        creep.memory.movable = false;
-        creep.memory.crossable = true;
-		let containers_status = global.memory[creep.room.name].named_structures_status.container;
-        let mineral_type = game_memory.mine_status.type;
-        if (game_memory.mine_status.harvestable) {
-            let container = Game.getObjectById(containers_status.MINE.id);
-            if (creep.store.getUsedCapacity(mineral_type) == 0) {
-				if (creep.pos.getRangeTo(container) == 1) {
-					basic_job.discard_useless_from_container(creep, container, mineral_type);
-				}
-                if (creep.pos.isNearTo(container) && container.store.getUsedCapacity(mineral_type) >= creep.store.getCapacity()) {
-                    creep.withdraw(container, mineral_type);
-					creep.say("mCw")
-                } else {
-                    basic_job.moveto_stayxy(creep, conf.mineral_stay_pos);
-					creep.say("mCs1")
-                }
-            } else {
-				let target = (creep.room.terminal ? creep.room.terminal : creep.room.storage);
-				if (target !== undefined) {
-					basic_job.transfer(creep, target, {sourcetype: mineral_type})
-					creep.say("mCt")
-				}
-            }
-        } else {
-			basic_job.moveto_stayxy(creep, conf.mineral_stay_pos);
-			creep.say("mCs2")
-        }
         return 0;
     } else if (creep.memory.role == 'wall_repairer') {
         creep.say("WR");

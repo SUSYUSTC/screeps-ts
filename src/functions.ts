@@ -382,6 +382,7 @@ global.init_stat = function(): number {
 	Memory.tot_transaction_cost = 0;
 	Memory.power_processed_stat = 0;
 	Memory.op_power_processed_stat = 0;
+	Memory.produce_battery_stat = 0;
 	return 0;
 }
 
@@ -395,6 +396,7 @@ global.display_stat = function(): string {
 	str += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
 	str += '\npower processed: ' + Memory.power_processed_stat.toString();
 	str += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
+	str += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
 	return str;
 }
 

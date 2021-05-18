@@ -356,6 +356,7 @@ function is_pos_accessable(pos: RoomPosition): boolean {
 }
 global.is_pos_accessable = is_pos_accessable;
 
+var detection_period = 500;
 function detect_resources(room_name: string) {
     if (Memory.pb_cooldown_time == undefined) {
         Memory.pb_cooldown_time = 0;
@@ -388,7 +389,7 @@ function detect_resources(room_name: string) {
         room.memory.external_resources.depo = {};
     }
     for (let i = 0; i < external_rooms.length; i++) {
-        if (Game.time % 100 == i) {
+        if (Game.time % detection_period == i) {
 			let observer_status = global.memory[room_name].unique_structures_status.observer
 			let observer = Game.getObjectById(observer_status.id);
 			if (observer == undefined) {
@@ -399,10 +400,11 @@ function detect_resources(room_name: string) {
         }
     }
     for (let i = 0; i < external_rooms.length; i++) {
-        if (Game.time % 100 == i + 1) {
+        if (Game.time % detection_period == i + 1) {
             let external_room_name = external_rooms[i];
             let external_room = Game.rooms[external_room_name];
             if (external_room == undefined) {
+				console.log(`Warning: Fail to observe room ${external_room_name} from ${room_name} at time ${Game.time}`);
                 continue;
             }
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];

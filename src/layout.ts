@@ -1,4 +1,3 @@
-console.log("Running module layout");
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";

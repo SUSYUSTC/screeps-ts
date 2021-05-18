@@ -88,11 +88,7 @@ const getbody_harvester = (options: any): BodyPartConstant[] => {
     return returnbody(options.with_harvest, options.with_carry, options.with_move);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
-	if (options.full) {
-		return returnbody(40, 0, 10);
-	} else {
-		return returnbody(20, 0, 5);
-	}
+	return returnbody(options.work, 0, options.move);
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
 	if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
@@ -155,11 +151,7 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_minecarrier = (options: any): BodyPartConstant[] => {
-	if (options.full) {
-		return returnbody(0, 12, 6);
-	} else {
-		return returnbody(0, 6, 3);
-	}
+	return returnbody(0, options.carry, options.move);
 }
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
@@ -297,10 +289,14 @@ for (var name in config.defender_responsible_types) {
 }
 
 global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: any = {}, first=false): number {
-    // 0: success, 1: name exists
+    // 0: success, 1: name exists, 2: wrong body
     if (Game.creeps[name] !== undefined) {
         return 1;
     }
+	if (body.length > 50) {
+		console.log(`Warning: trying to spawn a creep with more than 50 body in room ${room_name} with creep name ${name} at time ${Game.time}`);
+		return 2;
+	}
     let room = Game.rooms[room_name];
     let obj: type_additional_spawn = {
         "name": name,

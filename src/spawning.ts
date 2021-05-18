@@ -12,12 +12,12 @@ function is_valid_creep(creep: Creep, livetime: number): boolean {
 }
 
 export function get_mine_conf(remaining_amount: number, distance: number): {work: number, carry: number} {
-	let max_work = Math.min(remaining_amount * 6 / 1200 / 5, 40);
-	max_work = Math.ceil(max_work / 4) * 4;
-	let carry_match = Math.ceil(distance * max_work / 60 / 2) * 2;
-	if (carry_match > 40) {
-		max_work = Math.ceil(2400 / distance / 2) * 2;
-		carry_match = 40;
+	//let max_work = Math.min(remaining_amount * 6 / 1200 / 5, 40);
+	let max_work = Math.min(Math.ceil(remaining_amount / 1000), 40);
+	let carry_match = Math.ceil(distance * max_work / 60);
+	if (carry_match > 18) {
+		max_work = Math.ceil(1080 / distance);
+		carry_match = 18;
 	}
 	let result = {
 		work: max_work,
@@ -310,58 +310,18 @@ export function spawn(room_name: string) {
     }
 
     // mineharvester and minecarrier
-	if_mine: if (game_memory.mine_status.harvestable && game_memory.mine_status.amount > 0 && !game_memory.danger_mode) {
+	if_mine: if (game_memory.mine_status.harvestable && room.energyCapacityAvailable >= 4500 && game_memory.mine_status.amount > 0 && !game_memory.danger_mode) {
+		let mineharvesters = room_statistics.mineharvester;
+		let minecarriers = room_statistics.minecarrier;
+		let n_mineharvesters = mineharvesters.length;
+		let n_minecarriers = minecarriers.length;
 		let store_amount = room.storage.store.getUsedCapacity(game_memory.mine_status.type);
 		if (room.terminal !== undefined) {
 			store_amount += room.terminal.store.getUsedCapacity(game_memory.mine_status.type);
 		}
-		if (store_amount > 180000) {
+		if (store_amount > 240000) {
 			break if_mine;
 		}
-		let full_mine = game_memory.mine_status.amount >= 10000 && room.energyCapacityAvailable >= 4500;
-		let n_mineharvesters;
-		let n_minecarriers;
-		if (full_mine) {
-			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 150));
-			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 50));
-			n_mineharvesters = mineharvesters.length;
-			n_minecarriers = minecarriers.length;
-		} else {
-			let mineharvesters = room_statistics.mineharvester.filter((e) => is_valid_creep(e, 75));
-			let minecarriers = room_statistics.minecarrier.filter((e) => is_valid_creep(e, 25));
-			n_mineharvesters = mineharvesters.length;
-			n_minecarriers = minecarriers.length;
-		}
-		if (n_mineharvesters == 0) {
-			let added_memory = {};
-			let options = {
-				"full": full_mine,
-			};
-			let priority = 1;
-			let added_json = {
-				"priority": priority,
-				"require_full": true && game_memory.lack_energy,
-			};
-			let json = spawning_func.prepare_role("mineharvester", room.energyAvailable, added_memory, options, added_json);
-			jsons.push(json);
-		}
-		if (n_minecarriers == 0) {
-			let added_memory = {};
-			let options = {
-				"full": full_mine,
-			};
-			let priority = -1;
-			let added_json = {
-				"priority": priority,
-				"require_full": true && game_memory.lack_energy,
-			};
-			let json = spawning_func.prepare_role("minecarrier", room.energyAvailable, added_memory, options, added_json);
-			jsons.push(json);
-		}
-	}
-
-	/*
-	real_if_mine: if (game_memory.mine_status.harvestable && room.energyCapacityAvailable >= 4500) {
 		let mine_conf = get_mine_conf(game_memory.mine_status.amount, conf.minecarrier_distance);
 		let body_conf: type_body_conf = {
 			work: {
@@ -375,14 +335,12 @@ export function spawn(room_name: string) {
 		}
 		let ok = functions.is_boost_resource_enough(body_conf);
 		if (!ok) {
-			break real_if_mine; 
+			break if_mine; 
 		}
-		let mineharvesters = room_statistics.mineharvester;
-		let minecarriers = room_statistics.minecarrier;
-		let n_mineharvesters = mineharvesters.length;
-		let n_minecarriers = minecarriers.length;
 		if (n_mineharvesters == 0) {
-			let added_memory = {};
+			let added_memory = {
+				need_boost: true,
+			};
 			let options = {
 				work: mine_conf.work,
 				move: Math.ceil(mine_conf.work / 4),
@@ -396,7 +354,9 @@ export function spawn(room_name: string) {
 			jsons.push(json);
 		}
 		if (n_minecarriers == 0) {
-			let added_memory = {};
+			let added_memory = {
+				need_boost: true,
+			};
 			let options = {
 				carry: mine_conf.carry,
 				move: Math.ceil(mine_conf.carry / 2),
@@ -410,7 +370,6 @@ export function spawn(room_name: string) {
 			jsons.push(json);
 		}
 	}
-	*/
 
 	let powered = Game.powered_rooms[room_name] !== undefined;
 	let maincarrier_ncarry: number;
@@ -909,8 +868,11 @@ export function spawn(room_name: string) {
 			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  config.conf_gcl.conf_map.single_distance + 150));
 			let all_successful = mymath.all(raw_upgraders.map((e) => e.memory.boost_status !== undefined && e.memory.boost_status.boost_finished));
 			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
+			if (Game.cpu.bucket < 8000) {
+				n_upgrades_needed -= Math.ceil((8000 - Game.cpu.bucket) / 1000);
+			}
 			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
-			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body) && Game.cpu.bucket >= 8000) {
+			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body)) {
 				let added_memory = {
 					"home_room_name": room_name,
 					"advanced": true,

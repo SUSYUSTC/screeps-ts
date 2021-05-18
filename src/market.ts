@@ -284,10 +284,14 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
     current_amount += mymath.array_sum(orders_amount);
     if (current_amount < expected_amount) {
         console.log("create mineral order", resource, "at", room_name);
+		let price = 0.001;
+		if (config.acceptable_prices.buy[resource] !== undefined) {
+			price = config.acceptable_prices.buy[resource].price / 2;
+		}
         Game.market.createOrder({
             "type": "buy",
             "resourceType": resource,
-            "price": 0.001,
+            "price": price,
             "totalAmount": order_amount,
             "roomName": room_name,
         });
