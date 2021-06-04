@@ -151,18 +151,39 @@ export function get_invader_costmatrix(room_name: string, damage_threshold: numb
     return costmatrix;
 }
 
-export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2) {
-    let timer = new Timer("get_basic_costmatrices", false);
-
+export function update_basic_costmatrices() {
     if (global.basic_costmatrices == undefined) {
         global.basic_costmatrices = {};
-    }
-    if (global.basic_costmatrices_safe == undefined) {
         global.basic_costmatrices_safe = {};
-    }
-    if (global.basic_costmatrices_defense == undefined) {
         global.basic_costmatrices_defense = {};
     }
+	for (let room_name of config.occupied_rooms) {
+		if (Game.rooms[room_name] == undefined) {
+			return;
+		}
+		if (global.basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
+			let costmatrix = new PathFinder.CostMatrix;
+			let terrain = new Room.Terrain(room_name);
+			if (Game.rooms[room_name] !== undefined) {
+				let room = Game.rooms[room_name];
+				let structures = room.find(FIND_STRUCTURES);
+				let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+				structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
+				structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+				sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+				structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+			}
+			global.basic_costmatrices[room_name] = costmatrix.clone();
+			if (config.controlled_rooms.includes(room_name)) {
+				global.basic_costmatrices_safe[room_name] = costmatrix.clone();
+				global.basic_costmatrices_defense[room_name] = costmatrix.clone();
+				config.conf_rooms[room_name].safe_boundary.forEach((e) => global.basic_costmatrices_safe[room_name].set(e[0], e[1], 255));
+				config.conf_rooms[room_name].defense_boundary.forEach((e) => global.basic_costmatrices_defense[room_name].set(e[0], e[1], 255));
+			}
+		}
+	}
+}
+export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2): CostMatrix {
     let basic_costmatrices: type_costmatrices;
     if (safe_level == 0) {
         basic_costmatrices = global.basic_costmatrices;
@@ -171,28 +192,6 @@ export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2)
     } else if (safe_level == 2) {
         basic_costmatrices = global.basic_costmatrices_defense;
     }
-    if (basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
-        let costmatrix = new PathFinder.CostMatrix;
-        let terrain = new Room.Terrain(room_name);
-        if (Game.rooms[room_name] !== undefined) {
-            let room = Game.rooms[room_name];
-            let structures = room.find(FIND_STRUCTURES);
-            let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-            structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
-            structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-        }
-        if (safe_level == 1) {
-            let boundaries = config.conf_rooms[room_name].safe_boundary;
-            boundaries.forEach((e) => costmatrix.set(e[0], e[1], 255));
-        } else if (safe_level == 2) {
-            let boundaries = config.conf_rooms[room_name].defense_boundary;
-            boundaries.forEach((e) => costmatrix.set(e[0], e[1], 255));
-        }
-        basic_costmatrices[room_name] = costmatrix.clone();
-    }
-    timer.end();
     return basic_costmatrices[room_name].clone()
 }
 export function get_costmatrix_road(room_name: string, safe_level: 0 | 1 | 2 = 0): CostMatrix {

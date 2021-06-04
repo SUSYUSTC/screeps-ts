@@ -274,6 +274,9 @@ export var conf_E19N51: type_conf_room =
         "S2": {
             "pos": [24, 10],
             "RCL": 1
+        },
+        "UB": {
+            "pos": [23, 19]
         }
     },
     "towers": {

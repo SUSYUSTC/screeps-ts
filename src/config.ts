@@ -37,6 +37,7 @@ conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 conf_E16N58.external_rooms.E17N58.active = true;
 conf_E9N54.external_rooms.E9N55.active = true;
+conf_E19N53.external_rooms.E19N54.active = true;
 
 function direction2orient(pos: number[]) {
     if (pos[0] == 0 && pos[1] == 1) {
@@ -156,6 +157,11 @@ export var pc_conf: type_pc_conf = {
         "room_name": "E9N54",
         "normal_ordered": false,
         "external_room": "E9N55",
+    },
+    "PC_E": {
+        "room_name": "E19N53",
+        "normal_ordered": false,
+        "external_room": "E19N54",
     },
 }
 export var op_power: boolean = true;
@@ -581,28 +587,28 @@ export var powered_harvester: type_powered_harvester = {
 export var powered_external_harvester: type_powered_harvester = {
     1: {
         n_harvest: 7,
-        n_carry: 1,
-        n_move: 4,
+        n_carry: 3,
+        n_move: 5,
     },
     2: {
         n_harvest: 9,
-        n_carry: 1,
-        n_move: 5,
+        n_carry: 3,
+        n_move: 6,
     },
     3: {
         n_harvest: 11,
-        n_carry: 2,
-        n_move: 6,
+        n_carry: 3,
+        n_move: 7,
     },
     4: {
         n_harvest: 12,
-        n_carry: 2,
-        n_move: 6,
+        n_carry: 4,
+        n_move: 8,
     },
     5: {
         n_harvest: 14,
-        n_carry: 2,
-        n_move: 7,
+        n_carry: 4,
+        n_move: 9,
     },
 }
 

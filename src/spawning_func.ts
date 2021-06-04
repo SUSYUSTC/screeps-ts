@@ -277,9 +277,15 @@ export function spawn_json(room_name: string, json: type_spawn_json) {
         if (spawn.memory.spawning_time < 0) {
             continue;
         }
-        spawn.spawnCreep(json.body, json.creepname, {
-            memory: json.memory
-        });
+		let options: SpawnOptions = {
+			memory: json.memory
+		}
+		if (Game.powered_rooms[room_name] !== undefined) {
+			let all_spawns = <Array<StructureExtension | StructureSpawn>> global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
+			let all_exts = <Array<StructureExtension | StructureSpawn>> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'extension');
+			options.energyStructures = all_exts.concat(all_spawns);
+		}
+        spawn.spawnCreep(json.body, json.creepname, options);
         return;
     }
 }

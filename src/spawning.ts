@@ -637,7 +637,7 @@ export function spawn(room_name: string) {
             let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest) * 3 + 20;
 			let externalharvesters = room_statistics.externalharvester.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && is_valid_creep(e, conf_external.single_distance + externalharvester_spawning_time));
             //let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
-			let n_carrier_carry = Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * 0.08);
+			let n_carrier_carry = Math.min(Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * 0.08), 33);
             let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5) + 20;
 			let externalcarriers = room_statistics.externalcarrier.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && is_valid_creep(e, conf_external.single_distance + externalcarrier_spawning_time));
             //let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
@@ -671,9 +671,9 @@ export function spawn(room_name: string) {
                 };
                 let options = {
                     "max_energy": room.energyCapacityAvailable,
-					"n_work": 2,
+					"n_work": 0,
 					"n_carry": n_carrier_carry,
-					"n_move": Math.ceil(n_carrier_carry/2) + 2,
+					"n_move": Math.ceil(n_carrier_carry/2),
                 }
                 let priority = (externalharvesters.length > 0 ? 30 : 20);
                 let added_json = {

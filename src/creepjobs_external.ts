@@ -141,7 +141,9 @@ export function creepjob(creep: Creep): number {
 		creep.say("EH");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		//Game.rooms[creep.memory.home_room_name].memory.external_harvester[creep.memory.external_room_name][creep.memory.source_name] = creep.name;
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'init';
+		}
 		let conf_external;
 		if (creep.memory.powered) {
 			conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;
@@ -158,6 +160,14 @@ export function creepjob(creep: Creep): number {
 			creep.say("EHf");
 			return 0;
 		}
+		if_init: if (creep.memory.working_status == 'init') {
+			if (creep.store.getFreeCapacity("energy") == 0) {
+				creep.memory.working_status = 'working';
+				break if_init;
+			}
+			basic_job.get_energy(creep);
+			creep.say("EHg");
+		}
 		if (creep.room.name !== creep.memory.external_room_name) {
 			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
 			creep.memory.movable = true;
@@ -171,6 +181,7 @@ export function creepjob(creep: Creep): number {
 				}
 			}
 			if (basic_job.trymovetopos(creep, pos) !== 2) {
+				basic_job.repair_road(creep);
 				creep.say("EHm");
 				return 0;
 			}
@@ -185,10 +196,12 @@ export function creepjob(creep: Creep): number {
 		creep.say("EC");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
+		/*
 		if (creep.room.name == creep.memory.external_room_name) {
 			basic_job.repair_road(creep);
 			creep.say("ECr");
 		}
+		*/
 		let conf_external;
 		if (creep.memory.powered) {
 			conf_external = conf.external_rooms[creep.memory.external_room_name].powered_source;

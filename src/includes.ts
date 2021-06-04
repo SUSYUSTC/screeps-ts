@@ -104,6 +104,7 @@ interface CreepMemory {
     movable ? : boolean;
     crossable ? : boolean;
     role ? : type_creep_role;
+	working_status ? : string;
     source_name ? : string;
     harvesting ? : boolean;
     home_room_name ? : string;

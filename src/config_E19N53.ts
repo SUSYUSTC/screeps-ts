@@ -154,11 +154,11 @@ export var conf_E19N53: type_conf_room =
             [22, 10],
             [23, 9],
             [24, 8],
-            [25, 6],
             [26, 6],
             [27, 6],
-            [24, 7],
-            [27, 5]
+            [27, 5],
+            [25, 7],
+            [25, 5]
         ],
         "4": [
             [17, 19],
@@ -193,7 +193,18 @@ export var conf_E19N53: type_conf_room =
             [6, 22],
             [5, 22],
             [6, 21],
-            [5, 20]
+            [5, 20],
+            [32, 4],
+            [32, 2],
+            [33, 3],
+            [34, 2],
+            [24, 4],
+            [25, 3],
+            [24, 2],
+            [23, 3],
+            [22, 2],
+            [26, 2],
+            [22, 1]
         ]
     },
     "spawns": {
@@ -294,6 +305,9 @@ export var conf_E19N53: type_conf_room =
         "S2": {
             "pos": [5, 6],
             "RCL": 1
+        },
+        "UB": {
+            "pos": [25, 12]
         }
     },
     "towers": {
@@ -349,7 +363,7 @@ export var conf_E19N53: type_conf_room =
             "commuting_time": 48
         }
     },
-    "minecarrier_distance": 13,
+    "minecarrier_distance": 12,
     "extractor": {
         "pos": [34, 6],
         "RCL": 6
@@ -448,6 +462,51 @@ export var conf_E19N53: type_conf_room =
                     "rooms_backwardpath": ["E19N54", "E19N53"],
                     "poses_backwardpath": [22]
                 }
+            },
+            "powered_source": {
+                "source_name": "S2",
+                "carry_end": {
+                    "type": "storage",
+                    "name": ""
+                },
+                "roads": [
+                    [22, 48],
+                    [23, 47],
+                    [24, 46],
+                    [25, 45],
+                    [26, 44],
+                    [27, 43],
+                    [29, 41],
+                    [28, 42],
+                    [30, 40],
+                    [30, 39],
+                    [30, 38],
+                    [30, 36],
+                    [30, 35],
+                    [30, 37],
+                    [30, 34],
+                    [30, 32],
+                    [30, 31],
+                    [30, 33],
+                    [30, 30],
+                    [30, 29],
+                    [30, 27],
+                    [29, 26],
+                    [29, 25],
+                    [30, 28],
+                    [30, 24],
+                    [31, 23],
+                    [32, 22],
+                    [33, 21]
+                ],
+                "poses_forwardpath": [22],
+                "poses_backwardpath": [22],
+                "id": <Id<Source>>"5bbcae049099fc012e6384ed",
+                "harvester_pos": [34, 21],
+                "single_distance": 41,
+                "rooms_forwardpath": ["E19N53", "E19N54"],
+                "rooms_backwardpath": ["E19N54", "E19N53"],
+                "carrier_distance": 37
             }
         }
     },
