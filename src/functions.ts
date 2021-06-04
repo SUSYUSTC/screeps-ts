@@ -277,11 +277,22 @@ export function is_boost_resource_enough(request: type_body_conf): boolean {
 	return mymath.all(parts.filter((e) => request[e].boost !== undefined).map((e) => is_single_boost_resource_enough(request[e].boost, request[e].number)));
 }
 
+export function sort_str(s1: string, s2: string): number {
+	if (s1.length !== s2.length) {
+		return s1.length - s2.length;
+	}
+	if (s1 > s2) {
+		return 1;
+	} else {
+		return -1;
+	}
+}
+
 function arrange_string(str: string, length: number): string {
     return ' '.repeat(Math.max(length - str.length, 0)) + str;
 }
 
-function obj2string(obj: any, json: boolean) {
+function obj2string(obj: any, json: boolean): string {
 	if (obj == undefined) {
 		return 'undefined';
 	} else if (typeof obj == 'object') {
@@ -299,7 +310,7 @@ function obj2string(obj: any, json: boolean) {
     }
 }
 
-global.format_objs = function(objs: any[], json: boolean = false): string {
+global.format_objs = function(objs: any[], json: boolean): string {
     let str = '\n'	
 	if (objs.length == 0) {
 		return str;
@@ -322,22 +333,30 @@ global.format_objs = function(objs: any[], json: boolean = false): string {
     return str;
 }
 
-global.format_json = function(obj: any, json: boolean = false): string {
+global.format_json = function(obj: any, options: type_format_options = {}): string {
 	let arr: any[] = [];
-	for (let key of Object.keys(obj)) {
+	let keys = Object.keys(obj);
+	if (options.sort) {
+		keys = keys.sort(sort_str);
+	}
+	for (let key of keys) {
 		let item: any = {...{keyname: key}, ...{value: obj[key]}};
 		arr.push(item);
 	}
-	return global.format_objs(arr, json);
+	return global.format_objs(arr, options.json);
 }
 
-global.format_json2 = function(obj: any, json: boolean = false): string {
+global.format_json2 = function(obj: any, options: type_format_options = {}): string {
 	let arr: any[] = [];
-	for (let key of Object.keys(obj)) {
+	let keys = Object.keys(obj);
+	if (options.sort) {
+		keys = keys.sort(sort_str);
+	}
+	for (let key of keys) {
 		let item: any = {...{keyname: key}, ...(_.clone(obj[key]))};
 		arr.push(item);
 	}
-	return global.format_objs(arr, json);
+	return global.format_objs(arr, options.json);
 }
 
 export function send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number) {
@@ -386,18 +405,56 @@ global.init_stat = function(): number {
 	return 0;
 }
 
+function vertical_split_string(str1: string, str2: string): string {
+	let part1 = str1.split('\n').slice(1)
+	let part2 = str2.split('\n').slice(1)
+	let n1 = part1.length
+	let n2 = part2.length
+	let nmax = Math.max(n1, n2)
+	let lens = part1.map((e) => e.length)
+	let maxlen = Math.max(mymath.max(lens) + 2, 40);
+	let result = ''
+	for (let i of mymath.range(nmax)) {
+		if (part1[i] == undefined) {
+			part1[i] = ''
+		}
+		if (part2[i] == undefined) {
+			part2[i] = ''
+		}
+		result += '\n'
+		result += part1[i] + ' '.repeat(maxlen - part1[i].length) + part2[i]
+	}
+	return result;
+}
+
 global.display_stat = function(): string {
-	let str:string = '';
-	str += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${Game.time - Memory.stat_reset_time} in total\n`;
-	str += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, true);
-	str += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, true);
-	str += '\npb stat' + global.format_json2(Memory.pb_log, true);
-	str += '\nreaction stat' + global.format_json(Memory.reaction_log, true);
-	str += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
-	str += '\npower processed: ' + Memory.power_processed_stat.toString();
-	str += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
-	str += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
-	return str;
+	let amounts: {
+		[key: string]: {
+			terminal: number;
+			storage: number
+		}
+	} = {};
+	for (let room_name of config.controlled_rooms) {
+		amounts[room_name] = {
+			terminal: Game.rooms[room_name].terminal.store.getUsedCapacity(),
+			storage: Game.rooms[room_name].storage.store.getUsedCapacity(),
+		}
+	}
+	let str1:string = '';
+	let str2:string = '';
+	str1 += '\nstore: ' + global.format_json(global.terminal_store, {sort: true, json: true});
+	str2 += '\nterminal amount: ' + global.format_json2(amounts, {sort: false, json: true});
+	str2 += '\ntotal energy: ' + Memory.total_energies.toString();
+	str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${Game.time - Memory.stat_reset_time} in total\n`;
+	str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
+	str2 += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, {sort: true, json: true});
+	str2 += '\npb stat' + global.format_json2(Memory.pb_log, {sort: false, json: true});
+	str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
+	str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
+	str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
+	str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
+	str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
+	return vertical_split_string(str1, str2);
 }
 
 export function is_pos_reachable(pos: RoomPosition): boolean {
@@ -409,16 +466,6 @@ export function is_pos_reachable(pos: RoomPosition): boolean {
 	if (sites.filter((e) => e.my && !(['road', 'container', 'rampart'].includes(e.structureType))).length > 0) {
 		return false;
 	}
-	/*
-	let creeps = pos.lookFor("creep");
-	if (creeps.filter((e) => my_creep_ok && e.my).length > 0) {
-		return false;
-	}
-	let powercreeps = pos.lookFor("powerCreep");
-	if (powercreeps.filter((e) => my_creep_ok && e.my).length > 0) {
-		return false;
-	}
-	*/
 	return true;
 }
 export function is_pathfinding_complete(creep: Creep | PowerCreep, range: number): boolean {

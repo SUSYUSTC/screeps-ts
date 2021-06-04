@@ -188,6 +188,12 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
             "rooms_forwardpath": ['E16N58', 'E16N57'],
             "poses_forwardpath": [28],
         }
+    },
+    'E14N51': {
+        'E11N47': {
+            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N49', 'E10N48', 'E10N47', 'E11N47'],
+            "poses_forwardpath": [5, 25, 25, 25, 40, 35, 35, 30, 15],
+        }
     }
 }
 export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
@@ -200,6 +206,7 @@ export var final_product_request: {[key in GeneralMineralConstant] ?: number} = 
     "KH": 30000,
     "ZO": 20000,
     "XUH2O": 30000,
+    "XLH2O": 30000,
     "XLHO2": 30000,
     "XZH2O": 30000,
     "XZHO2": 30000,
@@ -237,35 +244,35 @@ export var acceptable_prices: type_acceptable_prices = {
             interval: 1000,
         },
         "L": {
-            price: 0.4,
-            interval: 1000,
-        },
-        "Z": {
-            price: 0.4,
-            interval: 1000,
-        },
-        "K": {
-            price: 0.4,
-            interval: 1000,
-        },
-        "X": {
-            price: 1.5,
-            interval: 1000,
-        },
-        "H": {
             price: 0.6,
             interval: 1000,
         },
+        "Z": {
+            price: 0.6,
+            interval: 1000,
+        },
+        "K": {
+            price: 0.6,
+            interval: 1000,
+        },
+        "X": {
+            price: 1.8,
+            interval: 1000,
+        },
+        "H": {
+            price: 0.8,
+            interval: 1000,
+        },
         "O": {
-            price: 0.3,
+            price: 0.4,
             interval: 1000,
         },
         "energy": {
-            price: 0.3,
+            price: 0.4,
             interval: 3000,
         },
         "battery": {
-            price: 3.2,
+            price: 4.0,
             interval: 3000,
         },
 		"ops": {
@@ -285,59 +292,58 @@ type type_auto_sell_list = {
 export var auto_sell_list: type_auto_sell_list = {
     "XUH2O": {
         room: "E15N58",
-        price: 15,
+        price: 18,
+        amount: 30000,
+    },
+    "XLH2O": {
+        room: "E16N58",
+        price: 18,
         amount: 30000,
     },
     "XLHO2": {
         room: "E9N54",
-        price: 15,
+        price: 18,
         amount: 30000,
     },
     "XZH2O": {
         room: "E14N51",
-        price: 20,
+        price: 24,
         amount: 30000,
     },
     "XZHO2": {
         room: "E14N59",
-        price: 15,
+        price: 18,
         amount: 30000,
     },
     "XKH2O": {
         room: "E19N55",
-        price: 15,
+        price: 18,
         amount: 30000,
     },
     "XKHO2": {
         room: "E21N49",
-        price: 15,
+        price: 18,
         amount: 30000,
     },
     "XGHO2": {
         room: "E19N51",
-        price: 25,
+        price: 30,
         amount: 30000,
     },
     "XGH2O": {
         room: "E19N53",
-        price: 20,
+        price: 24,
         amount: 30000,
     },
-}
-type type_resources_balance = {
-    [key in ResourceConstant] ? : {
-        gap: number;
-        min: number;
-        amount: number;
-    }
 }
 type type_resource_gathering_pos = {
     [key in ResourceConstant] ? : string;
 }
-export var resources_balance: type_resources_balance = {
+export var resources_balance: {[key in ResourceConstant] ?: type_resource_balance} = {
     "battery": {
         gap: 10000,
         min: 10000,
+		max: 120000,
         amount: 2000,
     },
     "GH2O": {
@@ -384,6 +390,7 @@ export var resources_balance: type_resources_balance = {
 export var resource_gathering_pos: type_resource_gathering_pos = {
     "XUH2O": "E15N58",
     "XUHO2": "E16N58",
+    "XLH2O": "E16N58",
     "XLHO2": "E9N54",
     "XZH2O": "E14N51",
     "XZHO2": "E14N59",
@@ -518,7 +525,7 @@ export var pb_healer_body: type_body_conf = {
         number: 20,
     }
 }
-export var gcl_upgrader_body: type_body_conf = {
+export var gcl_upgrader_body_boosted: type_body_conf = {
     "work": {
         number: 40,
         boost: "GH2O",
@@ -530,6 +537,17 @@ export var gcl_upgrader_body: type_body_conf = {
     "move": {
         number: 5,
         boost: "ZO",
+    },
+}
+export var gcl_upgrader_body_no_boosted: type_body_conf = {
+    "work": {
+        number: 32,
+    },
+    "carry": {
+        number: 10,
+    },
+    "move": {
+        number: 8,
     },
 }
 export var depo_last_cooldown = 20000;

@@ -26,7 +26,6 @@ import * as gcl_room from "./gcl_room";
 import { Timer } from "./timer";
 import * as defense from "./defense";
 import * as control from "./control";
-Memory.rerunning = true;
 action_counter.warpActions();
 
 module.exports.loop = function() {

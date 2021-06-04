@@ -867,20 +867,26 @@ export function spawn(room_name: string) {
 			let raw_upgraders = room_statistics.gcl_upgrader;
 			let upgraders = raw_upgraders.filter((e) => is_valid_creep(e,  config.conf_gcl.conf_map.single_distance + 150));
 			let all_successful = mymath.all(raw_upgraders.map((e) => e.memory.boost_status !== undefined && e.memory.boost_status.boost_finished));
-			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies).length;
+			if (!all_successful) {
+				break if_gcl;
+			}
+			let boost_condition = functions.is_boost_resource_enough(config.gcl_upgrader_body_boosted);
+			let boost_barrier = boost_condition ? 0 : 0.4e6 * config.controlled_rooms.length;
+			let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies - boost_barrier).length;
 			if (Game.cpu.bucket < 8000) {
 				n_upgrades_needed -= Math.ceil((8000 - Game.cpu.bucket) / 1000);
 			}
 			let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
-			if (upgraders.length < n_upgrades_needed && all_successful && energy_condition && functions.is_boost_resource_enough(config.gcl_upgrader_body)) {
+			if (upgraders.length < n_upgrades_needed && energy_condition) {
 				let added_memory = {
 					"home_room_name": room_name,
-					"advanced": true,
+					"advanced": boost_condition,
 				};
+				let body_conf = boost_condition ? config.gcl_upgrader_body_boosted : config.gcl_upgrader_body_no_boosted;
 				let options = {
-					"n_work": config.gcl_upgrader_body.work.number,
-					"n_carry": config.gcl_upgrader_body.carry.number,
-					"n_move":config.gcl_upgrader_body.move.number,
+					"n_work": body_conf.work.number,
+					"n_carry": body_conf.carry.number,
+					"n_move": body_conf.move.number,
 				};
 				let priority = 10;
 				let added_json = {

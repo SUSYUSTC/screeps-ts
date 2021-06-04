@@ -109,14 +109,16 @@ function support_developing_rooms() {
         }
     }
 }
-function balance_resource(resource: ResourceConstant, gap: number, min: number, amount: number) {
+function balance_resource(resource: ResourceConstant, conf: type_resource_balance) {
 	let rooms = config.controlled_rooms.filter((e) => Game.rooms[e].storage !== undefined && Game.rooms[e].terminal !== undefined);
 	let ns = rooms.map((e) => Game.rooms[e].storage.store.getUsedCapacity(resource) + Game.rooms[e].terminal.store.getUsedCapacity(resource));
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
-	if (ns[argmax] - ns[argmin] >= gap && ns[argmin] < min) {
-		let sending_room_name = rooms[argmax];
-		let out = functions.send_resource(sending_room_name, rooms[argmin], resource, amount);
+	if (ns[argmax] - ns[argmin] >= conf.gap) {
+		if (ns[argmin] < conf.min || ns[argmax] > conf.max) {
+			let sending_room_name = rooms[argmax];
+			let out = functions.send_resource(sending_room_name, rooms[argmin], resource, conf.amount);
+		}
 	}
 }
 
@@ -178,7 +180,7 @@ export function terminal_balance() {
 	if (Game.time % 20 == 10) {
 		for (let resource of <Array<ResourceConstant>>Object.keys(config.resources_balance)) {
 			let conf = config.resources_balance[resource];
-			balance_resource(resource, conf.gap, conf.min, conf.amount);
+			balance_resource(resource, conf);
 		}
 	}
 	if (Game.time % 20 == 15) {

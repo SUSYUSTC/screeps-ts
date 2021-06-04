@@ -440,7 +440,6 @@ interface Memory {
     };
     debug_mode ? : boolean;
     output_mode ? : boolean;
-    rerunning ? : boolean;
     history_cpus ? : number[];
     pb_cooldown_time ? : number;
     product_request ? : type_product_request;
@@ -630,6 +629,16 @@ interface type_tough_conf {
 interface type_costmatrices {
 	[key: string]: CostMatrix;
 }
+type type_format_options = {
+	json ?: boolean;
+	sort ?: boolean;
+}
+type type_resource_balance = {
+		gap: number;
+		min: number;
+		max ?: number
+		amount: number;
+}
 declare module NodeJS {
     interface Global {
         //Game: Game,
@@ -666,8 +675,8 @@ declare module NodeJS {
         history_orders(resource: MarketResourceConstant): type_history_order[];
 		my_orders(): Order[];
         format_objs(objs: any[], json: boolean): string;
-        format_json(obj: any, json: boolean): string;
-        format_json2(obj: any, json: boolean): string;
+        format_json(obj: any, options: type_format_options): string;
+        format_json2(obj: any, options: type_format_options): string;
         summarize_terminal(): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;

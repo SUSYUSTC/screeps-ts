@@ -1,6 +1,7 @@
 import * as _ from "lodash"
 import * as mymath from "./mymath"
 import * as config from "./config"
+import * as functions from "./functions"
 
 global.get_best_order = function(room_name: string, typ: "sell" | "buy", resource: MarketResourceConstant, num: number = 8, energy_price: number = 0.2): type_order_result[] {
     let orders = Game.market.getAllOrders({
@@ -50,14 +51,7 @@ function order_score_sort(order1: Order, order2: Order): number {
 			return -1;
 		}
 	}
-	if (order1.resourceType.length !== order2.resourceType.length) {
-		return order1.resourceType.length - order2.resourceType.length;
-	}
-	if (order1.resourceType > order2.resourceType) {
-		return 1;
-	} else {
-		return -1;
-	}
+	return functions.sort_str(order1.resourceType, order2.resourceType);
 }
 global.my_orders = function (): Order[] {
 	return <Array<Order>>Object.values(Game.market.orders).sort((a, b) => order_score_sort(a, b));
@@ -280,7 +274,11 @@ global.set_resource_price = function(type: "buy" | "sell", resource: MarketResou
 export function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number, per_room: boolean): number {
     let room = Game.rooms[room_name];
     let current_amount = room.storage.store.getUsedCapacity(resource) + room.terminal.store.getUsedCapacity(resource);
-    let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource && (!per_room || e.roomName == room_name)).map((e) => e.remainingAmount);
+	let orders = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource && (!per_room || e.roomName == room_name))
+	if (config.acceptable_prices.buy[resource] !== undefined) {
+		orders.filter((e) => e.remainingAmount < order_amount / 10).forEach((e) => Game.market.cancelOrder(e.id));
+	}
+    let orders_amount = orders.map((e) => e.remainingAmount);
     current_amount += mymath.array_sum(orders_amount);
     if (current_amount < expected_amount) {
         console.log("create mineral order", resource, "at", room_name);
@@ -327,7 +325,10 @@ export function auto_sell() {
 	}
 	for (let resource of <Array<MarketResourceConstant>> Object.keys(config.auto_sell_list)) {
 		let sell_conf = config.auto_sell_list[resource];
-		let orders_amount = _.filter(Game.market.orders, (e) => e.type == 'sell' && e.resourceType == resource && e.roomName == sell_conf.room).map((e) => e.remainingAmount);
+		let orders = _.filter(Game.market.orders, (e) => e.type == 'sell' && e.resourceType == resource && e.roomName == sell_conf.room)
+		orders.filter((e) => e.remainingAmount < sell_conf.amount / 10).forEach((e) => Game.market.cancelOrder(e.id));
+		orders.filter((e) => Math.abs(e.price - sell_conf.price) >= 0.001).forEach((e) => Game.market.changeOrderPrice(e.id, sell_conf.price));
+		let orders_amount = orders.map((e) => e.remainingAmount);
 		let total_amount = mymath.array_sum(orders_amount);
 		if (total_amount < sell_conf.amount / 2) {
 			console.log("create sell order", resource, "at", sell_conf.room);
