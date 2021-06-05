@@ -263,8 +263,12 @@ export function spawn(room_name: string) {
 		} else if (room.energyCapacityAvailable >= 1200) {
 			upgrader_spawning_time = 42;
 		}
-		let upgraders = room_statistics.upgrader.filter((e) => is_valid_creep(e, conf.upgraders.commuting_time + upgrader_spawning_time));
-		let n_upgrades = spawning_func.get_nbody(upgraders, 'work')
+		let commuting_time_factor = 3;
+		if (room.controller.level == 8) {
+			commuting_time_factor = 1;
+		}
+		let upgraders = room_statistics.upgrader.filter((e) => is_valid_creep(e, conf.upgraders.distance * commuting_time_factor + upgrader_spawning_time));
+		let n_upgrades = spawning_func.get_nbody(upgraders, 'work');
 		if (n_upgrades < max_upgrade) {
 			let added_memory: any = {};
 			let options = {

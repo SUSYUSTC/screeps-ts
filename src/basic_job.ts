@@ -19,7 +19,7 @@ var reverse_directions: {[key in DirectionConstant]: DirectionConstant} = {
 	[BOTTOM_RIGHT]: TOP_LEFT,
 	[BOTTOM_LEFT]: TOP_RIGHT,
 }
-export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}): number {
+export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: number, options: type_movetopos_options = {}) {
 	// 0: moving, 1: already arrived, 2: not in the same room, 3: path not found
     if (creep.pos.getRangeTo(pos) <= range) {
         return 1;
@@ -153,6 +153,15 @@ export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydista
     return 0;
 }
 
+export function movetopos_maincarrier(creep: Creep, pos: RoomPosition, range: number, options: type_movetopos_options = {}) {
+	let costmatrix = functions.get_costmatrix_road(creep.room.name).clone()
+	let conf_maincarrier = config.conf_rooms[creep.room.name].maincarrier;
+	for (let xy of conf_maincarrier.working_zone) {
+		costmatrix.set(xy[0], xy[1], 1);
+	}
+	return movetopos(creep, pos, range, {...options, ...{costmatrix: costmatrix}});
+}
+
 export function charge_all(creep: Creep, moveoptions: type_movetopos_options = {}): number {
     // 0: found, 1: not found
     if (global.memory[creep.room.name].energy_filling_list.length == 0) {
@@ -233,7 +242,7 @@ export function upgrade_controller(creep: Creep, controller: StructureController
     }
 }
 
-export function build_structure(creep: Creep, moveoptions: type_movetopos_options = {}): number {
+export function build_structure(creep: Creep, moveoptions: type_movetopos_options = {}) {
     // 0: found, 1: not found
     let targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
     if (targets.length > 0) {
@@ -367,7 +376,7 @@ function number_of_specific_bodypart_not_boosted(creep: Creep, bodypart: BodyPar
     let n_boosted = parts.filter((e) => e.boost == undefined).length;
     return n_boosted;
 }
-export function process_boost_request(creep: Creep, request: type_creep_boost_request, moveoptions: type_movetopos_options = {}): number {
+export function process_boost_request(creep: Creep, request: type_creep_boost_request, moveoptions: type_movetopos_options = {}) {
     // return 0 for boost finished, 1 for processing, 2 for energy not enough, 3 for compound not enough, 4 for no lab or terminal
     if (creep.memory.boost_status == undefined) {
         creep.memory.boost_status = {
@@ -460,7 +469,7 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
         }
     }
 }
-export function boost_request(creep: Creep, request: type_creep_boost_request, required: boolean, moveoptions: type_movetopos_options = {}): number {
+export function boost_request(creep: Creep, request: type_creep_boost_request, required: boolean, moveoptions: type_movetopos_options = {}) {
     // 0: finished, 1: processing, 2: not found
     if (creep.memory.request_boost == undefined) {
         creep.memory.request_boost = true;
@@ -511,30 +520,42 @@ export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options)
         movetopos(creep, closest_spawn.pos, 1, moveoptions);
     }
 }
-export function unboost(creep: Creep, moveoptions: type_movetopos_options) {
-    // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found
-    let container_status = global.memory[creep.room.name].named_structures_status.container.Lab;
-    let lab_status = global.memory[creep.room.name].named_structures_status.lab.B1;
+export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) {
+    // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found, 4: cooling down
+    let container_status = global.memory[creep.room.name].named_structures_status.container.UB;
     if (!container_status.finished) {
         return 2;
     }
-    if (!lab_status.finished) {
-        return 3;
-    }
     let container = Game.getObjectById(container_status.id);
-    let lab = Game.getObjectById(lab_status.id);
     if (!creep.pos.isEqualTo(container)) {
-        movetopos(creep, container.pos, 0, moveoptions);
+        movetopos_maincarrier(creep, container.pos, 0, moveoptions);
         return 1;
-    } else {
-        let out = lab.unboostCreep(creep);
-        return out;
     }
+	if (creep.body.filter((e) => e.boost !== undefined).length == 0) {
+		creep.suicide();
+		return 0;
+	}
+	for (let lab_name of ['S1', 'S2']) {
+		let lab_status = global.memory[creep.room.name].named_structures_status.lab[lab_name];
+		if (!lab_status.finished) {
+			return 3;
+		}
+		let lab = Game.getObjectById(lab_status.id);
+		if (lab.cooldown > 0) {
+			continue;
+		}
+		let out = lab.unboostCreep(creep);
+		if (out == 0) {
+			creep.room.memory.unboost_withdraw_request = true;
+		}
+		return out;
+	}
+	return 4;
 }
 export function repair_road(creep: Creep, options: {
     range ? : number,
     factor ? : number
-} = {}): number {
+} = {}) {
     if (creep.store.getUsedCapacity("energy") == 0 || creep.getActiveBodyparts(WORK) == 0) {
         return 1;
     }
@@ -556,7 +577,7 @@ export function repair_road(creep: Creep, options: {
     return 1;
 }
 
-export function discard_useless_from_container(creep: Creep, container: StructureContainer, resource_to_keep: ResourceConstant): number {
+export function discard_useless_from_container(creep: Creep, container: StructureContainer, resource_to_keep: ResourceConstant) {
 	// 0: working, 1: no work needed, 2: distance is not 1
 	if (creep.pos.getRangeTo(container) !== 1) {
 		return 2;
@@ -599,7 +620,7 @@ export function harvest_with_container(creep: Creep, source: Source, status: {
     id ? : Id < StructureContainer > ,
     finished ? : boolean,
     exists ? : boolean
-} = undefined): number {
+} = undefined) {
     // 0: ok, 1: not adjacent
     if (!creep.pos.isNearTo(source)) {
         return 1;

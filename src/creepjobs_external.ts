@@ -167,6 +167,7 @@ export function creepjob(creep: Creep): number {
 			}
 			basic_job.get_energy(creep);
 			creep.say("EHg");
+			return 0;
 		}
 		if (creep.room.name !== creep.memory.external_room_name) {
 			external_room.movethroughrooms(creep, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
@@ -350,7 +351,7 @@ export function creepjob(creep: Creep): number {
 				return 0;
 			}
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
-				basic_job.movetopos(creep, creep.room.controller.pos, 1);
+				creep.moveTo(creep.room.controller, {range: 1, costCallback: functions.avoid_exits});
 				creep.say("cm");
 				return 0;
 			}
@@ -368,7 +369,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("ce");
 		} else {
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
-				basic_job.movetopos(creep, creep.room.controller.pos, 1);
+				creep.moveTo(creep.room.controller, {range: 1, costCallback: functions.avoid_exits});
 				creep.say("cm");
 				return 0;
 			}

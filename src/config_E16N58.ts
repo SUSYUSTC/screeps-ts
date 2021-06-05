@@ -157,12 +157,12 @@ export var conf_E16N58: type_conf_room =
             [26, 38],
             [25, 39],
             [24, 40],
-            [35, 25]
+            [35, 25],
+            [37, 25]
         ],
         "7": [
             [39, 23],
-            [38, 22],
-            [37, 25]
+            [38, 22]
         ],
         "8": [
             [39, 21],
@@ -298,7 +298,8 @@ export var conf_E16N58: type_conf_room =
             "RCL": 1
         },
         "UB": {
-            "pos": [37, 25]
+            "pos": [37, 25],
+            "RCL": 6
         }
     },
     "towers": {
@@ -410,7 +411,7 @@ export var conf_E16N58: type_conf_room =
             [17, 27],
             [18, 27]
         ],
-        "commuting_time": 51
+        "distance": 17
     },
     "external_rooms": {
         "E17N58": {

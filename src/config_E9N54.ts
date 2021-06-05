@@ -305,7 +305,8 @@ export var conf_E9N54: type_conf_room =
             "RCL": 1
         },
         "UB": {
-            "pos": [26, 47]
+            "pos": [26, 47],
+            "RCL": 6
         }
     },
     "towers": {
@@ -416,7 +417,7 @@ export var conf_E9N54: type_conf_room =
             [16, 44],
             [16, 46]
         ],
-        "commuting_time": 9
+        "distance": 3
     },
     "external_rooms": {
         "E8N54": {

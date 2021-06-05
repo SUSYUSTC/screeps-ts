@@ -124,6 +124,12 @@ export function creepjob(creep: Creep): number {
 			creep.say("Ub");
 			return 0;
 		}
+		let stop_withdrawing = (creep.room.controller.level == 8) && creep.memory.boost_status !== undefined && creep.memory.boost_status.boost_finished && (creep.ticksToLive < conf.upgraders.distance + 30);
+		if (stop_withdrawing && creep.store.getUsedCapacity("energy") == 0) {
+			basic_job.unboost(creep);
+			creep.say("Uub");
+			return 0;
+		}
         if (true) {
             let conf_locations = conf.upgraders.locations;
             let locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
@@ -140,19 +146,19 @@ export function creepjob(creep: Creep): number {
 			creep.say("Ur");
 			return 0;
 		}
-		let link_modes = game_memory.link_modes;
-        let link_mode = link_modes.includes('CT');
-        let container_energy = container.store.getUsedCapacity("energy");
-        let use_link = false;
-        let link;
-        if (link_mode) {
-            link = Game.getObjectById(global.memory[creep.room.name].named_structures_status.link.CT.id);
-            let link_energy = link.store.getUsedCapacity("energy");
-            if (link_energy > container_energy) {
-                use_link = true;
-            }
-        }
-        if (creep.store.getUsedCapacity("energy") < creep.store.getFreeCapacity("energy") * 0.2 && creep.ticksToLive >= 10) {
+		if (!stop_withdrawing && creep.store.getUsedCapacity("energy") < creep.getActiveBodyparts(WORK) * 2 && creep.ticksToLive >= 10) {
+			let link_modes = game_memory.link_modes;
+			let link_mode = link_modes.includes('CT');
+			let container_energy = container.store.getUsedCapacity("energy");
+			let use_link = false;
+			let link;
+			if (link_mode) {
+				link = Game.getObjectById(global.memory[creep.room.name].named_structures_status.link.CT.id);
+				let link_energy = link.store.getUsedCapacity("energy");
+				if (link_energy > container_energy) {
+					use_link = true;
+				}
+			}
             var lower_limit = (link_mode ? 100 : 800);
             if (use_link) {
                 basic_job.withdraw(creep, link, {left: lower_limit});

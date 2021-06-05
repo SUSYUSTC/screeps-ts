@@ -55,6 +55,7 @@ interface RoomMemory {
     creep_statistics: {
 		[key in type_creep_role] ? : number;
     }
+	unboost_withdraw_request ? : boolean;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -200,7 +201,7 @@ interface conf_carriers {
 }
 interface conf_upgraders {
     locations: number[][];
-    commuting_time: number;
+    distance: number;
 }
 interface conf_harvesters {
     [key: string]: {

@@ -258,6 +258,9 @@ function operate_lab(pc: PowerCreep) {
 	if (pc.carry.getUsedCapacity("ops") < 10) {
 		return -1;
 	}
+	if (pc.room.memory.reaction_request == undefined) {
+		return -1;
+	}
 	let lab_status = global.memory[pc.room.name].named_structures_status.lab;
 	let effects_time: {[key: string]: number} = {};
 	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1']) {

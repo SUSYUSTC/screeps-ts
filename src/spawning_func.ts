@@ -102,7 +102,7 @@ const getbody_externalharvester = (options: any): BodyPartConstant[] => {
 }
 const getbody_upgrader = (options: any): BodyPartConstant[] => {
     if (options.rcl8) {
-        return returnbody(15, 3, 3);
+        return returnbody(15, 3, 8);
     } else {
         if (options.max_energy >= 2150) {
             return returnbody(18, 4, 3);
