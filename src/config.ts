@@ -164,7 +164,7 @@ export var pc_conf: type_pc_conf = {
         "external_room": "E19N54",
     },
 }
-export var op_power: boolean = true;
+export var double_powered_harvester = true;
 export var hunting: type_hunting = {};
 export var source_container_upper_limit: number = 1200;
 export var source_container_lower_limit: number = 800;
@@ -175,9 +175,9 @@ export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
-export var energy_bar_to_spawn_upgrader: number = 1.2e6;
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e6, 1.1e6, 1.2e6, 1.3e6, 1.4e6, 1.5e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
-//export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
+export var energy_bar_to_spawn_upgrader: number = 1.0e6;
+//export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e6, 1.1e6, 1.2e6, 1.3e6, 1.4e6, 1.5e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.5e6, 1.6e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
@@ -209,6 +209,7 @@ export var final_product_request: {[key in GeneralMineralConstant] ?: number} = 
     "GHO2": 10000,
 	"UHO2": 40000,
     "LH2O": 20000,
+    "LHO2": 20000,
     "KH": 30000,
     "ZO": 20000,
     "XUH2O": 30000,
@@ -347,9 +348,7 @@ type type_resource_gathering_pos = {
 }
 export var resources_balance: {[key in ResourceConstant] ?: type_resource_balance} = {
     "battery": {
-        gap: 10000,
-        min: 10000,
-		max: 120000,
+        gap: 20000,
         amount: 2000,
     },
     "GH2O": {
@@ -609,6 +608,34 @@ export var powered_external_harvester: type_powered_harvester = {
         n_harvest: 14,
         n_carry: 4,
         n_move: 9,
+    },
+}
+
+export var doubled_powered_external_harvester: type_powered_harvester = {
+    1: {
+        n_harvest: 14,
+        n_carry: 4,
+        n_move: 9,
+    },
+    2: {
+        n_harvest: 18,
+        n_carry: 4,
+        n_move: 11,
+    },
+    3: {
+        n_harvest: 22,
+        n_carry: 4,
+        n_move: 13,
+    },
+    4: {
+        n_harvest: 24,
+        n_carry: 4,
+        n_move: 14,
+    },
+    5: {
+        n_harvest: 28,
+        n_carry: 4,
+        n_move: 16,
     },
 }
 

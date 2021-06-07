@@ -281,7 +281,7 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
     let orders_amount = orders.map((e) => e.remainingAmount);
     current_amount += mymath.array_sum(orders_amount);
     if (current_amount < expected_amount) {
-        console.log("create mineral order", resource, "at", room_name);
+        console.log("create order", resource, "at", room_name);
 		let price = 0.001;
 		if (config.acceptable_prices.buy[resource] !== undefined) {
 			price = config.acceptable_prices.buy[resource].price / 2;

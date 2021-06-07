@@ -12,17 +12,19 @@ export function process(room_name: string) {
 	let powerspawn = Game.getObjectById(powerspawn_status.id);
 	if (powerspawn_status.effect_time !== undefined && powerspawn_status.effect_time > 0) {
 		run_process = true;
-	} else if (room.terminal.store.getUsedCapacity("power") >= 2500) {
+	} else if (room.terminal.store.getUsedCapacity("power") >= 2500 && room.terminal.store.getUsedCapacity("battery") >= 100000) {
 		run_process = true;
 	}
 	if (run_process && powerspawn.store.getUsedCapacity("energy") >= 50 && powerspawn.store.getUsedCapacity("power") >= 1) {
 		if (powerspawn.processPower() == 0) {
+			/*
 			if (powerspawn_status.effect_time > 0) {
 				Memory.power_processed_stat += 2;
 				Memory.op_power_processed_stat += 2;
 			} else {
 				Memory.power_processed_stat += 1;
 			}
+			*/
 		}
 	}
 }

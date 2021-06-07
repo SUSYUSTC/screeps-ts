@@ -115,7 +115,7 @@ function balance_resource(resource: ResourceConstant, conf: type_resource_balanc
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
 	if (ns[argmax] - ns[argmin] >= conf.gap) {
-		if (ns[argmin] < conf.min || ns[argmax] > conf.max) {
+		if (conf.min == undefined || ns[argmin] < conf.min) {
 			let sending_room_name = rooms[argmax];
 			let out = functions.send_resource(sending_room_name, rooms[argmin], resource, conf.amount);
 		}

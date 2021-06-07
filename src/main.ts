@@ -210,7 +210,5 @@ module.exports.loop = function() {
 	}
 	output.log();
 	global.test_var = true;
-	if (Memory.debug_mode) {
-		console.log("Final Real CPU:", Game.cpu.getUsed());
-	}
+	console.log("Final Real CPU:", Game.cpu.getUsed());
 }

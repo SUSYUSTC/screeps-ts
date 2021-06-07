@@ -294,7 +294,7 @@ for (var name in config.defender_responsible_types) {
     config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
 }
 
-global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: any = {}, first=false): number {
+global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: CreepMemory = {}, first=false): number {
     // 0: success, 1: name exists, 2: wrong body
     if (Game.creeps[name] !== undefined) {
         return 1;

@@ -71,21 +71,13 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 		creep.memory.movable = true;
 	}
 	timer.end();
+	/*
+	if (Game.actions_count - timer.begin_count > 0) {
+		console.log("movetopos", creep.name, Game.actions_count - timer.begin_count, Game.cpu.getUsed() - timer.begin_time);
+	}
+	*/
     return 0;
 }
-
-/*
-export function move_with_path_in_memory(creep: Creep) {
-    // 0: moving, 1: fail to move
-	let stored_path = creep.memory._move;
-	if (stored_path == undefined) {
-		return 1;
-	}
-	let target_pos = new RoomPosition(stored_path.dest.x, stored_path.dest.y, stored_path.dest.room);
-	let out = movetopos(creep, target_pos, stored_path.range);
-	return out;
-}
-*/
 
 export function moveto_stayxy(creep: Creep, xy: number[], moveoptions: type_movetopos_options = {}) {
     let stay_pos = creep.room.getPositionAt(xy[0], xy[1]);
@@ -531,7 +523,7 @@ export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) 
         movetopos_maincarrier(creep, container.pos, 0, moveoptions);
         return 1;
     }
-	if (creep.body.filter((e) => e.boost !== undefined).length == 0) {
+	if (creep.body.filter((e) => e.boost != undefined).length == 0) {
 		creep.suicide();
 		return 0;
 	}
@@ -554,13 +546,9 @@ export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) 
 }
 export function repair_road(creep: Creep, options: {
     range ? : number,
-    factor ? : number
 } = {}) {
     if (creep.store.getUsedCapacity("energy") == 0 || creep.getActiveBodyparts(WORK) == 0) {
         return 1;
-    }
-    if (options.factor == undefined) {
-        options.factor = 0.8;
     }
     if (options.range == undefined) {
         options.range = 1;
@@ -569,12 +557,15 @@ export function repair_road(creep: Creep, options: {
     let xmax = Math.min(creep.pos.x + options.range, 49);
     let ymin = Math.max(creep.pos.y - options.range, 0);
     let ymax = Math.min(creep.pos.y + options.range, 49);
-    let road = creep.room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).map((e) => e.structure).filter((e) => e.structureType == 'road' && e.hits < e.hitsMax * options.factor)[0];
-    if (road !== undefined) {
-        creep.repair(road);
-        return 0;
-    }
-    return 1;
+    let roads = creep.room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).map((e) => e.structure).filter((e) => e.structureType == 'road' && e.hitsMax - e.hits >= creep.getActiveBodyparts(WORK) * 100);
+	if (roads.length == 0) {
+		return 1;
+	}
+	let ratios = roads.map((e) => e.hits / e.hitsMax);
+	let argmin = mymath.argmin(ratios);
+	let road = roads[argmin];
+	creep.repair(road);
+	return 0;
 }
 
 export function discard_useless_from_container(creep: Creep, container: StructureContainer, resource_to_keep: ResourceConstant) {

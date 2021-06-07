@@ -10,6 +10,7 @@ var moveoptions_noset: type_movetopos_options = {
 export function creepjob(creep: Creep): number {
 	var conf = config.conf_rooms[creep.memory.home_room_name];
 	var game_memory = Game.memory[creep.memory.home_room_name];
+	/*
 	if (creep.memory.role == 'help_harvester') {
 		creep.say("HH");
 		creep.memory.movable = false;
@@ -138,6 +139,8 @@ export function creepjob(creep: Creep): number {
 		}
 		return 0;
 	} else if (creep.memory.role == 'externalharvester') {
+	*/
+	if (creep.memory.role == 'externalharvester') {
 		creep.say("EH");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
@@ -175,18 +178,15 @@ export function creepjob(creep: Creep): number {
 			creep.say("EHe");
 		} else {
 			let pos = creep.room.getPositionAt(conf_external.harvester_pos[0], conf_external.harvester_pos[1]);
-			if (creep.pos.getRangeTo(pos) == 1) {
-				let container = <StructureContainer> pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
-				if (container !== undefined && basic_job.discard_useless_from_container(creep, container, "energy") == 0) {
-					return 0;
-				}
-			}
 			if (basic_job.trymovetopos(creep, pos) !== 2) {
-				basic_job.repair_road(creep);
+				basic_job.repair_road(creep, {range: 3});
 				creep.say("EHm");
 				return 0;
 			}
 			creep.memory.crossable = false;
+			if (creep.memory.half_time && Game.time % 2 == 0) {
+				return 0;
+			}
 			let source = <Source> Game.getObjectById(conf_external.id);
 			basic_job.harvest_with_container(creep, source);
 			creep.say("EHh");
@@ -232,7 +232,7 @@ export function creepjob(creep: Creep): number {
 				}
 			}
 		} else {
-			if (creep.store.getUsedCapacity("energy") == 0 && creep.ticksToLive < conf_external.carrier_distance + 20) {
+			if (creep.store.getUsedCapacity("energy") == 0 && creep.ticksToLive <= conf_external.carrier_distance + 10) {
 				creep.suicide();
 				creep.say("ECd");
 				return 0;
@@ -248,16 +248,27 @@ export function creepjob(creep: Creep): number {
 				creep.say("ECm");
 				return 0;
 			}
+			/*
 			// Pickup the resources if exists
 			let resource = pos.lookFor(LOOK_RESOURCES)[0];
 			if (resource !== undefined && resource.resourceType == "energy" && resource.amount > 30) {
 				creep.pickup(resource);
 				creep.say("ECp");
 			}
+			*/
 			let container = <StructureContainer>pos.lookFor(LOOK_STRUCTURES).filter((e) => e.structureType == 'container')[0];
+			if (creep.pos.getRangeTo(pos) == 1) {
+				if (container !== undefined && basic_job.discard_useless_from_container(creep, container, "energy") == 0) {
+					return 0;
+				}
+			}
 			if (container !== undefined && container.store.getUsedCapacity("energy") >= creep.store.getFreeCapacity("energy")) {
-				creep.withdraw(container, "energy");
+				if (creep.withdraw(container, "energy") == 0) {
+					external_room.movethroughrooms(creep, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+					creep.memory.movable = true;
+				}
 				creep.say("ECw");
+				return 0;
 			}
 		}
 		return 0;

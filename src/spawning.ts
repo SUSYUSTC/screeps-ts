@@ -114,6 +114,12 @@ export function spawn(room_name: string) {
             with_harvest = config.powered_harvester[level].n_harvest;
             with_carry = config.powered_harvester[level].n_carry;
             with_move = config.powered_harvester[level].n_move;
+			if (config.double_powered_harvester) {
+				with_harvest *= 2;
+				with_carry *= 2;
+				with_move *= 2;
+				half_time = true;
+			}
         } else {
 			if (room.controller.level == 8) {
 				with_harvest = 11;
@@ -244,7 +250,8 @@ export function spawn(room_name: string) {
 	}
 	let max_upgrade;
     if (room.controller.level == 8) {
-		let storage_condition = room.storage !== undefined && (room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy") >= config.energy_bar_to_spawn_upgrader);
+		let room_energy = (room.storage == undefined) ? 0 : room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy");
+		let storage_condition = room_energy * 0.4 + Memory.total_energies / config.controlled_rooms.length * 0.6 >= config.energy_bar_to_spawn_upgrader;
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -636,12 +643,14 @@ export function spawn(room_name: string) {
 			}
             let conf_external = conf.external_rooms[external_room_name].powered_source;
 			let pc_level = Game.memory[room_name].pc_source_level;
-			let harvester_conf = config.powered_external_harvester[pc_level];
+			let harvester_conf = config.double_powered_harvester ? config.doubled_powered_external_harvester[pc_level] : config.powered_external_harvester[pc_level];
 			// externalharvester, externalcarrier
             let externalharvester_spawning_time = (harvester_conf.n_move + harvester_conf.n_carry + harvester_conf.n_harvest) * 3 + 20;
 			let externalharvesters = room_statistics.externalharvester.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && is_valid_creep(e, conf_external.single_distance + externalharvester_spawning_time));
             //let externalharvesters = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalharvester', conf_external.single_distance + externalharvester_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
-			let n_carrier_carry = Math.min(Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * 0.08), 33);
+			let max_carry = conf.links.Ext == undefined ? 33 : 32;
+			//let n_carrier_carry = Math.min(Math.ceil((conf_external.carrier_distance + 2) * harvester_conf.n_harvest * (config.double_powered_harvester ? 0.04 : 0.08)), max_carry);
+			let n_carrier_carry = max_carry;
             let externalcarrier_spawning_time = Math.ceil(n_carrier_carry * 4.5) + 20;
 			let externalcarriers = room_statistics.externalcarrier.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && is_valid_creep(e, conf_external.single_distance + externalcarrier_spawning_time));
             //let externalcarriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'externalcarrier', conf_external.single_distance + externalcarrier_spawning_time) && e.memory.external_room_name == external_room_name && e.memory.source_name == conf_external.source_name && e.memory.home_room_name == room.name);
@@ -651,6 +660,7 @@ export function spawn(room_name: string) {
                     "external_room_name": external_room_name,
                     "home_room_name": room.name,
 					"powered": true,
+					"half_time": config.double_powered_harvester,
                 };
                 let options = {
                     "max_energy": room.energyCapacityAvailable,

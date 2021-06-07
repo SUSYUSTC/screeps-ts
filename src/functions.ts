@@ -397,6 +397,7 @@ global.init_stat = function(): number {
 	Memory.reaction_log = {};
 	Memory.pb_log = {}
 	Memory.stat_reset_time = Game.time;
+	Memory.stat_reset_realtime = (new Date()).getTime() / 1000;
 	Memory.tot_transaction_cost = 0;
 	Memory.power_processed_stat = 0;
 	Memory.op_power_processed_stat = 0;
@@ -430,28 +431,35 @@ global.display_stat = function(): string {
 	let amounts: {
 		[key: string]: {
 			terminal: number;
-			storage: number
+			storage: number;
+			energy: number;
+			battery: number;
 		}
 	} = {};
 	for (let room_name of config.controlled_rooms) {
 		amounts[room_name] = {
 			terminal: Game.rooms[room_name].terminal.store.getUsedCapacity(),
 			storage: Game.rooms[room_name].storage.store.getUsedCapacity(),
+			energy: Game.rooms[room_name].storage.store.getUsedCapacity("energy") + Game.rooms[room_name].terminal.store.getUsedCapacity("energy"), 
+			battery: Game.rooms[room_name].storage.store.getUsedCapacity("battery") + Game.rooms[room_name].terminal.store.getUsedCapacity("battery"),
 		}
 	}
 	let str1:string = '';
 	let str2:string = '';
+	let realtime = (new Date()).getTime() / 1000;
+	let realtimediff = realtime - Memory.stat_reset_realtime;
+	let timediff = Game.time - Memory.stat_reset_time;
 	str1 += '\nstore: ' + global.format_json(global.terminal_store, {sort: true, json: true});
 	str2 += '\nterminal amount: ' + global.format_json2(amounts, {sort: false, json: true});
 	str2 += '\ntotal energy: ' + Memory.total_energies.toString();
-	str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${Game.time - Memory.stat_reset_time} in total\n`;
+	str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, realtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
 	str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
 	str2 += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, {sort: true, json: true});
 	str2 += '\npb stat' + global.format_json2(Memory.pb_log, {sort: false, json: true});
 	str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
 	str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
-	str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
-	str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
+	//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
+	//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 	str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
 	return vertical_split_string(str1, str2);
 }

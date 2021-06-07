@@ -459,6 +459,7 @@ interface Memory {
 	};
 	market_accumulation_stat: type_market_stat;
 	stat_reset_time: number;
+	stat_reset_realtime: number;
 	tot_transaction_cost: number;
 	power_processed_stat: number;
 	op_power_processed_stat: number;
@@ -475,7 +476,7 @@ interface type_spawn_json {
     creepname: string;
     body: BodyPartConstant[];
     cost: number;
-    memory: any;
+    memory: CreepMemory;
     affordable: boolean;
     [key: string]: any;
 };
@@ -637,8 +638,7 @@ type type_format_options = {
 }
 type type_resource_balance = {
 		gap: number;
-		min: number;
-		max ?: number
+		min ?: number;
 		amount: number;
 }
 declare module NodeJS {
