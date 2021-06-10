@@ -177,7 +177,7 @@ export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
 export var energy_bar_to_spawn_upgrader: number = 1.0e6;
 //export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e6, 1.1e6, 1.2e6, 1.3e6, 1.4e6, 1.5e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.5e6, 1.6e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
+export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
@@ -205,7 +205,6 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
     "UH2O": 36000,
     "GH2O": 80000,
-    "LO": 20000,
     "GHO2": 10000,
 	"UHO2": 40000,
     "LH2O": 20000,
@@ -247,7 +246,7 @@ type type_acceptable_prices = {
 export var acceptable_prices: type_acceptable_prices = {
     "buy": {
         "U": {
-            price: 0.6,
+            price: 1.0,
             interval: 1000,
         },
         "L": {
@@ -263,7 +262,7 @@ export var acceptable_prices: type_acceptable_prices = {
             interval: 1000,
         },
         "X": {
-            price: 1.8,
+            price: 5.0,
             interval: 1000,
         },
         "H": {
@@ -299,37 +298,37 @@ type type_auto_sell_list = {
 export var auto_sell_list: type_auto_sell_list = {
     "XUH2O": {
         room: "E15N58",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XLH2O": {
         room: "E16N58",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XLHO2": {
         room: "E9N54",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XZH2O": {
         room: "E14N51",
-        price: 24,
+        price: 25,
         amount: 30000,
     },
     "XZHO2": {
         room: "E14N59",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XKH2O": {
         room: "E19N55",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XKHO2": {
         room: "E21N49",
-        price: 18,
+        price: 20,
         amount: 30000,
     },
     "XGHO2": {
@@ -339,7 +338,7 @@ export var auto_sell_list: type_auto_sell_list = {
     },
     "XGH2O": {
         room: "E19N53",
-        price: 24,
+        price: 25,
         amount: 30000,
     },
 }
@@ -366,7 +365,7 @@ export var resources_balance: {[key in ResourceConstant] ?: type_resource_balanc
         min: 1200,
         amount: 600,
     },
-    "LO": {
+    "LHO2": {
         gap: 600,
         min: 600,
         amount: 300,
@@ -421,11 +420,11 @@ export var highway_resources: {
     [key: string]: string[]
 } = {
     "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
-    "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59'],
-    "E14N51": ['E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
-    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50'],
-    "E14N59": ['E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60', 'E20N60'],
-    "E9N54": ['E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+    "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
+    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
+    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
+    "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
+    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
 export var storage_bars: number[] = [60000, 120000, 180000, 240000];
 export var storage_gap: number = 60000;
@@ -523,11 +522,11 @@ export var pb_attacker_body: type_body_conf = {
 }
 export var pb_healer_body: type_body_conf = {
     "heal": {
-        number: 20,
-        boost: "LO",
+        number: 13,
+        boost: "LHO2",
     },
     "move": {
-        number: 20,
+        number: 13,
     }
 }
 export var gcl_upgrader_body_boosted: type_body_conf = {

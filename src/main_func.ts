@@ -433,6 +433,9 @@ function detect_resources(room_name: string) {
 						console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
                         continue;
                     }
+					if (path.path.length > 320) {
+                        continue;
+					}
                     let rooms_path: string[] = [room_name];
                     let poses_path: number[] = [];
                     for (let pos of path.path) {
@@ -780,7 +783,7 @@ function update_gcl_room() {
 	if (Game.time % 20 == 0 || !global.test_var) {
 		global.memory[room_name].repair_list = <Array<Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => ["road", "container"].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
 	} else {
-		global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
+		global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => Game.getObjectById(e) != undefined && need_to_repair(Game.getObjectById(e)));
 	}
 
 	timer.end();

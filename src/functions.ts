@@ -446,22 +446,24 @@ global.display_stat = function(): string {
 	}
 	let str1:string = '';
 	let str2:string = '';
+	let str3:string = '';
 	let realtime = (new Date()).getTime() / 1000;
 	let realtimediff = realtime - Memory.stat_reset_realtime;
 	let timediff = Game.time - Memory.stat_reset_time;
 	str1 += '\nstore: ' + global.format_json(global.terminal_store, {sort: true, json: true});
-	str2 += '\nterminal amount: ' + global.format_json2(amounts, {sort: false, json: true});
-	str2 += '\ntotal energy: ' + Memory.total_energies.toString();
-	str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, realtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
+	str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
+	str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
 	str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
 	str2 += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, {sort: true, json: true});
-	str2 += '\npb stat' + global.format_json2(Memory.pb_log, {sort: false, json: true});
 	str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
 	str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
+	str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
+	str3 += '\nterminal amount: ' + global.format_json2(amounts, {sort: false, json: true});
+	str3 += '\ntotal energy: ' + Memory.total_energies.toString();
+	str3 += '\npb stat' + global.format_json2(Memory.pb_log, {sort: false, json: true});
 	//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
 	//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
-	str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
-	return vertical_split_string(str1, str2);
+	return vertical_split_string(vertical_split_string(str1, str2), str3);
 }
 
 export function is_pos_reachable(pos: RoomPosition): boolean {

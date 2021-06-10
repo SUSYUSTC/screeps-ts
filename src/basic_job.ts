@@ -500,10 +500,10 @@ export function repair_container(creep: Creep, container: StructureContainer = u
     }
     return 1;
 }
-export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options) {
+export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options = {}) {
     let metric = config.distance_metric;
-    let spawns: StructureSpawn[] = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e));
-    let distances = spawns.map((e) => metric(creep.room.name, creep.pos, e.pos));
+    let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => !e.spawning);
+    let distances = spawns.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distances);
     let closest_spawn = spawns[argmin];
     if (creep.pos.isNearTo(closest_spawn)) {

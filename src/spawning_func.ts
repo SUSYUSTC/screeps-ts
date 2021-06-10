@@ -1,7 +1,9 @@
 import * as _ from "lodash";
 import * as mymath from "./mymath";
 import * as config from "./config";
-import { Timer } from "./timer"
+import {
+    Timer
+} from "./timer"
 const body_cost: {
     [key in BodyPartConstant]: number
 } = {
@@ -88,12 +90,12 @@ const getbody_harvester = (options: any): BodyPartConstant[] => {
     return returnbody(options.with_harvest, options.with_carry, options.with_move);
 }
 const getbody_mineharvester = (options: any): BodyPartConstant[] => {
-	return returnbody(options.work, 0, options.move);
+    return returnbody(options.work, 0, options.move);
 }
 const getbody_externalharvester = (options: any): BodyPartConstant[] => {
-	if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
-		return returnbody(options.n_work, options.n_carry, options.n_move)
-	}
+    if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
+        return returnbody(options.n_work, options.n_carry, options.n_move)
+    }
     var n_work = 5;
     var n_move = 5;
     var carry_affordable = Math.floor((options.max_energy - 750) / 50)
@@ -116,10 +118,10 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     }
 }
 const getbody_gcl_upgrader = (options: any): BodyPartConstant[] => {
-	return returnbody(options.n_work, options.n_carry, options.n_move);
+    return returnbody(options.n_work, options.n_carry, options.n_move);
 }
 const getbody_gcl_carrier = (options: any): BodyPartConstant[] => {
-	return returnbody(1, 24, 25);
+    return returnbody(1, 24, 25);
 }
 const getbody_builder = (options: any): BodyPartConstant[] => {
     let n_afforable = Math.floor(options.max_energy / 200);
@@ -151,7 +153,7 @@ const getbody_carrier = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_minecarrier = (options: any): BodyPartConstant[] => {
-	return returnbody(0, options.carry, options.move);
+    return returnbody(0, options.carry, options.move);
 }
 const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     let n_carry = options.max_parts;
@@ -160,9 +162,9 @@ const getbody_maincarrier = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
-	if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
-		return returnbody(options.n_work, options.n_carry, options.n_move)
-	}
+    if (options.n_work !== undefined && options.n_carry !== undefined && options.n_move !== undefined) {
+        return returnbody(options.n_work, options.n_carry, options.n_move)
+    }
     var carry_affordable = Math.floor(options.max_energy / 100)
     var n_carry = Math.min(options.max_parts, carry_affordable);
     return returnbody(0, n_carry, n_carry);
@@ -196,7 +198,7 @@ const getbody_transferer = (options: any): BodyPartConstant[] => {
     return returnbody(n_work, n_carry, n_move);
 }
 type type_getbody = {
-    [key in type_creep_role] ?: {
+    [key in type_creep_role] ? : {
         (options: any): BodyPartConstant[]
     };
 };
@@ -223,8 +225,8 @@ const getbody_list: type_getbody = {
     'invader_core_attacker': getbody_invader_core_attacker,
     'home_defender': getbody_home_defender,
     'newroom_claimer': getbody_newroom_claimer,
-	'gcl_upgrader': getbody_gcl_upgrader,
-	'gcl_carrier': getbody_gcl_carrier,
+    'gcl_upgrader': getbody_gcl_upgrader,
+    'gcl_carrier': getbody_gcl_carrier,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
@@ -235,12 +237,15 @@ export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {
     if (creeps.length == 0) {
         return 0;
     }
-	let timer = new Timer("get_nbody", false);
+    let timer = new Timer("get_nbody", false);
     let n = mymath.array_sum(creeps.map((creep) => creep.body.filter((e) => e.type == bodyname).length));
-	timer.end();
+    timer.end();
     return n;
 }
-export function prepare_role(rolename: type_creep_role, energy: number, added_memory: CreepMemory, options: any, added_json: {priority: number, require_full: boolean}) {
+export function prepare_role(rolename: type_creep_role, energy: number, added_memory: CreepMemory, options: any, added_json: {
+    priority: number,
+    require_full: boolean
+}) {
     let creepname = rolename + Game.time;
     let body = getbody_list[rolename](options);
     let cost = get_cost(body);
@@ -249,7 +254,7 @@ export function prepare_role(rolename: type_creep_role, energy: number, added_me
         role: rolename
     };
     if (added_memory !== null) {
-        for (let key of <Array<keyof CreepMemory>> Object.keys(added_memory)) {
+        for (let key of < Array < keyof CreepMemory >> Object.keys(added_memory)) {
             memory[key] = added_memory[key];
         }
     }
@@ -261,77 +266,122 @@ export function prepare_role(rolename: type_creep_role, energy: number, added_me
         memory: memory,
         affordable: affordable
     }
-    for (let key of <Array<keyof typeof added_json>> Object.keys(added_json)) {
+    for (let key of < Array < keyof typeof added_json >> Object.keys(added_json)) {
         json[key] = added_json[key];
     }
     return json;
 }
 
+export function get_spawn_energy_structures(room_name: string): SpawnOptions {
+    if (Game.powered_rooms[room_name] !== undefined) {
+        let room = Game.rooms[room_name];
+        let all_spawns = < Array < StructureExtension | StructureSpawn >> global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
+        let all_exts = < Array < StructureExtension | StructureSpawn >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'extension');
+        return {
+            energyStructures: all_exts.concat(all_spawns)
+        };
+    } else {
+        return {};
+    }
+}
+
 export function spawn_json(room_name: string, json: type_spawn_json) {
+    // 0: success, 1: fail
     let room = Game.rooms[room_name];
-    let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
+    let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
     if (Memory.debug_mode) {
         console.log("Spawning " + json.rolename);
+    }
+    if (room.energyAvailable < json.cost) {
+        return 1;
     }
     for (let spawn of spawns) {
         if (spawn.memory.spawning_time < 0) {
             continue;
         }
-		let options: SpawnOptions = {
-			memory: json.memory
-		}
-		if (Game.powered_rooms[room_name] !== undefined) {
-			let all_spawns = <Array<StructureExtension | StructureSpawn>> global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
-			let all_exts = <Array<StructureExtension | StructureSpawn>> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'extension');
-			options.energyStructures = all_exts.concat(all_spawns);
-		}
+        let options: SpawnOptions = {
+            memory: json.memory
+        }
+        options = {
+            ...options,
+            ...get_spawn_energy_structures(room_name)
+        };
         spawn.spawnCreep(json.body, json.creepname, options);
-        return;
+        return 0;
     }
+    return 1;
+}
+
+export function spawn_jsons(room_name: string, jsons: type_spawn_json[]) {
+    // 0: success, 1: fail
+    let room = Game.rooms[room_name];
+    if (room.energyAvailable < mymath.array_sum(jsons.map((e) => e.cost))) {
+        return 1;
+    }
+    let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
+    let available_spawns = spawns.filter((e) => e.memory.spawning_time >= 0);
+    if (available_spawns.length < jsons.length) {
+        return 1;
+    }
+    for (let i of mymath.range(jsons.length)) {
+        let json = jsons[i];
+        let options: SpawnOptions = {
+            memory: json.memory
+        }
+        options = {
+            ...options,
+            ...get_spawn_energy_structures(room_name)
+        };
+        spawns[i].spawnCreep(json.body, json.creepname, options);
+    }
+    return 0;
 }
 
 for (var name in config.defender_responsible_types) {
     config.defender_responsible_types[name].cost = get_cost(fullreturnbody(config.defender_responsible_types[name].body));
 }
 
-global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: CreepMemory = {}, first=false): number {
+global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], name: string, memory: CreepMemory = {}, first = false): number {
     // 0: success, 1: name exists, 2: wrong body
     if (Game.creeps[name] !== undefined) {
         return 1;
     }
-	if (body.length > 50) {
-		console.log(`Warning: trying to spawn a creep with more than 50 body in room ${room_name} with creep name ${name} at time ${Game.time}`);
-		return 2;
-	}
+    if (body.length > 50) {
+        console.log(`Warning: trying to spawn a creep with more than 50 body in room ${room_name} with creep name ${name} at time ${Game.time}`);
+        return 2;
+    }
     let room = Game.rooms[room_name];
     let obj: type_additional_spawn = {
         "name": name,
         "body": body,
-		"memory": memory,
+        "memory": memory,
     }
     if (room.memory.additional_spawn_queue == undefined) {
-		room.memory.additional_spawn_queue = {"first":[], "last": []};
+        room.memory.additional_spawn_queue = {
+            "first": [],
+            "last": []
+        };
     }
-	if (room.memory.additional_spawn_queue.first == undefined) {
-		room.memory.additional_spawn_queue.first = [];
-	}
-	if (room.memory.additional_spawn_queue.last == undefined) {
-		room.memory.additional_spawn_queue.last = [];
-	}
-	if (first) {
-		room.memory.additional_spawn_queue.first.push(obj);
-	} else {
-		room.memory.additional_spawn_queue.last.push(obj);
-	}
+    if (room.memory.additional_spawn_queue.first == undefined) {
+        room.memory.additional_spawn_queue.first = [];
+    }
+    if (room.memory.additional_spawn_queue.last == undefined) {
+        room.memory.additional_spawn_queue.last = [];
+    }
+    if (first) {
+        room.memory.additional_spawn_queue.first.push(obj);
+    } else {
+        room.memory.additional_spawn_queue.last.push(obj);
+    }
     return 0;
 }
 
 global.get_body = function(components: type_body_components): BodyPartConstant[] {
-	let body: BodyPartConstant[] = [];
-	for (let part of [TOUGH, WORK, ATTACK, RANGED_ATTACK, HEAL, CARRY, CLAIM, MOVE]) {
-		if (components[part] !== undefined) {
-			mymath.range(components[part]).forEach((e) => body.push(part));
-		}
-	}
-	return body;
+    let body: BodyPartConstant[] = [];
+    for (let part of [TOUGH, WORK, ATTACK, RANGED_ATTACK, HEAL, CARRY, CLAIM, MOVE]) {
+        if (components[part] !== undefined) {
+            mymath.range(components[part]).forEach((e) => body.push(part));
+        }
+    }
+    return body;
 }
