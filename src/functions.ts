@@ -434,6 +434,7 @@ global.display_stat = function(): string {
 			storage: number;
 			energy: number;
 			battery: number;
+			power: number;
 		}
 	} = {};
 	for (let room_name of config.controlled_rooms) {
@@ -442,6 +443,32 @@ global.display_stat = function(): string {
 			storage: Game.rooms[room_name].storage.store.getUsedCapacity(),
 			energy: Game.rooms[room_name].storage.store.getUsedCapacity("energy") + Game.rooms[room_name].terminal.store.getUsedCapacity("energy"), 
 			battery: Game.rooms[room_name].storage.store.getUsedCapacity("battery") + Game.rooms[room_name].terminal.store.getUsedCapacity("battery"),
+			power: Game.rooms[room_name].terminal.store.getUsedCapacity("power"),
+		}
+	}
+	let ongoing_pb: {
+		[key: string]: {
+			home_room_name: string;
+			external_room_name: string;
+			amount: number;
+			status: number;
+			time_last: number;
+		}
+	} = {};
+	for (let home_room_name of config.controlled_rooms) {
+		let external_resources = Game.rooms[home_room_name].memory.external_resources;
+		if (external_resources == undefined || external_resources.pb == undefined) {
+			continue;
+		}
+		for (let external_room_name in external_resources.pb) {
+			let pb = external_resources.pb[external_room_name];
+			ongoing_pb[pb.name] = {
+				home_room_name: home_room_name,
+				external_room_name: external_room_name,
+				amount: pb.amount,
+				status: pb.status,
+				time_last: pb.time_last,
+			}
 		}
 	}
 	let str1:string = '';
@@ -458,9 +485,10 @@ global.display_stat = function(): string {
 	str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
 	str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
 	str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
-	str3 += '\nterminal amount: ' + global.format_json2(amounts, {sort: false, json: true});
+	str3 += '\nroom store amount: ' + global.format_json2(amounts, {sort: false, json: true});
 	str3 += '\ntotal energy: ' + Memory.total_energies.toString();
 	str3 += '\npb stat' + global.format_json2(Memory.pb_log, {sort: false, json: true});
+	str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});
 	//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
 	//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 	return vertical_split_string(vertical_split_string(str1, str2), str3);

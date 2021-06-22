@@ -246,7 +246,7 @@ type type_acceptable_prices = {
 export var acceptable_prices: type_acceptable_prices = {
     "buy": {
         "U": {
-            price: 1.0,
+            price: 1.6,
             interval: 1000,
         },
         "L": {
@@ -270,7 +270,7 @@ export var acceptable_prices: type_acceptable_prices = {
             interval: 1000,
         },
         "O": {
-            price: 0.4,
+            price: 0.6,
             interval: 1000,
         },
         "energy": {

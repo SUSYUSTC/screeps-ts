@@ -238,7 +238,7 @@ function operate_power(pc: PowerCreep) {
 	let energy_amount = pc.room.storage.store.getUsedCapacity("energy");
 	let battery_amount = pc.room.storage.store.getUsedCapacity("battery");
 	let condition = false;
-	if (power_amount >= 20000) {
+	if (power_amount >= 15000) {
 		if (battery_amount * 10 + energy_amount >= 0.8e6) {
 			condition = true;
 		}
