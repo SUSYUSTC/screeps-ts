@@ -436,19 +436,7 @@ function detect_resources(room_name: string) {
 					if (path.path.length > 320) {
                         continue;
 					}
-                    let rooms_path: string[] = [room_name];
-                    let poses_path: number[] = [];
-                    for (let pos of path.path) {
-                        if (pos.roomName != rooms_path[rooms_path.length - 1]) {
-                            rooms_path.push(pos.roomName);
-                            if (pos.x == 0 || pos.x == 49) {
-                                poses_path.push(pos.y);
-                            }
-                            if (pos.y == 0 || pos.y == 49) {
-                                poses_path.push(pos.x);
-                            }
-                        }
-                    }
+					let exits_path = functions.get_exits_from_path(path.path);
                     let n_moves = Math.ceil(pb.power / 100);
                     while (true) {
                         if (n_moves > 16) {
@@ -469,8 +457,8 @@ function detect_resources(room_name: string) {
                         "id": pb.id,
                         "status": 0,
                         "time_last": 0,
-                        "rooms_path": rooms_path,
-                        "poses_path": poses_path,
+                        "rooms_path": exits_path.rooms_path,
+                        "poses_path": exits_path.poses_path,
                         "distance": path.cost,
                         "amount": pb.power,
 						"amount_received": 0,
@@ -589,14 +577,19 @@ function update_resources(room_name: string) {
             pb_status.time_last += 1;
             if (pb_status.time_last >= 2000 || pb_status.n_pb_carrier_finished == pb_status.pb_carrier_names.length) {
 				if (Memory.pb_log == undefined) {
-					Memory.pb_log = {};
+					Memory.pb_log = [];
 				}
-				Memory.pb_log[pb_status.name] = {
-					"home_room_name": room_name,
-					"external_room_name": external_room_name,
-					"amount": pb_status.amount,
-					"amount_received": pb_status.amount_received,
+				let pb_item: type_pb_log = {
+					name: pb_status.name,
+					home_room_name: room_name,
+					external_room_name: external_room_name,
+					amount: pb_status.amount,
+					amount_received: pb_status.amount_received,
 				};
+				Memory.pb_log.push(pb_item);
+				if (Memory.pb_log.length > 10) {
+					Memory.pb_log = Memory.pb_log.slice(0, 10);
+				}
 				if (pb_status.amount - pb_status.amount_received >= 100) {
 					console.log(`Warning: unexpected pb mining ${pb_status.name}`);
 				}

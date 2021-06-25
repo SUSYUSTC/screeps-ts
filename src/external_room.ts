@@ -245,3 +245,55 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, rooms_p
 	return 0;
 }
 
+export function movethroughshards(creep: Creep | PowerCreep) {
+	let this_shardmemory = Game.InterShardMemory[Game.shard.name];
+	if (this_shardmemory.creeps[creep.name] == undefined) {
+		this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
+		Game.require_update_intershardmemory = true;
+		if (this_shardmemory.all_creeps[creep.name] == undefined) {
+			this_shardmemory.all_creeps[creep.name] = { }
+			functions.copy_key((<Creep>creep).memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
+			Game.require_update_intershardmemory_modify_time = true;
+		}
+	}
+	let shard_move = Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move;
+	let pathfinding = false;
+	if (shard_move.shard !== Game.shard.name) {
+		let first_index = shard_move.shard_path.findIndex((e) => e.shard == Game.shard.name);
+		if (first_index == -1 && shard_move.shard.length == 1) {
+			shard_move.shard_path = [];
+		} else {
+			shard_move.shard_path = shard_move.shard_path.slice(first_index);
+		}
+		pathfinding = true;
+	} else if (!shard_move.rooms_path.includes(creep.room.name)) {
+		shard_move.shard_path = shard_move.shard_path.slice(1);
+		pathfinding = true;
+	}
+	if (pathfinding) {
+		let target_rxy = shard_move.shard_path[0];
+		let target_pos = new RoomPosition(target_rxy.x, target_rxy.y, target_rxy.roomName);
+		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 0});
+		let exits_path = functions.get_exits_from_path(path.path);
+		shard_move.shard = Game.shard.name;
+		shard_move.rooms_path = exits_path.rooms_path;
+		shard_move.poses_path = exits_path.poses_path;
+		Game.require_update_intershardmemory = true;
+	}
+	if (Game.shard.name !== shard_move.shard_path[0].shard) {
+		console.log("Warning: wrong shard");
+		return -1;
+	}
+	if (creep.room.name == shard_move.shard_path[0].roomName) {
+		let x = shard_move.shard_path[0].x;
+		let y = shard_move.shard_path[0].y;
+		if (creep.pos.isNearTo(x, y)) {
+			creep.move(creep.pos.getDirectionTo(x, y));
+		} else {
+			creep.moveTo(x, y, {range: 1, reusePath: 8});
+		}
+	} else {
+		movethroughrooms(creep, shard_move.rooms_path, shard_move.poses_path);
+	}
+}
+

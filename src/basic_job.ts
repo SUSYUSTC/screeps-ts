@@ -127,13 +127,12 @@ export function trymovetopos(creep: Creep, pos: RoomPosition, moveoptions: type_
     return out;
 }
 export function charge_list(creep: Creep, obj_list: AnyStoreStructure[], bydistance = false) {
-    var metric = config.distance_metric;
     if (obj_list.length == 0) {
         return 1;
     }
     var sort_list: number[];
     if (bydistance) {
-        sort_list = obj_list.map((obj) => -metric(creep.room.name, creep.pos, obj.pos));
+        sort_list = obj_list.map((obj) => -creep.pos.getRangeTo(obj.pos));
     } else {
         sort_list = obj_list.map((obj) => ( < GeneralStore > obj.store).getFreeCapacity("energy"));
     }
@@ -255,7 +254,6 @@ export function select_linkcontainer(creep: Creep, options: {min_energy ?: numbe
 	if (options.require_safe == undefined) {
 		options.require_safe = false;
 	}
-    let metric = config.distance_metric;
 	let energy_storage_list;
 	if (options.require_safe) {
 		energy_storage_list = global.memory[creep.room.name].energy_storage_list_safe;
@@ -267,7 +265,7 @@ export function select_linkcontainer(creep: Creep, options: {min_energy ?: numbe
     if (structures.length == 0) {
         return null;
     }
-    let distances = structures.map((e) => metric(creep.room.name, creep.pos, e.pos));
+    let distances = structures.map((e) => creep.pos.getRangeTo(e.pos));
     //var energy = structures.map((e) => e.store["energy"]);
     //var preference = mymath.array_minus(energy, distances * 100);
     let arg = mymath.argmin(distances);
@@ -501,16 +499,32 @@ export function repair_container(creep: Creep, container: StructureContainer = u
     return 1;
 }
 export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options = {}) {
-    let metric = config.distance_metric;
     let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => !e.spawning);
     let distances = spawns.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distances);
     let closest_spawn = spawns[argmin];
+	if (closest_spawn == undefined) {
+		return -1;
+	}
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
         movetopos(creep, closest_spawn.pos, 1, moveoptions);
     }
+	return 0;
+}
+export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_options = {}) {
+	let container_status = global.memory[creep.room.name].named_structures_status.container.RC;
+	let container = Game.getObjectById(container_status.id);
+	if (container != undefined) {
+		if (creep.pos.isEqualTo(container.pos)) {
+			let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => creep.pos.isNearTo(e));
+			spawns[0].recycleCreep(creep);
+		} else {
+			movetopos(creep, container.pos, 0, moveoptions);
+		}
+	}
+	return 0;
 }
 export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) {
     // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found, 4: cooling down

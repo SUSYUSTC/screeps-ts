@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "newroom_claimer" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -138,6 +138,10 @@ interface CreepMemory {
 	flagname ? : string;
 	mineral_type ? : GeneralMineralConstant;
 	need_boost ? : boolean;
+
+	shard_move ?: type_shard_move;
+	last_present_time ?: number;
+	last_present_shard ?: string;
 }
 interface PowerCreepMemory {
     movable ? : boolean;
@@ -217,6 +221,11 @@ interface type_external_half_map {
     rooms_forwardpath: string[];
     poses_forwardpath: number[];
 }
+interface type_external_shard_map {
+    rooms_forwardpath ?: string[];
+    poses_forwardpath ?: number[];
+	shard_path ?: type_shard_exit_point[];
+}
 interface type_external_map {
     rooms_forwardpath: string[];
     poses_forwardpath: number[];
@@ -274,6 +283,7 @@ interface conf_external_rooms {
     }
 }
 interface type_pb_log {
+	name: string;
 	home_room_name: string;
 	external_room_name: string;
     amount: number;
@@ -425,6 +435,7 @@ type type_market_stat = {
 	};
 }
 interface Memory {
+	stop_running ?: boolean
     creeps: {
         [name: string]: CreepMemory
     };
@@ -450,9 +461,7 @@ interface Memory {
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
 	}
-	pb_log ? : {
-		[key: string]: type_pb_log;
-	}
+	pb_log ? : type_pb_log[];
 	invade_costmatrices ?: {[key: string]: number[]};
 	invade_groups_x2 ?: {
 		[key: string]: type_invade_group_x2;
@@ -464,6 +473,35 @@ interface Memory {
 	power_processed_stat: number;
 	op_power_processed_stat: number;
 	produce_battery_stat: number;
+}
+type type_shard_exit_point = {
+	shard: string,
+	roomName: string,
+	x: number,
+	y: number,
+	rooms_path ?: string[],
+	poses_path ?: string[],
+}
+type type_shard_move = {
+	shard ?: string,
+	shard_path: type_shard_exit_point[];
+	rooms_path ?: string[],
+	poses_path ?: number[],
+}
+interface type_intershardmemory {
+	last_modify_time ? : number;
+	cleared_shards ? : string[];
+	all_creeps ?: {
+		[key: string]: {
+			role ?: type_creep_role;
+			home_room_name ?: string;
+			external_room_name ?: string;
+			source_name ?: string;
+		}
+	}
+	creeps ? : {
+		[key: string]: CreepMemory;
+	}
 }
 type Structure_Wall_Rampart = StructureWall | StructureRampart;
 interface invader_type {
@@ -494,8 +532,9 @@ type type_rooms_ignore_pos = {
 type type_help_list = {
     [key: string]: {
         [key: string]: {
-            rooms_forwardpath: string[];
-            poses_forwardpath: number[];
+            rooms_forwardpath ?: string[];
+            poses_forwardpath ?: number[];
+			shard_path ?: type_shard_exit_point[];
             commuting_distance: number;
             n_carrys: {
                 [key: string]: number;
@@ -584,6 +623,11 @@ interface Game {
 	creep_jobtypes : {
 		[key in type_creep_jobtypes]: Creep[];
 	}
+	InterShardMemory: {
+		[key: string]: type_intershardmemory;
+	}
+	require_update_intershardmemory: boolean;
+	require_update_intershardmemory_modify_time: boolean;
 }
 
 type type_order_result = {
@@ -643,7 +687,10 @@ type type_resource_balance = {
 }
 declare module NodeJS {
     interface Global {
-        //Game: Game,
+		is_main_server: boolean;
+		main_shards: string[];
+		sub_shards: string[];
+		all_shards: string[];
 		controlled_rooms: string[];
         basic_costmatrices: type_costmatrices,
         basic_costmatrices_safe: type_costmatrices,
@@ -702,5 +749,7 @@ declare module NodeJS {
 		init_stat(): number;
 		display_stat(): string;
 		spawn_PC(name: string): number;
+		set_shardmemory(keys: string[], value: any): number;
+		clear_shardmemory(shards: string[]): number;
     }
 }

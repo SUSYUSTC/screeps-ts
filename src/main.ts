@@ -4,6 +4,15 @@ if (Memory.debug_mode == undefined) {
 if (Memory.output_mode == undefined) {
 	Memory.output_mode = true;
 }
+global.is_main_server = ['shard0', 'shard1', 'shard2', 'shard3'].includes(Game.shard.name);
+if (global.is_main_server) {
+	global.main_shards = ['shard3']; 
+	global.sub_shards = ['shard0', 'shard1', 'shard2'];
+} else {
+	global.main_shards = [Game.shard.name];
+	global.sub_shards = [];
+}
+global.all_shards = global.main_shards.concat(global.sub_shards);
 import * as action_counter from "./action_counter";
 import * as config from "./config";
 import * as _ from "lodash";
@@ -20,17 +29,43 @@ import * as terminal from "./terminal";
 import * as main_func from "./main_func";
 import * as final_command from "./final_command";
 import * as output from "./output";
+import * as external_room from "./external_room";
 import * as invade from "./invade";
+invade.init();
+import * as display from "./display";
+display.init();
 import * as powercreeps from "./powercreeps"
 import * as gcl_room from "./gcl_room";
 import { Timer } from "./timer";
 import * as defense from "./defense";
+import * as cross_shard from "./cross_shard";
 import * as control from "./control";
 action_counter.warpActions();
 
-module.exports.loop = function() {
+function run_sub() {
 	console.log()
-	console.log("Beginning of tick", Game.time);
+	console.log("Beginning of tick", Game.time, 'at', Game.shard.name);
+	console.log("bucket", Game.cpu.bucket);
+	Game.tick_cpu_main = {};
+	Game.tick_cpu = {};
+	Game.function_actions_count = {};
+
+	try {
+		cross_shard.sync_shard_memory();
+		for (let creepname in Game.creeps) {
+			let creep = Game.creeps[creepname];
+			console.log("test creep position", Game.shard.name, JSON.stringify(creep.pos));
+			external_room.movethroughshards(creep);
+		}
+		cross_shard.update_shard_memory();
+	} catch (err) {
+		console.log(err.stack);
+	}
+}
+function run_main() {
+	console.log()
+	console.log("Beginning of tick", Game.time, 'at', Game.shard.name);
+	console.log("bucket", Game.cpu.bucket);
 	let timer;
 	Game.tick_cpu_main = {};
 	Game.tick_cpu = {};
@@ -43,16 +78,24 @@ module.exports.loop = function() {
 			var room = Game.rooms[room_name];
 			main_func.set_room_memory(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
 	}
+
+	timer = new Timer("sync_shard_memory", true);
+	try {
+		cross_shard.sync_shard_memory();
+	} catch (err) {
+		console.log("Captured error", err.stack);
+	}
+	timer.end();
 
 	timer = new Timer("towers", true);
     for (var room_name of config.controlled_rooms) {
 		try {
 			defense.defend_home(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	if (Game.rooms[config.conf_gcl.conf_map.gcl_room] !== undefined) {
@@ -64,7 +107,7 @@ module.exports.loop = function() {
 				}
 			}
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
 	}
 	timer.end();
@@ -74,7 +117,7 @@ module.exports.loop = function() {
 		try {
 			links.work(room_name)
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -86,7 +129,7 @@ module.exports.loop = function() {
 				creepjobs.creepjob(creep);
 		}
 	} catch (err) {
-		console.log("Error", err.stack);
+		console.log("Captured error", err.stack);
 	}
 	timer.end();
 
@@ -94,7 +137,7 @@ module.exports.loop = function() {
 	try {
 		creepjobs.run();
 	} catch (err) {
-		console.log("Error", err.stack);
+		console.log("Captured error", err.stack);
 	}
 	timer.end();
 
@@ -103,7 +146,7 @@ module.exports.loop = function() {
 		gcl_room.run();
 	} catch (err) {
 		creep.say("Error");
-		console.log("Error at gcl room", err.stack);
+		console.log("Captured error at gcl room", err.stack);
 	}
 	timer.end();
 
@@ -114,7 +157,7 @@ module.exports.loop = function() {
 			powercreeps.work(pc);
 		} catch (err) {
 			pc.say("Error");
-			console.log("Error", pc.room.name, err.stack);
+			console.log("Captured error", pc.room.name, err.stack);
 		}
     }
 	timer.end();
@@ -124,7 +167,7 @@ module.exports.loop = function() {
 		try {
 			spawning.spawn(room_name);
 		} catch (err) {
-			console.log("Error", err.stack);
+			console.log("Captured error", err.stack);
 		}
     }
 	timer.end();
@@ -135,7 +178,7 @@ module.exports.loop = function() {
 		try {
 			terminal.process_resource_sending_request(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -149,7 +192,7 @@ module.exports.loop = function() {
 		try {
 			labs.reaction(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -159,7 +202,7 @@ module.exports.loop = function() {
 		try {
 			factory.produce(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -169,7 +212,7 @@ module.exports.loop = function() {
 		try {
 			powerspawn.process(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -181,7 +224,7 @@ module.exports.loop = function() {
 		market.auto_sell();
 		market.market_stat();
 	} catch (err) {
-		console.log("Error", err.stack);
+		console.log("Captured error", err.stack);
 	}
 
     for (var room_name of config.controlled_rooms) {
@@ -190,7 +233,7 @@ module.exports.loop = function() {
 			market.process_buy_order(room_name);
 			market.process_sell_order(room_name);
 		} catch (err) {
-			console.log("Error", room_name, err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
@@ -199,16 +242,36 @@ module.exports.loop = function() {
 	try {
 		control.action();
 	} catch (err) {
-		console.log("Error", err.stack);
+		console.log("Captured error", err.stack);
+	}
+	timer.end();
+
+	timer = new Timer("update_shard_memory", true);
+	try {
+		cross_shard.update_shard_memory();
+	} catch (err) {
+		console.log("Captured error", err.stack);
 	}
 	timer.end();
 
 	try {
 		final_command.log();
 	} catch (err) {
-		console.log("Error", err.stack);
+		console.log("Captured error", err.stack);
 	}
 	output.log();
 	global.test_var = true;
 	console.log("Final Real CPU:", Game.cpu.getUsed());
+}
+
+
+module.exports.loop = function() {
+	if (Memory.stop_running) {
+		return;
+	}
+	if (global.main_shards.includes(Game.shard.name)) {
+		run_main();
+	} else {
+		run_sub();
+	}
 }

@@ -180,14 +180,7 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
 const getbody_preclaimer = (options: any): BodyPartConstant[] => {
     let bodyinfo: type_body_components = {
         "claim": 1,
-        "move": 1,
-    };
-    return fullreturnbody(bodyinfo);
-}
-const getbody_newroom_claimer = (options: any): BodyPartConstant[] => {
-    let bodyinfo: type_body_components = {
-        "claim": 1,
-        "move": 1,
+        "move": 5,
     };
     return fullreturnbody(bodyinfo);
 }
@@ -224,7 +217,6 @@ const getbody_list: type_getbody = {
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
     'home_defender': getbody_home_defender,
-    'newroom_claimer': getbody_newroom_claimer,
     'gcl_upgrader': getbody_gcl_upgrader,
     'gcl_carrier': getbody_gcl_carrier,
 }

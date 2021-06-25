@@ -133,9 +133,6 @@ for (let room_name of controlled_rooms) {
         }
     }
 }
-export function distance_metric(room_name: string, pos1: RoomPosition, pos2: RoomPosition): number {
-    return pos1.getRangeTo(pos2);
-}
 
 export var pc_conf: type_pc_conf = {
     "PC_A": {
@@ -164,6 +161,7 @@ export var pc_conf: type_pc_conf = {
         "external_room": "E19N54",
     },
 }
+export var newroom_independence_energy = 2300;
 export var double_powered_harvester = true;
 export var hunting: type_hunting = {};
 export var source_container_upper_limit: number = 1200;
@@ -185,22 +183,33 @@ export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 interface type_preclaiming_rooms {
     [key: string]: {
-        [key: string]: type_external_half_map
+        [key: string]: type_external_shard_map
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
     'E16N58': {
         'E16N57': {
-            "rooms_forwardpath": ['E16N58', 'E16N57'],
-            "poses_forwardpath": [28],
-        }
+            rooms_forwardpath: ['E16N58', 'E16N57'],
+            poses_forwardpath: [28],
+        },
     },
     'E14N51': {
-        'E11N47': {
-            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N49', 'E10N48', 'E10N47', 'E11N47'],
-            "poses_forwardpath": [5, 25, 25, 25, 40, 35, 35, 30, 15],
-        }
-    }
+		'W9N39': {
+			shard_path: [
+				{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
+				{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
+				{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
+				{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
+				{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
+				{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
+				{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
+				{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
+				{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
+				{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
+				{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
+			]
+		}
+    },
 }
 export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
     "UH2O": 36000,
@@ -641,6 +650,6 @@ export var doubled_powered_external_harvester: type_powered_harvester = {
 export var creep_roles_home: type_creep_role[] = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "minecarrier", "wall_repairer"]
 export var creep_roles_maincarrier: type_creep_role[] = ["maincarrier"]
 export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "hunter", "home_defender", "enemy"]
-export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "newroom_claimer", "gcl_upgrader", "gcl_carrier"]
+export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "gcl_upgrader", "gcl_carrier", "energy_carrier"]
 export var creep_roles_resources: type_creep_role[] = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]
 export var creep_roles_all = creep_roles_home.concat(creep_roles_external).concat(creep_roles_maincarrier).concat(creep_roles_resources).concat(creep_roles_combat);

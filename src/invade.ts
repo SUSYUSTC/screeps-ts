@@ -529,25 +529,26 @@ export function run_invader_group_x2(groupname: string, flagname: string, rooms_
     }
 }
 
-global.spawn_invader_group_x2 = function(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number {
-	let invader_name = "invader"+groupname+Game.time.toString();
-	let healer_name = "healer"+groupname+Game.time.toString();
-	let invade_conf = invade_conf_levels[level];
-	let body_confs = invade_conf_to_body_conf(invade_conf.conf, assign);
-	let invader_body = functions.conf_body_to_body_components(body_confs.invader);
-	let heal_body = functions.conf_body_to_body_components(body_confs.healer);
-	global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
-	global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
-	if (Memory.invade_groups_x2 == undefined) {
-		Memory.invade_groups_x2 = {};
+export function init() {
+	global.spawn_invader_group_x2 = function(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number {
+		let invader_name = "invader"+groupname+Game.time.toString();
+		let healer_name = "healer"+groupname+Game.time.toString();
+		let invade_conf = invade_conf_levels[level];
+		let body_confs = invade_conf_to_body_conf(invade_conf.conf, assign);
+		let invader_body = functions.conf_body_to_body_components(body_confs.invader);
+		let heal_body = functions.conf_body_to_body_components(body_confs.healer);
+		global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
+		global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
+		if (Memory.invade_groups_x2 == undefined) {
+			Memory.invade_groups_x2 = {};
+		}
+		Memory.invade_groups_x2[groupname] = {
+			"home_room_name": home_room_name,
+			"invader_name": invader_name,
+			"healer_name": healer_name,
+			"invade_level": level,
+			"assign": assign,
+		}
+		return 0;
 	}
-	Memory.invade_groups_x2[groupname] = {
-		"home_room_name": home_room_name,
-		"invader_name": invader_name,
-		"healer_name": healer_name,
-		"invade_level": level,
-		"assign": assign,
-	}
-	return 0;
 }
-

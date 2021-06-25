@@ -22,15 +22,14 @@ function determine_stage(creep: Creep) {
 }
 
 function assign_work(creep: Creep): type_work_result{
-    let metric = config.distance_metric;
     let conf = config.conf_rooms[creep.room.name];
     let source = Game.getObjectById(conf.sources[creep.memory.source_name]);
     let charge_list = global.memory[creep.room.name].energy_filling_list.map((id) => Game.getObjectById(id));
 	charge_list = charge_list.filter((e) => (<GeneralStore>e.store).getFreeCapacity("energy") > 0)
     let sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
-    let distance_charge = charge_list.map((obj) => metric(creep.room.name, creep.pos, obj.pos));
-    let distance_build = sites.map((obj) => metric(creep.room.name, source.pos, obj.pos) - obj.progress * 0.001);
-    let distance_controller = metric(creep.room.name, creep.pos, creep.room.controller.pos);
+    let distance_charge = charge_list.map((obj) => creep.pos.getRangeTo(obj.pos));
+    let distance_build = sites.map((obj) => source.pos.getRangeTo(obj.pos) - obj.progress * 0.001);
+    let distance_controller = creep.pos.getRangeTo(creep.room.controller.pos);
     let priority_charge = distance_charge.map((d) => 10 - d);
     let priority_build = distance_build.map((d) => 5 - d);
     let priority_controller = -100 - distance_controller;
