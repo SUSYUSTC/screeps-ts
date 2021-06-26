@@ -362,30 +362,21 @@ export var conf_E16N58: type_conf_room =
     },
     "carriers": {
         "S1": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 4
         },
         "S2": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 10
         },
         "storage": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 8
         }
     },

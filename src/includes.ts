@@ -171,7 +171,6 @@ interface type_named_structures_status < T > {
         exists ? : boolean;
         finished ? : boolean;
         id ? : Id < T > ;
-        effect_time ? : number;
     }
 }
 interface type_unique_structures_status < T > {
@@ -194,13 +193,12 @@ interface conf_multiple_structures {
     [key: string]: number[][];
 }
 interface conf_preference {
-    container: string;
-    points: number;
+    [key: string]: number;
 }
 interface conf_carriers {
     [key: string]: {
         number: number;
-        preferences: conf_preference[];
+        preferences: conf_preference;
     }
 }
 interface conf_upgraders {
@@ -602,7 +600,6 @@ interface Game {
         [key: string]: {
             danger_mode ? : boolean;
             n_defenders_needed ? : number;
-            link_modes ? : string[];
             container_modes_all ? : boolean;
             lack_energy ? : boolean;
             mine_status ? : type_mine_status;

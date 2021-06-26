@@ -4269,6 +4269,24 @@ interface TextStyle {
  * Every object in the room contains its linked Room instance in the room property.
  */
 interface Room {
+	container ?: {
+		[key: string]: StructureContainer;
+	};
+	lab ?: {
+		[key: string]: StructureLab;
+	};
+	link ?: {
+		[key: string]: StructureLink;
+	};
+	spawn ?: {
+		[key: string]: StructureSpawn;
+	};
+	extractor ?: StructureExtractor;
+	factory ?: StructureFactory;
+	nuker ?: StructureNuker;
+	observer ?: StructureObserver;
+	powerSpawn ?: StructurePowerSpawn;
+
     readonly prototype: Room;
 
     /**
@@ -5161,6 +5179,7 @@ declare const StructurePowerBank: StructurePowerBankConstructor;
  * destroying the structure. Hits the attacker creep back on each attack.
  */
 interface StructurePowerSpawn extends OwnedStructure<STRUCTURE_POWER_SPAWN> {
+	effect_time ?: number;
     readonly prototype: StructurePowerSpawn;
     /**
      * The amount of energy containing in this structure.
@@ -5342,6 +5361,7 @@ declare const StructureExtractor: StructureExtractorConstructor;
  * Produces mineral compounds from base minerals and boosts creeps.
  */
 interface StructureLab extends OwnedStructure<STRUCTURE_LAB> {
+	effect_time ?: number;
     readonly prototype: StructureLab;
     /**
      * The amount of game ticks the lab has to wait until the next reaction is possible.

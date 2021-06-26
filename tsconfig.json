@@ -11,5 +11,5 @@
 		"@mock/*": ["test/mock/*"]
 	},
 	"include": ["src/*.ts"],
-	"exclude": ["node_modules", "src/index.ts"]
+	"exclude": ["node_modules"]
 }

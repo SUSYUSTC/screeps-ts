@@ -6,26 +6,25 @@ export function work(room_name: string) {
 	}
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
-	let links_status = global.memory[room_name].named_structures_status.link;
     let game_memory = Game.memory[room_name];
     if (!("links" in conf)) {
         return;
     }
-	if (links_status.MAIN == undefined || !links_status.MAIN.finished) {
+	if (room.link.MAIN == undefined) {
 		return;
 	}
-	let link_MAIN = Game.getObjectById(links_status.MAIN.id);
+	let link_MAIN = room.link.MAIN;
 	let MAIN_energy = link_MAIN.store.getUsedCapacity("energy");
-    let sources_name = game_memory.link_modes.filter((e) => game_memory.are_links_source[e] == true)
-    let sources = sources_name.map((e) => Game.getObjectById(links_status[e].id));
+    let sources_name = Object.keys(room.link).filter((e) => game_memory.are_links_source[e] == true)
+    let sources = sources_name.map((e) => room.link[e]);
 	sources.forEach((e) => room.visual.text(">", e.pos));
 	sources = sources.filter((e) => e.cooldown == 0);
-    let sinks_name = game_memory.link_modes.filter((e) => game_memory.are_links_source[e] == false)
-    let sinks = sinks_name.map((e) => Game.getObjectById(links_status[e].id));
+    let sinks_name = Object.keys(room.link).filter((e) => game_memory.are_links_source[e] == false)
+    let sinks = sinks_name.map((e) => room.link[e]);
 	sinks.forEach((e) => room.visual.text("<", e.pos));
 	sinks = sinks.filter((e) => e.cooldown == 0);
-	if (game_memory.link_modes.includes('Ext')) {
-		let link_Ext = Game.getObjectById(links_status.Ext.id);
+	if (room.link.Ext !== undefined) {
+		let link_Ext = room.link.Ext;
 		let link_Ext_energy = link_Ext.store.getUsedCapacity("energy");
 		if (link_Ext.cooldown == 0 && link_Ext_energy > 0 && link_Ext_energy <= 800 - MAIN_energy) {
 			link_Ext.transferEnergy(link_MAIN);

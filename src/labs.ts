@@ -24,12 +24,6 @@ type type_reactants_number = {
     [key in GeneralMineralConstant] ? : number;
 }
 
-function get_number_labs(room_name: string): number {
-    let labs_status = global.memory[room_name].named_structures_status.lab;
-    let n = Object.keys(labs_status).filter((e) => labs_status[e].finished).length;
-    return n;
-}
-
 function get_priority_score(n: number, level: number): number {
     return Math.ceil(n / 5000) - level * 20;
 }
@@ -38,7 +32,7 @@ function get_reaction_priortiy(): type_reaction_priority {
     let reaction_priority: type_reaction_priority = {};
     let products = < Array < MineralCompoundConstant >> Object.keys(Memory.product_request);
     products = products.filter((e) => Memory.product_request[e] > 0 && constants.mineral_compounds.includes(e));
-    let rooms_ready = config.controlled_rooms.filter((e) => get_number_labs(e) == 10 && config.mineral_storage_room[e] !== undefined);
+    let rooms_ready = config.controlled_rooms.filter((e) => Object.keys(Game.rooms[e].lab).length == 10 && config.mineral_storage_room[e] !== undefined);
     for (let room_name of rooms_ready) {
         reaction_priority[room_name] = {};
         for (let p of products) {
@@ -138,17 +132,14 @@ export function reaction(room_name: string) {
 		Memory.reaction_log = {};
 	}
     let conf = config.conf_rooms[room_name].labs;
-    let labs_status = global.memory[room_name].named_structures_status.lab;
-    if (_.map(labs_status, (e) => e.finished).length == 10) {
-        let source1_id = labs_status.S1.id;
-        let source2_id = labs_status.S2.id;
-        let react_ids = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'].map((e) => labs_status[e].id);
+    if (Object.keys(room.lab).length == 10) {
+        let react_names = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'];
 		if (room.memory.current_boost_request == undefined) {
-			react_ids.push(labs_status.B1.id);
+			react_names.push('B1');
 		}
-        let source1_lab = Game.getObjectById(source1_id);
-        let source2_lab = Game.getObjectById(source2_id);
-        let react_labs = react_ids.map((e) => Game.getObjectById(e));
+        let source1_lab = room.lab.S1;
+        let source2_lab = room.lab.S2;
+        let react_labs = react_names.map((e) => room.lab[e]);
         let product: MineralCompoundConstant;
         for (let lab of react_labs) {
             if (lab.cooldown == 0) {

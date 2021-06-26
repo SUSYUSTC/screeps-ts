@@ -186,30 +186,33 @@ interface type_preclaiming_rooms {
         [key: string]: type_external_shard_map
     }
 }
-export var preclaiming_rooms: type_preclaiming_rooms = {
-    'E16N58': {
-        'E16N57': {
-            rooms_forwardpath: ['E16N58', 'E16N57'],
-            poses_forwardpath: [28],
-        },
-    },
-    'E14N51': {
-		'W9N39': {
-			shard_path: [
-				{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
-				{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
-				{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
-				{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
-				{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
-				{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
-				{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
-				{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
-				{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
-				{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
-				{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
-			]
-		}
-    },
+export var preclaiming_rooms: type_preclaiming_rooms = {}
+if (global.is_main_server) {
+	preclaiming_rooms = {
+		'E16N58': {
+			'E16N57': {
+				rooms_forwardpath: ['E16N58', 'E16N57'],
+				poses_forwardpath: [28],
+			},
+		},
+		'E14N51': {
+			'W9N39': {
+				shard_path: [
+					{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
+					{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
+					{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
+					{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
+					{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
+					{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
+					{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
+					{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
+					{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
+					{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
+					{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
+				]
+			}
+		},
+	}
 }
 export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
     "UH2O": 36000,

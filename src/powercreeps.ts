@@ -50,7 +50,7 @@ function renew(pc: PowerCreep): number {
 	}
 	if (pc.ticksToLive < 500) {
 		pc.say("renew");
-		let powerspawn = Game.getObjectById(global.memory[pc.room.name].unique_structures_status.powerSpawn.id)
+		let powerspawn = pc.room.powerSpawn;
 		if (pc.pos.getRangeTo(powerspawn.pos) > 1) {
 			basic_job.movetopos(pc, powerspawn.pos, 1);
 			pc.memory.movable = true;
@@ -230,8 +230,7 @@ function operate_power(pc: PowerCreep) {
 	if (Game.time < pc.memory.next_time.op_power) {
 		return -1;
 	}
-	let powerspawn_status = global.memory[pc.room.name].unique_structures_status.powerSpawn;
-	if (powerspawn_status.effect_time > 0) {
+	if (pc.room.powerSpawn.effect_time > 0) {
 		return -1;
 	}
 	let power_amount = pc.room.terminal.store.getUsedCapacity("power");
@@ -250,13 +249,12 @@ function operate_power(pc: PowerCreep) {
 	if (!condition) {
 		return -1;
 	}
-	let powerspawn = Game.getObjectById(powerspawn_status.id)
 	pc.say("power");
-	if (pc.pos.getRangeTo(powerspawn) > 3) {
-		basic_job.movetopos(pc, powerspawn.pos, 3);
+	if (pc.pos.getRangeTo(pc.room.powerSpawn) > 3) {
+		basic_job.movetopos(pc, pc.room.powerSpawn.pos, 3);
 		return 1;
 	} else {
-		if (pc.usePower(PWR_OPERATE_POWER, powerspawn) == 0) {
+		if (pc.usePower(PWR_OPERATE_POWER, pc.room.powerSpawn) == 0) {
 			pc.memory.next_time.op_power = Game.time + 1200;
 		}
 		return 0;
@@ -274,18 +272,18 @@ function operate_lab(pc: PowerCreep) {
 	if (pc.room.memory.reaction_request == undefined) {
 		return -1;
 	}
-	let lab_status = global.memory[pc.room.name].named_structures_status.lab;
 	let effects_time: {[key: string]: number} = {};
 	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1']) {
-		if (lab_status[lab_name].finished && lab_status[lab_name].effect_time !== undefined) {
-			effects_time[lab_name] = lab_status[lab_name].effect_time;
+		let lab = pc.room.lab[lab_name];
+		if (lab !== undefined && lab.effect_time !== undefined) {
+			effects_time[lab_name] = lab.effect_time;
 		}
 	}
 	let lab_name: string = Object.keys(effects_time).sort((a, b) => effects_time[a] - effects_time[b])[0];
 	if (lab_name == undefined) {
 		return -1;
 	}
-	let lab = Game.getObjectById(lab_status[lab_name].id);
+	let lab = pc.room.lab[lab_name];
 	if (effects_time[lab_name] < pc.pos.getRangeTo(lab) + 5 && pc.powers[PWR_OPERATE_LAB].cooldown < pc.pos.getRangeTo(lab) + 5) {
 		pc.say("lab");
 		if (pc.pos.getRangeTo(lab) > 3) {

@@ -371,30 +371,21 @@ export var conf_E19N53: type_conf_room =
     },
     "carriers": {
         "S1": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 14
         },
         "S2": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 14
         },
         "storage": {
-            "preferences": [
-                {
-                    "container": "CT",
-                    "points": 0
-                }
-            ],
+            "preferences": {
+                "CT": 0
+            },
             "number": 10
         }
     },

@@ -121,13 +121,11 @@ export function spawn(room_name: string) {
     }
     let conf = config.conf_rooms[room.name];
     let room_statistics = Game.creep_statistics[room_name];
-    let containers_status = global.memory[room_name].named_structures_status.container;
-    let links_status = global.memory[room_name].named_structures_status.link;
     let sources_name = Object.keys(conf.sources);
     if (room.energyCapacityAvailable < config.newroom_independence_energy) {
         return;
     }
-    let link_modes = game_memory.link_modes;
+    let link_modes = Object.keys(room.link);
 
     let jsons: type_spawn_json[] = [];
     for (let source_name of sources_name) {
@@ -163,7 +161,7 @@ export function spawn(room_name: string) {
             } else if (link_mode) {
                 with_carry = 2;
             } else if (room.energyCapacityAvailable >= 600) {
-                let this_container = Game.getObjectById(containers_status[source_name].id);
+                let this_container = room.container[source_name];
                 let is_container_broken = (this_container.hitsMax - this_container.hits >= 100000);
                 if (is_container_broken) {
                     with_carry = 1;

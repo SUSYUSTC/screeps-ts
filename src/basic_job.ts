@@ -318,21 +318,12 @@ export function get_energy(creep: Creep, options: {
     }
     return 1;
 }
-export function preferred_container(creep: Creep, containers_status: type_named_structures_status < StructureContainer > , preferences: conf_preference[]): StructureContainer {
-    var finished_preferences = preferences.filter((e) => containers_status[e.container].finished);
-    var containers_obj: StructureContainer[] = finished_preferences.map((e) => Game.getObjectById(containers_status[e.container].id));
-    //containers_obj = containers_obj.filter((e) => e.store.getFreeCapacity("energy") >= 100);
-    let argfilter = mymath.where(containers_obj.map(function(e) {
-        return e.store.getFreeCapacity("energy") >= 100;
-    }));
-    containers_obj = argfilter.map((e) => containers_obj[e]);
-    finished_preferences = argfilter.map((e) => finished_preferences[e]);
-    var containers_energies = containers_obj.map((e) => e.store.getUsedCapacity("energy"));
-    var points = finished_preferences.map((e) => e.points);
-    var final_scores = mymath.array_ele_plus(containers_energies, points);
-    if (final_scores.length > 0) {
-        var arg = mymath.argmin(final_scores);
-        return containers_obj[arg];
+export function preferred_container(creep: Creep, preferences: conf_preference): StructureContainer {
+    var container_names = Object.keys(preferences).filter((e) => creep.room.container[e] !== undefined && creep.room.container[e].store.getFreeCapacity("energy") >= 300);
+	var points = container_names.map((e) => preferences[e] + creep.room.container[e].store.getUsedCapacity("energy"));
+    if (points.length > 0) {
+        var arg = mymath.argmin(points);
+        return creep.room.container[container_names[arg]];
     } else {
         return null;
     }
@@ -377,13 +368,11 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
     if (creep.memory.boost_status.boost_finished) {
         return 0;
     }
-    if (!global.memory[creep.room.name].named_structures_status.lab.B1.finished || !creep.room.terminal) {
+    if (!creep.room.lab.B1 || !creep.room.terminal) {
         return 4;
     }
     if (creep.memory.boost_status.boosting) {
-        let labs_status = global.memory[creep.room.name].named_structures_status.lab;
-        let lab_id = labs_status.B1.id;
-        let lab = Game.getObjectById(lab_id);
+        let lab = creep.room.lab.B1;
         if (creep.pos.getRangeTo(lab) > 1) {
             movetopos(creep, lab.pos, 1, moveoptions);
         }
@@ -442,9 +431,7 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
             // energy not enough
             return 2;
         } else {
-            let labs_status = global.memory[creep.room.name].named_structures_status.lab;
-            let lab_id = labs_status.B1.id;
-            let lab = Game.getObjectById(lab_id);
+            let lab = creep.room.lab.B1;
             if (creep.pos.isNearTo(lab)) {
                 if (creep.room.memory.current_boost_creep == undefined) {
                     creep.room.memory.current_boost_creep = creep.name;
@@ -514,8 +501,7 @@ export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options 
 	return 0;
 }
 export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_options = {}) {
-	let container_status = global.memory[creep.room.name].named_structures_status.container.RC;
-	let container = Game.getObjectById(container_status.id);
+	let container = creep.room.container.RC;
 	if (container != undefined) {
 		if (creep.pos.isEqualTo(container.pos)) {
 			let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => creep.pos.isNearTo(e));
@@ -528,11 +514,10 @@ export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_option
 }
 export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) {
     // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found, 4: cooling down
-    let container_status = global.memory[creep.room.name].named_structures_status.container.UB;
-    if (!container_status.finished) {
-        return 2;
-    }
-    let container = Game.getObjectById(container_status.id);
+	let container = creep.room.container.UB;
+	if (container == undefined) {
+		return 2;
+	}
     if (!creep.pos.isEqualTo(container)) {
         movetopos_maincarrier(creep, container.pos, 0, moveoptions);
         return 1;
@@ -542,11 +527,10 @@ export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) 
 		return 0;
 	}
 	for (let lab_name of ['S1', 'S2']) {
-		let lab_status = global.memory[creep.room.name].named_structures_status.lab[lab_name];
-		if (!lab_status.finished) {
+		let lab = creep.room.lab[lab_name];
+		if (lab == undefined) {
 			return 3;
 		}
-		let lab = Game.getObjectById(lab_status.id);
 		if (lab.cooldown > 0) {
 			continue;
 		}
@@ -610,27 +594,18 @@ export function get_structure_from_carry_end(creep: Creep, carry_end: {
 }): AnyStoreStructure {
     if (carry_end.type == 'storage') {
         return creep.room.storage;
-    } else if (carry_end.type == 'termina') {
+    } else if (carry_end.type == 'terminal') {
         return creep.room.terminal;
     } else if (carry_end.type == 'link') {
-        let link_status = global.memory[creep.room.name].named_structures_status.link[carry_end.name];
-        if (link_status == undefined || !link_status.finished) {
-            return null;
-        }
-        let link = Game.getObjectById(link_status.id);
-        return link;
+		return creep.room.link[carry_end.name];
     }
 }
-export function harvest_with_container(creep: Creep, source: Source, status: {
-    id ? : Id < StructureContainer > ,
-    finished ? : boolean,
-    exists ? : boolean
-} = undefined) {
+export function harvest_with_container(creep: Creep, source: Source, container: StructureContainer = undefined) {
     // 0: ok, 1: not adjacent
     if (!creep.pos.isNearTo(source)) {
         return 1;
     }
-    if_container: if (status == undefined) {
+    if_container: if (container == undefined) {
         let container = < StructureContainer > creep.pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
         if (container !== undefined) {
             if (repair_container(creep, container) == 0) {
@@ -648,22 +623,9 @@ export function harvest_with_container(creep: Creep, source: Source, status: {
         }
         creep.pos.createConstructionSite("container");
         break if_container;
-    } else {
-        if (status.finished) {
-            let container = Game.getObjectById(status.id)
-            if (repair_container(creep, container) == 0) {
-                return 0;
-            }
-        } else if (status.exists) {
-            let site = creep.pos.lookFor("constructionSite")[0]
-            if (creep.store.getUsedCapacity("energy") >= creep.getActiveBodyparts(WORK) * 5) {
-                creep.build(site);
-                return 0;
-            }
-        } else {
-            creep.pos.createConstructionSite("container");
-        }
-    }
+    } else if (repair_container(creep, container) == 0) {
+		return 0;
+	}
     creep.harvest(source);
     return 0;
 }

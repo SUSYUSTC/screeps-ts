@@ -349,12 +349,10 @@ global.spawn_PC = function (name: string): number {
 		return 1;
 	}
 	let room = Game.rooms[pc_conf.room_name];
-	let powerspawn_status = global.memory[room.name].unique_structures_status.powerSpawn;
-	let powerspawn = Game.getObjectById(powerspawn_status.id);
-	if (powerspawn == undefined) {
+	if (room.powerSpawn == undefined) {
 		return 2;
 	}
-	return pc.spawn(powerspawn);
+	return pc.spawn(room.powerSpawn);
 }
 
 export function get_exits_from_path(path: RoomPosition[]){

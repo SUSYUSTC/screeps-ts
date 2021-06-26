@@ -90,9 +90,7 @@ function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: Res
 
 function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
     let request = creep.room.memory.current_boost_request;
-    let labs_status = global.memory[creep.room.name].named_structures_status.lab;
-    let lab_id = labs_status.B1.id;
-    let lab = Game.getObjectById(lab_id);
+	let lab = creep.room.lab.B1;
 	if (request.finished) {
 		if (lab.store.getUsedCapacity("energy") < 2000) {
 			if (creep.memory.resource_type == undefined) {
@@ -146,13 +144,10 @@ function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
 
 function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
     let request = creep.room.memory.reaction_request;
-    let labs_status = global.memory[creep.room.name].named_structures_status.lab;
-    if (_.filter(labs_status, (e) => e.finished).length == 10) {
-        let source1_id = labs_status.S1.id;
-        let source2_id = labs_status.S2.id;
-        let react_ids = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1'].map((e) => labs_status[e].id);
-        let source1_lab = Game.getObjectById(source1_id);
-        let source2_lab = Game.getObjectById(source2_id);
+    if (Object.keys(creep.room.container).length == 10) {
+        let react_names = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1'];
+        let source1_lab = creep.room.lab.S1;
+        let source2_lab = creep.room.lab.S2;
         if (creep.room.memory.reaction_ready) {
             if (source1_lab.mineralAmount <= config.react_min_amount || source2_lab.mineralAmount <= config.react_min_amount) {
                 creep.room.memory.reaction_ready = false;
@@ -174,8 +169,8 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
             }
 			// enough when terminal+creep+lab >= init
             let has_enough_source = mymath.all(reactants.map((e) => creep.room.terminal.store.getUsedCapacity(e) + creep.store.getUsedCapacity(e) + temp_source_labs[e].store.getUsedCapacity(e) >= config.react_init_amount));
-            for (let lab_id of react_ids) {
-				let lab = Game.getObjectById(lab_id);
+            for (let lab_name of react_names) {
+				let lab = creep.room.lab[lab_name];
                 if (lab.mineralType !== undefined && (!has_enough_source || lab.mineralType !== request.product || lab.store.getUsedCapacity(lab.mineralType) >= creep.store.getCapacity())) {
 					// react labs exceeds amount or does not match
                     if (creep.store.getUsedCapacity() !== 0) {
@@ -232,8 +227,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 
 function unboost_withdraw(creep: Creep) {
 	if (creep.room.memory.unboost_withdraw_request) {
-		let container_status = global.memory[creep.room.name].named_structures_status.container.UB;
-		let container = Game.getObjectById(container_status.id);
+		let container = creep.room.container.UB;
 		let resource = <ResourceConstant> Object.keys(container.store)[0];
 		if (creep.memory.resource_type !== undefined){
 			if (resource == undefined) {
@@ -397,19 +391,13 @@ function structure_from_name(room_name: string, name: string): AnyStoreStructure
     } else if (name == 'terminal') {
         target = room.terminal;
     } else if (name == 'link') {
-        let links_status = global.memory[room_name].named_structures_status.link;
-        let link_id = links_status.MAIN.id;
-        let link = Game.getObjectById(link_id);
-        target = link;
+        target = room.link.MAIN;
     } else if (name == 'factory') {
-        let factory_id = global.memory[room_name].unique_structures_status.factory.id;
-        target = Game.getObjectById(factory_id);
+        target = room.factory;
     } else if (name == 'powerspawn') {
-        let powerspawn_id = global.memory[room_name].unique_structures_status.powerSpawn.id;
-        target = Game.getObjectById(powerspawn_id);
+        target = room.powerSpawn;
     } else if (name == 'nuker') {
-        let nuker_id = global.memory[room_name].unique_structures_status.nuker.id;
-        target = Game.getObjectById(nuker_id);
+        target = room.nuker;
     }
     return target;
 }
@@ -486,9 +474,7 @@ export function creepjob(creep: Creep): number {
         creep.say("MC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-        let links_status = global.memory[creep.room.name].named_structures_status.link;
-        let link_id = links_status.MAIN.id;
-        let link = Game.getObjectById(link_id);
+		let link = creep.room.link.MAIN;
         let link_energy = link.store.getUsedCapacity("energy")
 		if (link_energy == creep.room.memory.maincarrier_link_amount && creep.room.memory.current_boost_request == undefined) {
 			if (Game.time < creep.memory.next_time.wakeup) {
@@ -591,31 +577,25 @@ export function creepjob(creep: Creep): number {
             terminal_mineral = creep.room.terminal.store.getUsedCapacity(mineral_type);
         }
 
-        let factory_id = global.memory[creep.room.name].unique_structures_status.factory.id;
-        let factory;
+        let factory = creep.room.factory;
         let factory_energy;
         let factory_battery;
-        if (factory_id !== undefined) {
-            factory = Game.getObjectById(factory_id);
+        if (factory !== undefined) {
             factory_energy = factory.store.getUsedCapacity("energy");
             factory_battery = factory.store.getUsedCapacity("battery");
         }
-        let powerspawn_id = global.memory[creep.room.name].unique_structures_status.powerSpawn.id;
-        let powerspawn;
+        let powerspawn = creep.room.powerSpawn;
         let powerspawn_energy;
         let powerspawn_power;
-        if (powerspawn_id !== undefined) {
-            powerspawn = Game.getObjectById(powerspawn_id);
+        if (powerspawn !== undefined) {
             powerspawn_energy = powerspawn.store.getUsedCapacity("energy");
             powerspawn_power = powerspawn.store.getUsedCapacity("power");
         }
 
-        let nuker_id = global.memory[creep.room.name].unique_structures_status.nuker.id;
-        let nuker;
+        let nuker = creep.room.nuker;
         let nuker_energy;
         let nuker_G;
-        if (nuker_id !== undefined) {
-            nuker = Game.getObjectById(nuker_id);
+        if (nuker !== undefined) {
             nuker_energy = nuker.store.getUsedCapacity("energy");
             nuker_G = nuker.store.getUsedCapacity("G");
         }

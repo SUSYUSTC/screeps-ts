@@ -185,14 +185,14 @@ export function log() {
 			"expected_number": conf.secondary_ramparts.length,
 		};
 		let log_special = '';
-		if (global.memory[room_name].unique_structures_status.factory.finished) {
-			room_log.factory = Game.getObjectById(global.memory[room_name].unique_structures_status.factory.id).store;
+		if (room.factory !== undefined) {
+			room_log.factory = room.factory.store;
 		}
-		if (global.memory[room_name].unique_structures_status.nuker.finished) {
-			room_log.nuker = Game.getObjectById(global.memory[room_name].unique_structures_status.nuker.id).store;
+		if (room.nuker !== undefined) {
+			room_log.nuker = room.nuker.store;
 		}
-		if (global.memory[room_name].unique_structures_status.powerSpawn.finished) {
-			room_log.powerSpawn = Game.getObjectById(global.memory[room_name].unique_structures_status.powerSpawn.id).store;
+		if (room.powerSpawn !== undefined) {
+			room_log.powerSpawn = room.powerSpawn.store;
 		}
 		if (room.storage !== undefined) {
 			room_log.storage = room.storage.store;
