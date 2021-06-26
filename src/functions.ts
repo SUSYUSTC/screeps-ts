@@ -398,3 +398,8 @@ export function copy_key(obj_A: any, obj_B: any, keys: string[], B_existance: bo
 	}
 	return lst;
 }
+
+export function get_total_resource_amount(room_name: string, resource: ResourceConstant) {
+	let room = Game.rooms[room_name];
+	return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
+}

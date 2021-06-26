@@ -33,6 +33,12 @@ export function array_ele_multiply(arr1: number[], arr2: number[]): number[] {
 export function array_ele_divide(arr1: number[], arr2: number[]): number[] {
     return array_ele(divide, arr1, arr2);
 }
+export function keymax <T> (arr: T[], func: (key: T) => number): T {
+	return arr.reduce((r, a) => (func(a) > func(r) ? a : r));
+}
+export function keymin <T> (arr: T[], func: (key: T) => number): T {
+	return arr.reduce((r, a) => (func(a) < func(r) ? a : r));
+}
 export function argmax(arr: number[]): number {
     return arr.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
 }

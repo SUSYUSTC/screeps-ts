@@ -71,13 +71,6 @@ interface type_pc_conf {
         external_room ? : string;
     }
 }
-interface type_powered_harvester {
-    [key: number]: {
-        n_harvest: number;
-        n_carry: number;
-        n_move: number;
-    }
-}
 export var conf_rooms: type_conf_rooms = {
     "E16N58": conf_E16N58,
     "E15N58": conf_E15N58,
@@ -214,33 +207,63 @@ if (global.is_main_server) {
 		},
 	}
 }
-export var final_product_request: {[key in GeneralMineralConstant] ?: number} = {
-    "UH2O": 36000,
-    "GH2O": 80000,
-    "GHO2": 10000,
-	"UHO2": 40000,
-    "LH2O": 20000,
-    "LHO2": 20000,
-    "KH": 30000,
-    "ZO": 20000,
-    "XUH2O": 30000,
-    "XLH2O": 30000,
-    "XLHO2": 30000,
-    "XZH2O": 30000,
-    "XZHO2": 30000,
-    "XKHO2": 30000,
-    "XKH2O": 30000,
-    "XGHO2": 30000,
-    "XGH2O": 30000,
+export var help_list: type_help_list = {
+    /*
+    "E14N51": {
+        "E9N54": {
+            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
+            "poses_forwardpath": [5, 7, 45, 26, 10, 32, 9, 20, 14, 27],
+            "commuting_distance": 392,
+            "n_carrys": {
+                "S1": 10,
+                "S2": 6,
+            }
+        }
+    }
+	*/
 };
-export var react_init_amount: number = 1200;
-let condition1 = (constants.amount_mapping[0] >= react_init_amount);
-let condition2 = (constants.amount_mapping[1] >= react_init_amount);
-let condition3 = (constants.amount_mapping[2] >= react_init_amount);
-if (!(condition1 && condition2 && condition3)) {
-    throw Error("react_init_amount too small");
+export var storage_bars: number[] = [60000, 120000, 180000, 240000];
+export var storage_gap: number = 60000;
+export var storage_full: number = 300000;
+export var protected_sources: {
+    [key: string]: string[]
+} = {
+    "E16N58": ['S1', 'S2'],
+    "E15N58": [],
+    "E14N51": [],
+    "E19N53": ['S1', 'S2'],
+    "E19N51": ['S1'],
+    "E21N49": [],
+    "E19N55": ['S1'],
+    "E14N59": ['S1', 'S2'],
+    "E9N54": ['S2'],
 }
-export var react_min_amount: number = 50;
+export var highway_resources: {
+    [key: string]: string[]
+} = {
+    "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
+    "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
+    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
+    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
+    "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
+    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+}
+export var depo_last_cooldown = 20000;
+export var username: string = 'SUSYUSTC';
+export var sign: string = '黑暗森林';
+
+// Start of reaction, terminal and market session
+var t3_store_room: {[key in GeneralMineralConstant] ?: string} = {
+	"XUH2O": "E15N58",
+	"XLH2O": "E16N58",
+	"XLHO2": "E9N54",
+	"XZH2O": "E14N51",
+	"XZHO2": "E14N59",
+	"XKH2O": "E19N55",
+	"XKHO2": "E21N49",
+	"XGH2O": "E19N53",
+	"XGHO2": "E19N51",
+}
 type type_acceptable_prices = {
     buy: {
         [key in MarketResourceConstant] ? : {
@@ -343,134 +366,243 @@ export var auto_sell_list: type_auto_sell_list = {
         price: 20,
         amount: 30000,
     },
-    "XGHO2": {
-        room: "E19N51",
-        price: 30,
-        amount: 30000,
-    },
     "XGH2O": {
         room: "E19N53",
         price: 25,
         amount: 30000,
     },
+    "XGHO2": {
+        room: "E19N51",
+        price: 30,
+        amount: 30000,
+    },
+}
+for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
+	if (t3_store_room[key] !== auto_sell_list[key].room) {
+		throw Error("t3 room does not match");
+	}
 }
 type type_resource_gathering_pos = {
-    [key in ResourceConstant] ? : string;
+    [key in ResourceConstant] ? : {
+		room: string;
+		left: number;
+	}
+}
+export var resource_gathering_pos: type_resource_gathering_pos = {
+    "XUH2O": {
+		room: "E15N58",
+		left: 6000,
+	},
+    "XLH2O": {
+		room: "E16N58",
+		left: 6000,
+	},
+    "XLHO2": {
+		room: "E9N54",
+		left: 6000,
+	},
+    "XZH2O": {
+		room: "E14N51",
+		left: 6000,
+	},
+    "XZHO2": {
+		room: "E14N59",
+		left: 6000,
+	},
+    "XKH2O": {
+		room: "E19N55",
+		left: 6000,
+	},
+    "XKHO2": {
+		room: "E21N49",
+		left: 6000,
+	},
+    "XGHO2": {
+		room: "E19N51",
+		left: 6000,
+	},
+    "XGH2O": {
+		room: "E19N53",
+		left: 6000,
+	},
+}
+for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
+	if (t3_store_room[key] !== resource_gathering_pos[key].room) {
+		throw Error("t3 room does not match");
+	}
 }
 export var resources_balance: {[key in ResourceConstant] ?: type_resource_balance} = {
     "battery": {
         gap: 20000,
         amount: 2000,
     },
-    "GH2O": {
-        gap: 1200,
-        min: 1200,
-        amount: 600,
-    },
-    "LH2O": {
-        gap: 600,
-        min: 600,
-        amount: 300,
-    },
+}
+type type_final_product_requrest = {
+	[key in GeneralMineralConstant] ?: {
+		min_amount : number;
+		max_amount : number;
+		store_room ?: string;
+		good_amount ?: number;
+		store_amount ?: number;
+	}
+}
+export var final_product_request: type_final_product_requrest = {
     "UH2O": {
-        gap: 1200,
-        min: 1200,
-        amount: 600,
-    },
-    "LHO2": {
-        gap: 600,
-        min: 600,
-        amount: 300,
-    },
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+    "GH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+	},
     "GHO2": {
-        gap: 300,
-        min: 300,
-        amount: 150,
-    },
-    "UHO2": {
-        gap: 1200,
-        min: 1200,
-        amount: 600,
-    },
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+	"UHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+    "LH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+    "LHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+	},
     "KH": {
-        gap: 960,
-        min: 960,
-        amount: 480,
-    },
-    "ZO": {
-        gap: 480,
-        min: 480,
-        amount: 240,
-    },
-}
-export var resource_gathering_pos: type_resource_gathering_pos = {
-    "XUH2O": "E15N58",
-    "XUHO2": "E16N58",
-    "XLH2O": "E16N58",
-    "XLHO2": "E9N54",
-    "XZH2O": "E14N51",
-    "XZHO2": "E14N59",
-    "XKH2O": "E19N55",
-    "XKHO2": "E21N49",
-    "XGHO2": "E19N51",
-    "XGH2O": "E19N53",
-}
-export var protected_sources: {
-    [key: string]: string[]
-} = {
-    "E16N58": ['S1', 'S2'],
-    "E15N58": [],
-    "E14N51": [],
-    "E19N53": ['S1', 'S2'],
-    "E19N51": ['S1'],
-    "E21N49": [],
-    "E19N55": ['S1'],
-    "E14N59": ['S1', 'S2'],
-    "E9N54": ['S2'],
-}
-export var highway_resources: {
-    [key: string]: string[]
-} = {
-    "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
-    "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
-    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
-    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
-    "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
-    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
-}
-export var storage_bars: number[] = [60000, 120000, 180000, 240000];
-export var storage_gap: number = 60000;
-export var storage_full: number = 300000;
-let t3_compounds: GeneralMineralConstant[] = ['XGH2O', 'XGHO2', 'XUH2O', 'XUHO2', 'XLH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKH2O', 'XKHO2'];
-let t2_compounds: GeneralMineralConstant[] = ['GH2O', 'GHO2', 'UH2O', 'UHO2', 'LH2O', 'LHO2', 'ZH2O', 'ZHO2', 'KH2O', 'KHO2'];
-export var mineral_storage_room: type_mineral_storage_room = {
-    "E9N54": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G"]),
-    "E15N58": t3_compounds.concat(t2_compounds).concat(["U", "UH", "UO", "L", "LH", "LO", "UL", "G"]),
-    "E14N51": t3_compounds.concat(t2_compounds).concat(["Z", "ZH", "ZO", "K", "KH", "KO", "ZK", "G"]),
-    "E21N49": t3_compounds.concat(t2_compounds).concat(["Z", "ZH", "ZO", "K", "KH", "KO", "ZK", "G"]),
-    "E16N58": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
-    "E19N55": t3_compounds.concat(t2_compounds).concat(["H", "GH", "OH"]),
-    "E19N51": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
-    "E14N59": t3_compounds.concat(t2_compounds).concat(["O", "GO", "OH"]),
-    "E19N53": t3_compounds.concat(t2_compounds).concat(["X", "GO", "GH", "OH"]),
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+    "ZO": { 
+		min_amount: 1200,
+		max_amount: 6000,
+	},
+    "XUH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E15N58",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XLH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E16N58",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XLHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E9N54",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XZH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E14N51",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XZHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E14N59",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XKH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E19N55",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XKHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E21N49",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XGHO2": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E19N51",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
+    "XGH2O": {
+		min_amount: 1200,
+		max_amount: 6000,
+		store_room: "E19N53",
+		good_amount: 3000,
+		store_amount: 30000,
+	},
 };
-export var help_list: type_help_list = {
-    /*
-    "E14N51": {
-        "E9N54": {
-            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
-            "poses_forwardpath": [5, 7, 45, 26, 10, 32, 9, 20, 14, 27],
-            "commuting_distance": 392,
-            "n_carrys": {
-                "S1": 10,
-                "S2": 6,
-            }
-        }
-    }
-	*/
-};
-export var username: string = 'SUSYUSTC';
-export var sign: string = '黑暗森林';
+for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
+	if (t3_store_room[key] !== final_product_request[key].store_room) {
+		throw Error("t3 room does not match");
+	}
+}
+export var onetime_reaction_amount = 3000;
+type type_mineral_store_amount = {
+	[key in MineralConstant]: {
+		sub_room_min: number;
+		sub_room_max: number;
+		main_room_min: number;
+		main_room_max: number;
+	}
+}
+export var mineral_store_amount = {
+	"U": {
+		sub_room_min: 20000,
+		sub_room_max: 40000,
+		main_room_min: 20000,
+		main_room_max: 100000,
+	},
+	"L": {
+		sub_room_min: 20000,
+		sub_room_max: 40000,
+		main_room_min: 20000,
+		main_room_max: 100000,
+	},
+	"Z": {
+		sub_room_min: 20000,
+		sub_room_max: 40000,
+		main_room_min: 20000,
+		main_room_max: 100000,
+	},
+	"K": {
+		sub_room_min: 20000,
+		sub_room_max: 40000,
+		main_room_min: 20000,
+		main_room_max: 100000,
+	},
+	"X": {
+		sub_room_min: 20000,
+		sub_room_max: 40000,
+		main_room_min: 20000,
+		main_room_max: 100000,
+	},
+	"O": {
+		sub_room_min: 40000,
+		sub_room_max: 80000,
+		main_room_min: 40000,
+		main_room_max: 120000,
+	},
+	"H": {
+		sub_room_min: 40000,
+		sub_room_max: 80000,
+		main_room_min: 40000,
+		main_room_max: 120000,
+	},
+}
+
+// Body type session
 export var defender_responsible_types: type_defender_responsible_types = {
     'small_close': {
         "list": ['small_close'],
@@ -566,7 +698,14 @@ export var gcl_upgrader_body_no_boosted: type_body_conf = {
         number: 8,
     },
 }
-export var depo_last_cooldown = 20000;
+
+interface type_powered_harvester {
+    [key: number]: {
+        n_harvest: number;
+        n_carry: number;
+        n_move: number;
+    }
+}
 export var powered_harvester: type_powered_harvester = {
     1: {
         n_harvest: 7,

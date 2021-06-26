@@ -625,6 +625,7 @@ interface Game {
 	}
 	require_update_intershardmemory: boolean;
 	require_update_intershardmemory_modify_time: boolean;
+	controlled_rooms_with_terminal: string[];
 }
 
 type type_order_result = {
