@@ -1,6 +1,7 @@
 import * as _ from "lodash"
 import * as mymath from "./mymath"
 import * as config from "./config"
+import * as constants from "./constants"
 import * as functions from "./functions"
 
 global.get_best_order = function(room_name: string, typ: "sell" | "buy", resource: MarketResourceConstant, num: number = 8, energy_price: number = 0.2): type_order_result[] {
@@ -273,7 +274,7 @@ global.set_resource_price = function(type: "buy" | "sell", resource: MarketResou
 
 export function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number, per_room: boolean): number {
     let room = Game.rooms[room_name];
-    let current_amount = room.storage.store.getUsedCapacity(resource) + room.terminal.store.getUsedCapacity(resource);
+    let current_amount = functions.get_total_resource_amount(room_name, resource);
 	let orders = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource && (!per_room || e.roomName == room_name))
 	if (config.acceptable_prices.buy[resource] !== undefined) {
 		orders.filter((e) => e.remainingAmount < order_amount / 10).forEach((e) => Game.market.cancelOrder(e.id));
@@ -303,20 +304,20 @@ export function auto_supply_resources(room_name: string) {
         return 1;
     }
     if (room.controller.level == 8) {
-        let mineral = Game.memory[room_name].mine_status.type
-		let amount = 1.5e5;
-		if (mineral == "X") {
-			amount = 1.0e5;
+        let mineral_type = Game.memory[room_name].mine_status.type
+		for (let mineral of constants.basic_minerals) {
+			let conf_mineral_store = config.mineral_store_amount[mineral];
+			let amount = mineral == mineral_type ? conf_mineral_store.main_room_min : conf_mineral_store.sub_room_min;
+			auto_supply_from_market(room_name, mineral, amount, 10000, true);
 		}
-        auto_supply_from_market(room_name, mineral, amount, 30000, true);
 		if (Memory.total_energies <= 1.2e7) {
 			auto_supply_from_market(room_name, 'battery', 8.0e4, 15000, true);
 			auto_supply_from_market(room_name, 'energy', 4.5e5, 60000, true);
 		}
+		if (Game.powered_rooms[room_name] !== undefined) {
+			auto_supply_from_market(room_name, 'ops', 5000, 1500, true);
+		}
     }
-	if (Game.powered_rooms[room_name] !== undefined) {
-		auto_supply_from_market(room_name, 'ops', 5000, 1500, true);
-	}
 }
 
 export function auto_sell() {
