@@ -747,9 +747,9 @@ export function set_room_memory(room_name: string) {
     set_danger_mode(room_name);
 
     for (let function_name of set_room_memory_functions_order) {
-        let timer = new Timer(function_name, false);
+		//let timer = new Timer(function_name, false);
         set_room_memory_functions[function_name](room_name);
-        timer.end();
+        //timer.end();
     }
 
     if (("storage" in room) && room.storage.store.getUsedCapacity("energy") > 2000) {
