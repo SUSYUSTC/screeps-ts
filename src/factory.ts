@@ -3,16 +3,14 @@ import * as mymath from "./mymath"
 
 export function produce(room_name: string) {
     let room = Game.rooms[room_name];
-	let factory_status = global.memory[room_name].unique_structures_status.factory;
-	if (!factory_status.finished) {
+	if (room.factory == undefined) {
 		return 1;
 	}
-	let factory = Game.getObjectById(factory_status.id);
-	if (factory.store.getUsedCapacity("energy") >= 8000 && factory.cooldown == 0) {
-		if (factory.produce("battery") == 0) {
+	if (room.factory.store.getUsedCapacity("energy") >= 8000 && room.factory.cooldown == 0) {
+		if (room.factory.produce("battery") == 0) {
 			Memory.produce_battery_stat += 1;
 		}
-	} else if (factory.store.getUsedCapacity("energy") < 5000 && factory.store.getUsedCapacity("battery") >= 50 && factory.cooldown == 0) {
-		factory.produce("energy");
+	} else if (room.factory.store.getUsedCapacity("energy") < 5000 && room.factory.store.getUsedCapacity("battery") >= 50 && room.factory.cooldown == 0) {
+		room.factory.produce("energy");
 	}
 }

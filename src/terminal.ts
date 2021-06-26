@@ -123,7 +123,7 @@ function balance_resource(resource: ResourceConstant, conf: type_resource_balanc
 }
 
 function balance_power() {
-	let rooms = config.controlled_rooms.filter((e) => Game.rooms[e].storage !== undefined && Game.rooms[e].terminal !== undefined && global.memory[e].unique_structures_status.powerSpawn.finished);
+	let rooms = config.controlled_rooms.filter((e) => Game.rooms[e].storage !== undefined && Game.rooms[e].terminal !== undefined && Game.rooms[e].powerSpawn !== undefined);
 	let net_power_amounts = rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity("power") - (Game.rooms[e].storage.store.getUsedCapacity("energy") - config.storage_full)/50);
 	let argmin = mymath.argmin(net_power_amounts);
 	let argmax = mymath.argmax(net_power_amounts);
@@ -132,7 +132,7 @@ function balance_power() {
 		let room_min = Game.rooms[rooms[argmin]];
 		let room_max = Game.rooms[rooms[argmax]];
 		let leave_amount = 0;
-		if (global.memory[room_max.name].unique_structures_status.powerSpawn.effect_time > 0) {
+		if (room_max.powerSpawn.effect_time > 0) {
 			leave_amount = 2000;
 		}
 		let max_real_amount = room_max.terminal.store.getUsedCapacity("power");
