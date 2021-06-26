@@ -17,9 +17,9 @@ global.send_resource = function(room_from: string, room_to: string, resource: Re
 	return 0;
 }
 
-global.summarize_terminal = function(): type_resource_number {
+global.summarize_terminal = function(rooms: string[]): type_resource_number {
     let result: type_resource_number = {}
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of rooms) {
         let terminal = Game.rooms[room_name].terminal;
         if (terminal) {
             let keys = < Array < ResourceConstant >> Object.keys(terminal.store)
@@ -257,7 +257,6 @@ function send_compounds() {
 }
 
 export function terminal_balance() {
-	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
 	if (Game.time % 5 == 0) {
 		get_terminal_space();
 	}

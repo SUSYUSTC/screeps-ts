@@ -310,10 +310,8 @@ export function auto_supply_resources(room_name: string) {
 			let amount = mineral == mineral_type ? conf_mineral_store.main_room_min : conf_mineral_store.sub_room_min;
 			auto_supply_from_market(room_name, mineral, amount, 10000, true);
 		}
-		if (Memory.total_energies <= 1.2e7) {
-			auto_supply_from_market(room_name, 'battery', 8.0e4, 15000, true);
-			auto_supply_from_market(room_name, 'energy', 4.5e5, 60000, true);
-		}
+		auto_supply_from_market(room_name, 'battery', 8.0e4, 15000, true);
+		auto_supply_from_market(room_name, 'energy', 4.5e5, 60000, true);
 		if (Game.powered_rooms[room_name] !== undefined) {
 			auto_supply_from_market(room_name, 'ops', 5000, 1500, true);
 		}

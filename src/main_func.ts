@@ -745,6 +745,9 @@ export function set_room_memory(room_name: string) {
         global.memory[room_name] = {};
     }
     set_danger_mode(room_name);
+    if (room.memory.product_request == undefined) {
+        room.memory.product_request = {};
+    }
 
     for (let function_name of set_room_memory_functions_order) {
 		//let timer = new Timer(function_name, false);
@@ -830,9 +833,6 @@ export function set_global_memory() {
     }
     let timer = new Timer("set_global_memory", true);
 
-    if (Memory.product_request == undefined) {
-        Memory.product_request = {};
-    }
     for (let room_name of config.controlled_rooms) {
         Game.memory[room_name] = {};
     }
@@ -843,16 +843,13 @@ export function set_global_memory() {
         combat: [],
         resource: [],
     }
+	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
     for (let spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name];
         if (spawn.memory.spawning_time == undefined) {
             spawn.memory.spawning_time = 0;
         }
         spawn.memory.spawning_time += 1;
-    }
-    if (Game.time % 50 == 0 || Memory.total_energies == undefined || global.terminal_store == undefined) {
-        global.terminal_store = global.summarize_terminal();
-        Memory.total_energies = global.terminal_store.energy + global.terminal_store.battery * 10;
     }
     Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
