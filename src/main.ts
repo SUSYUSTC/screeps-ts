@@ -35,7 +35,6 @@ invade.init();
 import * as display from "./display";
 display.init();
 import * as powercreeps from "./powercreeps"
-import * as gcl_room from "./gcl_room";
 import { Timer } from "./timer";
 import * as defense from "./defense";
 import * as cross_shard from "./cross_shard";
@@ -98,18 +97,6 @@ function run_main() {
 			console.log("Captured error", room_name, err.stack);
 		}
     }
-	if (Game.rooms[config.conf_gcl.conf_map.gcl_room] !== undefined) {
-		let room_name = config.conf_gcl.conf_map.gcl_room;
-		try {
-			if (towers.attack_all(room_name) == 1) {
-				if (towers.heal_all(room_name) == 1) {
-					towers.repair_all(room_name);
-				}
-			}
-		} catch (err) {
-			console.log("Captured error", room_name, err.stack);
-		}
-	}
 	timer.end();
 
 	timer = new Timer("links", true);
@@ -141,15 +128,6 @@ function run_main() {
 	}
 	timer.end();
 
-	timer = new Timer("gcl_room", true);
-	try {
-		gcl_room.run();
-	} catch (err) {
-		creep.say("Error");
-		console.log("Captured error at gcl room", err.stack);
-	}
-	timer.end();
-
 	timer = new Timer("pc", true);
     for (var name in Game.powerCreeps) {
 		var pc = Game.powerCreeps[name];
@@ -172,17 +150,6 @@ function run_main() {
     }
 	timer.end();
 
-	timer = new Timer("terminal", true);
-	terminal.terminal_balance();
-    for (var room_name of config.controlled_rooms) {
-		try {
-			terminal.process_resource_sending_request(room_name);
-		} catch (err) {
-			console.log("Captured error", room_name, err.stack);
-		}
-    }
-	timer.end();
-
 	timer = new Timer("lab_prepare", true);
 	labs.prepare();
 	timer.end();
@@ -191,6 +158,17 @@ function run_main() {
     for (var room_name of config.controlled_rooms) {
 		try {
 			labs.reaction(room_name);
+		} catch (err) {
+			console.log("Captured error", room_name, err.stack);
+		}
+    }
+	timer.end();
+
+	timer = new Timer("terminal", true);
+	terminal.terminal_balance();
+    for (var room_name of config.controlled_rooms) {
+		try {
+			terminal.process_resource_sending_request(room_name);
 		} catch (err) {
 			console.log("Captured error", room_name, err.stack);
 		}

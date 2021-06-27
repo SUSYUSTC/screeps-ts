@@ -283,7 +283,7 @@ export function spawn(room_name: string) {
     let max_upgrade;
     if (room.controller.level == 8) {
         let room_energy = (room.storage == undefined) ? 0 : room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy");
-        let storage_condition = room_energy * 0.4 + Memory.total_energies / config.controlled_rooms.length * 0.6 >= config.energy_bar_to_spawn_upgrader;
+        let storage_condition = room_energy * 0.4 >= config.energy_bar_to_spawn_upgrader;
         if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
@@ -376,7 +376,7 @@ export function spawn(room_name: string) {
                 number: mine_conf.carry,
             },
         }
-        let ok = functions.is_boost_resource_enough(body_conf);
+        let ok = functions.is_boost_resource_enough(room_name, body_conf);
         if (!ok) {
             break if_mine;
         }
@@ -586,8 +586,6 @@ export function spawn(room_name: string) {
             let conf_external: type_external_map;
             if (powered) {
                 conf_external = conf.external_rooms[external_room_name].powered_source;
-            } else if (config.conf_gcl.conf_map.supporting_room == room_name && config.conf_gcl.conf_map.gcl_room == external_room_name) {
-                conf_external = config.conf_gcl.conf_map;
             } else {
                 conf_external = conf.external_rooms[external_room_name].controller;
             }
@@ -869,86 +867,6 @@ export function spawn(room_name: string) {
             };
             let json = spawning_func.prepare_role("hunter", room.energyAvailable, added_memory, options, added_json);
             jsons.push(json);
-        }
-    }
-    // gcl
-    let gcl_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
-    if_gcl: if (config.conf_gcl.conf_map.supporting_room == room_name && gcl_room !== undefined && gcl_room.controller.my && !game_memory.danger_mode && !Game.memory[gcl_room.name].danger_mode) {
-        if (gcl_room == undefined) {
-            break if_gcl;
-        }
-        if (gcl_room.controller.level == 1 && gcl_room.memory.sites_total_progressleft !== 0) {
-            break if_gcl;
-        }
-        if (gcl_room.terminal == undefined) {
-            let n_work = Math.ceil(600 / (config.conf_gcl.conf_map.carrier_distance + 2));
-            let n_move = Math.ceil(n_work / 2);
-            let n_carry = Math.ceil(n_work / 5);
-            let upgraders = room_statistics.gcl_upgrader.filter((e) => is_valid_creep(e, config.conf_gcl.conf_map.single_distance + (n_work + n_move + n_carry) * 3));
-            //let upgraders = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_upgrader', config.conf_gcl.conf_map.single_distance + (n_work + n_move + n_carry) * 3));
-            let carriers = room_statistics.gcl_carrier.filter((e) => is_valid_creep(e, config.conf_gcl.conf_map.single_distance + 150));
-            //let carriers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'gcl_carrier', config.conf_gcl.conf_map.single_distance + 150));
-            if (upgraders.length == 0) {
-                let added_memory = {
-                    "home_room_name": room_name,
-                };
-                let options = {
-                    "n_work": n_work,
-                    "n_carry": n_carry,
-                    "n_move": n_move,
-                };
-                let priority = 10;
-                let added_json = {
-                    "priority": priority,
-                    "require_full": true && game_memory.lack_energy,
-                };
-                let json = spawning_func.prepare_role("gcl_upgrader", room.energyAvailable, added_memory, options, added_json);
-                jsons.push(json);
-            }
-            if (carriers.length == 0) {
-                let added_memory = {};
-                let options = {};
-                let priority = 11;
-                let added_json = {
-                    "priority": priority,
-                    "require_full": true && game_memory.lack_energy,
-                };
-                let json = spawning_func.prepare_role("gcl_carrier", room.energyAvailable, added_memory, options, added_json);
-                jsons.push(json);
-            }
-        } else {
-            let raw_upgraders = room_statistics.gcl_upgrader;
-            let upgraders = raw_upgraders.filter((e) => is_valid_creep(e, config.conf_gcl.conf_map.single_distance + 150));
-            let all_successful = mymath.all(raw_upgraders.map((e) => e.memory.boost_status !== undefined && e.memory.boost_status.boost_finished));
-            if (!all_successful) {
-                break if_gcl;
-            }
-            let boost_condition = functions.is_boost_resource_enough(config.gcl_upgrader_body_boosted);
-            let boost_barrier = boost_condition ? 0 : 0.4e6 * config.controlled_rooms.length;
-            let n_upgrades_needed = config.energy_bars_to_spawn_gcl_upgraders.filter((e) => e < Memory.total_energies - boost_barrier).length;
-            if (Game.cpu.bucket < 8000) {
-                n_upgrades_needed -= Math.ceil((8000 - Game.cpu.bucket) / 1000);
-            }
-            let energy_condition = (gcl_room.terminal.isActive() ? gcl_room.terminal.store.getUsedCapacity("energy") >= 200000 : gcl_room.terminal.store.getUsedCapacity("energy") + gcl_room.storage.store.getUsedCapacity("energy") >= 100000)
-            if (upgraders.length < n_upgrades_needed && energy_condition) {
-                let added_memory = {
-                    "home_room_name": room_name,
-                    "advanced": boost_condition,
-                };
-                let body_conf = boost_condition ? config.gcl_upgrader_body_boosted : config.gcl_upgrader_body_no_boosted;
-                let options = {
-                    "n_work": body_conf.work.number,
-                    "n_carry": body_conf.carry.number,
-                    "n_move": body_conf.move.number,
-                };
-                let priority = 10;
-                let added_json = {
-                    "priority": priority,
-                    "require_full": true && game_memory.lack_energy,
-                };
-                let json = spawning_func.prepare_role("gcl_upgrader", room.energyAvailable, added_memory, options, added_json);
-                jsons.push(json);
-            }
         }
     }
     if (game_memory.danger_mode) {

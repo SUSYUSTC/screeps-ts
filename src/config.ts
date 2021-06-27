@@ -27,9 +27,6 @@ import {
 import {
     conf_E9N54
 } from "./config_E9N54"
-import {
-    config_gcl
-} from "./config_gcl"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
@@ -39,6 +36,7 @@ conf_E16N58.external_rooms.E17N58.active = true;
 conf_E9N54.external_rooms.E9N55.active = true;
 conf_E19N53.external_rooms.E19N54.active = true;
 
+/*
 function direction2orient(pos: number[]) {
     if (pos[0] == 0 && pos[1] == 1) {
         return BOTTOM;
@@ -53,10 +51,7 @@ function direction2orient(pos: number[]) {
         return LEFT;
     }
 }
-config_gcl.queue1_orient = direction2orient(config_gcl.queue1_direction);
-config_gcl.queue2_orient = direction2orient(config_gcl.queue2_direction);
-config_gcl.positive_orient = direction2orient(config_gcl.direction);
-config_gcl.negative_orient = direction2orient([-config_gcl.direction[0], -config_gcl.direction[1]]);
+*/
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -82,38 +77,9 @@ export var conf_rooms: type_conf_rooms = {
     "E14N59": conf_E14N59,
     "E9N54": conf_E9N54,
 }
-interface type_conf_gcl {
-    conf: type_config_gcl;
-    conf_map: {
-        energy_supply_rooms: string[];
-        supporting_room: string;
-        gcl_room: string;
-        rooms_forwardpath: string[];
-        poses_forwardpath: number[];
-        rooms_backwardpath: string[];
-        poses_backwardpath: number[];
-        single_distance: number;
-        carrier_distance: number;
-    }
-}
-export var conf_gcl: type_conf_gcl = {
-    conf: config_gcl,
-    conf_map: {
-        energy_supply_rooms: ['E15N58', 'E16N58', 'E14N59'],
-        supporting_room: 'E16N58',
-        gcl_room: 'E16N57',
-        rooms_forwardpath: ['E16N58', 'E16N57'],
-        poses_forwardpath: [28],
-        rooms_backwardpath: ['E16N57', 'E16N58'],
-        poses_backwardpath: [28],
-        single_distance: 41,
-        carrier_distance: 39,
-    }
-}
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
-occupied_rooms.push(conf_gcl.conf_map.gcl_room);
 for (let room_name of controlled_rooms) {
     let conf_external = conf_rooms[room_name].external_rooms;
     for (let external_room_name in conf_external) {
@@ -166,9 +132,7 @@ export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
-export var energy_bar_to_spawn_upgrader: number = 1.0e6;
-//export var energy_bars_to_spawn_gcl_upgraders: number[] = [1.0e6, 1.1e6, 1.2e6, 1.3e6, 1.4e6, 1.5e6, 1.8e6, 2.0e6].map((e) => e * controlled_rooms.length);
-export var energy_bars_to_spawn_gcl_upgraders: number[] = [];
+export var energy_bar_to_spawn_upgrader: number = 0.9e6;
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
@@ -437,6 +401,8 @@ export var resources_balance: {[key in ResourceConstant] ?: type_resource_balanc
         amount: 2000,
     },
 }
+export var react_min_amount = 50;
+export var react_init_amount = 3000;
 type type_final_product_requrest = {
 	[key in GeneralMineralConstant] ?: {
 		min_amount : number;
@@ -673,32 +639,6 @@ export var pb_healer_body: type_body_conf = {
         number: 13,
     }
 }
-export var gcl_upgrader_body_boosted: type_body_conf = {
-    "work": {
-        number: 40,
-        boost: "GH2O",
-    },
-    "carry": {
-        number: 5,
-        boost: "KH"
-    },
-    "move": {
-        number: 5,
-        boost: "ZO",
-    },
-}
-export var gcl_upgrader_body_no_boosted: type_body_conf = {
-    "work": {
-        number: 32,
-    },
-    "carry": {
-        number: 10,
-    },
-    "move": {
-        number: 8,
-    },
-}
-
 interface type_powered_harvester {
     [key: number]: {
         n_harvest: number;
@@ -792,6 +732,6 @@ export var doubled_powered_external_harvester: type_powered_harvester = {
 export var creep_roles_home: type_creep_role[] = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "minecarrier", "wall_repairer"]
 export var creep_roles_maincarrier: type_creep_role[] = ["maincarrier"]
 export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "hunter", "home_defender", "enemy"]
-export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "gcl_upgrader", "gcl_carrier", "energy_carrier"]
+export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "energy_carrier"]
 export var creep_roles_resources: type_creep_role[] = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]
 export var creep_roles_all = creep_roles_home.concat(creep_roles_external).concat(creep_roles_maincarrier).concat(creep_roles_resources).concat(creep_roles_combat);

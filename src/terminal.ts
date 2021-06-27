@@ -76,22 +76,6 @@ export function process_resource_sending_request(room_name: string) {
 	}
 }
 
-function supply_gcl_room() {
-	let helped_room = Game.rooms[config.conf_gcl.conf_map.gcl_room];
-	if (helped_room !== undefined && helped_room.terminal !== undefined && helped_room.terminal.isActive() && helped_room.terminal.store.getUsedCapacity("energy") < 240000) {
-		for (let helping_room_name of config.conf_gcl.conf_map.energy_supply_rooms) {
-			let helping_room = Game.rooms[helping_room_name];
-			let source_storage = helping_room.storage.store.getUsedCapacity("energy");
-			let source_terminal = helping_room.terminal.store.getUsedCapacity("energy");
-			if (source_storage >= config.storage_full - 50000 && source_terminal >= 50000) {
-				let out = functions.send_resource(helping_room_name, helped_room.name, "energy", 25000);
-				if (out == 0) {
-					return;
-				}
-			}
-		}
-	}
-}
 function support_developing_rooms() {
 	let helping_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level >= 8);
 	let helped_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level < 8);
@@ -265,7 +249,6 @@ export function terminal_balance() {
 	}
 	if (Game.time % 40 == 0) {
 		send_basic_minerals();
-		//supply_gcl_room();
 	}
 	if (Game.time % 40 == 10) {
 		for (let resource of <Array<ResourceConstant>>Object.keys(config.resources_balance)) {

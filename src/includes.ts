@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -17,8 +17,8 @@ interface RoomMemory {
     ticks_to_spawn_builder ? : number;
     objects_updated ? : boolean;
     current_boost_request ? : type_current_boost_request;
-    reaction_ready ? : boolean;
     reaction_request ? : type_reaction_request;
+	reaction_status ?: "fill" | "running" | "clear";
     objects_to_buy ? : {
         [key: string]: type_object_to_trade;
     }
@@ -371,22 +371,6 @@ interface type_conf_room {
     readonly safe_boundary: number[][];
 	readonly minecarrier_distance: number;
 }
-interface type_config_gcl {
-    containers: conf_named_structures;
-    towers: conf_multiple_structures;
-    roads: conf_multiple_structures
-    terminal: conf_unique_structures;
-    storage: conf_unique_structures;
-    direction: number[];
-    queue1_direction: number[];
-    queue1_poses: number[][];
-    queue2_direction: number[];
-    queue2_poses: number[][];
-    positive_orient ? : DirectionConstant;
-    negative_orient ? : DirectionConstant;
-    queue1_orient ? : DirectionConstant;
-    queue2_orient ? : DirectionConstant;
-}
 type type_body_components = {
     [key in BodyPartConstant] ? : number
 };
@@ -591,7 +575,6 @@ interface Game {
     function_actions_count: {
         [key: string]: number;
     }
-    mineral_storage_amount ? : type_mineral_storage_amount;
     powered_rooms ? : {
         [key: string]: string;
     };
@@ -599,7 +582,6 @@ interface Game {
         [key: string]: {
             danger_mode ? : boolean;
             n_defenders_needed ? : number;
-            container_modes_all ? : boolean;
             lack_energy ? : boolean;
             mine_status ? : type_mine_status;
             are_links_source ? : {

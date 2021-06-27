@@ -66,6 +66,7 @@ global.set_reaction_request = function(room_name: string, compound: MineralCompo
             "reactant2": reactants[1],
             "product": compound
         };
+		room.memory.reaction_status = "fill";
         return 0;
     }
 }
@@ -75,11 +76,11 @@ function determine_reaction_request(room_name: string) {
     if (room.memory.reaction_request == undefined) {
 		let product_request = global.get_product_request(room_name);
 		for (let product of <Array<MineralCompoundConstant>> Object.keys(product_request)) {
-			if (product_request[product] < 3000) {
+			if (product_request[product] < config.react_init_amount) {
 				continue;
 			}
 			let reactants = constants.allowed_reactions[product];
-			if (mymath.all(reactants.map((e) => functions.get_total_resource_amount(room_name, e) >= 3000))) {
+			if (mymath.all(reactants.map((e) => functions.get_total_resource_amount(room_name, e) >= config.react_init_amount))) {
 				global.set_reaction_request(room_name, product);
 			}
 		}
@@ -105,7 +106,7 @@ function compare_product(reactants: GeneralMineralConstant[], product: MineralCo
 }
 export function reaction(room_name: string) {
     let room = Game.rooms[room_name];
-    if (!room.memory.reaction_ready) {
+    if (room.memory.reaction_status !== "running") {
         return;
     }
 	if (Game.cpu.bucket < 2000) {
@@ -116,12 +117,12 @@ export function reaction(room_name: string) {
 	}
     let conf = config.conf_rooms[room_name].labs;
     if (Object.keys(room.lab).length == 10) {
+        let source1_lab = room.lab.S1;
+        let source2_lab = room.lab.S2;
         let react_names = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'];
 		if (room.memory.current_boost_request == undefined) {
 			react_names.push('B1');
 		}
-        let source1_lab = room.lab.S1;
-        let source2_lab = room.lab.S2;
         let react_labs = react_names.map((e) => room.lab[e]);
         let product: MineralCompoundConstant;
         for (let lab of react_labs) {
