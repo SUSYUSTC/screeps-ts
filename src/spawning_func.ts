@@ -117,12 +117,6 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
         }
     }
 }
-const getbody_gcl_upgrader = (options: any): BodyPartConstant[] => {
-    return returnbody(options.n_work, options.n_carry, options.n_move);
-}
-const getbody_gcl_carrier = (options: any): BodyPartConstant[] => {
-    return returnbody(1, 24, 25);
-}
 const getbody_builder = (options: any): BodyPartConstant[] => {
     let n_afforable = Math.floor(options.max_energy / 200);
     let n_carry;
@@ -217,8 +211,6 @@ const getbody_list: type_getbody = {
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
     'home_defender': getbody_home_defender,
-    'gcl_upgrader': getbody_gcl_upgrader,
-    'gcl_carrier': getbody_gcl_carrier,
 }
 
 export function get_cost(body: BodyPartConstant[]): number {

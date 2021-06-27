@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | 'gcl_upgrader' | 'gcl_carrier' | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -17,8 +17,8 @@ interface RoomMemory {
     ticks_to_spawn_builder ? : number;
     objects_updated ? : boolean;
     current_boost_request ? : type_current_boost_request;
-    reaction_ready ? : boolean;
     reaction_request ? : type_reaction_request;
+	reaction_status ?: "fill" | "running" | "clear";
     objects_to_buy ? : {
         [key: string]: type_object_to_trade;
     }
@@ -56,6 +56,7 @@ interface RoomMemory {
 		[key in type_creep_role] ? : number;
     }
 	unboost_withdraw_request ? : boolean;
+    product_request ? : type_product_request;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -370,22 +371,6 @@ interface type_conf_room {
     readonly safe_boundary: number[][];
 	readonly minecarrier_distance: number;
 }
-interface type_config_gcl {
-    containers: conf_named_structures;
-    towers: conf_multiple_structures;
-    roads: conf_multiple_structures
-    terminal: conf_unique_structures;
-    storage: conf_unique_structures;
-    direction: number[];
-    queue1_direction: number[];
-    queue1_poses: number[][];
-    queue2_direction: number[];
-    queue2_poses: number[][];
-    positive_orient ? : DirectionConstant;
-    negative_orient ? : DirectionConstant;
-    queue1_orient ? : DirectionConstant;
-    queue2_orient ? : DirectionConstant;
-}
 type type_body_components = {
     [key in BodyPartConstant] ? : number
 };
@@ -453,8 +438,6 @@ interface Memory {
     output_mode ? : boolean;
     history_cpus ? : number[];
     pb_cooldown_time ? : number;
-    product_request ? : type_product_request;
-    total_energies ? : number;
 	look_broken_ramparts ? : boolean;
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
@@ -592,7 +575,6 @@ interface Game {
     function_actions_count: {
         [key: string]: number;
     }
-    mineral_storage_amount ? : type_mineral_storage_amount;
     powered_rooms ? : {
         [key: string]: string;
     };
@@ -600,7 +582,6 @@ interface Game {
         [key: string]: {
             danger_mode ? : boolean;
             n_defenders_needed ? : number;
-            container_modes_all ? : boolean;
             lack_energy ? : boolean;
             mine_status ? : type_mine_status;
             are_links_source ? : {
@@ -625,6 +606,7 @@ interface Game {
 	}
 	require_update_intershardmemory: boolean;
 	require_update_intershardmemory_modify_time: boolean;
+	controlled_rooms_with_terminal: string[];
 }
 
 type type_order_result = {
@@ -653,11 +635,6 @@ type GeneralStore = Store < ResourceConstant, boolean > ;
 type type_resource_number = {
     [key in ResourceConstant] ? : number
 };
-type type_reaction_priority = {
-    [key: string]: {
-        [key in MineralCompoundConstant] ? : number;
-    }
-}
 type type_product_request = {
     [key in GeneralMineralConstant] ? : number;
 }
@@ -713,7 +690,6 @@ declare module NodeJS {
                 [key in type_creep_role] ? : number;
             }
         }
-        terminal_store ? : type_resource_number;
         test_var ? : boolean;
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
@@ -723,17 +699,16 @@ declare module NodeJS {
         format_objs(objs: any[], json: boolean): string;
         format_json(obj: any, options: type_format_options): string;
         format_json2(obj: any, options: type_format_options): string;
-        summarize_terminal(): type_resource_number;
+        summarize_terminal(rooms: string[]): type_resource_number;
         auto_buy(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
         send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number, onetime_max: number): number;
         restrict_passing_rooms(room_name: string): CostMatrix;
-        reaction_priority: type_reaction_priority
-        set_product_request(resource: MineralCompoundConstant, number: number): number;
-        init_product_request(): number;
-        reset_product_request(): number;
-        refresh_product_request(): number;
+        //set_product_request(resource: MineralCompoundConstant, number: number): number;
+        //init_product_request(): number;
+        get_product_request(room_name: string): type_product_request;
+        //refresh_product_request(): number;
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
         update_layout(room_name: string, check_all: boolean): any;

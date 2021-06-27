@@ -237,9 +237,7 @@ function update_link_and_container(room_name: string) {
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
     let game_memory = Game.memory[room_name];
-    let container_modes = ['S1', 'S2', 'CT'].map((e) => room.container[e] !== undefined);
     let link_modes = Object.keys(room.link);
-    game_memory.container_modes_all = mymath.all(container_modes);
     if (Game.powered_rooms[room_name] == undefined && Game.time % 3 !== 0) {
         return;
     }
@@ -450,8 +448,8 @@ function detect_resources(room_name: string) {
                     if (!accessable) {
                         continue;
                     }
-                    let ok_attacker = functions.is_boost_resource_enough(config.pb_attacker_body);
-                    let ok_healer = functions.is_boost_resource_enough(config.pb_healer_body);
+                    let ok_attacker = functions.is_boost_resource_enough(room_name, config.pb_attacker_body);
+                    let ok_healer = functions.is_boost_resource_enough(room_name, config.pb_healer_body);
                     let ok = ok_attacker && ok_healer;
                     if (!ok) {
                         console.log(`Warning: Boost resource not enough when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
@@ -745,6 +743,9 @@ export function set_room_memory(room_name: string) {
         global.memory[room_name] = {};
     }
     set_danger_mode(room_name);
+    if (room.memory.product_request == undefined) {
+        room.memory.product_request = {};
+    }
 
     for (let function_name of set_room_memory_functions_order) {
 		//let timer = new Timer(function_name, false);
@@ -761,66 +762,6 @@ export function set_room_memory(room_name: string) {
     timer.end();
 }
 
-function update_gcl_room() {
-    let timer = new Timer("update_gcl_room", false);
-
-    let conf = config.conf_gcl.conf;
-    let conf_map = config.conf_gcl.conf_map;
-    let room_name = conf_map.gcl_room;
-    let room = Game.rooms[room_name];
-    if (room == undefined || !room.controller.my) {
-        return;
-    }
-    Game.memory[room_name] = {};
-    set_danger_mode(room_name);
-    if (room.memory.next_time == undefined) {
-        room.memory.next_time = {};
-    }
-    if (global.memory[room_name] == undefined) {
-        global.memory[room_name] = {};
-    }
-    if (global.memory[room_name].named_structures_status == undefined) {
-        let named_structures_status: any = {};
-        named_structures.forEach((e) => named_structures_status[e] = {});
-        global.memory[room_name].named_structures_status = < type_all_named_structures_status > named_structures_status;
-    }
-    if (global.memory[room_name].unique_structures_status == undefined) {
-        let unique_structures_status: any = {};
-        unique_structures.forEach((e) => unique_structures_status[e] = {});
-        global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
-    }
-    if (Game.time % 50 == 0 || global.test_var == undefined) {
-        let towers = < StructureTower[] > _.filter(room.find(FIND_STRUCTURES), (structure) => structure.structureType == "tower");
-        global.memory[room_name].tower_list = towers.map((e) => e.id);
-    }
-    if (Game.time % 50 == 0) {
-        layout.update_multiple_structures(room_name, "road", conf.roads, true, true);
-        layout.update_multiple_structures(room_name, "tower", conf.towers, true);
-        layout.update_unique_structures(room_name, "storage", conf.storage, true);
-        layout.update_unique_structures(room_name, "terminal", conf.terminal, true);
-        if (room.terminal == undefined || room.storage == undefined) {
-            layout.update_named_structures(room_name, "container", conf.containers, true);
-        }
-    }
-    if (Game.time % 50 == 10) {
-        let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-        room.memory.sites_total_progressleft = mymath.array_sum(sites.filter((e) => ['container', 'road'].includes(e.structureType)).map((e) => e.progressTotal - e.progress));
-        let supporting_room = Game.rooms[conf_map.supporting_room];
-        if (room.memory.external_sites_total_progressleft == undefined) {
-            supporting_room.memory.external_sites_total_progressleft = {};
-        }
-        supporting_room.memory.external_sites_total_progressleft[room_name] = room.memory.sites_total_progressleft;
-    }
-    global.memory[room_name].ramparts_to_repair = [];
-    if (Game.time % 20 == 0 || !global.test_var) {
-        global.memory[room_name].repair_list = < Array < Id < StructureRoad >>> _.filter(room.find(FIND_STRUCTURES), (structure) => ["road", "container"].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
-    } else {
-        global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => Game.getObjectById(e) != undefined && need_to_repair(Game.getObjectById(e)));
-    }
-
-    timer.end();
-}
-
 export function set_global_memory() {
     Game.actions_count = 0;
     Game.function_actions_count = {};
@@ -830,9 +771,6 @@ export function set_global_memory() {
     }
     let timer = new Timer("set_global_memory", true);
 
-    if (Memory.product_request == undefined) {
-        Memory.product_request = {};
-    }
     for (let room_name of config.controlled_rooms) {
         Game.memory[room_name] = {};
     }
@@ -843,16 +781,13 @@ export function set_global_memory() {
         combat: [],
         resource: [],
     }
+	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
     for (let spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name];
         if (spawn.memory.spawning_time == undefined) {
             spawn.memory.spawning_time = 0;
         }
         spawn.memory.spawning_time += 1;
-    }
-    if (Game.time % 50 == 0 || Memory.total_energies == undefined || global.terminal_store == undefined) {
-        global.terminal_store = global.summarize_terminal();
-        Memory.total_energies = global.terminal_store.energy + global.terminal_store.battery * 10;
     }
     Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
@@ -862,7 +797,6 @@ export function set_global_memory() {
             Game.powered_rooms[config.pc_conf[pc_name].room_name] = pc_name;
         }
     }
-    update_gcl_room();
     functions.update_basic_costmatrices();
 
     timer.end();

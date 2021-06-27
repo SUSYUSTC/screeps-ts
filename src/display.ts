@@ -139,6 +139,7 @@ export function init() {
 				power: Game.rooms[room_name].terminal.store.getUsedCapacity("power"),
 			}
 		}
+		let tot_energies = mymath.array_sum(config.controlled_rooms.map((e) => amounts[e].energy + amounts[e].battery * 10));
 		let ongoing_pb: {
 			[key: string]: {
 				home_room_name: string;
@@ -170,7 +171,7 @@ export function init() {
 		let realtime = (new Date()).getTime() / 1000;
 		let realtimediff = realtime - Memory.stat_reset_realtime;
 		let timediff = Game.time - Memory.stat_reset_time;
-		str1 += '\nstore: ' + global.format_json(global.terminal_store, {sort: true, json: true});
+		str1 += '\nstore: ' + global.format_json(global.summarize_terminal(config.controlled_rooms), {sort: true, json: true});
 		str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
 		str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
 		str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
@@ -179,7 +180,7 @@ export function init() {
 		str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
 		str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
 		str3 += '\nroom store amount: ' + global.format_json2(amounts, {sort: false, json: true});
-		str3 += '\ntotal energy: ' + Memory.total_energies.toString();
+		str3 += '\ntotal energy: ' + tot_energies;
 		str3 += '\npb stat' + global.format_objs(Memory.pb_log, true);
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});
 		//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();

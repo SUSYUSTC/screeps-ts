@@ -256,14 +256,13 @@ export function analyze_component(creep: Creep): type_creep_components {
     };
 }
 
-export function is_single_boost_resource_enough(resource: ResourceConstant, n_boost_parts: number) {
-    let expected_amount = (n_boost_parts * 30 + config.resources_balance[resource].gap) * (config.controlled_rooms.length - 1) + n_boost_parts * 2;
-    return global.terminal_store[resource] >= expected_amount;
+export function is_single_boost_resource_enough(room_name: string, resource: ResourceConstant, n_boost_parts: number) {
+	return Game.rooms[room_name].terminal.store.getUsedCapacity(resource) > n_boost_parts * 30;
 }
 
-export function is_boost_resource_enough(request: type_body_conf): boolean {
+export function is_boost_resource_enough(room_name: string, request: type_body_conf): boolean {
 	let parts = <Array<BodyPartConstant>> Object.keys(request);
-	return mymath.all(parts.filter((e) => request[e].boost !== undefined).map((e) => is_single_boost_resource_enough(request[e].boost, request[e].number)));
+	return mymath.all(parts.filter((e) => request[e].boost !== undefined).map((e) => is_single_boost_resource_enough(room_name, request[e].boost, request[e].number)));
 }
 
 export function sort_str(s1: string, s2: string): number {
@@ -278,13 +277,16 @@ export function sort_str(s1: string, s2: string): number {
 }
 
 export function send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number) {
-	// -1: terminal not existing or cooling down, 0: successful, 1: other sending already requested, 2: sending fail
+	// -1: terminal not existing or cooling down, -2: filling reactants, 0: successful, 1: other sending already requested, 2: sending fail
 	let terminal = Game.rooms[room_from].terminal;
 	if (terminal == undefined || terminal.cooldown > 0) {
 		return -1;
 	}
 	if (Game.memory[room_from].terminal_send_requested) {
 		return 1;
+	}
+	if (Game.rooms[room_from].memory.reaction_status == 'fill') {
+		return -2;
 	}
 	let out = terminal.send(resource, amount, room_to);
 	if (out == 0) {
@@ -397,4 +399,9 @@ export function copy_key(obj_A: any, obj_B: any, keys: string[], B_existance: bo
 		}
 	}
 	return lst;
+}
+
+export function get_total_resource_amount(room_name: string, resource: ResourceConstant) {
+	let room = Game.rooms[room_name];
+	return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
 }
