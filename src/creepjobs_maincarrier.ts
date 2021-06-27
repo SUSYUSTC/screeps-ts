@@ -254,21 +254,21 @@ function get_energy_status(creep_amount: number, link_amount: number, link_targe
     let sink = "storage";
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
-    if (storage_amount + creep_amount >= 600000 && factory_amount !== undefined && factory_amount < 10000) {
+    if (storage_amount + creep_amount >= config.storage_max_energy && factory_amount !== undefined && factory_amount < config.factory_max_energy) {
         sink = "factory";
-    } else if (storage_amount < config.storage_full && factory_amount + creep_amount >= 5000) {
+    } else if (storage_amount < config.storage_min_energy && factory_amount + creep_amount >= config.factory_min_energy) {
         source = "factory";
     }
-    if (storage_amount + creep_amount >= config.storage_full && nuker_amount !== undefined && nuker_amount < 300000) {
+    if (storage_amount + creep_amount >= config.storage_full && nuker_amount !== undefined && nuker_amount < config.nuker_full_energy) {
         sink = "nuker";
     }
     if (storage_amount + creep_amount >= config.storage_full && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
         sink = "powerspawn";
     }
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 60000) {
+        if (terminal_amount + creep_amount >= config.terminal_max_energy) {
             source = "terminal";
-        } else if (terminal_amount < 50000) {
+        } else if (terminal_amount < config.terminal_min_energy) {
             sink = "terminal";
         }
     }
@@ -298,10 +298,10 @@ function get_power_status(creep_amount: number, terminal_amount: number | undefi
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined && powerspawn_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 100 && powerspawn_amount < 5) {
+        if (terminal_amount + creep_amount >= config.powerspawn_full_power && powerspawn_amount < 5) {
             sink = "powerspawn";
-            withdraw_amount = 96;
-            transfer_amount = 96;
+            withdraw_amount = config.powerspawn_full_power - 4;
+            transfer_amount = config.powerspawn_full_power - 4;
         } else if (powerspawn_amount > 0 && creep_amount > 0) {
             source = "powerspawn";
         }
@@ -321,16 +321,16 @@ function get_battery_status(creep_amount: number, storage_amount: number, termin
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 3000) {
+        if (terminal_amount + creep_amount >= config.terminal_max_battery) {
             source = "terminal";
-        } else if (terminal_amount < 2000 && storage_amount + creep_amount >= 1000) {
+        } else if (terminal_amount < config.terminal_min_battery && storage_amount + creep_amount > 0) {
             sink = "terminal";
         }
     }
     if (factory_amount !== undefined) {
-        if (factory_amount + creep_amount >= 3000) {
+        if (factory_amount + creep_amount >= config.factory_max_battery) {
             source = "factory";
-        } else if (factory_amount < 2000 && storage_amount + creep_amount >= 1000) {
+        } else if (factory_amount < config.factory_min_battery && storage_amount + creep_amount > 0) {
             sink = "factory";
         }
     }
@@ -349,11 +349,11 @@ function get_G_status(creep_amount: number, terminal_amount: number | undefined,
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined && nuker_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 100 && nuker_amount < 5000) {
+        if (terminal_amount + creep_amount > 0 && nuker_amount < config.nuker_full_G) {
             sink = "nuker";
         }
-        withdraw_amount = 5000 - nuker_amount;
-        transfer_amount = 5000 - nuker_amount;
+        withdraw_amount = config.nuker_full_G - nuker_amount;
+        transfer_amount = config.nuker_full_G - nuker_amount;
     }
     let resource_status: type_resource_status = {
         "source": source,
@@ -370,9 +370,9 @@ function get_mineral_status(creep_amount: number, storage_amount: number, termin
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= 20000 && storage_amount < 200000) {
+        if (terminal_amount + creep_amount >= config.terminal_max_mineral) {
             source = "terminal";
-		} else if (terminal_amount < 15000 && storage_amount + creep_amount > 0) {
+		} else if (terminal_amount < config.terminal_min_mineral && storage_amount + creep_amount > 0) {
             sink = "terminal";
         }
     }
@@ -462,10 +462,10 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
 }
 
 function get_mineral_urgent_score(storage_amount: number, terminal_amount: number): number {
-	if (terminal_amount > 20000) {
-		return terminal_amount - 20000;
-	} else if (terminal_amount < 15000 && storage_amount > 0) {
-		return Math.min(15000 - terminal_amount, storage_amount);
+	if (terminal_amount > config.terminal_max_mineral) {
+		return terminal_amount - config.terminal_max_mineral;
+	} else if (terminal_amount < config.terminal_min_mineral && storage_amount > 0) {
+		return Math.min(config.terminal_min_mineral - terminal_amount, storage_amount);
 	}
 	return 0;
 }
@@ -524,7 +524,7 @@ export function creepjob(creep: Creep): number {
             if (react_serve(creep, conf_maincarrier) == 0) {
                 return 0;
 			} else {
-				creep.memory.next_time.react_serve = Game.time + 10;
+				creep.memory.next_time.react_serve = Game.time + config.react_serve_sleep_time;
 			}
         }
 		if (unboost_withdraw(creep) == 0) {
@@ -548,10 +548,10 @@ export function creepjob(creep: Creep): number {
 		}
 
 		if (Game.time % 20 == 0 || creep.memory.mineral_type == undefined) {
-			let scores = constants.t012_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
+			let scores = constants.general_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
 			let argmax = mymath.argmax(scores);
 			if (scores[argmax] > 0) {
-				creep.memory.mineral_type = constants.t012_minerals[argmax];
+				creep.memory.mineral_type = constants.general_minerals[argmax];
 			} else { 
 				creep.memory.mineral_type = Game.memory[creep.room.name].mine_status.type
 			}

@@ -76,6 +76,7 @@ export function process_resource_sending_request(room_name: string) {
 	}
 }
 
+/*
 function support_developing_rooms() {
 	let helping_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level >= 8);
 	let helped_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level < 8);
@@ -94,6 +95,8 @@ function support_developing_rooms() {
         }
     }
 }
+*/
+
 function balance_resource(resource: ResourceConstant, conf: type_resource_balance) {
 	let rooms = Game.controlled_rooms_with_terminal;
 	let ns = rooms.map((e) => Game.rooms[e].storage.store.getUsedCapacity(resource) + Game.rooms[e].terminal.store.getUsedCapacity(resource));
@@ -150,7 +153,7 @@ function get_terminal_space() {
 	let valid_rooms = Game.controlled_rooms_with_terminal;
 	let free_amounts = valid_rooms.map((e) => Game.rooms[e].terminal.store.getFreeCapacity());
 	let argmin = mymath.argmin(free_amounts);
-	if (free_amounts[argmin] < 5000 && Game.rooms[valid_rooms[argmin]].terminal.store.getUsedCapacity("energy") >= 55000) {
+	if (free_amounts[argmin] < 5000 && Game.rooms[valid_rooms[argmin]].terminal.store.getUsedCapacity("energy") >= config.terminal_min_energy + 5000) {
 		let argmax = mymath.argmax(free_amounts);
 		if (free_amounts[argmax] >= 15000) {
 			functions.send_resource(valid_rooms[argmin], valid_rooms[argmax], "energy", 5000);

@@ -186,9 +186,25 @@ export var help_list: type_help_list = {
     }
 	*/
 };
-export var storage_bars: number[] = [60000, 120000, 180000, 240000];
-export var storage_gap: number = 60000;
-export var storage_full: number = 300000;
+export var storage_bars: number[] = [40000, 80000, 120000, 160000];
+export var storage_gap = 40000;
+export var storage_full = 200000;
+export var storage_min_energy = storage_full; // battery -> energy
+export var storage_max_energy = 500000; // energy -> battery
+export var terminal_min_energy = 20000;
+export var terminal_max_energy = 80000;
+export var terminal_min_battery = 2000;
+export var terminal_max_battery = 5000;
+export var terminal_min_mineral = 5000;
+export var terminal_max_mineral = 10000;
+export var factory_min_energy = 5000;
+export var factory_max_energy = 10000;
+export var factory_min_battery = 2000;
+export var factory_max_battery = 5000;
+export var nuker_full_energy = 300000;
+export var nuker_full_G = 5000;
+export var powerspawn_full_power = 100;
+export var react_serve_sleep_time = 10;
 export var protected_sources: {
     [key: string]: string[]
 } = {
