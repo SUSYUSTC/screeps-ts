@@ -94,9 +94,3 @@ export var t3_minerals = general_minerals.map((e) => mineral_level[e] == 3)
 export var t12_minerals = t1_minerals.concat(t2_minerals);
 export var basic_minerals = <Array<MineralConstant>>['U', 'L', 'Z', 'K', 'X', 'O', 'H'];
 export var t012_minerals = (<Array<GeneralMineralConstant>>basic_minerals).concat(t12_minerals);
-export var amount_mapping = [2400, 1200, 1200, 0];
-var temp_mineral_minimum_amount: any = {};
-for (let key in mineral_level) {
-    temp_mineral_minimum_amount[key] = amount_mapping[mineral_level[ < GeneralMineralConstant > key]];
-}
-export var mineral_minimum_amount = < type_mineral_minimum_amount > temp_mineral_minimum_amount;
