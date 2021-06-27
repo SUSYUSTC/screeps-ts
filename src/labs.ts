@@ -75,19 +75,13 @@ function determine_reaction_request(room_name: string) {
 		let product_request = global.get_product_request(room_name);
 		room.memory.product_request = product_request;
 		for (let product of constants.mineral_compounds) {
-			if (product_request[product] == undefined) {
-				continue;
-			}
-			if (constants.basic_minerals.includes(<MineralConstant> product)) {
-				continue;
-			}
 			if (product_request[product] > 0) {
-				continue;
-			}
-			let reactants = constants.allowed_reactions[product];
-			if (mymath.all(reactants.map((e) => Game.rooms[room_name].terminal.store.getUsedCapacity(e) >= config.react_init_amount))) {
-				console.log("going to set reactoin request", room_name, product);
-				//global.set_reaction_request(room_name, product);
+				let reactants = constants.allowed_reactions[product];
+				if (mymath.all(reactants.map((e) => Game.rooms[room_name].terminal.store.getUsedCapacity(e) >= config.react_init_amount))) {
+					console.log("going to set reaction request", room_name, product);
+					//global.set_reaction_request(room_name, product);
+					return;
+				}
 			}
 		}
     }
@@ -116,6 +110,10 @@ export function reaction(room_name: string) {
         return;
     }
 	if (Game.cpu.bucket < 2000) {
+		return;
+	}
+	let pc_name = Game.powered_rooms[room_name];
+	if (pc_name !== undefined && Game.powerCreeps[pc_name].powers[PWR_OPERATE_LAB] == undefined && Game.cpu.bucket < 9000) {
 		return;
 	}
 	if (Memory.reaction_log == undefined) {

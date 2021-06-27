@@ -184,6 +184,7 @@ interface conf_named_structures {
     [key: string]: {
         pos: number[];
         RCL: number;
+		RCL_to_remove ?: number;
     }
 }
 interface conf_unique_structures {

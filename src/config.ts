@@ -439,8 +439,8 @@ export var final_product_request: type_final_product_requrest = {
 		expect_amount: 4000,
 	},
     "GHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
+		min_amount: 600,
+		expect_amount: 2000,
 	},
 	"UHO2": {
 		min_amount: 1200,
@@ -470,10 +470,10 @@ export var final_product_request: type_final_product_requrest = {
 		store_expect_amount: 30000,
 	},
     "XLH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
+		min_amount: 0,
+		expect_amount: 2000,
 		store_room: "E16N58",
-		store_good_amount: 3000,
+		store_good_amount: 1000,
 		store_expect_amount: 30000,
 	},
     "XLHO2": {
@@ -498,10 +498,10 @@ export var final_product_request: type_final_product_requrest = {
 		store_expect_amount: 30000,
 	},
     "XKH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
+		min_amount: 0,
+		expect_amount: 2000,
 		store_room: "E19N55",
-		store_good_amount: 3000,
+		store_good_amount: 1000,
 		store_expect_amount: 30000,
 	},
     "XKHO2": {
@@ -519,10 +519,10 @@ export var final_product_request: type_final_product_requrest = {
 		store_expect_amount: 30000,
 	},
     "XGH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
+		min_amount: 0,
+		expect_amount: 2000,
 		store_room: "E19N53",
-		store_good_amount: 3000,
+		store_good_amount: 1000,
 		store_expect_amount: 30000,
 	},
 };

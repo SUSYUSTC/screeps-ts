@@ -14,11 +14,14 @@ export function update_named_structures(room_name: string, structuretype: type_n
 		if (memory_conf[structure_name] == undefined) {
 			memory_conf[structure_name] = {};
 		}
+		let remove = false;
         if (room.controller.level < conf[structure_name].RCL) {
             memory_conf[structure_name].exists = false;
             memory_conf[structure_name].finished = false;
             continue;
-        }
+        } else if (room.controller.level > conf[structure_name].RCL_to_remove) {
+			remove = true;
+		}
         let xy = conf[structure_name].pos;
         let pos = room.getPositionAt(xy[0], xy[1]);
 		let objs = pos.lookFor("structure");
@@ -28,6 +31,9 @@ export function update_named_structures(room_name: string, structuretype: type_n
             memory_conf[structure_name].exists = true;
             memory_conf[structure_name].finished = true;
 			memory_conf[structure_name].id = <id_type> (objs[0].id);
+			if (remove) {
+				objs[0].destroy();
+			}
 		}
 		else {
 			output = Math.max(output, 1)
@@ -35,11 +41,14 @@ export function update_named_structures(room_name: string, structuretype: type_n
 			if (sites.filter((e) => e.structureType == structuretype).length > 0) {
 				memory_conf[structure_name].exists = true;
 				memory_conf[structure_name].finished = false;
+				if (remove) {
+					sites[0].remove();
+				}
 			}
 			else {
 				memory_conf[structure_name].exists = false;
 				memory_conf[structure_name].finished = false;
-				if (create_site) {
+				if (create_site && !remove) {
 					let return_value;
 					if (structuretype == 'spawn') {
 						return_value = pos.createConstructionSite(structuretype, structure_name);

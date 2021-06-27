@@ -287,6 +287,7 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
 		if (config.acceptable_prices.buy[resource] !== undefined) {
 			price = config.acceptable_prices.buy[resource].price / 2;
 		}
+		/*
         Game.market.createOrder({
             "type": "buy",
             "resourceType": resource,
@@ -294,6 +295,7 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
             "totalAmount": order_amount,
             "roomName": room_name,
         });
+		*/
     }
     return 0;
 }

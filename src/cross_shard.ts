@@ -127,9 +127,11 @@ export function sync_shard_memory() {
 	if (!global.is_main_server) {
 		return;
 	}
+	/*
 	for (let shardname of global.all_shards) {
 		console.log(shardname, JSON.stringify(Game.InterShardMemory[shardname]));
 	}
+	*/
 	// transfer creeps
 	let this_creeps = Game.InterShardMemory[Game.shard.name].creeps;
 	let all_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
