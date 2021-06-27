@@ -157,7 +157,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
     let request = creep.room.memory.reaction_request;
 	// fill -> running -> clear
 	// !ready && !finished -- fill source labs --> ready && !finished -- running lab --> !ready && finished -- clear react labs --> !ready && finished
-    if (Object.keys(creep.room.container).length == 10) {
+    if (Object.keys(creep.room.lab).length == 10) {
         let react_names = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1'];
         let source1_lab = creep.room.lab.S1;
         let source2_lab = creep.room.lab.S2;
@@ -171,7 +171,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 				for (let i of [0, 1]) {
 					let lab = source_labs[i];
 					let reactant = reactants[i];
-
+					// fill source labs
 					// mineralType is correct
 					if (lab.mineralType == undefined || (lab.mineralType == reactant && lab.mineralAmount < config.react_init_amount)) {
 						if (creep.memory.resource_type == undefined) {
@@ -195,6 +195,18 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 					}
 					// else: lab.mineralType == reactant && lab.mineralAmount >= config.react_init_amount
 				}
+				// clear react labs
+				for (let lab_name of react_names) {
+					let lab = creep.room.lab[lab_name];
+					if (lab.mineralType !== undefined && lab.mineralType !== request.product) {
+						if (creep.store.getUsedCapacity() > 0) {
+							transfer(creep, creep.room.terminal, creep.memory.resource_type, {next_structure: lab});
+						} else {
+							withdraw(creep, lab, lab.mineralType, {next_structure: creep.room.terminal});
+						}
+						return 0;
+					}
+				}
 				creep.room.memory.reaction_status = 'running';
 				break;
 			}
@@ -205,7 +217,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 				break;
 			}
 			case 'clear': {
-				for (let lab_name of react_names) {
+				for (let lab_name in creep.room.lab) {
 					let lab = creep.room.lab[lab_name];
 					if (lab.mineralType !== undefined) {
 						if (creep.store.getUsedCapacity() > 0) {
@@ -222,6 +234,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 			}
 		}
 	} else {
+		delete creep.room.memory.reaction_status;
 		delete creep.room.memory.reaction_request;
 	}
     return 1;

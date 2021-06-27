@@ -1,8 +1,8 @@
 if (Memory.debug_mode == undefined) {
-	Memory.debug_mode = true;
+	Memory.debug_mode = false;
 }
 if (Memory.output_mode == undefined) {
-	Memory.output_mode = true;
+	Memory.output_mode = false;
 }
 global.is_main_server = ['shard0', 'shard1', 'shard2', 'shard3'].includes(Game.shard.name);
 if (global.is_main_server) {
@@ -71,10 +71,14 @@ function run_main() {
 	Game.function_actions_count = {};
 
     main_func.clear_creep();
-	main_func.set_global_memory()
-    for (var room_name of config.controlled_rooms) {
+	try {
+		main_func.set_global_memory()
+	} catch (err) {
+		console.log("Captured error", err.stack);
+	}
+    for (let room_name of config.controlled_rooms) {
 		try {
-			var room = Game.rooms[room_name];
+			let room = Game.rooms[room_name];
 			main_func.set_room_memory(room_name);
 		} catch (err) {
 			console.log("Captured error", room_name, err.stack);
@@ -90,7 +94,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("towers", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			defense.defend_home(room_name);
 		} catch (err) {
@@ -100,7 +104,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("links", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			links.work(room_name)
 		} catch (err) {
@@ -111,8 +115,8 @@ function run_main() {
 
 	timer = new Timer("classify_creeps", true);
 	try {
-		for (var name in Game.creeps) {
-			var creep = Game.creeps[name];
+		for (let name in Game.creeps) {
+			let creep = Game.creeps[name];
 				creepjobs.creepjob(creep);
 		}
 	} catch (err) {
@@ -129,8 +133,8 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("pc", true);
-    for (var name in Game.powerCreeps) {
-		var pc = Game.powerCreeps[name];
+    for (let name in Game.powerCreeps) {
+		let pc = Game.powerCreeps[name];
 		try {
 			powercreeps.work(pc);
 		} catch (err) {
@@ -141,21 +145,25 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("spawning", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			spawning.spawn(room_name);
 		} catch (err) {
-			console.log("Captured error", err.stack);
+			console.log("Captured error", room_name, err.stack);
 		}
     }
 	timer.end();
 
 	timer = new Timer("lab_prepare", true);
-	labs.prepare();
+	try {
+		labs.prepare();
+	} catch (err) {
+		console.log("Captured error", err.stack);
+	}
 	timer.end();
 
 	timer = new Timer("lab_reaction", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			labs.reaction(room_name);
 		} catch (err) {
@@ -165,8 +173,12 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("terminal", true);
-	terminal.terminal_balance();
-    for (var room_name of config.controlled_rooms) {
+	try {
+		terminal.terminal_balance();
+	} catch (err) {
+		console.log("Captured error", err.stack);
+	}
+    for (let room_name of config.controlled_rooms) {
 		try {
 			terminal.process_resource_sending_request(room_name);
 		} catch (err) {
@@ -176,7 +188,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("factory", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			factory.produce(room_name);
 		} catch (err) {
@@ -186,7 +198,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("powerspawn", true);
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			powerspawn.process(room_name);
 		} catch (err) {
@@ -205,7 +217,7 @@ function run_main() {
 		console.log("Captured error", err.stack);
 	}
 
-    for (var room_name of config.controlled_rooms) {
+    for (let room_name of config.controlled_rooms) {
 		try {
 			market.auto_supply_resources(room_name);
 			market.process_buy_order(room_name);
@@ -234,10 +246,10 @@ function run_main() {
 
 	try {
 		final_command.log();
+		output.log();
 	} catch (err) {
 		console.log("Captured error", err.stack);
 	}
-	output.log();
 	global.test_var = true;
 	console.log("Final Real CPU:", Game.cpu.getUsed());
 }

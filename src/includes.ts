@@ -720,6 +720,7 @@ declare module NodeJS {
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;
+		display_store(): string;
 		spawn_PC(name: string): number;
 		set_shardmemory(keys: string[], value: any): number;
 		clear_shardmemory(shards: string[]): number;

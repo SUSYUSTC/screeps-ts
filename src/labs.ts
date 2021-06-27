@@ -35,21 +35,19 @@ function process_product_request(product_request: type_product_request, obj: Gen
 
 global.get_product_request = function(room_name: string): type_product_request {
 	let room = Game.rooms[room_name];
-    let store_amounts = _.clone(room.terminal.store);
 	let product_request: type_product_request = {};
 	let request_final_products = <Array<GeneralMineralConstant>> Object.keys(config.final_product_request);
 	for (let resource of request_final_products) {
         let reactants = get_all_reactants(resource);
 		for (let reactant of reactants) {
-			if (store_amounts[reactant] == undefined) {
-				store_amounts[reactant] = 0;
+			if (product_request[reactant] == undefined) {
+				product_request[reactant] = -functions.get_total_resource_amount(room_name, reactant);
 			}
-			product_request[reactant] = -store_amounts[reactant];
 		}
     }
     for (let resource of request_final_products) {
 		let conf_request = config.final_product_request[resource];
-		let amount = room_name == conf_request.store_room ? conf_request.store_amount : conf_request.max_amount;
+		let amount = room_name == conf_request.store_room ? conf_request.store_expect_amount : conf_request.expect_amount;
 		process_product_request(product_request, resource, amount);
     }
     return product_request;
@@ -75,13 +73,21 @@ function determine_reaction_request(room_name: string) {
     let room = Game.rooms[room_name];
     if (room.memory.reaction_request == undefined) {
 		let product_request = global.get_product_request(room_name);
-		for (let product of <Array<MineralCompoundConstant>> Object.keys(product_request)) {
-			if (product_request[product] < config.react_init_amount) {
+		room.memory.product_request = product_request;
+		for (let product of constants.mineral_compounds) {
+			if (product_request[product] == undefined) {
+				continue;
+			}
+			if (constants.basic_minerals.includes(<MineralConstant> product)) {
+				continue;
+			}
+			if (product_request[product] > 0) {
 				continue;
 			}
 			let reactants = constants.allowed_reactions[product];
-			if (mymath.all(reactants.map((e) => functions.get_total_resource_amount(room_name, e) >= config.react_init_amount))) {
-				global.set_reaction_request(room_name, product);
+			if (mymath.all(reactants.map((e) => Game.rooms[room_name].terminal.store.getUsedCapacity(e) >= config.react_init_amount))) {
+				console.log("going to set reactoin request", room_name, product);
+				//global.set_reaction_request(room_name, product);
 			}
 		}
     }

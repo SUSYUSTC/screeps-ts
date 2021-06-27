@@ -124,6 +124,9 @@ export function sync_shard_memory() {
 		this_shardmemory.cleared_shards = _.clone(last_shardmemory.cleared_shards);
 		Game.require_update_intershardmemory = true;
 	}
+	if (!global.is_main_server) {
+		return;
+	}
 	for (let shardname of global.all_shards) {
 		console.log(shardname, JSON.stringify(Game.InterShardMemory[shardname]));
 	}
@@ -203,6 +206,9 @@ export function sync_shard_memory() {
 }
 
 export function update_shard_memory() {
+	if (!global.is_main_server) {
+		return;
+	}
 	if (Game.require_update_intershardmemory) {
 		let shardmemory = Game.InterShardMemory[Game.shard.name];
 		if (Game.require_update_intershardmemory_modify_time) {

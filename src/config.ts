@@ -419,110 +419,111 @@ export var resources_balance: {[key in ResourceConstant] ?: type_resource_balanc
 }
 export var react_min_amount = 50;
 export var react_init_amount = 3000;
+export var product_additional_limit = 5000;
 type type_final_product_requrest = {
 	[key in GeneralMineralConstant] ?: {
 		min_amount : number;
-		max_amount : number;
+		expect_amount : number;
 		store_room ?: string;
-		good_amount ?: number;
-		store_amount ?: number;
+		store_good_amount ?: number;
+		store_expect_amount ?: number;
 	}
 }
 export var final_product_request: type_final_product_requrest = {
     "UH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "GH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "GHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
 	"UHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "LH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "LHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "KH": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "ZO": { 
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 	},
     "XUH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E15N58",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XLH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E16N58",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XLHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E9N54",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XZH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E14N51",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XZHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E14N59",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XKH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E19N55",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XKHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E21N49",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XGHO2": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E19N51",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
     "XGH2O": {
 		min_amount: 1200,
-		max_amount: 6000,
+		expect_amount: 4000,
 		store_room: "E19N53",
-		good_amount: 3000,
-		store_amount: 30000,
+		store_good_amount: 3000,
+		store_expect_amount: 30000,
 	},
 };
 for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {

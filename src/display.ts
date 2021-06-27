@@ -1,7 +1,8 @@
 //screeps
-import * as mymath from "./mymath"
-import * as config from "./config"
-import * as functions from "./functions"
+import * as mymath from "./mymath";
+import * as config from "./config";
+import * as functions from "./functions";
+import * as _ from "lodash";
 
 function arrange_string(str: string, length: number): string {
     return ' '.repeat(Math.max(length - str.length, 0)) + str;
@@ -117,6 +118,7 @@ export function init() {
 		Memory.power_processed_stat = 0;
 		Memory.op_power_processed_stat = 0;
 		Memory.produce_battery_stat = 0;
+		Memory.pb_log = [];
 		return 0;
 	}
 
@@ -186,5 +188,21 @@ export function init() {
 		//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
 		//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 		return vertical_split_string(vertical_split_string(str1, str2), str3);
+	}
+
+	global.display_store = function(): string {
+		let resources = <Array<ResourceConstant>> Object.keys(global.summarize_terminal(config.controlled_rooms));
+		let store: {[key in ResourceConstant] ?: {[key: string]: number}} = {};
+		let empty_resource: {[key: string]: number} = {};
+		config.controlled_rooms.forEach((e) => empty_resource[e] = 0);
+		for (let resource of resources) {
+			store[resource] = _.clone(empty_resource);
+		}
+		for (let room_name of config.controlled_rooms) {
+			let room_store = global.summarize_terminal([room_name]);
+			let keys = <Array<ResourceConstant>>Object.keys(room_store);
+			keys.forEach((e) => store[e][room_name] = room_store[e]);
+		}
+		return global.format_json2(store, {sort: true, json: true});
 	}
 }

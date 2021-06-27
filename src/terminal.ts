@@ -176,8 +176,9 @@ function limit_resources(resource: ResourceConstant, limit: type_resource_limits
 	if (overflow_amounts[argmax_overflow] > 0 && overflow_amounts[argmin_overflow] < 0) {
 		let sending_room_name = rooms[argmax_overflow];
 		let receiving_room_name = rooms[argmin_overflow];
-		let terminal_amount = Game.rooms[sending_room_name].terminal.store.getUsedCapacity(resource)
-		functions.send_resource(sending_room_name, receiving_room_name, resource, Math.min(overflow_amounts[argmax_overflow], -overflow_amounts[argmin_overflow], terminal_amount));
+		let terminal_amount = Game.rooms[sending_room_name].terminal.store.getUsedCapacity(resource);
+		let sending_amount = Math.min(overflow_amounts[argmax_overflow], -overflow_amounts[argmin_overflow], terminal_amount);
+		functions.send_resource(sending_room_name, receiving_room_name, resource, sending_amount);
 	}
 	let deficit_amounts = mymath.array_ele_minus(rooms.map((e) => limit[e].min), total_amounts);
 	let argmax_deficit = mymath.argmax(deficit_amounts);
@@ -185,8 +186,9 @@ function limit_resources(resource: ResourceConstant, limit: type_resource_limits
 	if (deficit_amounts[argmax_deficit] > 0 && deficit_amounts[argmin_deficit] < 0) {
 		let sending_room_name = rooms[argmin_deficit];
 		let receiving_room_name = rooms[argmax_deficit];
-		let terminal_amount = Game.rooms[sending_room_name].terminal.store.getUsedCapacity(resource)
-		functions.send_resource(sending_room_name, receiving_room_name, resource, Math.min(deficit_amounts[argmax_deficit], -deficit_amounts[argmin_deficit], terminal_amount));
+		let terminal_amount = Game.rooms[sending_room_name].terminal.store.getUsedCapacity(resource);
+		let sending_amount = Math.min(deficit_amounts[argmax_deficit], -deficit_amounts[argmin_deficit], terminal_amount);
+		functions.send_resource(sending_room_name, receiving_room_name, resource, sending_amount);
 	}
 }
 
@@ -218,7 +220,7 @@ function send_compounds() {
 		for (let room_name of Game.controlled_rooms_with_terminal) {
 			limits[room_name] = {
 				min: conf.min_amount,
-				max: conf.store_room == room_name ? conf.store_amount : conf.max_amount,
+				max: (conf.store_room == room_name ? conf.store_expect_amount : conf.expect_amount) + config.react_init_amount,
 			}
 		}
 		limit_resources(resource, limits);
@@ -227,15 +229,15 @@ function send_compounds() {
 			continue;
 		}
 		let current_store_amount = functions.get_total_resource_amount(conf.store_room, resource);
-		if (current_store_amount < conf.store_amount) {
+		if (current_store_amount < conf.store_expect_amount) {
 			for (let room_name of config.controlled_rooms) {
 				if (room_name == conf.store_room) {
 					continue;
 				}
 				let room_store_amount = functions.get_total_resource_amount(room_name, resource);
-				if (room_store_amount > conf.good_amount) {
+				if (room_store_amount > conf.store_good_amount) {
 					let terminal_amount = Game.rooms[room_name].terminal.store.getUsedCapacity(resource);
-					functions.send_resource(room_name, conf.store_room, resource, Math.min(room_store_amount - conf.good_amount, conf.store_amount - current_store_amount, terminal_amount));
+					functions.send_resource(room_name, conf.store_room, resource, Math.min(room_store_amount - conf.store_good_amount, conf.store_expect_amount - current_store_amount, terminal_amount));
 					break;
 				}
 			}

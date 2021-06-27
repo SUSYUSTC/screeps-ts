@@ -159,7 +159,7 @@ export function update_basic_costmatrices() {
     }
 	for (let room_name of config.occupied_rooms) {
 		if (Game.rooms[room_name] == undefined) {
-			return;
+			continue;
 		}
 		if (global.basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
 			let costmatrix = new PathFinder.CostMatrix;
