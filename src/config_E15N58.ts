@@ -304,7 +304,8 @@ export var conf_E15N58: type_conf_room =
     "containers": {
         "CT": {
             "pos": [35, 6],
-            "RCL": 1
+            "RCL": 1,
+            "RCL_to_remove": 6
         },
         "MINE": {
             "pos": [6, 18],
