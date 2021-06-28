@@ -79,8 +79,9 @@ export var conf_rooms: type_conf_rooms = {
     "E19N55": conf_E19N55,
     "E14N59": conf_E14N59,
     "E9N54": conf_E9N54,
+    "W9N39": conf_W9N39,
 }
-export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54"];
+export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39"];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
 for (let room_name of controlled_rooms) {
@@ -169,39 +170,37 @@ if (global.is_main_server) {
 	]
 } else {
 	var W9N39_path = [
-		{ shard: 'shard3', roomName: 'E10N40', x: 25, y: 25 },
-		{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
+		{ shard: Game.shard.name, roomName: 'E10N50', x: 25, y: 25 },
+		{ shard: Game.shard.name, roomName: 'W9N39', x: 24, y: 15 },
 	]
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {}
-if (global.is_main_server) {
-	preclaiming_rooms = {
-		'E16N58': {
-			'E16N57': {
-				rooms_forwardpath: ['E16N58', 'E16N57'],
-				poses_forwardpath: [28],
-			},
+preclaiming_rooms = {
+	'E16N58': {
+		'E16N57': {
+			rooms_forwardpath: ['E16N58', 'E16N57'],
+			poses_forwardpath: [28],
 		},
-		'E14N51': {
-			'W9N39': {
-				shard_path: W9N39_path,
-			}
-		},
-	}
+	},
+	'E14N51': {
+		'W9N39': {
+			shard_path: W9N39_path,
+		}
+	},
 }
 export var help_list: type_help_list = {
-};
-if (!global.is_main_server) {
-	help_list.E14N51.W9N39 = {
-		shard_path: W9N39_path,
-		commuting_distance: 300,
-		n_carrys: {
-			"S1": 10,
-			"S2": 14,
-		},
-		n_energy_carriers: 1,
+	"E14N51": {
+		"W9N39": {
+			shard_path: W9N39_path,
+			commuting_distance: global.is_main_server ? 600 : 300,
+			n_carrys: {
+				"S1": 10,
+				"S2": 14,
+			},
+			n_energy_carriers: 1,
+		}
 	}
-}
+};
 export var storage_bars: number[] = [40000, 80000, 120000, 160000];
 export var storage_gap = 40000;
 export var storage_full = 200000;
@@ -569,38 +568,38 @@ type type_mineral_store_amount = {
 export var mineral_store_additional_amount = 20000;
 export var mineral_store_amount: type_mineral_store_amount = {
 	"U": {
-		min_amount: 20000,
-		expect_amount: 40000,
+		min_amount: 10000,
+		expect_amount: 30000,
 		store_max_amount: 100000,
 	},
 	"L": {
-		min_amount: 20000,
-		expect_amount: 40000,
+		min_amount: 10000,
+		expect_amount: 30000,
 		store_max_amount: 100000,
 	},
 	"Z": {
-		min_amount: 20000,
-		expect_amount: 40000,
+		min_amount: 10000,
+		expect_amount: 30000,
 		store_max_amount: 100000,
 	},
 	"K": {
-		min_amount: 20000,
-		expect_amount: 40000,
+		min_amount: 10000,
+		expect_amount: 30000,
 		store_max_amount: 100000,
 	},
 	"X": {
-		min_amount: 20000,
-		expect_amount: 40000,
+		min_amount: 10000,
+		expect_amount: 30000,
 		store_max_amount: 100000,
 	},
 	"O": {
-		min_amount: 40000,
-		expect_amount: 60000,
+		min_amount: 15000,
+		expect_amount: 45000,
 		store_max_amount: 120000,
 	},
 	"H": {
-		min_amount: 40000,
-		expect_amount: 60000,
+		min_amount: 15000,
+		expect_amount: 45000,
 		store_max_amount: 120000,
 	},
 }

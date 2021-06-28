@@ -88,13 +88,14 @@ function update_structures(room_name: string) {
         }
         if (Game.time % 200 == 0 || !global.test_var || room.memory.objects_updated) {
             let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
+			let safe_pos = room.getPositionAt(conf.storage.pos[0], conf.storage.pos[1]);
             global.memory[room_name].spawn_list = spawns.map((e) => e.id);
 
             let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
             global.memory[room_name].tower_list = towers.map((e) => e.id);
 
             let energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType));
-            let energy_storage_list_safe = energy_storage_list.filter((e) => is_safely_connected(spawns[0].pos, e.pos));
+            let energy_storage_list_safe = energy_storage_list.filter((e) => is_safely_connected(safe_pos, e.pos));
             global.memory[room_name].energy_storage_list = energy_storage_list.map((e) => < Id < AnyStoreStructure >> e.id)
             global.memory[room_name].energy_storage_list_safe = energy_storage_list_safe.map((e) => < Id < AnyStoreStructure >> e.id)
 
@@ -154,7 +155,8 @@ function update_structures(room_name: string) {
 }
 
 function update_layout(room_name: string, check_all: boolean = false) {
-    if (Game.time % 100 !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated) {
+	let interval = Game.rooms[room_name].controller.level > 1 ? 100: 20;
+    if (Game.time % interval !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated && Game.rooms[room_name].controller.level >= 3) {
         return;
     }
     let conf = config.conf_rooms[room_name];
@@ -432,6 +434,9 @@ var set_room_memory_functions: {
 var set_room_memory_functions_order = ["update_structures", "update_layout", "generate_structures", "update_construction_sites", "update_link_and_container", "update_mine", "update_external", "detect_resources", "update_resources", "get_power_effects"];
 
 export function set_room_memory(room_name: string) {
+	if (Game.rooms[room_name] == undefined) {
+		return;
+	}
     let timer = new Timer("set_room_memory", true);
 
     let room = Game.rooms[room_name];
@@ -482,7 +487,7 @@ export function set_global_memory() {
         combat: [],
         resource: [],
     }
-	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
+	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e] !== undefined && Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
     for (let spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name];
         if (spawn.memory.spawning_time == undefined) {

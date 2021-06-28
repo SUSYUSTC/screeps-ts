@@ -230,7 +230,7 @@ function send_compounds() {
 		}
 		let current_store_amount = functions.get_total_resource_amount(conf.store_room, resource);
 		if (current_store_amount < conf.store_expect_amount) {
-			for (let room_name of config.controlled_rooms) {
+			for (let room_name of Game.controlled_rooms_with_terminal) {
 				if (room_name == conf.store_room) {
 					continue;
 				}

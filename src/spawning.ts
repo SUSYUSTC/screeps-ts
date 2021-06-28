@@ -515,11 +515,12 @@ export function spawn(room_name: string) {
                     jsons.push(json);
                 }
             }
+			let level1 = external_room.controller.level == 1;
             let help_builders = room_statistics.help_builder.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_distance + 72)).map((e) => e.name);
             help_builders = help_builders.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'help_builder' && shard_creeps[e].external_room_name == external_room_name));
             help_builders = Array.from(new Set(help_builders));
-            if (help_builders.length < 1 + conf_help.n_energy_carriers) {
-                let request_boost = external_room.controller.level >= 2 && external_room.memory.sites_total_progressleft < conf_help.commuting_distance * 20 && external_room.controller.progressTotal - external_room.controller.progress >= 60000;
+            if (help_builders.length < 1 + (level1 ? 0 : conf_help.n_energy_carriers)) {
+                let request_boost = !level1 && external_room.memory.sites_total_progressleft < conf_help.commuting_distance * 20 && external_room.controller.progressTotal - external_room.controller.progress >= 60000;
                 let added_memory = {
                     "external_room_name": external_room_name,
                     "home_room_name": room_name,
@@ -540,7 +541,7 @@ export function spawn(room_name: string) {
                 jsons.push(json);
             }
             let spawning_energy_carriers = room_statistics.energy_carrier.filter((e) => e.spawning);
-            if (conf_help.n_energy_carriers > spawning_energy_carriers.length) {
+            if (conf_help.n_energy_carriers > spawning_energy_carriers.length && !level1) {
 				let energy_consuming_rate = (1250 + (1500 - conf_help.commuting_distance) / 3 * 5) / 150;
 				let ratio = Math.min(20/energy_consuming_rate, 1);
                 let added_memory = {

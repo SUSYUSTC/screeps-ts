@@ -245,18 +245,20 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, rooms_p
 	return 0;
 }
 
-export function movethroughshards(creep: Creep | PowerCreep) {
+export function movethroughshards(creep: Creep) {
+	if (global.is_main_server) {
 	let this_shardmemory = Game.InterShardMemory[Game.shard.name];
-	if (this_shardmemory.creeps[creep.name] == undefined) {
-		this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
-		Game.require_update_intershardmemory = true;
-		if (this_shardmemory.all_creeps[creep.name] == undefined) {
-			this_shardmemory.all_creeps[creep.name] = { }
-			functions.copy_key((<Creep>creep).memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
-			Game.require_update_intershardmemory_modify_time = true;
+		if (this_shardmemory.creeps[creep.name] == undefined) {
+			this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
+			Game.require_update_intershardmemory = true;
+			if (this_shardmemory.all_creeps[creep.name] == undefined) {
+				this_shardmemory.all_creeps[creep.name] = { }
+				functions.copy_key(creep.memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
+				Game.require_update_intershardmemory_modify_time = true;
+			}
 		}
 	}
-	let shard_move = Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move;
+	let shard_move = global.is_main_server ? Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move : creep.memory.shard_move;
 	let pathfinding = false;
 	if (shard_move.shard !== Game.shard.name) {
 		let first_index = shard_move.shard_path.findIndex((e) => e.shard == Game.shard.name);

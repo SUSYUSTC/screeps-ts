@@ -219,11 +219,12 @@ function classify_my_orders() {
 		sell: {},
 		buy: {},
 	}
+	for (let room_name of Game.controlled_rooms_with_terminal) {
+		Game.my_orders.sell[room_name] = {};
+		Game.my_orders.buy[room_name] = {};
+	}
 	for (let order of <Array<Order>> Object.values(Game.market.orders)) {
 		let type = <"sell"|"buy"> order.type;
-		if (Game.my_orders[type][order.roomName] == undefined) {
-			Game.my_orders[type][order.roomName] = {};
-		}
 		if (Game.my_orders[type][order.roomName][order.resourceType] == undefined) {
 			Game.my_orders[type][order.roomName][order.resourceType] = [];
 		}

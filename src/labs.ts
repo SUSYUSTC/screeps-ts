@@ -91,7 +91,7 @@ export function prepare() {
 	if (Game.time % 50 !== 0) {
 		return;
 	}
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms_with_terminal) {
 		determine_reaction_request(room_name);
     }
 }

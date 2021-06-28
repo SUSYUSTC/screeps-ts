@@ -312,8 +312,10 @@ export function creepjob(creep: Creep): number {
 		}
 		creep.memory.crossable = false;
 		let source = Game.getObjectById(conf_external.sources[source_name]);
-		basic_job.harvest_with_container(creep, source, creep.room.container[source_name]);
-		creep.say("HHh");
+		if (Game.time % 2 == 1) {
+			basic_job.harvest_with_container(creep, source, creep.room.container[source_name]);
+			creep.say("HHh");
+		}
 		return 0;
 	} else if (creep.memory.role == 'help_carrier') {
 		creep.say("HC");
@@ -338,7 +340,7 @@ export function creepjob(creep: Creep): number {
 		let conf_container = conf_external.containers[source_name];
 		let container_source = creep.room.container[source_name];
 		if (container_source == undefined) {
-			let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
 			basic_job.trymovetopos(creep, transferer_stay_pos);
 			creep.say("HCm1");
 			return 0;
@@ -346,7 +348,7 @@ export function creepjob(creep: Creep): number {
 		let container_MDCT = creep.room.container.MD !== undefined ? creep.room.container.MD : creep.room.container.CT;
 		let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
 		if (container_MDCT == undefined && help_builders.length == 0) {
-			let transferer_stay_pos = creep.room.getPositionAt(conf.transferer_stay_pos[0], conf.transferer_stay_pos[1]);
+			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
 			basic_job.trymovetopos(creep, transferer_stay_pos);
 			creep.say("HCm2");
 			return 0;
@@ -356,12 +358,16 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCd");
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, container_source, {left: 300});
+			if (container_source.store.getUsedCapacity("energy") >= creep.store.getCapacity()) {
+				basic_job.withdraw(creep, container_source);
+			}
 			creep.say("HCw");
 			return 0;
 		}
 		if (container_MDCT !== undefined) {
-			basic_job.transfer(creep, container_MDCT);
+			if (creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(container_MDCT) <= 5).length == 0) {
+				basic_job.transfer(creep, container_MDCT);
+			}
 			creep.say("HCt1");
 		} else {
 			let help_builder = help_builders[0];
@@ -397,8 +403,16 @@ export function creepjob(creep: Creep): number {
 			creep.say("HBd");
 			return 0;
 		}
+		if (creep.room.container.CT !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
+			if (creep.room.container.CT.store.getUsedCapacity("energy") >= creep.store.getFreeCapacity("energy")) {
+				basic_job.withdraw(creep, creep.room.container.CT);
+			}
+			creep.say("HBw");
+			return 0;
+		}
 		if (basic_job.build_structure(creep) == 0) {
 			creep.say("HBb");
+			creep.memory.crossable = true;
 			return 0;
 		}
 		if (basic_job.charge_all(creep) == 0) {
@@ -406,6 +420,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		basic_job.upgrade_controller(creep, creep.room.controller);
+		creep.memory.crossable = false;
 		creep.say("HBu");
 		return 0;
 	}
