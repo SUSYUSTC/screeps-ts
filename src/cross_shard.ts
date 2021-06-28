@@ -163,7 +163,7 @@ export function sync_shard_memory() {
 				Game.require_update_intershardmemory_modify_time = true;
 			// not found in other shards
 			} else {
-				if (this_creeps[creepname].last_present_time < Game.time - 1000) {
+				if (this_creeps[creepname].last_present_time < Game.time - 50) {
 					delete this_creeps[creepname];
 					creeps_to_remove.push(creepname);
 					Game.require_update_intershardmemory = true;

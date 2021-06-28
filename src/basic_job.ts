@@ -227,8 +227,10 @@ export function transfer(creep: Creep, structure: AnyStoreStructure | Creep, opt
     return 0;
 }
 export function upgrade_controller(creep: Creep, controller: StructureController, moveoptions: type_movetopos_options = {}) {
-	if (movetopos(creep, controller.pos, 3, moveoptions) !== 0) {
+	if (creep.pos.getRangeTo(controller) <= 3) {
 		creep.upgradeController(controller);
+	} else {
+		movetopos(creep, controller.pos, 3, moveoptions)
 	}
 }
 
@@ -239,8 +241,10 @@ export function build_structure(creep: Creep, moveoptions: type_movetopos_option
         let distance = targets.map((e) => creep.pos.getRangeTo(e));
         let argmin = mymath.argmin(distance);
         let target = targets[argmin];
-        if (movetopos(creep, target.pos, 3, moveoptions) !== 0) {
+		if (creep.pos.getRangeTo(target) <= 3) {
 			creep.build(target);
+		} else {
+        	movetopos(creep, target.pos, 3, moveoptions);
 		}
         return 0;
     }

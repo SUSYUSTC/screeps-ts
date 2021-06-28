@@ -53,13 +53,14 @@ function run_sub() {
 		cross_shard.sync_shard_memory();
 		for (let creepname in Game.creeps) {
 			let creep = Game.creeps[creepname];
-			console.log("test creep position", Game.shard.name, JSON.stringify(creep.pos));
+			console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos));
 			external_room.movethroughshards(creep);
 		}
 		cross_shard.update_shard_memory();
 	} catch (err) {
 		console.log(err.stack);
 	}
+	console.log("Final Real CPU:", Game.cpu.getUsed());
 }
 function run_main() {
 	console.log()

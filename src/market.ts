@@ -356,12 +356,12 @@ export function auto_supply_resources(room_name: string) {
 		for (let mineral of constants.basic_minerals) {
 			let conf_mineral_store = config.mineral_store_amount[mineral];
 			let amount = conf_mineral_store.expect_amount;;
-			auto_supply_from_market(room_name, mineral, amount, 10000);
+			auto_supply_from_market(room_name, mineral, amount, config.mineral_buy_onetime_amount);
 		}
-		auto_supply_from_market(room_name, 'battery', 8.0e4, 15000);
-		auto_supply_from_market(room_name, 'energy', 4.5e5, 60000);
+		auto_supply_from_market(room_name, 'battery', Math.floor((config.energy_bar_to_spawn_upgrader - config.storage_good_energy) / 10), config.battery_buy_onetime_amount);
+		auto_supply_from_market(room_name, 'energy', config.storage_good_energy + config.terminal_max_energy, config.energy_buy_onetime_amount);
 		if (Game.powered_rooms[room_name] !== undefined) {
-			auto_supply_from_market(room_name, 'ops', 5000, 1500);
+			auto_supply_from_market(room_name, 'ops', config.ops_store_amount, config.ops_buy_onetime_amount);
 		}
     }
 	timer.end();

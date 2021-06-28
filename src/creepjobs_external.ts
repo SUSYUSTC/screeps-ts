@@ -423,6 +423,35 @@ export function creepjob(creep: Creep): number {
 		creep.memory.crossable = false;
 		creep.say("HBu");
 		return 0;
+	} else if (creep.memory.role == 'guard') {
+		creep.say("G");
+		creep.memory.movable = false;
+		creep.memory.crossable = true;
+		let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
+		let conf_external = config.conf_rooms[creep.memory.external_room_name];
+		if (creep.room.name !== creep.memory.external_room_name) {
+			if (creep.memory.shard_move !== undefined) {
+				external_room.movethroughshards(creep);
+			} else {
+				external_room.movethroughrooms(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath);
+			}
+			creep.say("Ge");
+			return 0;
+		}
+		let enemy = creep.room.find(FIND_HOSTILE_CREEPS)[0];
+		if (enemy !== undefined) {
+			if (creep.pos.getRangeTo(enemy) <= 3) {
+				creep.rangedAttack(enemy);
+			} else {
+				basic_job.movetopos(creep, enemy.pos, 3);
+			}
+			creep.say("Gra");
+		} else {
+			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
+			basic_job.trymovetopos(creep, transferer_stay_pos);
+			creep.say("Gm");
+		}
+		return 0;
 	}
 	return 1;
 }

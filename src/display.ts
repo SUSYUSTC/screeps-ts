@@ -133,7 +133,7 @@ export function init() {
 				reaction: string;
 			}
 		} = {};
-		for (let room_name of config.controlled_rooms) {
+		for (let room_name of Game.controlled_rooms_with_terminal) {
 			let room = Game.rooms[room_name];
 			room_summary[room_name] = {
 				terminal: room.terminal.store.getUsedCapacity(),
@@ -144,7 +144,7 @@ export function init() {
 				reaction: room.memory.reaction_request !== undefined ? room.memory.reaction_request.product : ''
 			}
 		}
-		let tot_energies = mymath.array_sum(config.controlled_rooms.map((e) => room_summary[e].energy + room_summary[e].battery * 10));
+		let tot_energies = mymath.array_sum(Game.controlled_rooms_with_terminal.map((e) => room_summary[e].energy + room_summary[e].battery * 10));
 		let ongoing_pb: {
 			[key: string]: {
 				home_room_name: string;
@@ -154,7 +154,7 @@ export function init() {
 				time_last: number;
 			}
 		} = {};
-		for (let home_room_name of config.controlled_rooms) {
+		for (let home_room_name of Game.controlled_rooms_with_terminal) {
 			let external_resources = Game.rooms[home_room_name].memory.external_resources;
 			if (external_resources == undefined || external_resources.pb == undefined) {
 				continue;
@@ -176,7 +176,7 @@ export function init() {
 		let realtime = (new Date()).getTime() / 1000;
 		let realtimediff = realtime - Memory.stat_reset_realtime;
 		let timediff = Game.time - Memory.stat_reset_time;
-		str1 += '\nstore: ' + global.format_json(global.summarize_terminal(config.controlled_rooms), {sort: true, json: true});
+		str1 += '\nstore: ' + global.format_json(global.summarize_terminal(Game.controlled_rooms_with_terminal), {sort: true, json: true});
 		str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
 		str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
 		str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
@@ -194,14 +194,14 @@ export function init() {
 	}
 
 	global.display_store = function(): string {
-		let resources = <Array<ResourceConstant>> Object.keys(global.summarize_terminal(config.controlled_rooms));
+		let resources = <Array<ResourceConstant>> Object.keys(global.summarize_terminal(Game.controlled_rooms_with_terminal));
 		let store: {[key in ResourceConstant] ?: {[key: string]: number}} = {};
 		let empty_resource: {[key: string]: number} = {};
-		config.controlled_rooms.forEach((e) => empty_resource[e] = 0);
+		Game.controlled_rooms_with_terminal.forEach((e) => empty_resource[e] = 0);
 		for (let resource of resources) {
 			store[resource] = _.clone(empty_resource);
 		}
-		for (let room_name of config.controlled_rooms) {
+		for (let room_name of Game.controlled_rooms_with_terminal) {
 			let room_store = global.summarize_terminal([room_name]);
 			let keys = <Array<ResourceConstant>>Object.keys(room_store);
 			keys.forEach((e) => store[e][room_name] = room_store[e]);

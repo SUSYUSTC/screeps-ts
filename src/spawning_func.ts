@@ -81,6 +81,12 @@ const getbody_energy_carrier = (options: any) => {
 	let n = Math.ceil(25 * options.ratio);
     return returnbody(0, 25, 25);
 }
+const getbody_guard = (options: any) => {
+    return fullreturnbody({
+		move: options.n_parts,
+		ranged_attack: options.n_parts,
+	});
+}
 const getbody_wall_repairer = (options: any) => {
     let n_work = 20;
     let n_carry = 8;
@@ -209,6 +215,7 @@ const getbody_list: type_getbody = {
     'help_carrier': getbody_help_carrier,
     'help_builder': getbody_help_builder,
 	'energy_carrier': getbody_energy_carrier,
+	'guard': getbody_guard,
     'hunter': getbody_hunter,
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,

@@ -7,7 +7,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "guard" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -518,10 +518,12 @@ type type_help_list = {
             poses_forwardpath ?: number[];
 			shard_path ?: type_shard_exit_point[];
             commuting_distance: number;
+            commuting_time: number;
             n_carrys: {
                 [key: string]: number;
             }
 			n_energy_carriers: number;
+			guard ?: number;
         }
     }
 }

@@ -156,7 +156,7 @@ function update_structures(room_name: string) {
 
 function update_layout(room_name: string, check_all: boolean = false) {
 	let interval = Game.rooms[room_name].controller.level > 1 ? 100: 20;
-    if (Game.time % interval !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated && Game.rooms[room_name].controller.level >= 3) {
+    if (Game.time % interval !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated) {
         return;
     }
     let conf = config.conf_rooms[room_name];

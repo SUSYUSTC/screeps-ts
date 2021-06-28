@@ -8,6 +8,39 @@ type type_movethroughrooms_options = {
 	replace_pos ?: boolean;
 	ignore_creep_xys ?: [number, number][],
 }
+
+type type_external_moving_targets = {
+	[key: string]: [number, number];
+}
+
+export function get_external_moving_targets(rooms_path: string[], poses_path: number[]): type_external_moving_targets {
+	// -1: error, 0: normal success, 1: already done, 2: correcting path
+	let dict: type_external_moving_targets = {};
+    if (rooms_path.length != poses_path.length + 1) {
+		return undefined
+    }
+	for (let arg of mymath.range(rooms_path.length)) {
+		let room_name = rooms_path[arg];
+		if (arg == rooms_path.length - 1) {
+			let room1_coor = functions.room2coor(rooms_path[arg - 1]);
+			let room2_coor = functions.room2coor(rooms_path[arg]);
+			let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
+			let pos = poses_path[arg - 1];
+			let standpoint_xy = functions.get_exit_xy(coor_diff, pos, [1, 48]);
+			dict[room_name] = standpoint_xy;
+		} else {
+			let return_value = 0;
+			let room1_coor = functions.room2coor(rooms_path[arg]);
+			let room2_coor = functions.room2coor(rooms_path[arg + 1]);
+			let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
+			let pos = poses_path[arg];
+			let exit_xy = functions.get_exit_xy(coor_diff, pos, [49, 0]);
+			dict[room_name] = exit_xy;
+		}
+	}
+	return dict
+}
+
 export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
 	// -1: error, 0: normal success, 1: already done, 2: correcting path
 	let timer = new Timer("movethroughrooms", false);
@@ -246,7 +279,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, rooms_p
 }
 
 export function movethroughshards(creep: Creep) {
-	if (global.is_main_server) {
+	if (global.is_main_server && global.main_shards.includes(Game.shard.name)) {
 	let this_shardmemory = Game.InterShardMemory[Game.shard.name];
 		if (this_shardmemory.creeps[creep.name] == undefined) {
 			this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
@@ -292,7 +325,7 @@ export function movethroughshards(creep: Creep) {
 		if (creep.pos.isNearTo(x, y)) {
 			creep.move(creep.pos.getDirectionTo(x, y));
 		} else {
-			creep.moveTo(x, y, {range: 1, reusePath: 8});
+			creep.moveTo(x, y, {range: 1, reusePath: 8, costCallback: functions.avoid_exits});
 		}
 	} else {
 		movethroughrooms(creep, shard_move.rooms_path, shard_move.poses_path);

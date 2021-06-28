@@ -149,6 +149,43 @@ export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
+
+export var storage_bars: number[] = [40000, 80000, 120000, 160000];
+export var storage_gap = 40000;
+export var storage_full = 200000;
+export var energy_bar_to_spawn_upgrader: number = 1.0e6;
+export var energy_bar_to_process_operated_power: number = 0.8e6;
+export var energy_bar_to_process_not_operated_power: number = 1.2e6;
+export var min_power_with_op = 2000;
+export var min_power_without_op = 3000;
+export var max_power = 15000;
+export var storage_min_energy = storage_full; // battery -> energy
+export var storage_ok_energy = 300000; // process power
+export var storage_good_energy = 400000; // process power
+export var storage_max_energy = 500000; // energy -> battery
+export var terminal_min_energy = 20000;
+export var terminal_max_energy = 80000;
+export var terminal_min_battery = 2000;
+export var terminal_max_battery = 5000;
+export var terminal_min_mineral = 5000;
+export var terminal_max_mineral = 10000;
+export var factory_min_energy = 5000;
+export var factory_max_energy = 10000;
+export var factory_min_battery = 2000;
+export var factory_max_battery = 5000;
+export var nuker_full_energy = 300000;
+export var nuker_full_G = 5000;
+export var powerspawn_full_power = 100;
+export var react_serve_sleep_time = 10;
+export var react_min_amount = 50;
+export var react_init_amount = 3000;
+export var mineral_store_additional_amount = 20000;
+export var ops_store_amount = 10000;
+export var mineral_buy_onetime_amount = 10000;
+export var energy_buy_onetime_amount = 60000;
+export var battery_buy_onetime_amount = 15000;
+export var ops_buy_onetime_amount = 15000;
+
 interface type_preclaiming_rooms {
     [key: string]: {
         [key: string]: type_external_shard_map
@@ -193,41 +230,16 @@ export var help_list: type_help_list = {
 		"W9N39": {
 			shard_path: W9N39_path,
 			commuting_distance: global.is_main_server ? 600 : 300,
+			commuting_time: global.is_main_server ? 720 : 300,
 			n_carrys: {
 				"S1": 10,
 				"S2": 14,
 			},
 			n_energy_carriers: 1,
+			guard: 5,
 		}
 	}
 };
-export var storage_bars: number[] = [40000, 80000, 120000, 160000];
-export var storage_gap = 40000;
-export var storage_full = 200000;
-export var energy_bar_to_spawn_upgrader: number = 1.0e6;
-export var energy_bar_to_process_operated_power: number = 0.8e6;
-export var energy_bar_to_process_not_operated_power: number = 1.2e6;
-export var min_power_with_op = 2000;
-export var min_power_without_op = 3000;
-export var max_power = 15000;
-export var storage_min_energy = storage_full; // battery -> energy
-export var storage_ok_energy = 300000; // process power
-export var storage_good_energy = 400000; // process power
-export var storage_max_energy = 500000; // energy -> battery
-export var terminal_min_energy = 20000;
-export var terminal_max_energy = 80000;
-export var terminal_min_battery = 2000;
-export var terminal_max_battery = 5000;
-export var terminal_min_mineral = 5000;
-export var terminal_max_mineral = 10000;
-export var factory_min_energy = 5000;
-export var factory_max_energy = 10000;
-export var factory_min_battery = 2000;
-export var factory_max_battery = 5000;
-export var nuker_full_energy = 300000;
-export var nuker_full_G = 5000;
-export var powerspawn_full_power = 100;
-export var react_serve_sleep_time = 10;
 export var protected_sources: {
     [key: string]: string[]
 } = {
@@ -444,8 +456,6 @@ export var resources_balance: {[key in ResourceConstant] ?: type_resource_balanc
         amount: 1000,
     },
 }
-export var react_min_amount = 50;
-export var react_init_amount = 3000;
 type type_final_product_requrest = {
 	[key in GeneralMineralConstant] ?: {
 		min_amount : number;
@@ -557,7 +567,6 @@ for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
 		throw Error("t3 room does not match");
 	}
 }
-export var onetime_reaction_amount = 3000;
 type type_mineral_store_amount = {
 	[key in GeneralMineralConstant] ?: {
 		min_amount: number;
@@ -565,7 +574,6 @@ type type_mineral_store_amount = {
 		store_max_amount: number;
 	}
 }
-export var mineral_store_additional_amount = 20000;
 export var mineral_store_amount: type_mineral_store_amount = {
 	"U": {
 		min_amount: 10000,
@@ -768,6 +776,6 @@ export var doubled_powered_external_harvester: type_powered_harvester = {
 export var creep_roles_home: type_creep_role[] = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "minecarrier", "wall_repairer"]
 export var creep_roles_maincarrier: type_creep_role[] = ["maincarrier"]
 export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "hunter", "home_defender", "enemy"]
-export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "energy_carrier"]
+export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "energy_carrier", "guard"]
 export var creep_roles_resources: type_creep_role[] = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]
 export var creep_roles_all = creep_roles_home.concat(creep_roles_external).concat(creep_roles_maincarrier).concat(creep_roles_resources).concat(creep_roles_combat);
