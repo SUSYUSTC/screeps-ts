@@ -1,7 +1,7 @@
 import * as mymath from "./mymath";
 import * as config from "./config";
 export function work(room_name: string) {
-	if (Game.powered_rooms[room_name] == undefined && Game.time % 3 !== 0) {
+	if (Game.memory[room_name].pc_source_level == undefined && Game.time % 3 !== 0) {
 		return;
 	}
     let room = Game.rooms[room_name];

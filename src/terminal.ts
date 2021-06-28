@@ -199,13 +199,13 @@ function send_basic_minerals() {
 			let mineral_type = Game.memory[room_name].mine_status.type;
 			if (mineral_type == mine) {
 				limits[room_name] = {
-					max: config.mineral_store_amount[mine].main_room_max,
-					min: config.mineral_store_amount[mine].main_room_min,
+					max: config.mineral_store_amount[mine].store_max_amount,
+					min: config.mineral_store_amount[mine].min_amount,
 				}
 			} else {
 				limits[room_name] = {
-					max: config.mineral_store_amount[mine].sub_room_max,
-					min: config.mineral_store_amount[mine].sub_room_min,
+					max: config.mineral_store_amount[mine].expect_amount + config.mineral_store_additional_amount,
+					min: config.mineral_store_amount[mine].min_amount,
 				}
 			}
 		}

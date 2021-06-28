@@ -123,25 +123,28 @@ export function init() {
 	}
 
 	global.display_stat = function(): string {
-		let amounts: {
+		let room_summary: {
 			[key: string]: {
 				terminal: number;
 				storage: number;
 				energy: number;
 				battery: number;
 				power: number;
+				reaction: string;
 			}
 		} = {};
 		for (let room_name of config.controlled_rooms) {
-			amounts[room_name] = {
-				terminal: Game.rooms[room_name].terminal.store.getUsedCapacity(),
-				storage: Game.rooms[room_name].storage.store.getUsedCapacity(),
-				energy: Game.rooms[room_name].storage.store.getUsedCapacity("energy") + Game.rooms[room_name].terminal.store.getUsedCapacity("energy"), 
-				battery: Game.rooms[room_name].storage.store.getUsedCapacity("battery") + Game.rooms[room_name].terminal.store.getUsedCapacity("battery"),
-				power: Game.rooms[room_name].terminal.store.getUsedCapacity("power"),
+			let room = Game.rooms[room_name];
+			room_summary[room_name] = {
+				terminal: room.terminal.store.getUsedCapacity(),
+				storage: room.storage.store.getUsedCapacity(),
+				energy: room.storage.store.getUsedCapacity("energy") + room.terminal.store.getUsedCapacity("energy"), 
+				battery: room.storage.store.getUsedCapacity("battery") + room.terminal.store.getUsedCapacity("battery"),
+				power: room.terminal.store.getUsedCapacity("power"),
+				reaction: room.memory.reaction_request !== undefined ? room.memory.reaction_request.product : ''
 			}
 		}
-		let tot_energies = mymath.array_sum(config.controlled_rooms.map((e) => amounts[e].energy + amounts[e].battery * 10));
+		let tot_energies = mymath.array_sum(config.controlled_rooms.map((e) => room_summary[e].energy + room_summary[e].battery * 10));
 		let ongoing_pb: {
 			[key: string]: {
 				home_room_name: string;
@@ -181,7 +184,7 @@ export function init() {
 		str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
 		str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
 		str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
-		str3 += '\nroom store amount: ' + global.format_json2(amounts, {sort: false, json: true});
+		str3 += '\nroom store amount: ' + global.format_json2(room_summary, {sort: false, json: true});
 		str3 += '\ntotal energy: ' + tot_energies;
 		str3 += '\npb stat' + global.format_objs(Memory.pb_log, true);
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});

@@ -330,6 +330,9 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		let source_name = creep.memory.source_name;
+		if (creep.room.link[source_name] !== undefined && creep.room.link.CT !== undefined) {
+			creep.suicide();
+		}
 		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		let room_external = Game.rooms[creep.memory.external_room_name];
 		let conf_container = conf_external.containers[source_name];

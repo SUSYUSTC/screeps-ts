@@ -79,7 +79,7 @@ function determine_reaction_request(room_name: string) {
 				let reactants = constants.allowed_reactions[product];
 				if (mymath.all(reactants.map((e) => Game.rooms[room_name].terminal.store.getUsedCapacity(e) >= config.react_init_amount))) {
 					console.log("going to set reaction request", room_name, product);
-					//global.set_reaction_request(room_name, product);
+					global.set_reaction_request(room_name, product);
 					return;
 				}
 			}

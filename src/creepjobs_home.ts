@@ -131,7 +131,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (!stop_withdrawing && creep.store.getUsedCapacity("energy") < creep.getActiveBodyparts(WORK) * 2 && creep.ticksToLive >= 10) {
-			let use_link = (link !== undefined && link.store.getUsedCapacity("energy") > container.store.getUsedCapacity("energy"));
+			let use_link = (container == undefined) || (link !== undefined && link.store.getUsedCapacity("energy") > container.store.getUsedCapacity("energy"));
             var lower_limit = (link !== undefined ? 100 : 800);
             if (use_link) {
                 basic_job.withdraw(creep, link, {left: lower_limit});

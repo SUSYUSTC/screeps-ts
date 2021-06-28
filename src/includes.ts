@@ -521,6 +521,7 @@ type type_help_list = {
             n_carrys: {
                 [key: string]: number;
             }
+			n_energy_carriers: number;
         }
     }
 }
@@ -579,6 +580,9 @@ interface Game {
     powered_rooms ? : {
         [key: string]: string;
     };
+    source_powered_rooms ? : {
+        [key: string]: string;
+    };
     memory ? : {
         [key: string]: {
             danger_mode ? : boolean;
@@ -608,6 +612,26 @@ interface Game {
 	require_update_intershardmemory: boolean;
 	require_update_intershardmemory_modify_time: boolean;
 	controlled_rooms_with_terminal: string[];
+	market_orders_cache: {
+		sell : {
+			[key in MarketResourceConstant] ?: Order[];
+		},
+		buy : {
+			[key in MarketResourceConstant] ?: Order[];
+		},
+	}
+	my_orders: {
+		sell : {
+			[key: string]: {
+				[key in MarketResourceConstant] ?: Order[];
+			}
+		},
+		buy : {
+			[key: string]: {
+				[key in MarketResourceConstant] ?: Order[];
+			}
+		},
+	}
 }
 
 type type_order_result = {

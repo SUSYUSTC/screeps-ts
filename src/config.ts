@@ -27,6 +27,9 @@ import {
 import {
     conf_E9N54
 } from "./config_E9N54"
+import {
+    conf_W9N39
+} from "./config_W9N39"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
@@ -119,6 +122,14 @@ export var pc_conf: type_pc_conf = {
         "normal_ordered": false,
         "external_room": "E19N54",
     },
+    "PC_F": {
+        "room_name": "E21N49",
+        "normal_ordered": false,
+    },
+    "PC_G": {
+        "room_name": "E14N51",
+        "normal_ordered": false,
+    },
 }
 export var newroom_independence_energy = 2300;
 export var double_powered_harvester = true;
@@ -132,7 +143,6 @@ export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
-export var energy_bar_to_spawn_upgrader: number = 0.9e6;
 export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
 export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
@@ -142,6 +152,26 @@ interface type_preclaiming_rooms {
     [key: string]: {
         [key: string]: type_external_shard_map
     }
+}
+if (global.is_main_server) {
+	var W9N39_path = [
+		{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
+		{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
+		{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
+		{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
+		{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
+		{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
+		{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
+		{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
+		{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
+		{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
+		{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
+	]
+} else {
+	var W9N39_path = [
+		{ shard: 'shard3', roomName: 'E10N40', x: 25, y: 25 },
+		{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
+	]
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 if (global.is_main_server) {
@@ -154,42 +184,36 @@ if (global.is_main_server) {
 		},
 		'E14N51': {
 			'W9N39': {
-				shard_path: [
-					{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
-					{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
-					{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
-					{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
-					{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
-					{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
-					{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
-					{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
-					{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
-					{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
-					{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
-				]
+				shard_path: W9N39_path,
 			}
 		},
 	}
 }
 export var help_list: type_help_list = {
-    /*
-    "E14N51": {
-        "E9N54": {
-            "rooms_forwardpath": ['E14N51', 'E14N50', 'E13N50', 'E12N50', 'E11N50', 'E10N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E9N54'],
-            "poses_forwardpath": [5, 7, 45, 26, 10, 32, 9, 20, 14, 27],
-            "commuting_distance": 392,
-            "n_carrys": {
-                "S1": 10,
-                "S2": 6,
-            }
-        }
-    }
-	*/
 };
+if (!global.is_main_server) {
+	help_list.E14N51.W9N39 = {
+		shard_path: W9N39_path,
+		commuting_distance: 300,
+		n_carrys: {
+			"S1": 10,
+			"S2": 14,
+		},
+		n_energy_carriers: 1,
+	}
+}
 export var storage_bars: number[] = [40000, 80000, 120000, 160000];
 export var storage_gap = 40000;
 export var storage_full = 200000;
+export var energy_bar_to_spawn_upgrader: number = 1.0e6;
+export var energy_bar_to_process_operated_power: number = 0.8e6;
+export var energy_bar_to_process_not_operated_power: number = 1.2e6;
+export var min_power_with_op = 2000;
+export var min_power_without_op = 3000;
+export var max_power = 15000;
 export var storage_min_energy = storage_full; // battery -> energy
+export var storage_ok_energy = 300000; // process power
+export var storage_good_energy = 400000; // process power
 export var storage_max_energy = 500000; // energy -> battery
 export var terminal_min_energy = 20000;
 export var terminal_max_energy = 80000;
@@ -221,10 +245,9 @@ export var protected_sources: {
 export var highway_resources: {
     [key: string]: string[]
 } = {
-    "E19N51": ['E17N50', 'E18N50', 'E19N50', 'E20N50', 'E20N51'],
-    "E19N55": ['E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
-    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50'],
-    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
+    "E19N55": ['E20N51', 'E20N52', 'E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
+    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50', 'E17N50'],
+    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
     "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
@@ -416,10 +439,14 @@ export var resources_balance: {[key in ResourceConstant] ?: type_resource_balanc
         gap: 20000,
         amount: 2000,
     },
+    "ops": {
+        gap: 2000,
+		min: 3000,
+        amount: 1000,
+    },
 }
 export var react_min_amount = 50;
 export var react_init_amount = 3000;
-export var product_additional_limit = 5000;
 type type_final_product_requrest = {
 	[key in GeneralMineralConstant] ?: {
 		min_amount : number;
@@ -533,55 +560,48 @@ for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
 }
 export var onetime_reaction_amount = 3000;
 type type_mineral_store_amount = {
-	[key in MineralConstant]: {
-		sub_room_min: number;
-		sub_room_max: number;
-		main_room_min: number;
-		main_room_max: number;
+	[key in GeneralMineralConstant] ?: {
+		min_amount: number;
+		expect_amount: number;
+		store_max_amount: number;
 	}
 }
-export var mineral_store_amount = {
+export var mineral_store_additional_amount = 20000;
+export var mineral_store_amount: type_mineral_store_amount = {
 	"U": {
-		sub_room_min: 20000,
-		sub_room_max: 40000,
-		main_room_min: 20000,
-		main_room_max: 100000,
+		min_amount: 20000,
+		expect_amount: 40000,
+		store_max_amount: 100000,
 	},
 	"L": {
-		sub_room_min: 20000,
-		sub_room_max: 40000,
-		main_room_min: 20000,
-		main_room_max: 100000,
+		min_amount: 20000,
+		expect_amount: 40000,
+		store_max_amount: 100000,
 	},
 	"Z": {
-		sub_room_min: 20000,
-		sub_room_max: 40000,
-		main_room_min: 20000,
-		main_room_max: 100000,
+		min_amount: 20000,
+		expect_amount: 40000,
+		store_max_amount: 100000,
 	},
 	"K": {
-		sub_room_min: 20000,
-		sub_room_max: 40000,
-		main_room_min: 20000,
-		main_room_max: 100000,
+		min_amount: 20000,
+		expect_amount: 40000,
+		store_max_amount: 100000,
 	},
 	"X": {
-		sub_room_min: 20000,
-		sub_room_max: 40000,
-		main_room_min: 20000,
-		main_room_max: 100000,
+		min_amount: 20000,
+		expect_amount: 40000,
+		store_max_amount: 100000,
 	},
 	"O": {
-		sub_room_min: 40000,
-		sub_room_max: 80000,
-		main_room_min: 40000,
-		main_room_max: 120000,
+		min_amount: 40000,
+		expect_amount: 60000,
+		store_max_amount: 120000,
 	},
 	"H": {
-		sub_room_min: 40000,
-		sub_room_max: 80000,
-		main_room_min: 40000,
-		main_room_max: 120000,
+		min_amount: 40000,
+		expect_amount: 60000,
+		store_max_amount: 120000,
 	},
 }
 

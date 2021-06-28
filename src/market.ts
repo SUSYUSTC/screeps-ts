@@ -3,6 +3,7 @@ import * as mymath from "./mymath"
 import * as config from "./config"
 import * as constants from "./constants"
 import * as functions from "./functions"
+import { Timer } from "./timer"
 
 global.get_best_order = function(room_name: string, typ: "sell" | "buy", resource: MarketResourceConstant, num: number = 8, energy_price: number = 0.2): type_order_result[] {
     let orders = Game.market.getAllOrders({
@@ -106,15 +107,6 @@ global.auto_sell = function(room_name: string, resource: MarketResourceConstant,
     return 0;
 }
 
-export function clear_used() {
-    if (Game.time % 10 == 0) {
-        for (let id in Game.market.orders) {
-            if (Game.market.orders[id].remainingAmount == 0) {
-                Game.market.cancelOrder(id);
-            }
-        }
-    }
-}
 export function process_buy_order(room_name: string): number {
     let room = Game.rooms[room_name];
     if (room.terminal == undefined || room.terminal.cooldown > 0 || room.memory.objects_to_buy == undefined || Object.keys(room.memory.objects_to_buy).length == 0) {
@@ -196,15 +188,58 @@ export function process_sell_order(room_name: string): number {
     return 1;
 }
 
+function get_market_orders(type: "sell" | "buy", resourcetype: MarketResourceConstant) {
+	if (Game.market_orders_cache == undefined) {
+		Game.market_orders_cache = {
+			sell: {},
+			buy: {},
+		};
+	}
+	if (Game.market_orders_cache[type][resourcetype] == undefined) {
+		let orders = Game.market.getAllOrders({
+			type: type, 
+			resourceType: resourcetype
+		});
+		switch(type) {
+			case "sell": {
+				Game.market_orders_cache[type][resourcetype] = orders.sort((x, y) => x.price - y.price);;
+				break;
+			}
+			case "buy": {
+				Game.market_orders_cache[type][resourcetype] = orders.sort((x, y) => y.price - x.price);;
+				break;
+			}
+		}
+	}
+	return Game.market_orders_cache[type][resourcetype];
+}
+
+function classify_my_orders() {
+	Game.my_orders = {
+		sell: {},
+		buy: {},
+	}
+	for (let order of <Array<Order>> Object.values(Game.market.orders)) {
+		let type = <"sell"|"buy"> order.type;
+		if (Game.my_orders[type][order.roomName] == undefined) {
+			Game.my_orders[type][order.roomName] = {};
+		}
+		if (Game.my_orders[type][order.roomName][order.resourceType] == undefined) {
+			Game.my_orders[type][order.roomName][order.resourceType] = [];
+		}
+		Game.my_orders[type][order.roomName][order.resourceType].push(order);
+	}
+}
+
 global.regulate_order_price = function(id: Id < Order > ): number {
     let order = Game.market.getOrderById(id);
-    let orders = Game.market.getAllOrders({
-        "type": order.type,
-        "resourceType": order.resourceType
-    });
+	let orders = get_market_orders(<"sell"|"buy"> order.type, order.resourceType);
     let amount = 0;
     if (order.type == 'buy') {
-        orders = orders.filter((e) => e.price > order.price && Game.market.orders[e.id] == undefined).sort((x, y) => y.price - x.price);
+		let index = orders.findIndex((e) => e.price <= order.price);
+		if (index !== -1) {
+			orders = orders.slice(0, index);
+		}
         let acceptable_price = config.acceptable_prices.buy[order.resourceType];
         if (acceptable_price == undefined) {
             return -2;
@@ -225,7 +260,10 @@ global.regulate_order_price = function(id: Id < Order > ): number {
             return 0;
         }
     } else if (order.type == 'sell') {
-        orders = orders.filter((e) => e.price < order.price && Game.market.orders[e.id] == undefined).sort((x, y) => x.price - y.price);
+		let index = orders.findIndex((e) => e.price >= order.price);
+		if (index !== -1) {
+			orders = orders.slice(0, index);
+		}
         let acceptable_price = config.acceptable_prices.sell[order.resourceType];
         if (acceptable_price == undefined) {
             return -2;
@@ -256,6 +294,7 @@ export function regulate_all_order_prices(): number {
     if (Game.time % 100 !== 0) {
         return 1;
     }
+	let timer = new Timer("regulate_all_order_prices", false);
     for (let id of < Array < Id < Order >>> Object.keys(Game.market.orders)) {
         let order = Game.market.orders[id];
         let acceptable_price = config.acceptable_prices[ < keyof typeof config.acceptable_prices > order.type][order.resourceType];
@@ -264,6 +303,7 @@ export function regulate_all_order_prices(): number {
         }
         global.regulate_order_price(id);
     }
+	timer.end();
     return 0;
 }
 
@@ -272,10 +312,16 @@ global.set_resource_price = function(type: "buy" | "sell", resource: MarketResou
     return 0;
 }
 
-export function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number, per_room: boolean): number {
+function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number {
+	if (Game.my_orders == undefined) {
+		classify_my_orders();
+	}
     let room = Game.rooms[room_name];
     let current_amount = functions.get_total_resource_amount(room_name, resource);
-	let orders = _.filter(Game.market.orders, (e) => e.type == 'buy' && e.resourceType == resource && (!per_room || e.roomName == room_name))
+	let orders = Game.my_orders.buy[room_name][resource];
+	if (orders == undefined) {
+		orders = [];
+	}
 	if (config.acceptable_prices.buy[resource] !== undefined) {
 		orders.filter((e) => e.remainingAmount < order_amount / 10).forEach((e) => Game.market.cancelOrder(e.id));
 	}
@@ -287,7 +333,6 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
 		if (config.acceptable_prices.buy[resource] !== undefined) {
 			price = config.acceptable_prices.buy[resource].price / 2;
 		}
-		/*
         Game.market.createOrder({
             "type": "buy",
             "resourceType": resource,
@@ -295,7 +340,6 @@ export function auto_supply_from_market(room_name: string, resource: ResourceCon
             "totalAmount": order_amount,
             "roomName": room_name,
         });
-		*/
     }
     return 0;
 }
@@ -305,19 +349,21 @@ export function auto_supply_resources(room_name: string) {
     if (Game.time % 200 !== 0 || room == undefined || room.storage == undefined || room.terminal == undefined || Game.memory[room_name] == undefined || Game.memory[room_name].mine_status == undefined) {
         return 1;
     }
+	let timer = new Timer("auto_supply_resources", false);
     if (room.controller.level == 8) {
         let mineral_type = Game.memory[room_name].mine_status.type
 		for (let mineral of constants.basic_minerals) {
 			let conf_mineral_store = config.mineral_store_amount[mineral];
-			let amount = mineral == mineral_type ? conf_mineral_store.main_room_min : conf_mineral_store.sub_room_min;
-			auto_supply_from_market(room_name, mineral, amount, 10000, true);
+			let amount = conf_mineral_store.expect_amount;;
+			auto_supply_from_market(room_name, mineral, amount, 10000);
 		}
-		auto_supply_from_market(room_name, 'battery', 8.0e4, 15000, true);
-		auto_supply_from_market(room_name, 'energy', 4.5e5, 60000, true);
+		auto_supply_from_market(room_name, 'battery', 8.0e4, 15000);
+		auto_supply_from_market(room_name, 'energy', 4.5e5, 60000);
 		if (Game.powered_rooms[room_name] !== undefined) {
-			auto_supply_from_market(room_name, 'ops', 5000, 1500, true);
+			auto_supply_from_market(room_name, 'ops', 5000, 1500);
 		}
     }
+	timer.end();
 }
 
 export function auto_sell() {

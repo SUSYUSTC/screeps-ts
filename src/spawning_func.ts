@@ -66,7 +66,7 @@ const getbody_home_defender = (options: any): BodyPartConstant[] => {
     return fullreturnbody(bodyinfo);
 }
 const getbody_help_harvester = (options: any) => {
-    return returnbody(5, 1, 5);
+    return returnbody(11, 3, 11);
 }
 const getbody_help_carrier = (options: any) => {
     let n_work = 0;
@@ -75,10 +75,11 @@ const getbody_help_carrier = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_help_builder = (options: any) => {
-    let n_work = 8;
-    let n_carry = 8;
-    let n_move = 8;
-    return returnbody(n_work, n_carry, n_move);
+    return returnbody(20, 10, 20);
+}
+const getbody_energy_carrier = (options: any) => {
+	let n = Math.ceil(25 * options.ratio);
+    return returnbody(0, 25, 25);
 }
 const getbody_wall_repairer = (options: any) => {
     let n_work = 20;
@@ -207,6 +208,7 @@ const getbody_list: type_getbody = {
     'help_harvester': getbody_help_harvester,
     'help_carrier': getbody_help_carrier,
     'help_builder': getbody_help_builder,
+	'energy_carrier': getbody_energy_carrier,
     'hunter': getbody_hunter,
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,

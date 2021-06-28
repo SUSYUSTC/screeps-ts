@@ -1,6 +1,7 @@
 import * as config from "./config";
 import * as external_room from "./external_room";
 import * as basic_job from "./basic_job";
+import * as functions from "./functions";
 
 function generate_ops(pc: PowerCreep): number {
 	// -1: not ready, 0: scheduled
@@ -62,15 +63,16 @@ function renew(pc: PowerCreep): number {
 	return -1;
 }
 
-var ops_lower_space = 250
-var ops_upper_space = 50
-var ops_exchange_space = ops_lower_space + ops_upper_space + 200;
 function exchange_ops(pc: PowerCreep): number {
 	// -1: not ready, 0: scheduled
 	let conf = config.pc_conf[pc.name];
 	if (pc.room.name !== conf.room_name) {
 		return -1;
 	}
+	let has_op_power = pc.powers[PWR_OPERATE_POWER] !== undefined;
+	let ops_lower_space = has_op_power ? 250 : 50;
+	let ops_upper_space = 50
+	let ops_exchange_space = ops_lower_space + ops_upper_space + (has_op_power ? 200 : 50);
 	if (pc.carry.getUsedCapacity("ops") >= pc.carryCapacity - ops_upper_space) {
 		pc.say("ops>");
 		if (pc.pos.getRangeTo(pc.room.terminal) > 1) {
@@ -234,15 +236,15 @@ function operate_power(pc: PowerCreep) {
 		return -1;
 	}
 	let power_amount = pc.room.terminal.store.getUsedCapacity("power");
-	let energy_amount = pc.room.storage.store.getUsedCapacity("energy");
-	let battery_amount = pc.room.storage.store.getUsedCapacity("battery");
+	let energy_amount = functions.get_total_resource_amount(pc.room.name, "energy");
+	let battery_amount = functions.get_total_resource_amount(pc.room.name, "battery");
 	let condition = false;
-	if (power_amount >= 15000) {
-		if (battery_amount * 10 + energy_amount >= 0.8e6) {
+	if (power_amount >= config.max_power) {
+		if (battery_amount * 10 + energy_amount >= config.energy_bar_to_process_operated_power) {
 			condition = true;
 		}
-	} else if (power_amount >= 2000) {
-		if (energy_amount > 0.5e6) {
+	} else if (power_amount >= config.min_power_with_op) {
+		if (pc.room.storage.store.getUsedCapacity("energy") >= config.storage_ok_energy) {
 			condition = true;
 		}
 	}

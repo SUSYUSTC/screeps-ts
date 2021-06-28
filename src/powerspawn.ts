@@ -1,3 +1,4 @@
+import * as config from "./config";
 import * as _ from "lodash";
 export function process(room_name: string) {
 	let room = Game.rooms[room_name];
@@ -13,7 +14,7 @@ export function process(room_name: string) {
 			run_process = true;
 		}
 	} else {
-		if (room.terminal.store.getUsedCapacity("power") >= 2500 && room.storage.store.getUsedCapacity("energy") >= 500000) {
+		if (room.terminal.store.getUsedCapacity("power") >= config.min_power_without_op && room.storage.store.getUsedCapacity("energy") >= config.storage_good_energy) {
 			run_process = true;
 		}
 	}

@@ -560,7 +560,7 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 
-		if (Game.time % 20 == 0 || creep.memory.mineral_type == undefined) {
+		if (Game.time % 20 == 5 || creep.memory.mineral_type == undefined) {
 			let scores = constants.general_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
 			let argmax = mymath.argmax(scores);
 			if (scores[argmax] > 0) {
@@ -648,7 +648,7 @@ export function creepjob(creep: Creep): number {
 			}
         }
 
-		if (Game.powered_rooms[creep.room.name] == undefined) {
+		if (Game.memory[creep.room.name].pc_source_level == undefined) {
 			creep.memory.next_time.wakeup = Game.time + 8;
 		} else {
 			creep.memory.next_time.wakeup = Game.time + 4;

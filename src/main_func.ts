@@ -493,8 +493,10 @@ export function set_global_memory() {
     Game.powered_rooms = {};
     for (let pc_name in config.pc_conf) {
         if (Game.powerCreeps[pc_name].room !== undefined) {
-            let level = Game.powerCreeps[pc_name].powers[PWR_REGEN_SOURCE].level;
-            Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = level;
+			let power_source = Game.powerCreeps[pc_name].powers[PWR_REGEN_SOURCE];
+			if (power_source !== undefined) {
+				Game.memory[config.pc_conf[pc_name].room_name].pc_source_level = power_source.level;
+			}
             Game.powered_rooms[config.pc_conf[pc_name].room_name] = pc_name;
         }
     }

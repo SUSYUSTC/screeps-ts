@@ -209,7 +209,6 @@ function run_main() {
 
 	timer = new Timer("market", true);
 	try {
-		market.clear_used();
 		market.regulate_all_order_prices();
 		market.auto_sell();
 		market.market_stat();
