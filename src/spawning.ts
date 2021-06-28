@@ -115,7 +115,7 @@ export function spawn(room_name: string) {
     creep_statistics();
     let game_memory = Game.memory[room_name];
     let enemies = room.find(FIND_HOSTILE_CREEPS).filter((e) => e.owner.username == 'Invader');
-    if (enemies.length > 0 && global.memory[room_name].tower_list.length == 0) {
+    if (enemies.length > 0 && global.memory[room_name].tower_list.length == 0 && room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'guard').length == 0) {
         room.find(FIND_MY_CREEPS).forEach((e) => e.suicide());
         return;
     }
@@ -282,9 +282,9 @@ export function spawn(room_name: string) {
     }
     let max_upgrade;
     if (room.controller.level == 8) {
-        let room_energy = (room.storage == undefined) ? 0 : room.storage.store.getUsedCapacity("battery") * 10 + room.storage.store.getUsedCapacity("energy");
-        let storage_condition = room_energy * 0.4 >= config.energy_bar_to_spawn_upgrader;
-        if (storage_condition || room.controller.ticksToDowngrade <= 100000) {
+        let room_energy = (room.storage == undefined) ? 0 : functions.get_total_resource_amount(room_name, "energy") + functions.get_total_resource_amount(room_name, "battery") * 10;
+        let storage_condition = room_energy >= config.energy_bar_to_spawn_upgrader;
+        if ((storage_condition && Game.cpu.bucket >= 8000) || room.controller.ticksToDowngrade <= 100000) {
             max_upgrade = 15;
         } else {
             max_upgrade = 0;
@@ -492,6 +492,7 @@ export function spawn(room_name: string) {
                     jsons.push(json);
                 }
                 if (help_carriers.length == 0 && (external_room.link.CT == undefined || external_room.link[source_name] == undefined)) {
+					let n_carry = conf_help.n_carrys !== undefined ? conf_help.n_carrys[source_name] : conf_external.carriers[source_name].number;
                     let added_memory = {
                         "source_name": source_name,
                         "external_room_name": external_room_name,
@@ -502,7 +503,7 @@ export function spawn(room_name: string) {
                         ...path_dict,
                     };
                     let options = {
-                        "max_parts": conf_help.n_carrys[source_name],
+                        "max_parts": n_carry,
                     };
                     let priority = 41;
                     let added_json = {

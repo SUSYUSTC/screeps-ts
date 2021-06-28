@@ -1,21 +1,17 @@
 export var conf_E14N59: type_conf_room =
 {
     "extensions": {
-        "2": [
+        "6": [
             [22, 32],
             [22, 29],
             [23, 29],
             [21, 29],
-            [20, 31]
-        ],
-        "3": [
+            [20, 31],
             [24, 31],
             [24, 30],
             [20, 30],
             [24, 32],
-            [20, 32]
-        ],
-        "4": [
+            [20, 32],
             [21, 33],
             [22, 28],
             [19, 31],
@@ -25,9 +21,7 @@ export var conf_E14N59: type_conf_room =
             [19, 29],
             [25, 29],
             [19, 33],
-            [23, 27]
-        ],
-        "5": [
+            [23, 27],
             [20, 34],
             [18, 30],
             [26, 30],
@@ -37,9 +31,7 @@ export var conf_E14N59: type_conf_room =
             [19, 34],
             [18, 33],
             [25, 27],
-            [20, 35]
-        ],
-        "6": [
+            [20, 35],
             [23, 26],
             [18, 28],
             [17, 31],
@@ -143,13 +135,11 @@ export var conf_E14N59: type_conf_room =
             [28, 28],
             [28, 25]
         ],
-        "4": [
+        "6": [
             [22, 34],
             [26, 34],
             [24, 34],
-            [24, 35]
-        ],
-        "6": [
+            [24, 35],
             [23, 36],
             [25, 36]
         ],
@@ -253,7 +243,7 @@ export var conf_E14N59: type_conf_room =
         },
         "MAIN": {
             "pos": [23, 33],
-            "RCL": 5
+            "RCL": 6
         },
         "S1": {
             "pos": [34, 44],
@@ -261,7 +251,7 @@ export var conf_E14N59: type_conf_room =
         },
         "S2": {
             "pos": [13, 33],
-            "RCL": 6
+            "RCL": 5
         }
     },
     "containers": {
@@ -305,7 +295,7 @@ export var conf_E14N59: type_conf_room =
     },
     "storage": {
         "pos": [25, 34],
-        "RCL": 4
+        "RCL": 6
     },
     "terminal": {
         "pos": [23, 35],
@@ -350,19 +340,19 @@ export var conf_E14N59: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 8
+            "number": 12
         },
         "S2": {
             "preferences": {
                 "CT": 0
             },
-            "number": 8
+            "number": 12
         },
         "storage": {
             "preferences": {
                 "CT": 0
             },
-            "number": 4
+            "number": 12
         }
     },
     "maincarrier": {
@@ -380,11 +370,11 @@ export var conf_E14N59: type_conf_room =
     "safe_pos": [36, 16],
     "upgraders": {
         "locations": [
-            [26, 27],
-            [26, 28],
-            [27, 28],
+            [28, 28],
             [28, 27],
-            [28, 28]
+            [27, 28],
+            [26, 28],
+            [26, 27]
         ],
         "distance": 3
     },

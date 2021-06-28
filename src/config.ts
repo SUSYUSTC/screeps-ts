@@ -184,7 +184,7 @@ export var ops_store_amount = 10000;
 export var mineral_buy_onetime_amount = 10000;
 export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
-export var ops_buy_onetime_amount = 15000;
+export var ops_buy_onetime_amount = 2000;
 
 interface type_preclaiming_rooms {
     [key: string]: {
@@ -231,10 +231,6 @@ export var help_list: type_help_list = {
 			shard_path: W9N39_path,
 			commuting_distance: global.is_main_server ? 600 : 300,
 			commuting_time: global.is_main_server ? 720 : 300,
-			n_carrys: {
-				"S1": 10,
-				"S2": 14,
-			},
 			n_energy_carriers: 1,
 			guard: 5,
 		}

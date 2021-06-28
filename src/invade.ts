@@ -5,6 +5,46 @@ import * as functions from "./functions"
 import * as basic_job from "./basic_job"
 import * as external_room from "./external_room"
 
+export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
+	let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
+	if (enemies.length > 0) {
+		let distances = enemies.map((e) => creep.pos.getRangeTo(e));
+		let argmin = mymath.argmin(distances);
+		let enemy = enemies[argmin];
+		creep.heal(creep);
+		let d = creep.pos.getRangeTo(enemy);
+		if (d > 3) {
+			let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: 3}, {flee: false});
+			creep.moveByPath(path.path);
+		} else {
+			creep.rangedAttack(enemy);
+			if (!(aggresive && d == 3)) {
+				let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: d}, {flee: true});
+				creep.moveByPath(path.path);
+			}
+		}
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+export function single_combat_melee(creep: Creep) {
+	let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
+	if (enemies.length > 0) {
+		let distances = enemies.map((e) => creep.pos.getRangeTo(e));
+		let argmin = mymath.argmin(distances);
+		let enemy = enemies[argmin];
+		if (creep.pos.getRangeTo(enemy) > 1) {
+			let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: 1}, {flee: false});
+			creep.moveByPath(path.path);
+		} else {
+			creep.attack(enemy);
+			creep.move(creep.pos.getDirectionTo(enemy));
+		}
+	}
+}
+
 var high_valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory'];
 var valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart', 'constructedWall'];
 var owned_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart'];

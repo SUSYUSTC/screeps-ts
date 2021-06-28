@@ -4,6 +4,7 @@ import * as basic_job from "./basic_job";
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
+import * as invade from "./invade"
 var moveoptions_noset: type_movetopos_options = {
 	        setmovable: false,
 };
@@ -438,18 +439,22 @@ export function creepjob(creep: Creep): number {
 			creep.say("Ge");
 			return 0;
 		}
-		let enemy = creep.room.find(FIND_HOSTILE_CREEPS)[0];
-		if (enemy !== undefined) {
-			if (creep.pos.getRangeTo(enemy) <= 3) {
-				creep.rangedAttack(enemy);
-			} else {
-				basic_job.movetopos(creep, enemy.pos, 3);
-			}
+		if (invade.single_combat_ranged(creep, false) == 0) {
 			creep.say("Gra");
 		} else {
-			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
-			basic_job.trymovetopos(creep, transferer_stay_pos);
-			creep.say("Gm");
+			let injured_creep = creep.room.find(FIND_MY_CREEPS).filter((e)=> e.hits < e.hitsMax)[0];
+			if (injured_creep !== undefined) {
+				if (creep.pos.getRangeTo(injured_creep) > 1) {
+					basic_job.movetopos(creep, injured_creep.pos, 1);
+				} else {
+					creep.heal(injured_creep);
+				}
+				creep.say("Gh");
+			} else {
+				let safe_pos = creep.room.getPositionAt(conf_external.safe_pos[0], conf_external.safe_pos[1]);
+				basic_job.trymovetopos(creep, safe_pos);
+				creep.say("Gm");
+			}
 		}
 		return 0;
 	}

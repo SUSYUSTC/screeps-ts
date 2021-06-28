@@ -83,8 +83,9 @@ const getbody_energy_carrier = (options: any) => {
 }
 const getbody_guard = (options: any) => {
     return fullreturnbody({
-		move: options.n_parts,
+		move: options.n_parts + 1,
 		ranged_attack: options.n_parts,
+		heal: 1,
 	});
 }
 const getbody_wall_repairer = (options: any) => {

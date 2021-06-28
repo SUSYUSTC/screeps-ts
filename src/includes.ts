@@ -519,7 +519,7 @@ type type_help_list = {
 			shard_path ?: type_shard_exit_point[];
             commuting_distance: number;
             commuting_time: number;
-            n_carrys: {
+            n_carrys ?: {
                 [key: string]: number;
             }
 			n_energy_carriers: number;
