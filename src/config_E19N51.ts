@@ -225,7 +225,7 @@ export var conf_E19N51: type_conf_room =
     "links": {
         "CT": {
             "pos": [17, 22],
-            "RCL": 5
+            "RCL": 6
         },
         "L1": {
             "pos": [13, 17],
@@ -245,7 +245,7 @@ export var conf_E19N51: type_conf_room =
         },
         "S2": {
             "pos": [23, 9],
-            "RCL": 5
+            "RCL": 6
         }
     },
     "containers": {

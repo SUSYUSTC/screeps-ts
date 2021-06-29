@@ -126,14 +126,12 @@ export var conf_W9N39: type_conf_room =
             [37, 16],
             [33, 15]
         ],
-        "5": [
-            [31, 13]
-        ],
         "6": [
             [41, 17],
             [41, 18],
             [40, 18],
             [42, 17],
+            [31, 13],
             [37, 20],
             [38, 21],
             [39, 22],
@@ -211,7 +209,7 @@ export var conf_W9N39: type_conf_room =
     "links": {
         "CT": {
             "pos": [30, 14],
-            "RCL": 5
+            "RCL": 6
         },
         "L1": {
             "pos": [41, 13],
@@ -227,7 +225,7 @@ export var conf_W9N39: type_conf_room =
         },
         "S2": {
             "pos": [10, 33],
-            "RCL": 5
+            "RCL": 6
         }
     },
     "containers": {

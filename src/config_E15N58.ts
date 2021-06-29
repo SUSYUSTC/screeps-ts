@@ -270,7 +270,7 @@ export var conf_E15N58: type_conf_room =
     "links": {
         "CT": {
             "pos": [34, 6],
-            "RCL": 5
+            "RCL": 6
         },
         "L2": {
             "pos": [43, 10],
@@ -282,7 +282,7 @@ export var conf_E15N58: type_conf_room =
         },
         "S1": {
             "pos": [19, 26],
-            "RCL": 5
+            "RCL": 6
         },
         "S2": {
             "pos": [37, 18],

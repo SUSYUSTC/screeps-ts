@@ -153,9 +153,7 @@ export var conf_E19N53: type_conf_room =
             [8, 24],
             [7, 23],
             [6, 24],
-            [5, 25],
-            [39, 16],
-            [39, 17]
+            [5, 25]
         ],
         "6": [
             [19, 17],
@@ -167,6 +165,8 @@ export var conf_E19N53: type_conf_room =
             [23, 12],
             [25, 12],
             [24, 10],
+            [39, 16],
+            [39, 17],
             [28, 6],
             [29, 6],
             [30, 6],
@@ -254,7 +254,7 @@ export var conf_E19N53: type_conf_room =
     "links": {
         "CT": {
             "pos": [38, 17],
-            "RCL": 5
+            "RCL": 6
         },
         "L1": {
             "pos": [29, 5],
@@ -274,7 +274,7 @@ export var conf_E19N53: type_conf_room =
         },
         "S2": {
             "pos": [6, 5],
-            "RCL": 5
+            "RCL": 6
         }
     },
     "containers": {

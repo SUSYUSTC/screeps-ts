@@ -122,8 +122,7 @@ export var conf_E16N58: type_conf_room =
             [40, 26],
             [39, 25],
             [40, 24],
-            [41, 23],
-            [17, 25]
+            [41, 23]
         ],
         "6": [
             [33, 35],
@@ -146,7 +145,8 @@ export var conf_E16N58: type_conf_room =
             [35, 25],
             [35, 26],
             [36, 26],
-            [37, 25]
+            [37, 25],
+            [17, 25]
         ],
         "7": [
             [39, 23],
@@ -245,7 +245,7 @@ export var conf_E16N58: type_conf_room =
     "links": {
         "CT": {
             "pos": [17, 26],
-            "RCL": 5
+            "RCL": 6
         },
         "L1": {
             "pos": [43, 15],
@@ -265,7 +265,7 @@ export var conf_E16N58: type_conf_room =
         },
         "S2": {
             "pos": [36, 31],
-            "RCL": 5
+            "RCL": 6
         }
     },
     "containers": {
