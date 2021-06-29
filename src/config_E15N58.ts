@@ -375,7 +375,7 @@ export var conf_E15N58: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 14
         },
         "S2": {
             "preferences": {

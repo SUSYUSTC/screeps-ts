@@ -326,7 +326,7 @@ export var conf_W9N39: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 14
+            "number": 16
         },
         "storage": {
             "preferences": {

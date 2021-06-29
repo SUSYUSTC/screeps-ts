@@ -5,6 +5,7 @@ import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
 import * as invade from "./invade"
+import * as cross_shard from "./cross_shard";
 var moveoptions_noset: type_movetopos_options = {
 	        setmovable: false,
 };
@@ -232,6 +233,7 @@ export function creepjob(creep: Creep): number {
 			}
 			creep.say("ce");
 		} else {
+			cross_shard.delete_creep_from_shardmemory(creep);
 			if (creep.room.controller.my) {
 				creep.suicide();
 				return 0;
@@ -265,6 +267,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("ECm");
 			return;
 		}
+		cross_shard.delete_creep_from_shardmemory(creep);
 		if (creep.store.getUsedCapacity("energy") > 0) {
 			if (creep.room.storage !== undefined) {
 				basic_job.transfer(creep, creep.room.storage);
@@ -307,6 +310,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("HHe");
 			return 0;
 		}
+		cross_shard.delete_creep_from_shardmemory(creep);
 		if (basic_job.trymovetopos(creep, container_pos) !== 2) {
 			creep.say("HHm");
 			return 0;
@@ -332,6 +336,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCe");
 			return 0;
 		}
+		cross_shard.delete_creep_from_shardmemory(creep);
 		let source_name = creep.memory.source_name;
 		if (creep.room.link[source_name] !== undefined && creep.room.link.CT !== undefined) {
 			creep.suicide();
@@ -359,14 +364,14 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCd");
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			if (container_source.store.getUsedCapacity("energy") >= creep.store.getCapacity()) {
-				basic_job.withdraw(creep, container_source);
-			}
+			basic_job.withdraw(creep, container_source);
 			creep.say("HCw");
 			return 0;
 		}
 		if (container_MDCT !== undefined) {
-			if (creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(container_MDCT) <= 5).length == 0) {
+			let in_range = creep.pos.getRangeTo(container_MDCT) <= 3;
+			let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(container_MDCT) <= 3).length > 0;
+			if (!(in_range && energy_carriers_in_range)) {
 				basic_job.transfer(creep, container_MDCT);
 			}
 			creep.say("HCt1");
@@ -381,7 +386,9 @@ export function creepjob(creep: Creep): number {
 	} else if (creep.memory.role == 'help_builder') {
 		creep.say("HB");
 		creep.memory.movable = false;
-		creep.memory.crossable = true;
+		if (creep.memory.crossable == undefined) {
+			creep.memory.crossable = true;
+		}
 		if (creep.memory.request_boost) {
 			if (basic_job.boost_request(creep, {"work": "GH2O"}, true) == 1) {
 				creep.say("HBb");
@@ -399,6 +406,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("HBe");
 			return 0;
 		}
+		cross_shard.delete_creep_from_shardmemory(creep);
 		if (creep.ticksToLive < 20 && creep.store.getUsedCapacity("energy") == 0) {
 			creep.suicide();
 			creep.say("HBd");
@@ -420,7 +428,9 @@ export function creepjob(creep: Creep): number {
 			creep.say("HBc");
 			return 0;
 		}
-		basic_job.upgrade_controller(creep, creep.room.controller);
+		let locations = conf_external.upgraders.locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
+		basic_job.movetoposexceptoccupied(creep, locations);
+		creep.upgradeController(creep.room.controller);
 		creep.memory.crossable = false;
 		creep.say("HBu");
 		return 0;
@@ -439,6 +449,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("Ge");
 			return 0;
 		}
+		cross_shard.delete_creep_from_shardmemory(creep);
 		if (invade.single_combat_ranged(creep, false) == 0) {
 			creep.say("Gra");
 		} else {

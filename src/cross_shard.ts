@@ -222,3 +222,14 @@ export function update_shard_memory() {
 	}
 }
 
+export function delete_creep_from_shardmemory(creep: Creep) {
+	if (!global.is_main_server) {
+		return;
+	}
+	let all_creeps = Game.InterShardMemory[Game.shard.name].all_creeps
+	if (all_creeps[creep.name] !== undefined) {
+		delete all_creeps[creep.name];
+		Game.require_update_intershardmemory = true;
+		Game.require_update_intershardmemory = true;
+	}
+}

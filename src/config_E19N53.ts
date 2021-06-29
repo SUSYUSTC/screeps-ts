@@ -363,13 +363,13 @@ export var conf_E19N53: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 14
+            "number": 16
         },
         "S2": {
             "preferences": {
                 "CT": 0
             },
-            "number": 14
+            "number": 18
         },
         "storage": {
             "preferences": {

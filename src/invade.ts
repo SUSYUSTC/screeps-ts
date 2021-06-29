@@ -19,7 +19,7 @@ export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
 		} else {
 			creep.rangedAttack(enemy);
 			if (!(aggresive && d == 3)) {
-				let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: d}, {flee: true});
+				let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: d+1}, {flee: true});
 				creep.moveByPath(path.path);
 			}
 		}

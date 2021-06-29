@@ -518,7 +518,7 @@ export function spawn(room_name: string) {
             let help_builders = room_statistics.help_builder.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_time + 150)).map((e) => e.name);
             help_builders = help_builders.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_builder' && shard_creeps[e].external_room_name == external_room_name));
             if (help_builders.length < 1 + (level1 ? 0 : conf_help.n_energy_carriers)) {
-                let request_boost = !level1 && external_room.memory.sites_total_progressleft < conf_help.commuting_time * 20 && external_room.controller.progressTotal - external_room.controller.progress >= 60000;
+                let request_boost = !level1 && external_room.memory.sites_total_progressleft < conf_help.commuting_time * 20;
                 let added_memory = {
                     "external_room_name": external_room_name,
                     "home_room_name": room_name,
@@ -561,7 +561,7 @@ export function spawn(room_name: string) {
                 let json = spawning_func.prepare_role("energy_carrier", room.energyAvailable, added_memory, options, added_json);
                 jsons.push(json);
             }
-			if (conf_help.guard !== undefined && external_room.controller.level <= 3) {
+			if (conf_help.guard !== undefined && external_room.controller.level <= 2) {
 				let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_time + conf_help.guard * 6)).map((e) => e.name);
 				guards = guards.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name));
 				if (guards.length == 0) {

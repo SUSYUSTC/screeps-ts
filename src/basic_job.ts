@@ -490,12 +490,12 @@ export function repair_container(creep: Creep, container: StructureContainer = u
 }
 export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options = {}) {
     let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => !e.spawning);
+	if (spawns.length == 0) {
+		return -1;
+	}
     let distances = spawns.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distances);
     let closest_spawn = spawns[argmin];
-	if (closest_spawn == undefined) {
-		return -1;
-	}
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
