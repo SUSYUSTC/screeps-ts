@@ -181,10 +181,11 @@ export function harvest_source(creep: Creep, source: Source | Mineral, moveoptio
 
 export function withdraw(creep: Creep, structure: AnyStoreStructure, options: {
     left ? : number,
+	exact ? : boolean,
     sourcetype ? : ResourceConstant,
     moveoptions ? : type_movetopos_options
 } = {}) {
-    // 0: move, 1: withdraw
+    // -1: not doing anything, 0: move, 1: withdraw
     if (options.left == undefined) {
         options.left = 0;
     }
@@ -194,18 +195,22 @@ export function withdraw(creep: Creep, structure: AnyStoreStructure, options: {
     if (options.moveoptions == undefined) {
         options.moveoptions = {};
     }
-    let amount = ( < GeneralStore > structure.store).getUsedCapacity(options.sourcetype);
-    if (amount >= options.left) {
-        var output = creep.withdraw(structure, options.sourcetype, Math.min(amount - options.left, creep.store.getFreeCapacity(options.sourcetype)));
-        if (output == ERR_NOT_IN_RANGE) {
-            movetopos(creep, structure.pos, 1, options.moveoptions);
-            return 0;
-        } else if (output !== 0) {
-            return 1;
-        }
-    } else {
-        return 1;
-    }
+	if (options.exact == undefined) {
+		options.exact = false;
+	}
+	if (creep.pos.getRangeTo(structure) > 1) {
+		movetopos(creep, structure.pos, 1, options.moveoptions);
+		return 0;
+	} else {
+		let amount = ( < GeneralStore > structure.store).getUsedCapacity(options.sourcetype);
+		if (amount < options.left) {
+			return -1;
+		}
+		if (options.exact && amount - options.left < creep.store.getFreeCapacity(options.sourcetype)) {
+			return -1;
+		}
+		creep.withdraw(structure, options.sourcetype, Math.min(amount - options.left, creep.store.getFreeCapacity(options.sourcetype)));
+	}
 }
 
 export function transfer(creep: Creep, structure: AnyStoreStructure | Creep, options: {

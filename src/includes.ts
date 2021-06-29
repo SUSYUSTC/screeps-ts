@@ -732,10 +732,8 @@ declare module NodeJS {
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
         send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number, onetime_max: number): number;
         restrict_passing_rooms(room_name: string): CostMatrix;
-        //set_product_request(resource: MineralCompoundConstant, number: number): number;
-        //init_product_request(): number;
-        get_product_request(room_name: string): type_product_request;
-        //refresh_product_request(): number;
+        //get_product_request(room_name: string): type_product_request;
+        get_product_request(room_name: string, resource: GeneralMineralConstant, is_final: boolean): MineralCompoundConstant | '';
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
         update_layout(room_name: string, check_all: boolean): any;

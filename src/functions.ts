@@ -257,7 +257,7 @@ export function analyze_component(creep: Creep): type_creep_components {
 }
 
 export function is_single_boost_resource_enough(room_name: string, resource: ResourceConstant, n_boost_parts: number) {
-	return Game.rooms[room_name].terminal.store.getUsedCapacity(resource) > n_boost_parts * 30;
+	return Game.rooms[room_name].terminal.store.getUsedCapacity(resource) >= n_boost_parts * 30;
 }
 
 export function is_boost_resource_enough(room_name: string, request: type_body_conf): boolean {

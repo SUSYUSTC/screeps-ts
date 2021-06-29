@@ -132,7 +132,6 @@ export var pc_conf: type_pc_conf = {
         "normal_ordered": false,
     },
 }
-export var newroom_independence_energy = 2300;
 export var double_powered_harvester = true;
 export var hunting: type_hunting = {};
 export var source_container_upper_limit: number = 1200;

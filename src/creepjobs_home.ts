@@ -163,7 +163,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, container_source, {left: 300});
+			basic_job.withdraw(creep, container_source, {exact: true});
 			creep.say("Cw")
 		} else {
             let prefered_container = basic_job.preferred_container(creep, conf.carriers[source_name].preferences);

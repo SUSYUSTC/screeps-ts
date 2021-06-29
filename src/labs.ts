@@ -33,6 +33,60 @@ function process_product_request(product_request: type_product_request, obj: Gen
 	process_product_request(product_request, reactant2, product_request[obj]);
 }
 
+global.set_reaction_request = function(room_name: string, compound: MineralCompoundConstant): number {
+    let room = Game.rooms[room_name];
+    if (constants.allowed_reactions[compound] == undefined) {
+        return 1;
+    } else {
+        let reactants = constants.allowed_reactions[compound];
+        room.memory.reaction_request = {
+            "reactant1": reactants[0],
+            "reactant2": reactants[1],
+            "product": compound
+        };
+		room.memory.reaction_status = "fill";
+        return 0;
+    }
+}
+
+global.get_product_request = function(room_name: string, resource: GeneralMineralConstant, is_final: boolean): MineralCompoundConstant | '' {
+	// undefined: not available, '': enough
+	let final_request = config.final_product_request[resource];
+	let current_amount = functions.get_total_resource_amount(room_name, resource)
+	let expect_amount: number;
+	if (final_request !== undefined) {
+		expect_amount = final_request.store_room == room_name ? final_request.store_expect_amount : final_request.expect_amount;
+		if (!is_final) {
+			expect_amount += config.react_init_amount;
+		}
+	} else {
+		expect_amount = config.react_init_amount;
+	}
+	if (current_amount >= expect_amount) {
+		return '';
+	} else {
+		if (constants.basic_minerals.includes(<MineralConstant>resource)) {
+			if (functions.get_total_resource_amount(room_name, resource) >= config.react_init_amount) {
+				return '';
+			} else {
+				return undefined;
+			}
+		}
+		resource = <MineralCompoundConstant> resource;
+		let reactants = constants.allowed_reactions[resource];
+		for (let reactant of reactants) {
+			let out = global.get_product_request(room_name, reactant, false);
+			if (out == '') {
+				continue;
+			} else {
+				return out;
+			}
+		}
+		return resource;
+	}
+}
+
+/*
 global.get_product_request = function(room_name: string): type_product_request {
 	let room = Game.rooms[room_name];
 	let product_request: type_product_request = {};
@@ -53,22 +107,6 @@ global.get_product_request = function(room_name: string): type_product_request {
     return product_request;
 }
 
-global.set_reaction_request = function(room_name: string, compound: MineralCompoundConstant): number {
-    let room = Game.rooms[room_name];
-    if (constants.allowed_reactions[compound] == undefined) {
-        return 1;
-    } else {
-        let reactants = constants.allowed_reactions[compound];
-        room.memory.reaction_request = {
-            "reactant1": reactants[0],
-            "reactant2": reactants[1],
-            "product": compound
-        };
-		room.memory.reaction_status = "fill";
-        return 0;
-    }
-}
-
 function determine_reaction_request(room_name: string) {
     let room = Game.rooms[room_name];
     if (room.memory.reaction_request == undefined) {
@@ -86,9 +124,25 @@ function determine_reaction_request(room_name: string) {
 		}
     }
 }
+*/
+function determine_reaction_request(room_name: string) {
+    let room = Game.rooms[room_name];
+    if (room.memory.reaction_request == undefined) {
+		for (let compound of <Array<MineralCompoundConstant>> Object.keys(config.final_product_request)) {
+			let product = global.get_product_request(room_name, compound, true);
+			if (product == undefined || product == '') {
+				continue;
+			} else {
+				console.log("going to set reaction request", room_name, product);
+				global.set_reaction_request(room_name, product);
+				return;
+			}
+		}
+    }
+}
 
 export function prepare() {
-	if (Game.time % 50 !== 0) {
+	if (Game.time % 25 !== 0) {
 		return;
 	}
     for (let room_name of Game.controlled_rooms_with_terminal) {

@@ -364,7 +364,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCd");
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, container_source);
+			basic_job.withdraw(creep, container_source, {exact: true});
 			creep.say("HCw");
 			return 0;
 		}
@@ -413,9 +413,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (creep.room.container.CT !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
-			if (creep.room.container.CT.store.getUsedCapacity("energy") >= creep.store.getFreeCapacity("energy")) {
-				basic_job.withdraw(creep, creep.room.container.CT);
-			}
+			basic_job.withdraw(creep, creep.room.container.CT);
 			creep.say("HBw");
 			return 0;
 		}

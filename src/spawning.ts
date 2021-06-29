@@ -35,6 +35,15 @@ function get_path_dict(obj: type_general_path_obj): CreepMemory {
     }
 }
 
+function is_independent_room(room_name: string): boolean {
+	let room = Game.rooms[room_name];
+	if (room == undefined) {
+		return false;
+	}
+	let is_independent_room = room.controller.level >=7 || (room.energyCapacityAvailable >= 2300 && Game.controlled_rooms_with_terminal.includes(room_name) && room.lab.R1 !== undefined && Object.keys(room.link).length == 3);
+	return is_independent_room;
+}
+
 export function get_mine_conf(remaining_amount: number, distance: number): {
     work: number,
     carry: number
@@ -122,7 +131,7 @@ export function spawn(room_name: string) {
     let conf = config.conf_rooms[room.name];
     let room_statistics = Game.creep_statistics[room_name];
     let sources_name = Object.keys(conf.sources);
-    if (room.energyCapacityAvailable < config.newroom_independence_energy) {
+    if (!is_independent_room(room_name)) {
         return;
     }
     let link_modes = Object.keys(room.link);
@@ -460,7 +469,7 @@ export function spawn(room_name: string) {
             if (external_room == undefined || external_room.controller.owner == undefined || external_room.controller.owner.username !== config.username) {
                 continue;
             }
-            if (external_room.energyCapacityAvailable >= config.newroom_independence_energy) {
+            if (is_independent_room(external_room_name)) {
                 continue;
             }
             let conf_help = config.help_list[room_name][external_room_name];
@@ -518,7 +527,7 @@ export function spawn(room_name: string) {
             let help_builders = room_statistics.help_builder.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_time + 150)).map((e) => e.name);
             help_builders = help_builders.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_builder' && shard_creeps[e].external_room_name == external_room_name));
             if (help_builders.length < 1 + (level1 ? 0 : conf_help.n_energy_carriers)) {
-                let request_boost = !level1 && external_room.memory.sites_total_progressleft < conf_help.commuting_time * 20;
+                let request_boost = !level1 && (external_room.memory.sites_total_progressleft < conf_help.commuting_time * 20) && functions.is_boost_resource_enough(room_name, {"work": {boost: "GH2O", number: 20}});
                 let added_memory = {
                     "external_room_name": external_room_name,
                     "home_room_name": room_name,
