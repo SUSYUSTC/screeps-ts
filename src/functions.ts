@@ -305,6 +305,20 @@ export function conf_body_to_boost_request(conf: type_body_conf): type_creep_boo
 	return result;
 }
 
+export function boost_request_to_conf_body(creep: Creep, request: type_creep_boost_request): type_body_conf {
+	let result: type_body_conf = {};
+	for (let part of <Array<BodyPartConstant>> Object.keys(BODYPART_COST)) {
+		result[part] = {
+			number: creep.getActiveBodyparts(part),
+			boost: request[part],
+		}
+		if (request[part] !== undefined) {
+			result[part].boost = request[part];
+		}
+	}
+	return result;
+}
+
 export function conf_body_to_body_components(conf: type_body_conf): type_body_components {
 	let result: type_body_components = {};
 	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {

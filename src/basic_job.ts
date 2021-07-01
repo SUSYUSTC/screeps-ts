@@ -239,10 +239,20 @@ export function upgrade_controller(creep: Creep, controller: StructureController
 	}
 }
 
-export function build_structure(creep: Creep, moveoptions: type_movetopos_options = {}) {
+export function build_structure(creep: Creep, moveoptions: type_movetopos_options = {}, options: {priority_list ?: StructureConstant[]} = {}) {
     // 0: found, 1: not found
+	if (options.priority_list == undefined) {
+		options.priority_list = [];
+	}
     let targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
     if (targets.length > 0) {
+		for (let structureType of options.priority_list) {
+			let prior_targets = targets.filter((e) => e.structureType == structureType);
+			if (prior_targets.length > 0) {
+				targets = prior_targets;
+				break;
+			}
+		}
         let distance = targets.map((e) => creep.pos.getRangeTo(e));
         let argmin = mymath.argmin(distance);
         let target = targets[argmin];
@@ -457,26 +467,17 @@ export function process_boost_request(creep: Creep, request: type_creep_boost_re
 export function boost_request(creep: Creep, request: type_creep_boost_request, required: boolean, moveoptions: type_movetopos_options = {}) {
     // 0: finished, 1: processing, 2: not found
     if (creep.memory.request_boost == undefined) {
-        creep.memory.request_boost = true;
+        creep.memory.request_boost = required || functions.is_boost_resource_enough(creep.room.name, functions.boost_request_to_conf_body(creep, request));
     }
     if (!creep.memory.request_boost) {
         return 2;
     }
     let out = process_boost_request(creep, request, moveoptions);
-    if (required) {
-        if (out > 0) {
-            return 1;
-        } else {
-            return 0;
-        }
-    } else {
-        if (out > 1) {
-            creep.memory.request_boost = false;
-            return 2;
-        } else {
-            return out;
-        }
-    }
+	if (out > 0) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 export function repair_container(creep: Creep, container: StructureContainer = undefined) {

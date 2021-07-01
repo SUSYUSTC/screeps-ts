@@ -259,7 +259,7 @@ function update_link_and_container(room_name: string) {
         let source_pos = Game.getObjectById(conf.sources[source_name]).pos;
         room.visual.text(source_name, source_pos.x, source_pos.y);
     }
-    if (link_modes.includes('MAIN')) {
+    if (link_modes.includes('MAIN') && room.storage !== undefined) {
         let source_links = link_modes.filter((e) => game_memory.are_links_source[e] == true && room.link[e].cooldown <= 3)
         let sink_links = link_modes.filter((e) => game_memory.are_links_source[e] == false)
         let link_energies: {
@@ -508,5 +508,13 @@ export function set_global_memory() {
     functions.update_basic_costmatrices();
 
     timer.end();
+}
+
+function is_independent_room(room_name: string): boolean {
+	let room = Game.rooms[room_name];
+	return room.controller.level >=7 || (room.energyCapacityAvailable >= 2300 && Game.controlled_rooms_with_terminal.includes(room_name) && room.lab.B1 !== undefined && Object.keys(room.link).length == 3);
+}
+export function set_global_memory_last() {
+	Game.independent_rooms = Game.controlled_rooms_with_terminal.filter((e) => is_independent_room(e));
 }
 global.update_layout = update_layout

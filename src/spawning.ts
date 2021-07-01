@@ -35,15 +35,6 @@ function get_path_dict(obj: type_general_path_obj): CreepMemory {
     }
 }
 
-function is_independent_room(room_name: string): boolean {
-	let room = Game.rooms[room_name];
-	if (room == undefined) {
-		return false;
-	}
-	let is_independent_room = room.controller.level >=7 || (room.energyCapacityAvailable >= 2300 && Game.controlled_rooms_with_terminal.includes(room_name) && room.lab.R1 !== undefined && Object.keys(room.link).length == 3);
-	return is_independent_room;
-}
-
 export function get_mine_conf(remaining_amount: number, distance: number): {
     work: number,
     carry: number
@@ -131,7 +122,7 @@ export function spawn(room_name: string) {
     let conf = config.conf_rooms[room.name];
     let room_statistics = Game.creep_statistics[room_name];
     let sources_name = Object.keys(conf.sources);
-    if (!is_independent_room(room_name)) {
+    if (!Game.independent_rooms.includes(room_name)) {
         return;
     }
     let link_modes = Object.keys(room.link);
@@ -224,10 +215,9 @@ export function spawn(room_name: string) {
         }
     }
 
-    if (!("storage_level" in room.memory)) {
+    if (room.memory.storage_level == undefined) {
         room.memory.storage_level = 0;
     }
-    let added_upgraders = 0;
     if (room.storage !== undefined || config.storage_bars == undefined) {
         let storage_bars = config.storage_bars;
         if ("storage" in room) {
@@ -238,7 +228,7 @@ export function spawn(room_name: string) {
                 room.memory.storage_level -= 1;
             }
         }
-        added_upgraders = 2 * room.memory.storage_level;
+		/*
         if (room.storage.store.getUsedCapacity("energy") > storage_bars[0] && !(link_modes.includes('CT') && link_modes.includes('MAIN')) && !game_memory.danger_mode) {
             let storage_carriers = room_statistics.carrier.filter((e) => is_valid_creep(e, Math.ceil(conf.carriers.storage.number * 4.5) + 10) && e.memory.source_name == 'storage');
             if (storage_carriers.length < room.memory.storage_level) {
@@ -260,6 +250,7 @@ export function spawn(room_name: string) {
                 jsons.push(json);
             }
         }
+		*/
     }
     let n_builds_needed = 0;
     if (room.memory.sites_total_progressleft > 0 && !game_memory.danger_mode) {
@@ -275,10 +266,13 @@ export function spawn(room_name: string) {
         }
         n_builds_needed = Math.min(max_build, Math.ceil(room.memory.sites_total_progressleft / 2000));
         if (n_builds < n_builds_needed && room.memory.ticks_to_spawn_builder == 0) {
-            let added_memory = {};
+			let n_parts = Math.min(max_build, n_builds_needed);
+            let added_memory: CreepMemory = {
+				request_boost: (room.memory.sites_total_progressleft >= n_parts * 1800),
+			};
             let options = {
                 "max_energy": room.energyCapacityAvailable,
-                "max_parts": Math.min(max_build, n_builds_needed),
+                "max_parts": n_parts,
             };
             let priority = 2;
             let added_json = {
@@ -299,7 +293,7 @@ export function spawn(room_name: string) {
             max_upgrade = 0;
         }
     } else {
-        max_upgrade = 18 + added_upgraders * 9;
+        max_upgrade = (room.memory.storage_level + 1) * 18;
         if (room.storage == undefined || room.storage.store.getUsedCapacity("energy") < 5000) {
             max_upgrade -= n_builds_needed * 3;
         }
@@ -317,11 +311,11 @@ export function spawn(room_name: string) {
         }
         let upgraders = room_statistics.upgrader.filter((e) => is_valid_creep(e, conf.upgraders.distance * commuting_time_factor + upgrader_spawning_time));
         let n_upgrades = spawning_func.get_nbody(upgraders, 'work');
-        if (n_upgrades < max_upgrade) {
+        if (n_upgrades < max_upgrade && upgraders.length < conf.upgraders.locations.length) {
             let added_memory: any = {};
             let options = {
                 "max_energy": room.energyCapacityAvailable,
-                rcl8: (room.controller.level == 8),
+                "rcl8": (room.controller.level == 8),
             };
             let priority = 0;
             let added_json = {
@@ -390,9 +384,7 @@ export function spawn(room_name: string) {
             break if_mine;
         }
         if (n_mineharvesters == 0) {
-            let added_memory = {
-                need_boost: true,
-            };
+            let added_memory = { };
             let options = {
                 work: mine_conf.work,
                 move: Math.ceil(mine_conf.work / 4),
@@ -406,9 +398,7 @@ export function spawn(room_name: string) {
             jsons.push(json);
         }
         if (n_minecarriers == 0) {
-            let added_memory = {
-                need_boost: true,
-            };
+            let added_memory = { };
             let options = {
                 carry: mine_conf.carry,
                 move: Math.ceil(mine_conf.carry / 2),
@@ -469,7 +459,7 @@ export function spawn(room_name: string) {
             if (external_room == undefined || external_room.controller.owner == undefined || external_room.controller.owner.username !== config.username) {
                 continue;
             }
-            if (is_independent_room(external_room_name)) {
+            if (Game.independent_rooms.includes(external_room_name)) {
                 continue;
             }
             let conf_help = config.help_list[room_name][external_room_name];
@@ -524,20 +514,24 @@ export function spawn(room_name: string) {
                 }
             }
 			let level1 = external_room.controller.level == 1;
+			let level6 = external_room.controller.level == 6;
             let help_builders = room_statistics.help_builder.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_time + 150)).map((e) => e.name);
             help_builders = help_builders.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_builder' && shard_creeps[e].external_room_name == external_room_name));
-            if (help_builders.length < 1 + (level1 ? 0 : conf_help.n_energy_carriers)) {
-                let request_boost = !level1 && (external_room.memory.sites_total_progressleft < conf_help.commuting_time * 20) && functions.is_boost_resource_enough(room_name, {"work": {boost: "GH2O", number: 20}});
-                let added_memory = {
+            if (help_builders.length < 1 + (level1 || level6 ? 0 : conf_help.n_energy_carriers)) {
+				let subrole = (level6 ? "builder" : "upgrader");
+                let request_boost = !level1;
+                let added_memory: CreepMemory = {
                     "external_room_name": external_room_name,
                     "home_room_name": room_name,
                     "request_boost": request_boost,
+					"subrole": subrole,
                 };
                 added_memory = {
                     ...added_memory,
                     ...path_dict,
                 };
                 let options = {
+					"subrole": subrole,
 				};
                 let priority = 40;
                 let added_json = {

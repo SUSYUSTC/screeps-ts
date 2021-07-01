@@ -4,19 +4,6 @@ import * as config from "./config";
 import {
     Timer
 } from "./timer"
-const body_cost: {
-    [key in BodyPartConstant]: number
-} = {
-    "tough": 10,
-    "move": 50,
-    "carry": 50,
-    "work": 100,
-    "attack": 80,
-    "ranged_attack": 150,
-    "heal": 250,
-    "claim": 600
-}
-
 function returnbody(n_work: number, n_carry: number, n_move: number): BodyPartConstant[] {
     var body: BodyPartConstant[] = [];
     for (var i = 0; i < n_work; ++i) {
@@ -75,7 +62,11 @@ const getbody_help_carrier = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_help_builder = (options: any) => {
-    return returnbody(20, 10, 20);
+	if (options.subrole == 'builder') {
+		return returnbody(16, 16, 16);
+	} else {
+		return returnbody(20, 10, 20);
+	}
 }
 const getbody_energy_carrier = (options: any) => {
 	let n = Math.ceil(25 * options.ratio);
@@ -114,7 +105,9 @@ const getbody_upgrader = (options: any): BodyPartConstant[] => {
     if (options.rcl8) {
         return returnbody(15, 3, 8);
     } else {
-        if (options.max_energy >= 2150) {
+		if (options.max_energy >= 4300) {
+            return returnbody(36, 8, 6);
+		} else if (options.max_energy >= 2150) {
             return returnbody(18, 4, 3);
         } else if (options.max_energy >= 1200) {
             return returnbody(10, 2, 2);
@@ -224,7 +217,7 @@ const getbody_list: type_getbody = {
 }
 
 export function get_cost(body: BodyPartConstant[]): number {
-    return mymath.array_sum(body.map((e) => body_cost[e]));
+    return mymath.array_sum(body.map((e) => BODYPART_COST[e]));
 }
 
 export function get_nbody(creeps: Creep[], bodyname: BodyPartConstant): number {

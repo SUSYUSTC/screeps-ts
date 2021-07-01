@@ -272,10 +272,10 @@ function get_energy_status(creep_amount: number, link_amount: number, link_targe
     } else if (storage_amount < config.storage_min_energy && factory_amount + creep_amount >= config.factory_min_energy) {
         source = "factory";
     }
-    if (storage_amount + creep_amount >= config.storage_full && nuker_amount !== undefined && nuker_amount < config.nuker_full_energy) {
+    if (storage_amount + creep_amount >= config.storage_min_energy && nuker_amount !== undefined && nuker_amount < config.nuker_full_energy) {
         sink = "nuker";
     }
-    if (storage_amount + creep_amount >= config.storage_full && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
+    if (storage_amount + creep_amount >= config.storage_min_energy && powerspawn_amount !== undefined && powerspawn_amount < 3000) {
         sink = "powerspawn";
     }
     if (terminal_amount !== undefined) {

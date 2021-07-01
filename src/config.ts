@@ -143,22 +143,23 @@ export var main_link_amount_sink: number = 0;
 export var wall_strength: number = 5000;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
-export var upgrader_boost_compound: MineralBoostConstant = "GH2O";
-export var builder_boost_compound: MineralBoostConstant = "LH2O";
 export var defense_compounds_storage_room = 'E19N55';
 export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
+export var newroom_energy_buying_price = {
+    price: 0.6,
+    interval: 200,
+}
 
-export var storage_bars: number[] = [40000, 80000, 120000, 160000];
-export var storage_gap = 40000;
-export var storage_full = 200000;
+export var storage_gap = 50000;
+export var storage_bars: number[] = [1, 2, 3, 4, 5].map((e) => e * storage_gap);
 export var energy_bar_to_spawn_upgrader: number = 1.0e6;
 export var energy_bar_to_process_operated_power: number = 0.8e6;
 export var energy_bar_to_process_not_operated_power: number = 1.2e6;
 export var min_power_with_op = 2000;
 export var min_power_without_op = 3000;
 export var max_power = 15000;
-export var storage_min_energy = storage_full; // battery -> energy
+export var storage_min_energy = 200000; // battery -> energy
 export var storage_ok_energy = 300000; // process power
 export var storage_good_energy = 400000; // process power
 export var storage_max_energy = 500000; // energy -> battery
@@ -191,49 +192,99 @@ interface type_preclaiming_rooms {
     }
 }
 if (global.is_main_server) {
-	var W9N39_path = [
-		{ shard: 'shard3', roomName: 'E10N50', x: 7, y: 17 },
-		{ shard: 'shard2', roomName: 'E10N50', x: 37, y: 30 },
-		{ shard: 'shard1', roomName: 'E10N50', x: 29, y: 30 },
-		{ shard: 'shard0', roomName: 'E19N90', x: 48, y: 47 },
-		{ shard: 'shard0', roomName: 'E20N80', x: 39, y: 25 },
-		{ shard: 'shard1', roomName: 'E10N40', x: 28, y: 26 },
-		{ shard: 'shard0', roomName: 'E10N79', x: 11, y: 1 },
-		{ shard: 'shard0', roomName: 'W20N80', x: 24, y: 22 },
-		{ shard: 'shard1', roomName: 'W10N40', x: 20, y: 39 },
-		{ shard: 'shard2', roomName: 'W10N40', x: 40, y: 6 },
-		{ shard: 'shard3', roomName: 'W9N39', x: 24, y: 15 },
-	]
+    var W9N39_path = [{
+        shard: 'shard3',
+        roomName: 'E10N50',
+        x: 7,
+        y: 17
+    }, {
+        shard: 'shard2',
+        roomName: 'E10N50',
+        x: 37,
+        y: 30
+    }, {
+        shard: 'shard1',
+        roomName: 'E10N50',
+        x: 29,
+        y: 30
+    }, {
+        shard: 'shard0',
+        roomName: 'E19N90',
+        x: 48,
+        y: 47
+    }, {
+        shard: 'shard0',
+        roomName: 'E20N80',
+        x: 39,
+        y: 25
+    }, {
+        shard: 'shard1',
+        roomName: 'E10N40',
+        x: 28,
+        y: 26
+    }, {
+        shard: 'shard0',
+        roomName: 'E10N79',
+        x: 11,
+        y: 1
+    }, {
+        shard: 'shard0',
+        roomName: 'W20N80',
+        x: 24,
+        y: 22
+    }, {
+        shard: 'shard1',
+        roomName: 'W10N40',
+        x: 20,
+        y: 39
+    }, {
+        shard: 'shard2',
+        roomName: 'W10N40',
+        x: 40,
+        y: 6
+    }, {
+        shard: 'shard3',
+        roomName: 'W9N39',
+        x: 24,
+        y: 15
+    }, ]
 } else {
-	var W9N39_path = [
-		{ shard: Game.shard.name, roomName: 'E10N50', x: 25, y: 25 },
-		{ shard: Game.shard.name, roomName: 'W9N39', x: 24, y: 15 },
-	]
+    var W9N39_path = [{
+        shard: Game.shard.name,
+        roomName: 'E10N50',
+        x: 25,
+        y: 25
+    }, {
+        shard: Game.shard.name,
+        roomName: 'W9N39',
+        x: 24,
+        y: 15
+    }, ]
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
-	'E16N58': {
-		'E16N57': {
-			rooms_forwardpath: ['E16N58', 'E16N57'],
-			poses_forwardpath: [28],
-		},
-	},
-	'E14N51': {
-		'W9N39': {
-			shard_path: W9N39_path,
-		}
-	},
+    'E16N58': {
+        'E16N57': {
+            rooms_forwardpath: ['E16N58', 'E16N57'],
+            poses_forwardpath: [28],
+        },
+    },
+    'E14N51': {
+        'W9N39': {
+            shard_path: W9N39_path,
+        }
+    },
 }
 export var help_list: type_help_list = {
-	"E14N51": {
-		"W9N39": {
-			shard_path: W9N39_path,
-			commuting_distance: global.is_main_server ? 600 : 300,
-			commuting_time: global.is_main_server ? 720 : 300,
-			n_energy_carriers: 1,
-			guard: 5,
-		}
-	}
+    "E14N51": {
+        "W9N39": {
+            shard_path: W9N39_path,
+            commuting_distance: global.is_main_server ? 600 : 300,
+            commuting_time: global.is_main_server ? 720 : 300,
+            n_energy_carriers: 1,
+            guard: 5,
+        }
+    }
 };
 export var protected_sources: {
     [key: string]: string[]
@@ -262,16 +313,18 @@ export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
 
 // Start of reaction, terminal and market session
-var t3_store_room: {[key in GeneralMineralConstant] ?: string} = {
-	"XUH2O": "E15N58",
-	"XLH2O": "E16N58",
-	"XLHO2": "E9N54",
-	"XZH2O": "E14N51",
-	"XZHO2": "E14N59",
-	"XKH2O": "E19N55",
-	"XKHO2": "E21N49",
-	"XGH2O": "E19N53",
-	"XGHO2": "E19N51",
+var t3_store_room: {
+    [key in GeneralMineralConstant] ? : string
+} = {
+    "XUH2O": "E15N58",
+    "XLH2O": "E16N58",
+    "XLHO2": "E9N54",
+    "XZH2O": "E14N51",
+    "XZHO2": "E14N59",
+    "XKH2O": "E19N55",
+    "XKHO2": "E21N49",
+    "XGH2O": "E19N53",
+    "XGHO2": "E19N51",
 }
 type type_acceptable_prices = {
     buy: {
@@ -325,10 +378,10 @@ export var acceptable_prices: type_acceptable_prices = {
             price: 4.0,
             interval: 3000,
         },
-		"ops": {
-			price: 1.5,
-			interval: 1000,
-		}
+        "ops": {
+            price: 1.5,
+            interval: 1000,
+        }
     },
     "sell": {}
 }
@@ -386,225 +439,227 @@ export var auto_sell_list: type_auto_sell_list = {
         amount: 30000,
     },
 }
-for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
-	if (t3_store_room[key] !== auto_sell_list[key].room) {
-		throw Error("t3 room does not match");
-	}
+for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
+    if (t3_store_room[key] !== auto_sell_list[key].room) {
+        throw Error("t3 room does not match");
+    }
 }
 type type_resource_gathering_pos = {
     [key in ResourceConstant] ? : {
-		room: string;
-		left: number;
-	}
+        room: string;
+        left: number;
+    }
 }
 export var resource_gathering_pos: type_resource_gathering_pos = {
     "XUH2O": {
-		room: "E15N58",
-		left: 6000,
-	},
+        room: "E15N58",
+        left: 6000,
+    },
     "XLH2O": {
-		room: "E16N58",
-		left: 6000,
-	},
+        room: "E16N58",
+        left: 6000,
+    },
     "XLHO2": {
-		room: "E9N54",
-		left: 6000,
-	},
+        room: "E9N54",
+        left: 6000,
+    },
     "XZH2O": {
-		room: "E14N51",
-		left: 6000,
-	},
+        room: "E14N51",
+        left: 6000,
+    },
     "XZHO2": {
-		room: "E14N59",
-		left: 6000,
-	},
+        room: "E14N59",
+        left: 6000,
+    },
     "XKH2O": {
-		room: "E19N55",
-		left: 6000,
-	},
+        room: "E19N55",
+        left: 6000,
+    },
     "XKHO2": {
-		room: "E21N49",
-		left: 6000,
-	},
+        room: "E21N49",
+        left: 6000,
+    },
     "XGHO2": {
-		room: "E19N51",
-		left: 6000,
-	},
+        room: "E19N51",
+        left: 6000,
+    },
     "XGH2O": {
-		room: "E19N53",
-		left: 6000,
-	},
+        room: "E19N53",
+        left: 6000,
+    },
 }
-for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
-	if (t3_store_room[key] !== resource_gathering_pos[key].room) {
-		throw Error("t3 room does not match");
-	}
+for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
+    if (t3_store_room[key] !== resource_gathering_pos[key].room) {
+        throw Error("t3 room does not match");
+    }
 }
-export var resources_balance: {[key in ResourceConstant] ?: type_resource_balance} = {
+export var resources_balance: {
+    [key in ResourceConstant] ? : type_resource_balance
+} = {
     "battery": {
         gap: 20000,
         amount: 2000,
     },
     "ops": {
         gap: 2000,
-		min: 3000,
+        min: 3000,
         amount: 1000,
     },
 }
 type type_final_product_requrest = {
-	[key in GeneralMineralConstant] ?: {
-		min_amount : number;
-		expect_amount : number;
-		store_room ?: string;
-		store_good_amount ?: number;
-		store_expect_amount ?: number;
-	}
+    [key in GeneralMineralConstant] ? : {
+        min_amount: number;
+        expect_amount: number;
+        store_room ? : string;
+        store_good_amount ? : number;
+        store_expect_amount ? : number;
+    }
 }
 export var final_product_request: type_final_product_requrest = {
     "UH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
     "GH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 1200,
+        expect_amount: 6000,
+    },
     "GHO2": {
-		min_amount: 600,
-		expect_amount: 2000,
-	},
-	"UHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 600,
+        expect_amount: 2000,
+    },
+    "UHO2": {
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
     "LH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
     "LHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
     "KH": {
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
-    "ZO": { 
-		min_amount: 1200,
-		expect_amount: 4000,
-	},
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
+    "ZO": {
+        min_amount: 1200,
+        expect_amount: 4000,
+    },
     "XUH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E15N58",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E15N58",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XLH2O": {
-		min_amount: 0,
-		expect_amount: 2000,
-		store_room: "E16N58",
-		store_good_amount: 1000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 0,
+        expect_amount: 1200,
+        store_room: "E16N58",
+        store_good_amount: 600,
+        store_expect_amount: 30000,
+    },
     "XLHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E9N54",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E9N54",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XZH2O": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E14N51",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E14N51",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XZHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E14N59",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E14N59",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XKH2O": {
-		min_amount: 0,
-		expect_amount: 2000,
-		store_room: "E19N55",
-		store_good_amount: 1000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 0,
+        expect_amount: 1200,
+        store_room: "E19N55",
+        store_good_amount: 600,
+        store_expect_amount: 30000,
+    },
     "XKHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E21N49",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E21N49",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XGHO2": {
-		min_amount: 1200,
-		expect_amount: 4000,
-		store_room: "E19N51",
-		store_good_amount: 3000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E19N51",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
     "XGH2O": {
-		min_amount: 0,
-		expect_amount: 2000,
-		store_room: "E19N53",
-		store_good_amount: 1000,
-		store_expect_amount: 30000,
-	},
+        min_amount: 0,
+        expect_amount: 1200,
+        store_room: "E19N53",
+        store_good_amount: 600,
+        store_expect_amount: 30000,
+    },
 };
-for (let key of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
-	if (t3_store_room[key] !== final_product_request[key].store_room) {
-		throw Error("t3 room does not match");
-	}
+for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
+    if (t3_store_room[key] !== final_product_request[key].store_room) {
+        throw Error("t3 room does not match");
+    }
 }
 type type_mineral_store_amount = {
-	[key in GeneralMineralConstant] ?: {
-		min_amount: number;
-		expect_amount: number;
-		store_max_amount: number;
-	}
+    [key in GeneralMineralConstant] ? : {
+        min_amount: number;
+        expect_amount: number;
+        store_max_amount: number;
+    }
 }
 export var mineral_store_amount: type_mineral_store_amount = {
-	"U": {
-		min_amount: 10000,
-		expect_amount: 30000,
-		store_max_amount: 100000,
-	},
-	"L": {
-		min_amount: 10000,
-		expect_amount: 30000,
-		store_max_amount: 100000,
-	},
-	"Z": {
-		min_amount: 10000,
-		expect_amount: 30000,
-		store_max_amount: 100000,
-	},
-	"K": {
-		min_amount: 10000,
-		expect_amount: 30000,
-		store_max_amount: 100000,
-	},
-	"X": {
-		min_amount: 10000,
-		expect_amount: 30000,
-		store_max_amount: 100000,
-	},
-	"O": {
-		min_amount: 15000,
-		expect_amount: 45000,
-		store_max_amount: 120000,
-	},
-	"H": {
-		min_amount: 15000,
-		expect_amount: 45000,
-		store_max_amount: 120000,
-	},
+    "U": {
+        min_amount: 10000,
+        expect_amount: 30000,
+        store_max_amount: 100000,
+    },
+    "L": {
+        min_amount: 10000,
+        expect_amount: 30000,
+        store_max_amount: 100000,
+    },
+    "Z": {
+        min_amount: 10000,
+        expect_amount: 30000,
+        store_max_amount: 100000,
+    },
+    "K": {
+        min_amount: 10000,
+        expect_amount: 30000,
+        store_max_amount: 100000,
+    },
+    "X": {
+        min_amount: 10000,
+        expect_amount: 30000,
+        store_max_amount: 100000,
+    },
+    "O": {
+        min_amount: 15000,
+        expect_amount: 45000,
+        store_max_amount: 120000,
+    },
+    "H": {
+        min_amount: 15000,
+        expect_amount: 45000,
+        store_max_amount: 120000,
+    },
 }
 
 // Body type session

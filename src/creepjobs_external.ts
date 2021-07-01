@@ -310,6 +310,10 @@ export function creepjob(creep: Creep): number {
 			creep.say("HHe");
 			return 0;
 		}
+		if (Game.independent_rooms.includes(creep.room.name)) {
+			creep.suicide();
+			return 0;
+		}
 		cross_shard.delete_creep_from_shardmemory(creep);
 		if (basic_job.trymovetopos(creep, container_pos) !== 2) {
 			creep.say("HHm");
@@ -336,11 +340,12 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCe");
 			return 0;
 		}
+		if (Game.independent_rooms.includes(creep.room.name)) {
+			creep.suicide();
+			return 0;
+		}
 		cross_shard.delete_creep_from_shardmemory(creep);
 		let source_name = creep.memory.source_name;
-		if (creep.room.link[source_name] !== undefined && creep.room.link.CT !== undefined) {
-			creep.suicide();
-		}
 		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		let room_external = Game.rooms[creep.memory.external_room_name];
 		let conf_container = conf_external.containers[source_name];
@@ -351,9 +356,15 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCm1");
 			return 0;
 		}
-		let container_MDCT = creep.room.container.MD !== undefined ? creep.room.container.MD : creep.room.container.CT;
+		let store_structure: AnyStoreStructure;
+		//if (creep.memory.subrole == 'builder' && creep.room.storage !== undefined) {
+		if (creep.room.storage !== undefined) {
+			store_structure = creep.room.storage;
+		} else if (creep.room.container.CT !== undefined) {
+			store_structure = creep.room.container.CT;
+		}
 		let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
-		if (container_MDCT == undefined && help_builders.length == 0) {
+		if (store_structure == undefined && help_builders.length == 0) {
 			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
 			basic_job.trymovetopos(creep, transferer_stay_pos);
 			creep.say("HCm2");
@@ -368,11 +379,11 @@ export function creepjob(creep: Creep): number {
 			creep.say("HCw");
 			return 0;
 		}
-		if (container_MDCT !== undefined) {
-			let in_range = creep.pos.getRangeTo(container_MDCT) <= 3;
-			let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(container_MDCT) <= 3).length > 0;
+		if (store_structure !== undefined) {
+			let in_range = creep.pos.getRangeTo(store_structure) <= 3;
+			let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(store_structure) <= 3).length > 0;
 			if (!(in_range && energy_carriers_in_range)) {
-				basic_job.transfer(creep, container_MDCT);
+				basic_job.transfer(creep, store_structure);
 			}
 			creep.say("HCt1");
 		} else {
@@ -390,7 +401,8 @@ export function creepjob(creep: Creep): number {
 			creep.memory.crossable = true;
 		}
 		if (creep.memory.request_boost) {
-			if (basic_job.boost_request(creep, {"work": "GH2O"}, true) == 1) {
+			let boost_resource: MineralCompoundConstant = creep.memory.subrole == 'builder' ? "LH2O" : "GH2O";
+			if (basic_job.boost_request(creep, {"work": boost_resource}, false) == 1) {
 				creep.say("HBb");
 				return 0;
 			}
@@ -406,24 +418,35 @@ export function creepjob(creep: Creep): number {
 			creep.say("HBe");
 			return 0;
 		}
+		if (Game.independent_rooms.includes(creep.room.name)) {
+			creep.suicide();
+			return 0;
+		}
 		cross_shard.delete_creep_from_shardmemory(creep);
 		if (creep.ticksToLive < 20 && creep.store.getUsedCapacity("energy") == 0) {
 			creep.suicide();
 			creep.say("HBd");
 			return 0;
 		}
-		if (creep.room.container.CT !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
-			basic_job.withdraw(creep, creep.room.container.CT);
-			creep.say("HBw");
-			return 0;
+		let store_structure: AnyStoreStructure;
+		//if (creep.memory.subrole == 'builder' && creep.room.storage !== undefined) {
+		if (creep.room.storage !== undefined) {
+			store_structure = creep.room.storage;
+		} else if (creep.room.container.CT !== undefined) {
+			store_structure = creep.room.container.CT;
 		}
-		if (basic_job.build_structure(creep) == 0) {
-			creep.say("HBb");
-			creep.memory.crossable = true;
+		if (store_structure !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
+			basic_job.withdraw(creep, store_structure);
+			creep.say("HBw");
 			return 0;
 		}
 		if (basic_job.charge_all(creep) == 0) {
 			creep.say("HBc");
+			return 0;
+		}
+		if (basic_job.build_structure(creep, {}, {priority_list: ["storage"]}) == 0) {
+			creep.say("HBb");
+			creep.memory.crossable = true;
 			return 0;
 		}
 		let locations = conf_external.upgraders.locations.map((e) => creep.room.getPositionAt(e[0], e[1]));

@@ -242,6 +242,9 @@ global.regulate_order_price = function(id: Id < Order > ): number {
 			orders = orders.slice(0, index);
 		}
         let acceptable_price = config.acceptable_prices.buy[order.resourceType];
+		if (Game.rooms[order.roomName].controller.level == 6 && order.resourceType == 'energy') {
+			acceptable_price = config.newroom_energy_buying_price;
+		}
         if (acceptable_price == undefined) {
             return -2;
         }
@@ -351,7 +354,7 @@ export function auto_supply_resources(room_name: string) {
         return 1;
     }
 	let timer = new Timer("auto_supply_resources", false);
-    if (room.controller.level == 8) {
+    if (Game.controlled_rooms_with_terminal.includes(room_name)) {
         let mineral_type = Game.memory[room_name].mine_status.type
 		for (let mineral of constants.basic_minerals) {
 			let conf_mineral_store = config.mineral_store_amount[mineral];

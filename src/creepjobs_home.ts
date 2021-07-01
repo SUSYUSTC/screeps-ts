@@ -103,7 +103,7 @@ export function creepjob(creep: Creep): number {
         creep.say("U")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		if (basic_job.boost_request(creep, {"work": config.upgrader_boost_compound}, false, moveoptions_noset) == 1) {
+		if (basic_job.boost_request(creep, {"work": "GH2O"}, false, moveoptions_noset) == 1) {
 			creep.say("Ub");
 			return 0;
 		}
@@ -182,7 +182,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("MHf");
             return 0;
         }
-		if (creep.memory.need_boost && basic_job.boost_request(creep, {"work": "UHO2"}, true) !== 0) {
+		if (basic_job.boost_request(creep, {"work": "UHO2"}, true) !== 0) {
 			creep.say("MHb");
 			return 0;
 		}
@@ -206,7 +206,7 @@ export function creepjob(creep: Creep): number {
         creep.say("mC")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (creep.memory.need_boost && basic_job.boost_request(creep, {"carry": "KH"}, true) !== 0) {
+		if (basic_job.boost_request(creep, {"carry": "KH"}, true) !== 0) {
 			creep.say("mCb");
 			return 0;
 		}
@@ -245,8 +245,8 @@ export function creepjob(creep: Creep): number {
         creep.say("B")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (creep.room.memory.sites_total_progressleft >= 100000) {
-			if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false) == 1) {
+		if (creep.memory.request_boost) {
+			if (basic_job.boost_request(creep, {"work": "LH2O"}, false) == 1) {
 				creep.say("Bbo");
 				return 0;
 			}
@@ -272,7 +272,7 @@ export function creepjob(creep: Creep): number {
         creep.say("WR");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (basic_job.boost_request(creep, {"work": config.builder_boost_compound}, false, moveoptions_safe) == 1) {
+		if (basic_job.boost_request(creep, {"work": "LH2O"}, false, moveoptions_safe) == 1) {
 			creep.say("WRb");
 			return 0;
 		}

@@ -85,6 +85,7 @@ function run_main() {
 			console.log("Captured error", room_name, err.stack);
 		}
 	}
+	main_func.set_global_memory_last()
 
 	timer = new Timer("sync_shard_memory", true);
 	try {

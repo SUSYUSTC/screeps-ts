@@ -106,6 +106,7 @@ interface CreepMemory {
     movable ? : boolean;
     crossable ? : boolean;
     role ? : type_creep_role;
+	subrole ? : string;
 	working_status ? : string;
     source_name ? : string;
     harvesting ? : boolean;
@@ -131,6 +132,7 @@ interface CreepMemory {
     pc_level ? : number;
     powered ? : boolean;
     request_boost ? : boolean;
+    do_boost ? : boolean; // boost depending on whether resources are enough
     next_time ? : any;
     advanced ? : boolean;
     half_time ? : boolean;
@@ -138,7 +140,6 @@ interface CreepMemory {
 	heal_ability ? : number;
 	flagname ? : string;
 	mineral_type ? : GeneralMineralConstant;
-	need_boost ? : boolean;
 
 	shard_move ?: type_shard_move;
 	last_present_time ?: number;
@@ -614,6 +615,7 @@ interface Game {
 	require_update_intershardmemory: boolean;
 	require_update_intershardmemory_modify_time: boolean;
 	controlled_rooms_with_terminal: string[];
+	independent_rooms: string[];
 	market_orders_cache: {
 		sell : {
 			[key in MarketResourceConstant] ?: Order[];
