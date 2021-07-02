@@ -18,7 +18,6 @@ interface RoomMemory {
     objects_updated ? : boolean;
     current_boost_request ? : type_current_boost_request;
     reaction_request ? : type_reaction_request;
-	reaction_status ?: "fill" | "running" | "clear";
     objects_to_buy ? : {
         [key: string]: type_object_to_trade;
     }
@@ -56,7 +55,6 @@ interface RoomMemory {
 		[key in type_creep_role] ? : number;
     }
 	unboost_withdraw_request ? : boolean;
-    product_request ? : type_product_request;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -538,6 +536,8 @@ type type_mineral_storage_amount = {
     }
 }
 type type_reaction_request = {
+	status: "fill" | "running" | "clear";
+	amount: number;
     reactant1: GeneralMineralConstant;
     reactant2: GeneralMineralConstant;
     product: MineralCompoundConstant;
@@ -664,9 +664,6 @@ type GeneralStore = Store < ResourceConstant, boolean > ;
 type type_resource_number = {
     [key in ResourceConstant] ? : number
 };
-type type_product_request = {
-    [key in GeneralMineralConstant] ? : number;
-}
 interface type_movetopos_options {
     costmatrix ? : CostMatrix;
     setmovable ? : boolean;
@@ -687,6 +684,11 @@ type type_resource_balance = {
 		gap: number;
 		min ?: number;
 		amount: number;
+}
+type type_product_request = {
+	product ?: MineralCompoundConstant;
+	amount ?: number;
+	status: "ok" | "fail" | "enough"
 }
 declare module NodeJS {
     interface Global {
@@ -721,7 +723,8 @@ declare module NodeJS {
         }
         test_var ? : boolean;
         visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
-        set_reaction_request(room_name: string, compound: MineralCompoundConstant): number;
+        cancel_reaction(room_name: string): number;
+        set_reaction_request(room_name: string, compound: MineralCompoundConstant, amount: number): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
         history_orders(resource: MarketResourceConstant): type_history_order[];
 		my_orders(): Order[];
@@ -734,8 +737,7 @@ declare module NodeJS {
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
         send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number, onetime_max: number): number;
         restrict_passing_rooms(room_name: string): CostMatrix;
-        //get_product_request(room_name: string): type_product_request;
-        get_product_request(room_name: string, resource: GeneralMineralConstant, is_final: boolean): MineralCompoundConstant | '';
+        get_product_request(room_name: string, resource: GeneralMineralConstant, is_final: boolean): type_product_request;
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
         update_layout(room_name: string, check_all: boolean): any;

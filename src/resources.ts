@@ -65,18 +65,18 @@ export function detect_resources(room_name: string) {
                 continue;
             }
             let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
-            if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
+			if_pb: if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
                 if (room.memory.external_resources.pb[external_room_name] == undefined) {
                     let accessable = is_pos_accessable(pb.pos);
                     if (!accessable) {
-                        continue;
+						break if_pb;
                     }
                     let ok_attacker = functions.is_boost_resource_enough(room_name, config.pb_attacker_body);
                     let ok_healer = functions.is_boost_resource_enough(room_name, config.pb_healer_body);
                     let ok = ok_attacker && ok_healer;
                     if (!ok) {
                         console.log(`Warning: Boost resource not enough when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
-                        continue;
+						break if_pb;
                     }
                     let name = "pb_" + external_room_name + '_' + Game.time.toString();
                     let pb_attacker_name = "pb_attacker" + external_room_name + '_' + Game.time.toString()
@@ -92,10 +92,10 @@ export function detect_resources(room_name: string) {
                     })
                     if (path.incomplete) {
                         console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
-                        continue;
+						break if_pb;
                     }
                     if (path.path.length > 320) {
-                        continue;
+						break if_pb;
                     }
                     let exits_path = functions.get_exits_from_path(path.path);
                     let n_moves = Math.ceil(pb.power / 100);

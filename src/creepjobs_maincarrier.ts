@@ -59,7 +59,7 @@ function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: Res
 	if (options.amount == undefined) {
 		out = creep.transfer(structure, resource_type)
 	} else {
-		out = creep.transfer(structure, resource_type, options.amount)
+		out = creep.transfer(structure, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), options.amount))
 	}
     if (out == ERR_NOT_IN_RANGE) {
         movetopos_restricted(creep, structure.pos, 1);
@@ -76,7 +76,7 @@ function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: Res
 	if (options.amount == undefined) {
 		out = creep.withdraw(structure, resource_type);
 	} else {
-		out = creep.withdraw(structure, resource_type, options.amount);
+		out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), options.amount));
 	}
     if (out == ERR_NOT_IN_RANGE) {
         movetopos_restricted(creep, structure.pos, 1);
@@ -136,12 +136,7 @@ function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
 		} else if (lab.mineralType == undefined || lab.mineralAmount < request.amount * 30 || Game.memory[creep.room.name].exact_boost) {
 			// mineral is not enough
 			if (creep.memory.resource_type == undefined) {
-				let amount: number;
-				if (Game.memory[creep.room.name].exact_boost) {
-					amount = Math.min(creep.store.getFreeCapacity(), request.amount * 30);
-				} else {
-					amount = Math.min(creep.store.getFreeCapacity(), request.amount * 30 - lab.mineralAmount);
-				}
+				let amount = Game.memory[creep.room.name].exact_boost ? request.amount * 30 : request.amount * 30 - lab.mineralAmount;
 				withdraw(creep, creep.room.terminal, request.compound, {next_structure: lab, amount: amount});
 			} else if (creep.memory.resource_type == request.compound) {
 				transfer(creep, lab, request.compound, {next_structure: creep.room.terminal});
@@ -163,21 +158,23 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
         let source2_lab = creep.room.lab.S2;
 		let source_labs = [source1_lab, source2_lab];
 		let reactants = [request.reactant1, request.reactant2];
-		if (creep.room.memory.reaction_status == undefined) {
+		if (creep.room.memory.reaction_request.status == undefined) {
 			delete creep.room.memory.reaction_request;
 		}
-		switch (creep.room.memory.reaction_status) {
+		let reaction_request = creep.room.memory.reaction_request;
+		switch (reaction_request.status) {
 			case 'fill': {
 				for (let i of [0, 1]) {
 					let lab = source_labs[i];
 					let reactant = reactants[i];
 					// fill source labs
 					// mineralType is correct
-					if (lab.mineralType == undefined || (lab.mineralType == reactant && lab.mineralAmount < config.react_init_amount)) {
+					if (lab.mineralType == undefined || (lab.mineralType == reactant && lab.mineralAmount < reaction_request.amount)) {
+						let amount = reaction_request.amount - lab.mineralAmount;
 						if (creep.memory.resource_type == undefined) {
-							withdraw(creep, creep.room.terminal, reactant, {next_structure: lab});
+							withdraw(creep, creep.room.terminal, reactant, {next_structure: lab, amount: amount});
 						} else if (creep.memory.resource_type == reactant) {
-							transfer(creep, lab, reactant, {next_structure: creep.room.terminal});
+							transfer(creep, lab, reactant, {next_structure: creep.room.terminal, amount: amount});
 						} else {
 							// return wrong resource, so don't move
 							transfer(creep, creep.room.terminal, creep.memory.resource_type);
@@ -207,12 +204,12 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 						return 0;
 					}
 				}
-				creep.room.memory.reaction_status = 'running';
+				creep.room.memory.reaction_request.status = 'running';
 				break;
 			}
 			case 'running': {
-				if (source1_lab.mineralAmount < config.react_min_amount || source2_lab.mineralAmount < config.react_min_amount) {
-					creep.room.memory.reaction_status = 'clear';
+				if (source1_lab.mineralAmount < config.react_stop_amount || source2_lab.mineralAmount < config.react_stop_amount) {
+					creep.room.memory.reaction_request.status = 'clear';
 				}
 				break;
 			}
@@ -228,13 +225,11 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 						return 0;
 					}
 				}
-				delete creep.room.memory.reaction_status;
 				delete creep.room.memory.reaction_request;
 				break;
 			}
 		}
 	} else {
-		delete creep.room.memory.reaction_status;
 		delete creep.room.memory.reaction_request;
 	}
     return 1;
@@ -448,28 +443,34 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
     creep.say(get_resource_name(resource_type) + ": " + structure_names[resource_status.source] + ">" + structure_names[resource_status.sink]);
     if (creep.memory.resource_type == undefined) {
         let target = structure_from_name(creep.room.name, resource_status.source);
+		withdraw(creep, target, resource_type, {amount: resource_status.withdraw_amount});
+		/*
         let output;
         if (resource_status.withdraw_amount == undefined) {
             output = creep.withdraw(target, resource_type);
         } else {
-            output = creep.withdraw(target, resource_type, Math.min(creep.store.getCapacity(), resource_status.withdraw_amount));
+            output = creep.withdraw(target, resource_type, resource_status.withdraw_amount);
         }
         if (output == ERR_NOT_IN_RANGE) {
             movetopos_restricted(creep, target.pos, 1);
 			return 0;
         }
+		*/
     } else {
         let target = structure_from_name(creep.room.name, resource_status.sink);
+		transfer(creep, target, resource_type, {amount: resource_status.transfer_amount});
+		/*
         let output;
         if (resource_status.transfer_amount == undefined) {
             output = creep.transfer(target, resource_type);
         } else {
-            output = creep.transfer(target, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), resource_status.transfer_amount));
+            output = creep.transfer(target, resource_type, resource_status.transfer_amount);
         }
         if (output == ERR_NOT_IN_RANGE) {
             movetopos_restricted(creep, target.pos, 1);
 			return 0;
         }
+		*/
     }
 	return 1;
 }

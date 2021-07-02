@@ -220,8 +220,9 @@ export function spawn(room_name: string) {
     }
     if (room.storage !== undefined || config.storage_bars == undefined) {
         let storage_bars = config.storage_bars;
-        if ("storage" in room) {
+        if (room.storage !== undefined) {
             let current_energy = room.storage.store.getUsedCapacity("energy");
+			room.memory.storage_level = Math.min(room.memory.storage_level, storage_bars.length - 1);
             if (room.memory.storage_level < storage_bars.length && current_energy >= storage_bars[room.memory.storage_level] + config.storage_gap) {
                 room.memory.storage_level += 1;
             } else if (room.memory.storage_level > 0 && room.storage.store["energy"] < storage_bars[room.memory.storage_level - 1]) {
@@ -442,7 +443,10 @@ export function spawn(room_name: string) {
 
     // wall_repairer
     let wall_repairers = room_statistics.wall_repairer;
-    if (wall_repairers.length == 0 && Math.min(room.memory.min_wall_strength, room.memory.min_main_rampart_strength, room.memory.min_secondary_rampart_strength * 5) < 2.0e7) {
+	let need_repair_wall = global.memory[room_name].walls_id.length > 0 && room.memory.min_wall_strength < 2.0e7;
+	let need_repair_main_rampart = global.memory[room_name].main_ramparts_id.length > 0 && room.memory.min_main_rampart_strength < 2.0e7;
+	let need_repair_secondary_rampart = global.memory[room_name].secondary_ramparts_id.length > 0 && room.memory.min_secondary_rampart_strength < 2.0e7;
+    if (wall_repairers.length == 0 && (need_repair_wall || need_repair_main_rampart || need_repair_secondary_rampart)) {
         let added_memory = {};
         let options = {};
         let priority = -1;

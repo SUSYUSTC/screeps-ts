@@ -130,6 +130,8 @@ function balance_power() {
 		}
 	}
 }
+
+/*
 function gather_resource() {
 	let resources = <Array<ResourceConstant>> Object.keys(config.resource_gathering_pos);
 	for (let room_name of Game.controlled_rooms_with_terminal) {
@@ -148,6 +150,7 @@ function gather_resource() {
 		}
 	}
 }
+*/
 
 function get_terminal_space() {
 	let valid_rooms = Game.controlled_rooms_with_terminal;
@@ -220,7 +223,7 @@ function send_compounds() {
 		for (let room_name of Game.controlled_rooms_with_terminal) {
 			limits[room_name] = {
 				min: conf.min_amount,
-				max: (conf.store_room == room_name ? conf.store_expect_amount : conf.expect_amount) + config.react_init_amount,
+				max: (conf.store_room == room_name ? conf.store_expect_amount : conf.expect_amount) + config.react_max_amount,
 			}
 		}
 		limit_resources(resource, limits);
@@ -249,9 +252,11 @@ export function terminal_balance() {
 	if (Game.time % 5 == 0) {
 		get_terminal_space();
 	}
+	/*
 	if (Game.time % 200 == 0) {
 		gather_resource();
 	}
+	*/
 	if (Game.time % 40 == 0) {
 		send_basic_minerals();
 	}

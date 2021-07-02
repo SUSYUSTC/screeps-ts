@@ -257,10 +257,7 @@ export function creepjob(creep: Creep): number {
 		}
 		let link_modes = Object.keys(creep.room.link);
         if (creep.store.getUsedCapacity("energy") == 0) {
-			let link_mode = link_modes.includes('CT');
-			let freecapacity = creep.store.getFreeCapacity("energy");
-			let lower_limit = (link_mode ? Math.floor(freecapacity / 2) : freecapacity + 100);
-			basic_job.get_energy(creep, {min_energy: lower_limit});
+			basic_job.get_energy(creep);
 			creep.say("Bg");
 			return 0;
 		} else {

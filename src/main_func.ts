@@ -449,9 +449,6 @@ export function set_room_memory(room_name: string) {
         global.memory[room_name] = {};
     }
     set_danger_mode(room_name);
-    if (room.memory.product_request == undefined) {
-        room.memory.product_request = {};
-    }
 
     for (let function_name of set_room_memory_functions_order) {
 		//let timer = new Timer(function_name, false);

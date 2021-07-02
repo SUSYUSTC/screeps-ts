@@ -285,7 +285,7 @@ export function send_resource(room_from: string, room_to: string, resource: Reso
 	if (Game.memory[room_from].terminal_send_requested) {
 		return 1;
 	}
-	if (Game.rooms[room_from].memory.reaction_status == 'fill') {
+	if (Game.rooms[room_from].memory.reaction_request !== undefined && Game.rooms[room_from].memory.reaction_request.status == 'fill') {
 		return -2;
 	}
 	let out = terminal.send(resource, amount, room_to);

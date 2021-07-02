@@ -242,7 +242,7 @@ global.regulate_order_price = function(id: Id < Order > ): number {
 			orders = orders.slice(0, index);
 		}
         let acceptable_price = config.acceptable_prices.buy[order.resourceType];
-		if (Game.rooms[order.roomName].controller.level == 6 && order.resourceType == 'energy') {
+		if (Game.rooms[order.roomName].controller.level < 8 && order.resourceType == 'energy') {
 			acceptable_price = config.newroom_energy_buying_price;
 		}
         if (acceptable_price == undefined) {

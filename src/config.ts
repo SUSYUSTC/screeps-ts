@@ -152,7 +152,7 @@ export var newroom_energy_buying_price = {
 }
 
 export var storage_gap = 50000;
-export var storage_bars: number[] = [1, 2, 3, 4, 5].map((e) => e * storage_gap);
+export var storage_bars: number[] = [1, 2, 3].map((e) => e * storage_gap);
 export var energy_bar_to_spawn_upgrader: number = 1.0e6;
 export var energy_bar_to_process_operated_power: number = 0.8e6;
 export var energy_bar_to_process_not_operated_power: number = 1.2e6;
@@ -177,8 +177,9 @@ export var nuker_full_energy = 300000;
 export var nuker_full_G = 5000;
 export var powerspawn_full_power = 100;
 export var react_serve_sleep_time = 10;
-export var react_min_amount = 50;
-export var react_init_amount = 3000;
+export var react_stop_amount = 20;
+export var react_min_amount = 2800;
+export var react_max_amount = 3000;
 export var mineral_store_additional_amount = 20000;
 export var ops_store_amount = 10000;
 export var mineral_buy_onetime_amount = 10000;
@@ -191,76 +192,6 @@ interface type_preclaiming_rooms {
         [key: string]: type_external_shard_map
     }
 }
-if (global.is_main_server) {
-    var W9N39_path = [{
-        shard: 'shard3',
-        roomName: 'E10N50',
-        x: 7,
-        y: 17
-    }, {
-        shard: 'shard2',
-        roomName: 'E10N50',
-        x: 37,
-        y: 30
-    }, {
-        shard: 'shard1',
-        roomName: 'E10N50',
-        x: 29,
-        y: 30
-    }, {
-        shard: 'shard0',
-        roomName: 'E19N90',
-        x: 48,
-        y: 47
-    }, {
-        shard: 'shard0',
-        roomName: 'E20N80',
-        x: 39,
-        y: 25
-    }, {
-        shard: 'shard1',
-        roomName: 'E10N40',
-        x: 28,
-        y: 26
-    }, {
-        shard: 'shard0',
-        roomName: 'E10N79',
-        x: 11,
-        y: 1
-    }, {
-        shard: 'shard0',
-        roomName: 'W20N80',
-        x: 24,
-        y: 22
-    }, {
-        shard: 'shard1',
-        roomName: 'W10N40',
-        x: 20,
-        y: 39
-    }, {
-        shard: 'shard2',
-        roomName: 'W10N40',
-        x: 40,
-        y: 6
-    }, {
-        shard: 'shard3',
-        roomName: 'W9N39',
-        x: 24,
-        y: 15
-    }, ]
-} else {
-    var W9N39_path = [{
-        shard: Game.shard.name,
-        roomName: 'E10N50',
-        x: 25,
-        y: 25
-    }, {
-        shard: Game.shard.name,
-        roomName: 'W9N39',
-        x: 24,
-        y: 15
-    }, ]
-}
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
     'E16N58': {
@@ -269,13 +200,9 @@ preclaiming_rooms = {
             poses_forwardpath: [28],
         },
     },
-    'E14N51': {
-        'W9N39': {
-            shard_path: W9N39_path,
-        }
-    },
 }
 export var help_list: type_help_list = {
+	/*
     "E14N51": {
         "W9N39": {
             shard_path: W9N39_path,
@@ -285,6 +212,7 @@ export var help_list: type_help_list = {
             guard: 5,
         }
     }
+	*/
 };
 export var protected_sources: {
     [key: string]: string[]
@@ -444,6 +372,7 @@ for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) 
         throw Error("t3 room does not match");
     }
 }
+/*
 type type_resource_gathering_pos = {
     [key in ResourceConstant] ? : {
         room: string;
@@ -493,6 +422,7 @@ for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) 
         throw Error("t3 room does not match");
     }
 }
+*/
 export var resources_balance: {
     [key in ResourceConstant] ? : type_resource_balance
 } = {
