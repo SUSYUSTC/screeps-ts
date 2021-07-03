@@ -12,14 +12,153 @@ function is_pos_accessable(pos: RoomPosition): boolean {
 }
 global.is_pos_accessable = is_pos_accessable;
 
-var detection_period = 500;
+var detection_period = global.is_main_server ? 500 : 200;
+
+function detect_pb(room_name: string, external_room_name: string) {
+	// 1: already found, 0: pb found, -1: cannot observe, -2: cannot find pb, -3: boost resources not enough
+	let room = Game.rooms[room_name];
+	let external_room = Game.rooms[external_room_name];
+	if (external_room == undefined) {
+		console.log(`Warning: Fail to observe room ${external_room_name} from ${room_name} at time ${Game.time}`);
+		return -1;
+	}
+	if (room.memory.external_resources.pb[external_room_name] !== undefined) {
+		return 1;
+	}
+	let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
+	if (!(pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000)) {
+		return -2;
+	}
+	let accessable = is_pos_accessable(pb.pos);
+	if (!accessable) {
+		return -2;
+	}
+	let ok_attacker = functions.is_boost_resource_enough(room_name, config.pb_attacker_body);
+	let ok_healer = functions.is_boost_resource_enough(room_name, config.pb_healer_body);
+	let ok = ok_attacker && ok_healer;
+	if (!ok) {
+		console.log(`Warning: Boost resource not enough when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
+		return -3;
+	}
+	let name = "pb_" + external_room_name + '_' + Game.time.toString();
+	let pb_attacker_name = "pb_attacker" + external_room_name + '_' + Game.time.toString()
+	let pb_healer_name = "pb_healer" + external_room_name + '_' + Game.time.toString()
+	let pb_carrier_names: string[] = [];
+	let pb_carrier_sizes: number[] = [];
+	let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
+		"pos": pb.pos,
+		"range": 1
+	}, {
+		maxOps: 6000,
+		roomCallback: functions.restrict_passing_rooms,
+	})
+	if (path.incomplete) {
+		console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
+		return -2;
+	}
+	if (path.path.length > 320) {
+		return -2;
+	}
+	let exits_path = functions.get_exits_from_path(path.path);
+	let n_moves = Math.ceil(pb.power / 100);
+	while (true) {
+		if (n_moves > 16) {
+			n_moves -= 16;
+			pb_carrier_sizes.push(16);
+		} else {
+			pb_carrier_sizes.push(n_moves);
+			break;
+		}
+	}
+	for (let i = 0; i < pb_carrier_sizes.length; i++) {
+		let pb_carrier_name = "pb_carrier" + external_room_name + '_' + Game.time.toString() + i.toString();
+		pb_carrier_names.push(pb_carrier_name);
+	}
+	room.memory.external_resources.pb[external_room_name] = {
+		"name": name,
+		"xy": [pb.pos.x, pb.pos.y],
+		"id": pb.id,
+		"status": 0,
+		"time_last": 0,
+		"rooms_path": exits_path.rooms_path,
+		"poses_path": exits_path.poses_path,
+		"distance": path.cost,
+		"amount": pb.power,
+		"amount_received": 0,
+		"pb_attacker_name": pb_attacker_name,
+		"pb_healer_name": pb_healer_name,
+		"pb_carrier_names": pb_carrier_names,
+		"pb_carrier_sizes": pb_carrier_sizes,
+		"n_pb_carrier_finished": 0,
+	}
+	Memory.resource_cooldown_time = 500;
+	return 0;
+}
+
+function detect_depo(room_name: string, external_room_name: string) {
+	let room = Game.rooms[room_name];
+	let external_room = Game.rooms[external_room_name];
+	if (external_room == undefined) {
+		console.log(`Warning: Fail to observe room ${external_room_name} from ${room_name} at time ${Game.time}`);
+		return -1;
+	}
+	if (room.memory.external_resources.depo[external_room_name] !== undefined) {
+		return 1;
+	}
+	let depos = <Array<Deposit>> external_room.find(FIND_DEPOSITS);
+	if (depos.length == 0) {
+		return -2;
+	}
+	let cds = depos.map((e) => e.lastCooldown);
+	let argmin = mymath.argmin(cds);
+	let depo = depos[argmin]
+	if (!(depo !== undefined && depo.lastCooldown <= config.depo_last_cooldown && depo.ticksToDecay >= 8000 && (!global.is_main_server || depo.depositType !== 'mist'))) {
+		return -2;
+	}
+	let path = PathFinder.search(room.terminal.pos, {
+		"pos": depo.pos,
+		"range": 1
+	}, {
+		maxOps: 6000,
+		roomCallback: functions.restrict_passing_rooms,
+	})
+	if (path.incomplete) {
+		return -2;
+	}
+	let name = "depo_" + Game.time.toString();
+	let depo_container_builder_name = "depo_container_builder" + external_room_name + '_' + Game.time.toString()
+	let depo_energy_carrier_name = "depo_energy_carrier" + external_room_name + '_' + Game.time.toString()
+	let depo_harvester_name = "depo_harvester" + external_room_name + '_' + Game.time.toString()
+	let depo_carrier_name = "depo_carrier" + external_room_name + '_' + Game.time.toString()
+	let exits_path = functions.get_exits_from_path(path.path);
+	room.memory.external_resources.depo[external_room_name] = {
+		"name": name,
+		"xy": [depo.pos.x, depo.pos.y],
+		"deposit_type": depo.depositType,
+		"container_xy": [path.path.slice(-1)[0].x, path.path.slice(-1)[0].y],
+		"container_hits": 250000,
+		"id": depo.id,
+		"status": 0,
+		"rooms_path": exits_path.rooms_path,
+		"poses_path": exits_path.poses_path,
+		"distance": path.cost,
+		"last_cooldown": depo.lastCooldown,
+		"amount_received": 0,
+		"depo_container_builder_name": depo_container_builder_name,
+		"depo_energy_carrier_name": depo_energy_carrier_name,
+		"depo_harvester_name": depo_harvester_name,
+		"depo_carrier_name": depo_carrier_name,
+	}
+	Memory.resource_cooldown_time = 500;
+	return 0;
+}
 
 export function detect_resources(room_name: string) {
-    if (Memory.pb_cooldown_time == undefined) {
-        Memory.pb_cooldown_time = 0;
+    if (Memory.resource_cooldown_time == undefined) {
+        Memory.resource_cooldown_time = 0;
     }
-    if (Memory.pb_cooldown_time > 0) {
-        Memory.pb_cooldown_time -= 1;
+    if (Memory.resource_cooldown_time > 0) {
+        Memory.resource_cooldown_time -= 1;
         return;
     }
     let cpu_used = Game.cpu.getUsed();
@@ -59,122 +198,160 @@ export function detect_resources(room_name: string) {
     for (let i = 0; i < external_rooms.length; i++) {
         if (Game.time % detection_period == i + 1) {
             let external_room_name = external_rooms[i];
-            let external_room = Game.rooms[external_room_name];
-            if (external_room == undefined) {
-                console.log(`Warning: Fail to observe room ${external_room_name} from ${room_name} at time ${Game.time}`);
-                continue;
-            }
-            let pb = < StructurePowerBank > external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == "powerBank")[0];
-			if_pb: if (pb !== undefined && pb.power >= 1000 && pb.ticksToDecay >= 2000) {
-                if (room.memory.external_resources.pb[external_room_name] == undefined) {
-                    let accessable = is_pos_accessable(pb.pos);
-                    if (!accessable) {
-						break if_pb;
-                    }
-                    let ok_attacker = functions.is_boost_resource_enough(room_name, config.pb_attacker_body);
-                    let ok_healer = functions.is_boost_resource_enough(room_name, config.pb_healer_body);
-                    let ok = ok_attacker && ok_healer;
-                    if (!ok) {
-                        console.log(`Warning: Boost resource not enough when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
-						break if_pb;
-                    }
-                    let name = "pb_" + external_room_name + '_' + Game.time.toString();
-                    let pb_attacker_name = "pb_attacker" + external_room_name + '_' + Game.time.toString()
-                    let pb_healer_name = "pb_healer" + external_room_name + '_' + Game.time.toString()
-                    let pb_carrier_names: string[] = [];
-                    let pb_carrier_sizes: number[] = [];
-                    let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
-                        "pos": pb.pos,
-                        "range": 1
-                    }, {
-                        maxOps: 6000,
-                        roomCallback: functions.restrict_passing_rooms,
-                    })
-                    if (path.incomplete) {
-                        console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
-						break if_pb;
-                    }
-                    if (path.path.length > 320) {
-						break if_pb;
-                    }
-                    let exits_path = functions.get_exits_from_path(path.path);
-                    let n_moves = Math.ceil(pb.power / 100);
-                    while (true) {
-                        if (n_moves > 16) {
-                            n_moves -= 16;
-                            pb_carrier_sizes.push(16);
-                        } else {
-                            pb_carrier_sizes.push(n_moves);
-                            break;
-                        }
-                    }
-                    for (let i = 0; i < pb_carrier_sizes.length; i++) {
-                        let pb_carrier_name = "pb_carrier" + external_room_name + '_' + Game.time.toString() + i.toString();
-                        pb_carrier_names.push(pb_carrier_name);
-                    }
-                    room.memory.external_resources.pb[external_room_name] = {
-                        "name": name,
-                        "xy": [pb.pos.x, pb.pos.y],
-                        "id": pb.id,
-                        "status": 0,
-                        "time_last": 0,
-                        "rooms_path": exits_path.rooms_path,
-                        "poses_path": exits_path.poses_path,
-                        "distance": path.cost,
-                        "amount": pb.power,
-                        "amount_received": 0,
-                        "pb_attacker_name": pb_attacker_name,
-                        "pb_healer_name": pb_healer_name,
-                        "pb_carrier_names": pb_carrier_names,
-                        "pb_carrier_sizes": pb_carrier_sizes,
-                        "n_pb_carrier_finished": 0,
-                    }
-                    Memory.pb_cooldown_time = 500;
-                }
-            }
-            /*
-            let depo = < Deposit > external_room.find(FIND_DEPOSITS)[0];
-            if (depo !== undefined && depo.lastCooldown <= config.depo_last_cooldown && depo.ticksToDecay > 2000) {
-                let path = PathFinder.search(room.terminal.pos, {
-                    "pos": depo.pos,
-                    "range": 1
-                }, {
-                    maxOps: 6000,
-                    roomCallback: functions.restrict_passing_rooms,
-                })
-                if (path.incomplete) {
-                    continue;
-                }
-                let name = "depo_" + Game.time.toString();
-                let rooms_path: string[] = [room_name];
-                let poses_path: number[] = [];
-                for (let pos of path.path) {
-                    if (pos.roomName != rooms_path[rooms_path.length - 1]) {
-                        rooms_path.push(pos.roomName);
-                        if (pos.x == 0 || pos.x == 49) {
-                            poses_path.push(pos.y);
-                        }
-                        if (pos.y == 0 || pos.y == 49) {
-                            poses_path.push(pos.x);
-                        }
-                    }
-                }
-                room.memory.external_resources.depo[external_room_name] = {
-                    "name": name,
-                    "xy": [depo.pos.x, depo.pos.y],
-                    "id": depo.id,
-                    "status": 0,
-                    "time_last": 0,
-                    "rooms_path": rooms_path,
-                    "poses_path": poses_path,
-                    "distance": path.cost,
-                    "last_cooldown": depo.lastCooldown,
-                    "container_progress": 0,
-                }
-            }
-			*/
+			detect_pb(room_name, external_room_name);
+			if (!global.is_main_server) {
+				detect_depo(room_name, external_room_name);
+			}
         }
     }
+}
+
+function update_pb(room_name: string, external_room_name: string) {
+	let room = Game.rooms[room_name];
+	let pb_status = room.memory.external_resources.pb[external_room_name];
+	if (pb_status.status == 0) {
+		// pb detected
+		let pb_attacker_body = global.get_body(functions.conf_body_to_body_components(config.pb_attacker_body));
+		let pb_healer_body = global.get_body(functions.conf_body_to_body_components(config.pb_healer_body));
+		let pb_attacker_memory = {
+			"home_room_name": room_name,
+			"role": "pb_attacker",
+			"external_room_name": external_room_name,
+		}
+		let pb_healer_memory = {
+			"home_room_name": room_name,
+			"role": "pb_healer",
+			"external_room_name": external_room_name,
+		}
+		global.spawn_in_queue(room_name, pb_attacker_body, pb_status.pb_attacker_name, pb_attacker_memory, false);
+		global.spawn_in_queue(room_name, pb_healer_body, pb_status.pb_healer_name, pb_healer_memory, false);
+		pb_status.status = 1;
+	} else if (pb_status.status == 1) {
+		// attacker and healer spawned
+		pb_status.time_last += 1;
+		if (pb_status.time_last >= 800) {
+			let pb_carrier_memory = {
+				"home_room_name": room_name,
+				"role": "pb_carrier",
+				"external_room_name": external_room_name,
+			};
+			for (let i = 0; i < pb_status.pb_carrier_sizes.length; i++) {
+				let pb_carrier_body: BodyPartConstant[] = [];
+				let pb_carrier_size = pb_status.pb_carrier_sizes[i];
+				let pb_carrier_name = pb_status.pb_carrier_names[i];
+				mymath.range(pb_carrier_size * 2).forEach((e) => pb_carrier_body.push(CARRY));
+				mymath.range(pb_carrier_size).forEach((e) => pb_carrier_body.push(MOVE));
+				global.spawn_in_queue(room_name, pb_carrier_body, pb_carrier_name, pb_carrier_memory, false);
+				pb_status.status = 2;
+				pb_status.time_last = 0;
+			}
+		}
+	} else if (pb_status.status == 2) {
+		// carrier spawned
+		pb_status.time_last += 1;
+		if (pb_status.time_last >= 2000 || pb_status.n_pb_carrier_finished == pb_status.pb_carrier_names.length) {
+			if (Memory.pb_log == undefined) {
+				Memory.pb_log = [];
+			}
+			let pb_item: type_pb_log = {
+				name: pb_status.name,
+				home_room_name: room_name,
+				external_room_name: external_room_name,
+				amount: pb_status.amount,
+				amount_received: pb_status.amount_received,
+			};
+			Memory.pb_log.push(pb_item);
+			if (Memory.pb_log.length > 10) {
+				Memory.pb_log = Memory.pb_log.slice(0, 10);
+			}
+			if (pb_status.amount - pb_status.amount_received >= 100) {
+				console.log(`Warning: unexpected pb mining ${pb_status.name}`);
+			}
+			delete room.memory.external_resources.pb[external_room_name];
+		}
+	}
+}
+
+function update_depo(room_name: string, external_room_name: string) {
+	let room = Game.rooms[room_name];
+	let depo_status = room.memory.external_resources.depo[external_room_name];
+	let external_room = Game.rooms[external_room_name];
+	let container: StructureContainer;
+	if (external_room !== undefined) {
+		let container_pos = external_room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
+		container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
+		depo_status.container_hits = container.hits;
+	}
+	let depo = Game.getObjectById(depo_status.id);
+	if (depo != undefined) {
+		depo_status.last_cooldown = depo.lastCooldown;
+	}
+	if (depo_status.status == 0) {
+		// build container
+		if (container !== undefined) {
+			depo_status.status = 1;
+			return;
+		}
+		if (!functions.creep_exists(depo_status.depo_container_builder_name, room_name)) {
+			let ok_container_builder = functions.is_boost_resource_enough(room_name, config.depo_container_builder_body);
+			if (!ok_container_builder) {
+				return;
+			}
+			let depo_container_builder_body = global.get_body(functions.conf_body_to_body_components(config.depo_container_builder_body));
+			let depo_container_builder_memory: CreepMemory = {
+				"home_room_name": room_name,
+				"role": "depo_container_builder",
+				"external_room_name": external_room_name,
+			}
+			global.spawn_in_queue(room_name, depo_container_builder_body, depo_status.depo_container_builder_name, depo_container_builder_memory, false);
+		}
+		if (!functions.creep_exists(depo_status.depo_energy_carrier_name, room_name)) {
+			let depo_energy_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_energy_carrier_body));
+			let depo_energy_carrier_memory: CreepMemory = {
+				"home_room_name": room_name,
+				"role": "depo_energy_carrier",
+				"external_room_name": external_room_name,
+			}
+			global.spawn_in_queue(room_name, depo_energy_carrier_body, depo_status.depo_energy_carrier_name, depo_energy_carrier_memory, false);
+		}
+	} else if (depo_status.status == 1) {
+		if (external_room !== undefined) {
+			let depo = Game.getObjectById(depo_status.id);
+			if (depo.ticksToDecay < 200 || depo.lastCooldown >= config.depo_last_cooldown) {
+				depo_status.status = 2;
+				return;
+			}
+		}
+		if (!functions.creep_exists(depo_status.depo_harvester_name, room_name)) {
+			let request_boost = depo_status.last_cooldown >= config.depo_cd_to_boost;
+			let conf_body = request_boost ? config.powered_depo_harvester_body : config.depo_harvester_body;
+			let ok_depo_harvester = functions.is_boost_resource_enough(room_name, conf_body);
+			if (!ok_depo_harvester) {
+				return;
+			}
+			let depo_harvester_body =  global.get_body(functions.conf_body_to_body_components(conf_body))
+			let depo_harvester_memory: CreepMemory = {
+				"home_room_name": room_name,
+				"role": "depo_harvester",
+				"external_room_name": external_room_name,
+				"request_boost": request_boost,
+			}
+			global.spawn_in_queue(room_name, depo_harvester_body, depo_status.depo_harvester_name, depo_harvester_memory, false);
+		}
+		if (!functions.creep_exists(depo_status.depo_carrier_name, room_name) && container !== undefined && container.store.getUsedCapacity() >= config.depo_carrier_body.carry.number * 50) {
+			let depo_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_carrier_body));
+			let depo_carrier_memory: CreepMemory = {
+				"home_room_name": room_name,
+				"role": "depo_carrier",
+				"external_room_name": external_room_name,
+			}
+			global.spawn_in_queue(room_name, depo_carrier_body, depo_status.depo_carrier_name, depo_carrier_memory, false);
+		}
+	} else {
+		if (!functions.creep_exists(depo_status.depo_harvester_name, room_name) && !functions.creep_exists(depo_status.depo_carrier_name, room_name)) {
+			delete room.memory.external_resources.depo[external_room_name];
+		}
+	}
 }
 
 export function update_resources(room_name: string) {
@@ -195,110 +372,10 @@ export function update_resources(room_name: string) {
         room.memory.external_resources.depo = {};
     }
     for (let external_room_name in room.memory.external_resources.pb) {
-        let pb_status = room.memory.external_resources.pb[external_room_name]
-        if (pb_status.status == 0) {
-            // pb detected
-            let pb_attacker_body = global.get_body(functions.conf_body_to_body_components(config.pb_attacker_body));
-            let pb_healer_body = global.get_body(functions.conf_body_to_body_components(config.pb_healer_body));
-            let pb_attacker_memory = {
-                "home_room_name": room_name,
-                "role": "pb_attacker",
-                "external_room_name": external_room_name,
-            }
-            let pb_healer_memory = {
-                "home_room_name": room_name,
-                "role": "pb_healer",
-                "external_room_name": external_room_name,
-            }
-            global.spawn_in_queue(room_name, pb_attacker_body, pb_status.pb_attacker_name, pb_attacker_memory, false);
-            global.spawn_in_queue(room_name, pb_healer_body, pb_status.pb_healer_name, pb_healer_memory, false);
-            pb_status.status = 1;
-        } else if (pb_status.status == 1) {
-            // attacker and healer spawned
-            pb_status.time_last += 1;
-            if (pb_status.time_last >= 800) {
-                let pb_carrier_memory = {
-                    "home_room_name": room_name,
-                    "role": "pb_carrier",
-                    "external_room_name": external_room_name,
-                };
-                for (let i = 0; i < pb_status.pb_carrier_sizes.length; i++) {
-                    let pb_carrier_body: BodyPartConstant[] = [];
-                    let pb_carrier_size = pb_status.pb_carrier_sizes[i];
-                    let pb_carrier_name = pb_status.pb_carrier_names[i];
-                    mymath.range(pb_carrier_size * 2).forEach((e) => pb_carrier_body.push(CARRY));
-                    mymath.range(pb_carrier_size).forEach((e) => pb_carrier_body.push(MOVE));
-                    global.spawn_in_queue(room_name, pb_carrier_body, pb_carrier_name, pb_carrier_memory, false);
-                    pb_status.status = 2;
-                    pb_status.time_last = 0;
-                }
-            }
-        } else if (pb_status.status == 2) {
-            // carrier spawned
-            pb_status.time_last += 1;
-            if (pb_status.time_last >= 2000 || pb_status.n_pb_carrier_finished == pb_status.pb_carrier_names.length) {
-                if (Memory.pb_log == undefined) {
-                    Memory.pb_log = [];
-                }
-                let pb_item: type_pb_log = {
-                    name: pb_status.name,
-                    home_room_name: room_name,
-                    external_room_name: external_room_name,
-                    amount: pb_status.amount,
-                    amount_received: pb_status.amount_received,
-                };
-                Memory.pb_log.push(pb_item);
-                if (Memory.pb_log.length > 10) {
-                    Memory.pb_log = Memory.pb_log.slice(0, 10);
-                }
-                if (pb_status.amount - pb_status.amount_received >= 100) {
-                    console.log(`Warning: unexpected pb mining ${pb_status.name}`);
-                }
-                delete room.memory.external_resources.pb[external_room_name];
-            }
-        }
+		update_pb(room_name, external_room_name);
     }
-    /*
     for (let external_room_name in room.memory.external_resources.depo) {
-        let depo_status = room.memory.external_resources.depo[external_room_name];
-        if (depo_status.status == 0) {
-            let do_spawn_builder = false;
-            if (depo_status.depo_container_builder_name == undefined) {
-                do_spawn_builder = true;
-            } else {
-                let depo_container_builder = Game.creeps[depo_status.depo_container_builder_name];
-                if (depo_container_builder == undefined) {
-                    do_spawn_builder = true;
-                } else if (depo_container_builder.ticksToLive !== undefined && depo_container_builder.ticksToLive < depo_status.distance + 36) {
-                    do_spawn_builder = true;
-                }
-            }
-            if (do_spawn_builder) {
-                let depo_container_builder_name = "depo_container_builder_" + Game.time.toString();
-                let body: BodyPartConstant[] = [];
-                mymath.range(5).forEach((e) => body.push(WORK));
-                mymath.range(2).forEach((e) => body.push(CARRY));
-                mymath.range(5).forEach((e) => body.push(MOVE));
-                let depo_container_builder_memory = {
-                    "home_room_name": room_name,
-                    "role": "depo_container_builder",
-                    "external_room_name": external_room_name,
-                }
-                global.spawn_in_queue(room_name, body, depo_container_builder_name, depo_container_builder_memory, false);
-				depo_status.depo_container_builder_name = depo_container_builder_name;
-            }
-            let do_spawn_energy_carrier = false;
-            if (depo_status.depo_energy_carrier_name == undefined) {
-                do_spawn_energy_carrier = true;
-            } else {
-				let depo_energy_carrier = Game.creeps[depo_status.depo_energy_carrier_name];
-                if (depo_energy_carrier == undefined || Game.creeps[depo_status.depo_energy_carrier_name] == undefined) {
-                    do_spawn_energy_carrier = true;
-                }
-            }
-			let depo_commuting_times = Math.floor((Math.floor(1450 / depo_status.distance) + 1) / 2);
-        } else if (depo_status.status == 1) {}
+		update_depo(room_name, external_room_name);
     }
-	*/
 }
 

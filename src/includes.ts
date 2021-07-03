@@ -308,17 +308,20 @@ interface type_pb_status {
 interface type_depo_status {
     name: string;
     id: Id < Deposit > ;
-    xy: number[];
+    xy: [number, number];
+	container_xy: [number, number];
+	container_hits: number;
+	deposit_type: DepositConstant;
     status: number;
-    time_last: number;
     rooms_path: string[];
     poses_path: number[];
     distance: number;
     last_cooldown: number;
-    container_progress: number;
+	amount_received: number;
+    time_last ?: number;
     depo_container_builder_name ? : string;
-    depo_harvester_name ? : string;
     depo_energy_carrier_name ? : string;
+    depo_harvester_name ? : string;
     depo_carrier_name ? : string;
 }
 interface type_external_resources {
@@ -437,7 +440,7 @@ interface Memory {
     debug_mode ? : boolean;
     output_mode ? : boolean;
     history_cpus ? : number[];
-    pb_cooldown_time ? : number;
+    resource_cooldown_time ? : number;
 	look_broken_ramparts ? : boolean;
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;

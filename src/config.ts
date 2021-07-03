@@ -236,7 +236,8 @@ export var highway_resources: {
     "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 }
-export var depo_last_cooldown = 20000;
+export var depo_last_cooldown = 150;
+export var depo_cd_to_boost = 15;
 export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
 
@@ -662,6 +663,58 @@ export var pb_healer_body: type_body_conf = {
     "move": {
         number: 13,
     }
+}
+export var depo_container_builder_body: type_body_conf = {
+    "work": {
+        number: 8,
+        boost: "LH2O",
+    },
+    "carry": {
+        number: 24,
+    },
+    "move": {
+        number: 16,
+    },
+}
+export var depo_energy_carrier_body: type_body_conf = {
+    "carry": {
+        number: 32,
+    },
+    "move": {
+        number: 16,
+    },
+}
+export var depo_harvester_body: type_body_conf = {
+    "work": {
+        number: 18,
+    },
+	"carry": {
+		number: 14,
+	},
+    "move": {
+        number: 18,
+    },
+}
+export var powered_depo_harvester_body: type_body_conf = {
+    "work": {
+        number: 16,
+		boost: "UHO2",
+    },
+	"carry": {
+		number: 16,
+	},
+    "move": {
+        number: 16,
+		boost: "ZO",
+    },
+}
+export var depo_carrier_body: type_body_conf = {
+    "carry": {
+        number: 32,
+    },
+    "move": {
+        number: 16,
+    },
 }
 interface type_powered_harvester {
     [key: number]: {

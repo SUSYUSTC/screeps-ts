@@ -37,6 +37,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (basic_job.discard_useless_from_container(creep, container_source, "energy") == 0) {
+			creep.say("Hd")
 			return 0;
 		}
 		if (basic_job.trymovetopos(creep, container_source.pos, moveoptions_noset) !== 2) {

@@ -419,3 +419,19 @@ export function get_total_resource_amount(room_name: string, resource: ResourceC
 	let room = Game.rooms[room_name];
 	return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
 }
+
+export function creep_exists(creep_name: string, room_name: string): boolean {
+	if (Game.creeps[creep_name] !== undefined) {
+		return true;
+	}
+	let spawning_list = Game.rooms[room_name].memory.additional_spawn_queue;
+	if (spawning_list !== undefined) {
+		if (spawning_list.first !== undefined && spawning_list.first.filter((e) => e.name == creep_name).length > 0) {
+			return true;
+		}
+		if (spawning_list.last !== undefined &&spawning_list.last.filter((e) => e.name == creep_name).length > 0) {
+			return true;
+		}
+	}
+	return false;
+}
