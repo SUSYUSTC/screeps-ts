@@ -158,5 +158,6 @@ global.create_room_walls = function(room_name: string): number {
 		let pos = room.getPositionAt(xy[0], xy[1]);
 		pos.createConstructionSite("constructedWall");
 	}
+	Memory.look_broken_ramparts = true;
 	return 0;
 }

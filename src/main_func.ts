@@ -135,6 +135,9 @@ function update_structures(room_name: string) {
             let main_ramparts = conf.main_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
             let secondary_ramparts = conf.secondary_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
             global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.min_wall_strength).map((e) => e.id);
+			if (global.memory[room_name].ramparts_to_repair.length == 0 && room.find(FIND_MY_CONSTRUCTION_SITES).length == 0) {
+				Memory.look_broken_ramparts = false;
+			}
         }
         let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
         let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));

@@ -119,6 +119,7 @@ export function init() {
 		Memory.op_power_processed_stat = 0;
 		Memory.produce_battery_stat = 0;
 		Memory.pb_log = [];
+		Memory.depo_log = [];
 		return 0;
 	}
 
@@ -145,6 +146,7 @@ export function init() {
 			}
 		}
 		let tot_energies = mymath.array_sum(Game.controlled_rooms_with_terminal.map((e) => room_summary[e].energy + room_summary[e].battery * 10));
+
 		let ongoing_pb: {
 			[key: string]: {
 				home_room_name: string;
@@ -170,6 +172,32 @@ export function init() {
 				}
 			}
 		}
+
+		let ongoing_depo: {
+			[key: string]: {
+				home_room_name: string;
+				external_room_name: string;
+				status: number;
+				type: DepositConstant;
+				amount_received: number;
+			}
+		} = {};
+		for (let home_room_name of Game.controlled_rooms_with_terminal) {
+			let external_resources = Game.rooms[home_room_name].memory.external_resources;
+			if (external_resources == undefined || external_resources.depo == undefined) {
+				continue;
+			}
+			for (let external_room_name in external_resources.depo) {
+				let depo = external_resources.depo[external_room_name];
+				ongoing_depo[depo.name] = {
+					home_room_name: home_room_name,
+					external_room_name: external_room_name,
+					status: depo.status,
+					type: depo.deposit_type,
+					amount_received: depo.amount_received,
+				}
+			}
+		}
 		let str1:string = '';
 		let str2:string = '';
 		let str3:string = '';
@@ -188,6 +216,8 @@ export function init() {
 		str3 += '\ntotal energy: ' + tot_energies;
 		str3 += '\npb stat' + global.format_objs(Memory.pb_log, true);
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});
+		str3 += '\ndepo stat' + global.format_objs(Memory.depo_log, true);
+		str3 += '\nongoing depo' + global.format_json2(ongoing_depo, {sort: false, json: true});
 		//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
 		//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 		return vertical_split_string(vertical_split_string(str1, str2), str3);

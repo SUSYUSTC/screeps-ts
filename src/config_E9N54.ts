@@ -159,36 +159,6 @@ export var conf_E9N54: type_conf_room =
             [32, 48]
         ],
         "8": [
-            [23, 1],
-            [23, 2],
-            [23, 3],
-            [23, 4],
-            [23, 5],
-            [23, 6],
-            [23, 7],
-            [23, 8],
-            [23, 9],
-            [24, 10],
-            [25, 11],
-            [26, 12],
-            [27, 13],
-            [28, 14],
-            [29, 15],
-            [30, 16],
-            [31, 17],
-            [32, 18],
-            [33, 19],
-            [34, 20],
-            [34, 21],
-            [34, 22],
-            [34, 23],
-            [34, 24],
-            [34, 25],
-            [34, 26],
-            [34, 27],
-            [34, 28],
-            [34, 29],
-            [34, 30],
             [33, 31],
             [32, 32],
             [31, 33],
@@ -255,10 +225,6 @@ export var conf_E9N54: type_conf_room =
         "CT": {
             "pos": [16, 45],
             "RCL": 6
-        },
-        "Ext": {
-            "pos": [31, 18],
-            "RCL": 8
         },
         "L1": {
             "pos": [26, 37],
@@ -474,10 +440,9 @@ export var conf_E9N54: type_conf_room =
             },
             "powered_source": {
                 "source_name": "S1",
-                "carrier_distance": 28,
                 "carry_end": {
-                    "type": "link",
-                    "name": "Ext"
+                    "type": "storage",
+                    "name": ""
                 },
                 "roads": [
                     [23, 38],
@@ -498,7 +463,8 @@ export var conf_E9N54: type_conf_room =
                 "harvester_pos": [24, 37],
                 "single_distance": 56,
                 "rooms_forwardpath": ["E9N54", "E9N55"],
-                "rooms_backwardpath": ["E9N55", "E9N54"]
+                "rooms_backwardpath": ["E9N55", "E9N54"],
+                "carrier_distance": 56
             }
         }
     },

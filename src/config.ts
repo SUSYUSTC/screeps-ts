@@ -36,7 +36,7 @@ import * as constants from "./constants"
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 conf_E16N58.external_rooms.E17N58.active = true;
-conf_E9N54.external_rooms.E9N55.active = true;
+//conf_E9N54.external_rooms.E9N55.active = true;
 //conf_E19N53.external_rooms.E19N54.active = true;
 
 /*
@@ -114,7 +114,7 @@ export var pc_conf: type_pc_conf = {
     "PC_D": {
         "room_name": "E9N54",
         "normal_ordered": false,
-        "external_room": "E9N55",
+        //"external_room": "E9N55",
     },
     "PC_E": {
         "room_name": "E19N53",
@@ -153,6 +153,7 @@ export var newroom_energy_buying_price = {
     price: 0.6,
     interval: 200,
 }
+export var pb_power_min = 2000;
 
 export var storage_gap = 50000;
 export var storage_bars: number[] = [1, 2, 3].map((e) => e * storage_gap);

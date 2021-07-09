@@ -45,17 +45,13 @@ interface RoomMemory {
         [key: string]: number;
     };
     resource_sending_request ? : type_resource_sending_request[];
-    kept_resources ? : {
-        [key: string]: {
-            [key in ResourceConstant] ? : number;
-        }
-    }
     next_time ? : any;
 	military_exercise ? : boolean;
     creep_statistics: {
 		[key in type_creep_role] ? : number;
     }
 	unboost_withdraw_request ? : boolean;
+    resource_cooldown_time ? : number;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -303,6 +299,13 @@ interface type_pb_log {
     amount: number;
 	amount_received: number;
 }
+interface type_depo_log {
+	name: string;
+	home_room_name: string;
+	external_room_name: string;
+	type: DepositConstant;
+	amount_received: number;
+}
 interface type_pb_status {
     name: string;
     id: Id < StructurePowerBank > ;
@@ -445,12 +448,12 @@ interface Memory {
     debug_mode ? : boolean;
     output_mode ? : boolean;
     history_cpus ? : number[];
-    resource_cooldown_time ? : number;
 	look_broken_ramparts ? : boolean;
 	reaction_log ? : {
 		[key in MineralCompoundConstant] ?: number;
 	}
 	pb_log ? : type_pb_log[];
+	depo_log ? : type_depo_log[];
 	invade_costmatrices ?: {[key: string]: number[]};
 	invade_groups_x2 ?: {
 		[key: string]: type_invade_group_x2;
