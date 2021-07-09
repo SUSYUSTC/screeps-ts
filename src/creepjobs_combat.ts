@@ -1,7 +1,6 @@
 import * as _ from "lodash"
 import * as defense from "./defense";
 import * as mymath from "./mymath";
-import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
@@ -17,13 +16,7 @@ export function creepjob(creep: Creep): number {
 	if (conf == undefined) {
 		conf = config.conf_rooms[creep.room.name];
 	}
-    if (creep.memory.role == 'hunter') {
-        creep.say("HT")
-        creep.memory.movable = false;
-        creep.memory.crossable = false;
-        hunting.hunt(creep, config.hunting[creep.memory.home_room_name]);
-		return 0;
-    } else if (creep.memory.role == 'invader_core_attacker') {
+    if (creep.memory.role == 'invader_core_attacker') {
         creep.say("A");
         creep.memory.movable = false;
         creep.memory.crossable = true;
@@ -52,7 +45,10 @@ export function creepjob(creep: Creep): number {
         let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
         // Going to the defending room
         if (creep.room.name !== creep.memory.defending_room) {
-            external_room.movethroughrooms(creep, conf_controller.rooms_forwardpath, conf_controller.poses_forwardpath);
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, conf_controller.rooms_forwardpath, conf_controller.poses_forwardpath, 'forward');
+			}
+			external_room.external_move(creep, 'forward');
             return 0;
         }
         let structures = creep.room.find(FIND_STRUCTURES);
@@ -61,7 +57,10 @@ export function creepjob(creep: Creep): number {
         // Going back if current room does not have invader core
         if (invader_cores.length == 0) {
             if (!rooms_with_invader_core.includes(creep.memory.defending_room)) {
-                external_room.movethroughrooms(creep, conf_controller.rooms_backwardpath, conf_controller.poses_backwardpath);
+				if (!external_room.is_moving_target_defined(creep, 'backward')) {
+					external_room.save_external_moving_targets(creep, conf_controller.rooms_backwardpath, conf_controller.poses_backwardpath, 'backward');
+				}
+				external_room.external_move(creep, 'backward');
             }
             return 0;
         }
@@ -85,7 +84,10 @@ export function creepjob(creep: Creep): number {
                 } else {
                     let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
                     try {
-                        external_room.movethroughrooms(creep, conf_controller.rooms_forwardpath, conf_controller.poses_forwardpath);
+						if (!external_room.is_moving_target_defined(creep, 'forward')) {
+							external_room.save_external_moving_targets(creep, conf_controller.rooms_forwardpath, conf_controller.poses_forwardpath, 'forward');
+						}
+						external_room.external_move(creep, 'forward');
                     } catch (error) {
                         console.log("Seems that the creep is moving on exits");
                     }
@@ -97,7 +99,10 @@ export function creepjob(creep: Creep): number {
                 } else {
                     let conf_controller = conf.external_rooms[creep.memory.defending_room].controller;
                     try {
-                        external_room.movethroughrooms(creep, conf_controller.rooms_backwardpath, conf_controller.poses_backwardpath);
+						if (!external_room.is_moving_target_defined(creep, 'backward')) {
+							external_room.save_external_moving_targets(creep, conf_controller.rooms_backwardpath, conf_controller.poses_backwardpath, 'backward');
+						}
+						external_room.external_move(creep, 'backward');
                     } catch (error) {
                         console.log("Seems that the creep is moving on exits");
                     }

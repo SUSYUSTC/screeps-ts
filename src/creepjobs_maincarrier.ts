@@ -1,11 +1,7 @@
 import * as _ from "lodash"
-import * as role_init from "./role_init";
 import * as mymath from "./mymath";
 import * as basic_job from "./basic_job";
-import * as defense from "./defense";
-import * as hunting from "./hunting"
 import * as functions from "./functions"
-import * as external_room from "./external_room";
 import * as config from "./config";
 import * as constants from "./constants"
 
@@ -172,6 +168,10 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
 					if (lab.mineralType == undefined || (lab.mineralType == reactant && lab.mineralAmount < reaction_request.amount)) {
 						let amount = reaction_request.amount - lab.mineralAmount;
 						if (creep.memory.resource_type == undefined) {
+							if (creep.room.terminal.store.getUsedCapacity(reactant) == 0) {
+								creep.room.memory.reaction_request.status = 'clear';
+								return 0;
+							}
 							withdraw(creep, creep.room.terminal, reactant, {next_structure: lab, amount: amount});
 						} else if (creep.memory.resource_type == reactant) {
 							transfer(creep, lab, reactant, {next_structure: creep.room.terminal, amount: amount});
@@ -372,15 +372,17 @@ function get_G_status(creep_amount: number, terminal_amount: number | undefined,
     return resource_status
 }
 
-function get_mineral_status(creep_amount: number, storage_amount: number, terminal_amount: number | undefined): type_resource_status {
+function get_mineral_status(creep_amount: number, storage_amount: number, terminal_amount: number | undefined, is_store: boolean): type_resource_status {
     let source = "storage";
     let sink = "storage";
     let withdraw_amount = undefined;
     let transfer_amount = undefined;
+	let max_amount = is_store ? config.terminal_max_store_mineral : config.terminal_max_mineral;
+	let min_amount = is_store ? config.terminal_min_store_mineral : config.terminal_min_mineral;
     if (terminal_amount !== undefined) {
-        if (terminal_amount + creep_amount >= config.terminal_max_mineral) {
+        if (terminal_amount + creep_amount >= max_amount) {
             source = "terminal";
-		} else if (terminal_amount < config.terminal_min_mineral && storage_amount + creep_amount > 0) {
+		} else if (terminal_amount < min_amount && storage_amount + creep_amount > 0) {
             sink = "terminal";
         }
     }
@@ -444,42 +446,20 @@ function transfer_resource(creep: Creep, resource_type: ResourceConstant, resour
     if (creep.memory.resource_type == undefined) {
         let target = structure_from_name(creep.room.name, resource_status.source);
 		withdraw(creep, target, resource_type, {amount: resource_status.withdraw_amount});
-		/*
-        let output;
-        if (resource_status.withdraw_amount == undefined) {
-            output = creep.withdraw(target, resource_type);
-        } else {
-            output = creep.withdraw(target, resource_type, resource_status.withdraw_amount);
-        }
-        if (output == ERR_NOT_IN_RANGE) {
-            movetopos_restricted(creep, target.pos, 1);
-			return 0;
-        }
-		*/
     } else {
         let target = structure_from_name(creep.room.name, resource_status.sink);
 		transfer(creep, target, resource_type, {amount: resource_status.transfer_amount});
-		/*
-        let output;
-        if (resource_status.transfer_amount == undefined) {
-            output = creep.transfer(target, resource_type);
-        } else {
-            output = creep.transfer(target, resource_type, resource_status.transfer_amount);
-        }
-        if (output == ERR_NOT_IN_RANGE) {
-            movetopos_restricted(creep, target.pos, 1);
-			return 0;
-        }
-		*/
     }
 	return 1;
 }
 
-function get_mineral_urgent_score(storage_amount: number, terminal_amount: number): number {
-	if (terminal_amount > config.terminal_max_mineral) {
-		return terminal_amount - config.terminal_max_mineral;
-	} else if (terminal_amount < config.terminal_min_mineral && storage_amount > 0) {
-		return Math.min(config.terminal_min_mineral - terminal_amount, storage_amount);
+function get_mineral_urgent_score(storage_amount: number, terminal_amount: number, is_store: boolean): number {
+	let max_amount = is_store ? config.terminal_max_store_mineral : config.terminal_max_mineral;
+	let min_amount = is_store ? config.terminal_min_store_mineral : config.terminal_min_mineral;
+	if (terminal_amount > max_amount) {
+		return terminal_amount - max_amount;
+	} else if (terminal_amount < min_amount && storage_amount > 0) {
+		return Math.min(min_amount - terminal_amount, storage_amount);
 	}
 	return 0;
 }
@@ -561,14 +541,15 @@ export function creepjob(creep: Creep): number {
 			}
 		}
 
-		if (Game.time % 20 == 5 || creep.memory.mineral_type == undefined) {
-			let scores = constants.general_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e)));
+		if (creep.memory.next_time.get_mineral_type == undefined || Game.time >= creep.memory.next_time.get_mineral_type || creep.memory.mineral_type == undefined) {
+			let scores = constants.general_minerals.map((e) => get_mineral_urgent_score(creep.room.storage.store.getUsedCapacity(e), creep.room.terminal.store.getUsedCapacity(e), e == config.t3_room_store[creep.room.name]));
 			let argmax = mymath.argmax(scores);
 			if (scores[argmax] > 0) {
 				creep.memory.mineral_type = constants.general_minerals[argmax];
 			} else { 
 				creep.memory.mineral_type = Game.memory[creep.room.name].mine_status.type
 			}
+			creep.memory.next_time.get_mineral_type = Game.time + 20;
 		}
 		let mineral_type = creep.memory.mineral_type;
 
@@ -621,7 +602,7 @@ export function creepjob(creep: Creep): number {
         let power_status = get_power_status(creep_power, terminal_power, powerspawn_power);
         let G_status = get_G_status(creep_G, terminal_G, nuker_G);
         let battery_status = get_battery_status(creep_battery, storage_battery, terminal_battery, factory_battery);
-        let mineral_status = get_mineral_status(creep_mineral, storage_mineral, terminal_mineral);
+        let mineral_status = get_mineral_status(creep_mineral, storage_mineral, terminal_mineral, mineral_type == config.t3_room_store[creep.room.name]);
         let resources_status: {
             [key in ResourceConstant] ? : type_resource_status
         } = {

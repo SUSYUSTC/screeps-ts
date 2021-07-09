@@ -163,21 +163,30 @@ function operate_source(pc: PowerCreep) {
 	let conf = config.pc_conf[pc.name];
 	if (pc.memory.current_source_target == 'external' && Game.rooms[conf.room_name].memory.external_room_status[conf.external_room].defense_type !== '') {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
-		external_room.external_flee(pc, config.conf_rooms[conf.room_name].safe_pos, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+		if (!external_room.is_moving_target_defined(pc, 'backward')) {
+			external_room.save_external_moving_targets(pc, conf_external.rooms_backwardpath, conf_external.poses_backwardpath, 'backward');
+		}
+		external_room.external_flee(pc, config.conf_rooms[conf.room_name].safe_pos, 'backward');
 		return 4;
 	}
 	let source_id: Id<Source>;
 	if (pc.memory.current_source_target == "external") {
 		let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
 		if (pc.room.name !== conf.external_room) {
-			external_room.movethroughrooms(pc, conf_external.rooms_forwardpath, conf_external.poses_forwardpath);
+			if (!external_room.is_moving_target_defined(pc, 'forward')) {
+				external_room.save_external_moving_targets(pc, conf_external.rooms_forwardpath, conf_external.poses_forwardpath, 'forward');
+			}
+			external_room.external_move(pc, 'forward');
 			return 3;
 		}
 		source_id = conf_external.id;
 	} else {
 		if (pc.room.name !== conf.room_name) {
 			let conf_external = config.conf_rooms[conf.room_name].external_rooms[conf.external_room].powered_source;
-			external_room.movethroughrooms(pc, conf_external.rooms_backwardpath, conf_external.poses_backwardpath);
+			if (!external_room.is_moving_target_defined(pc, 'backward')) {
+				external_room.save_external_moving_targets(pc, conf_external.rooms_backwardpath, conf_external.poses_backwardpath, 'backward');
+			}
+			external_room.external_move(pc, 'backward');
 			return 3;
 		}
 		let source_name = pc.memory.current_source_target;
@@ -304,6 +313,11 @@ export function work(pc: PowerCreep) {
 		return;
 	}
 	if (pc.room == undefined) {
+		if (!(pc.spawnCooldownTime > Date.now())) {
+			let room_name = config.pc_conf[pc.name].room_name;
+			global.spawn_PC(pc.name);
+			return;
+		}
 		console.log(`Warning: pc ${pc.name} does not exist at time ${Game.time}`);
 		return;
 	}

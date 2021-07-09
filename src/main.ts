@@ -51,14 +51,30 @@ function run_sub() {
 
 	try {
 		cross_shard.sync_shard_memory();
-		for (let creepname in Game.creeps) {
+	} catch (err) {
+		console.log("Captured error:", err.stack);
+	}
+	for (let creepname in Game.creeps) {
+		try {
 			let creep = Game.creeps[creepname];
-			console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos));
+			console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos), creep.memory._move == undefined ? undefined : creep.memory._move.time);
+			if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
+				creep.heal(creep);
+			}
 			external_room.movethroughshards(creep);
+		} catch (err) {
+			console.log("Captured error:", err.stack);
 		}
+	}
+	try {
 		cross_shard.update_shard_memory();
 	} catch (err) {
-		console.log(err.stack);
+		console.log("Captured error:", err.stack);
+	}
+	try {
+		final_command.log();
+	} catch (err) {
+		console.log("Captured error:", err.stack);
 	}
 	console.log("Final Real CPU:", Game.cpu.getUsed());
 }

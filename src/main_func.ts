@@ -111,7 +111,7 @@ function update_structures(room_name: string) {
             global.memory[room_name].walls_id = walls.map((e) => e.id);
             global.memory[room_name].main_ramparts_id = main_ramparts.map((e) => e.id);
             global.memory[room_name].secondary_ramparts_id = secondary_ramparts.map((e) => e.id);
-            global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
+            global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.min_wall_strength).map((e) => e.id);
 
             let wall_strength = 0;
             let main_rampart_strength = 0;
@@ -134,7 +134,7 @@ function update_structures(room_name: string) {
         } else if (Memory.look_broken_ramparts) {
             let main_ramparts = conf.main_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
             let secondary_ramparts = conf.secondary_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
-            global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.wall_strength).map((e) => e.id);
+            global.memory[room_name].ramparts_to_repair = main_ramparts.concat(secondary_ramparts).filter((structure) => structure.hits < config.min_wall_strength).map((e) => e.id);
         }
         let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
         let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
@@ -150,7 +150,7 @@ function update_structures(room_name: string) {
     } else {
         global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
         global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
-        global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.wall_strength);
+        global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.min_wall_strength);
     }
 }
 
@@ -513,5 +513,6 @@ function is_independent_room(room_name: string): boolean {
 }
 export function set_global_memory_last() {
 	Game.independent_rooms = Game.controlled_rooms_with_terminal.filter((e) => is_independent_room(e));
+	Game.controlled_rooms_with_terminal = Game.controlled_rooms_with_terminal.filter((e) => !config.obselete_rooms.includes(e));
 }
 global.update_layout = update_layout

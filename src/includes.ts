@@ -1,3 +1,4 @@
+type type_xy = [number, number];
 type type_external_room_status = {
     [key: string]: { // room_name
         defense_type: string;
@@ -7,7 +8,7 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "hunter" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "guard" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "guard" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -99,6 +100,14 @@ type type_body_conf = {
         boost ? : MineralBoostConstant;
     }
 }
+type type_external_moving_targets = {
+	[key: string]: {
+		xy: [number, number];
+		findconstant: ExitConstant;
+		room_name: string;
+	}
+}
+
 interface CreepMemory {
     _move ? : type_creep_move;
     movable ? : boolean;
@@ -138,6 +147,9 @@ interface CreepMemory {
 	heal_ability ? : number;
 	flagname ? : string;
 	mineral_type ? : GeneralMineralConstant;
+	external_dict ?: {
+		[key: string]: type_external_moving_targets;
+	}
 
 	shard_move ?: type_shard_move;
 	last_present_time ?: number;
@@ -150,6 +162,9 @@ interface PowerCreepMemory {
     current_source_target ? : string;
     home_room_name ? : string;
     next_time ? : any;
+	external_dict ?: {
+		[key: string]: type_external_moving_targets;
+	}
 }
 interface SpawnMemory {
     spawning_time ? : number;
@@ -203,7 +218,7 @@ interface conf_carriers {
     }
 }
 interface conf_upgraders {
-    locations: number[][];
+    locations: type_xy[];
     distance: number;
 }
 interface conf_harvesters {
@@ -213,7 +228,7 @@ interface conf_harvesters {
 }
 interface conf_maincarrier {
     main_pos: number[];
-    working_zone: number[][];
+    working_zone: type_xy[];
     waiting_pos: number[];
 }
 interface type_external_half_map {
@@ -332,16 +347,6 @@ interface type_external_resources {
         [key: string]: type_depo_status;
     }
 }
-interface type_conf_hunting {
-    room_name: string;
-    number: number;
-    rooms_forwardpath: string[];
-    poses_forwardpath: number[];
-    rooms_backwardpath: string[];
-    poses_backwardpath: number[];
-    body: type_body_components;
-    stay_pos: number[];
-}
 interface type_conf_room {
     readonly sources: conf_sources;
     readonly mine: Id < Mineral > ;
@@ -367,11 +372,11 @@ interface type_conf_room {
     readonly mineral_stay_pos: number[];
     readonly safe_pos: number[];
     readonly external_rooms: conf_external_rooms;
-    readonly walls: number[][];
-    readonly main_ramparts: number[][];
-    readonly secondary_ramparts: number[][];
-    readonly defense_boundary: number[][];
-    readonly safe_boundary: number[][];
+    readonly walls: type_xy[];
+    readonly main_ramparts: type_xy[];
+    readonly secondary_ramparts: type_xy[];
+    readonly defense_boundary: type_xy[];
+    readonly safe_boundary: type_xy[];
 	readonly minecarrier_distance: number;
 }
 type type_body_components = {
@@ -457,6 +462,9 @@ interface Memory {
 	power_processed_stat: number;
 	op_power_processed_stat: number;
 	produce_battery_stat: number;
+	external_room_walls: {
+		[key: string]: type_xy[];
+	}
 }
 type type_shard_exit_point = {
 	shard: string,
@@ -481,6 +489,7 @@ interface type_intershardmemory {
 			home_room_name ?: string;
 			external_room_name ?: string;
 			source_name ?: string;
+			ticksToLive ?: number;
 		}
 	}
 	creeps ? : {
@@ -511,7 +520,7 @@ interface type_creep_components {
     n_heal: number;
 };
 type type_rooms_ignore_pos = {
-    [key: string]: number[][];
+    [key: string]: type_xy[];
 };
 type type_help_list = {
     [key: string]: {
@@ -525,6 +534,7 @@ type type_help_list = {
                 [key: string]: number;
             }
 			n_energy_carriers: number;
+			mine_source: boolean;
 			guard ?: number;
         }
     }
@@ -756,5 +766,6 @@ declare module NodeJS {
 		spawn_PC(name: string): number;
 		set_shardmemory(keys: string[], value: any): number;
 		clear_shardmemory(shards: string[]): number;
+		create_room_walls(room_name: string): number;
     }
 }

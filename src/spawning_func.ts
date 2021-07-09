@@ -31,9 +31,6 @@ export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
 const getbody_external_init = (options: any) => {
     return fullreturnbody(options.body);
 }
-const getbody_hunter = (options: any): BodyPartConstant[] => {
-    return fullreturnbody(options.body);
-}
 const getbody_defender = (options: any): BodyPartConstant[] => {
     var bodyinfo = config.defender_responsible_types[options.defender_type].body;
     return fullreturnbody(bodyinfo);
@@ -69,8 +66,11 @@ const getbody_help_builder = (options: any) => {
 	}
 }
 const getbody_energy_carrier = (options: any) => {
-	let n = Math.ceil(25 * options.ratio);
-    return returnbody(0, 25, 25);
+    return fullreturnbody({
+		"carry": 20,
+		"heal": 5,
+		"move": 25,
+	})
 }
 const getbody_guard = (options: any) => {
     return fullreturnbody({
@@ -210,7 +210,6 @@ const getbody_list: type_getbody = {
     'help_builder': getbody_help_builder,
 	'energy_carrier': getbody_energy_carrier,
 	'guard': getbody_guard,
-    'hunter': getbody_hunter,
     'defender': getbody_defender,
     'invader_core_attacker': getbody_invader_core_attacker,
     'home_defender': getbody_home_defender,

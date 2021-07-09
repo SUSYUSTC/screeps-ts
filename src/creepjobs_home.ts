@@ -3,7 +3,6 @@ import * as role_init from "./role_init";
 import * as mymath from "./mymath";
 import * as basic_job from "./basic_job";
 import * as defense from "./defense";
-import * as hunting from "./hunting"
 import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
@@ -270,6 +269,9 @@ export function creepjob(creep: Creep): number {
         creep.say("WR");
         creep.memory.movable = false;
         creep.memory.crossable = true;
+		if (global.basic_costmatrices_safe[creep.room.name].get(creep.pos.x, creep.pos.y) == 255) {
+			basic_job.movetopos(creep, creep.room.terminal.pos, 1);
+		}
 		if (basic_job.boost_request(creep, {"work": "LH2O"}, false, moveoptions_safe) == 1) {
 			creep.say("WRb");
 			return 0;
@@ -284,7 +286,7 @@ export function creepjob(creep: Creep): number {
                 wall = Game.getObjectById(creep.memory.wall_to_repair);
 				let this_hits;
 				if ((<Array<Id<Structure_Wall_Rampart>>>global_memory.secondary_ramparts_id).includes(creep.memory.wall_to_repair)) {
-					this_hits = wall.hits * 5;
+					this_hits = wall.hits * config.secondary_rampart_factor;
 				} else {
 					this_hits = wall.hits;
 				}

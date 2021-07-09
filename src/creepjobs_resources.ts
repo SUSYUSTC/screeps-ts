@@ -42,11 +42,30 @@ export function creepjob(creep: Creep): number {
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("PAe");
             return 0;
         } else {
+			let xmin = Math.max(creep.pos.x - 4, 0);
+			let xmax = Math.min(creep.pos.x + 4, 49);
+			let ymin = Math.max(creep.pos.y - 4, 0);
+			let ymax = Math.min(creep.pos.y + 4, 49);
+			let hostiles = creep.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
+			if (hostiles.length > 0) {
+				let distances = hostiles.map((e) => creep.pos.getRangeTo(e));
+				let min_distance = mymath.min(distances);
+				let closeset_hostiles = hostiles.filter((e) => creep.pos.getRangeTo(e) == min_distance);
+				let scores = closeset_hostiles.map((e) => e.getActiveBodyparts(ATTACK));
+				let argmin = mymath.argmin(scores);
+				let target = closeset_hostiles[argmin];
+				creep.moveTo(target);
+				creep.attack(target);
+				return 0;
+			}
             let pb_xy = pb_status.xy;
             let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
             let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
@@ -111,11 +130,19 @@ export function creepjob(creep: Creep): number {
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("PHe");
             return 0;
         } else {
+			let healed = false;
+			if (creep.hits < creep.hitsMax) {
+				healed = true;
+				creep.heal(creep);
+			}
             let pb_xy = pb_status.xy;
             let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
             let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
@@ -139,7 +166,9 @@ export function creepjob(creep: Creep): number {
                     return 0;
                 } else {
                     creep.memory.ready = true;
-                    creep.heal(attacker);
+					if (!healed) {
+						creep.heal(attacker);
+					}
 					creep.say("PHh");
                     return 0;
                 }
@@ -165,10 +194,6 @@ export function creepjob(creep: Creep): number {
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.store.getUsedCapacity("power") > 0) {
             if (creep.room.name !== creep.memory.home_room_name) {
-                let rooms_path_reverse = _.clone(rooms_path);
-                let poses_path_reverse = _.clone(poses_path);
-                rooms_path_reverse.reverse();
-                poses_path_reverse.reverse();
                 let add_options = {};
                 if (creep.room.name == target_room) {
                     add_options = {
@@ -176,7 +201,14 @@ export function creepjob(creep: Creep): number {
 						reusePath: 10,
                     };
                 }
-                external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, add_options, {replace_pos: true});
+				if (!external_room.is_moving_target_defined(creep, 'backward')) {
+					let rooms_path_reverse = _.clone(rooms_path);
+					let poses_path_reverse = _.clone(poses_path);
+					rooms_path_reverse.reverse();
+					poses_path_reverse.reverse();
+					external_room.save_external_moving_targets(creep, rooms_path_reverse, poses_path_reverse, 'backward');
+				}
+				external_room.external_move(creep, 'backward', add_options);
 				creep.memory.movable = true;
 				creep.say("PCe1");
             } else {
@@ -194,7 +226,10 @@ export function creepjob(creep: Creep): number {
             creep.suicide();
         }
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("PCe2");
             return 0;
@@ -263,7 +298,10 @@ export function creepjob(creep: Creep): number {
         let poses_path = depo_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("DBe");
             return 0;
@@ -309,7 +347,10 @@ export function creepjob(creep: Creep): number {
         let poses_path = depo_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("DEe");
             return 0;
@@ -352,7 +393,7 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         let depo_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.depo[creep.memory.external_room_name];
-		if (depo_status.container_hits <= 180000 && creep.room.name == creep.memory.home_room_name && creep.store.getFreeCapacity("energy") !== 0) {
+		if (depo_status.container_hits <= 170000 && creep.room.name == creep.memory.home_room_name && creep.store.getFreeCapacity("energy") !== 0) {
 			basic_job.get_energy(creep);
 			return 0;
 		}
@@ -360,7 +401,10 @@ export function creepjob(creep: Creep): number {
         let poses_path = depo_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("DHe");
             return 0;
@@ -404,11 +448,14 @@ export function creepjob(creep: Creep): number {
         let target_room = rooms_path[rooms_path.length - 1];
         if (creep.store.getUsedCapacity(depo_status.deposit_type) > 0) {
             if (creep.room.name !== creep.memory.home_room_name) {
-                let rooms_path_reverse = _.clone(rooms_path);
-                let poses_path_reverse = _.clone(poses_path);
-                rooms_path_reverse.reverse();
-                poses_path_reverse.reverse();
-                external_room.movethroughrooms(creep, rooms_path_reverse, poses_path_reverse, {reusePath: 10}, {replace_pos: true});
+				if (!external_room.is_moving_target_defined(creep, 'backward')) {
+					let rooms_path_reverse = _.clone(rooms_path);
+					let poses_path_reverse = _.clone(poses_path);
+					rooms_path_reverse.reverse();
+					poses_path_reverse.reverse();
+					external_room.save_external_moving_targets(creep, rooms_path_reverse, poses_path_reverse, 'backward');
+				}
+				external_room.external_move(creep, 'backward', {reusePath: 10});
 				creep.memory.movable = true;
 				creep.say("DCe1");
             } else {
@@ -426,7 +473,10 @@ export function creepjob(creep: Creep): number {
 			return 0;
         }
         if (creep.room.name !== target_room) {
-            external_room.movethroughrooms(creep, rooms_path, poses_path, {reusePath: 10}, {replace_pos: true});
+			if (!external_room.is_moving_target_defined(creep, 'forward')) {
+				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+			}
+			external_room.external_move(creep, 'forward', {reusePath: 10});
 			creep.memory.movable = true;
 			creep.say("DCe2");
             return 0;

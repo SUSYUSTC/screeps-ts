@@ -288,8 +288,13 @@ export function automove_group_x2(groupname: string, flagname: string, rooms_pat
     if (sameroom && !close) {
 		healer.moveTo(invader, {range: 1});
 		invader.moveTo(healer, {range: 1});
-	} else if (external_room.movethroughrooms_group_x2(invader, healer, rooms_path, poses_path) == 0) {
-		return 0;
+	} else {
+		if (!external_room.is_moving_target_defined(invader, 'forward')) {
+			external_room.save_external_moving_targets(invader, rooms_path, poses_path, 'forward');
+		}
+		if (external_room.movethroughrooms_group_x2(invader, healer, 'forward', rooms_path.slice(-1)[0]) == 0) {
+			return 0;
+		}
 	}
 	if (invader.fatigue > 0 || healer.fatigue > 0) {
 		return 0;
@@ -321,7 +326,10 @@ export function automove_group_x2(groupname: string, flagname: string, rooms_pat
 			let poses_path_reverse = _.clone(poses_path);
 			rooms_path_reverse.reverse();
 			poses_path_reverse.reverse();
-			external_room.movethroughrooms_group_x2(invader, healer, rooms_path_reverse, poses_path_reverse, {costCallback: costCallback, reusePath: 0, maxOps: 200});
+			if (!external_room.is_moving_target_defined(invader, 'backward')) {
+				external_room.save_external_moving_targets(invader, rooms_path_reverse, poses_path_reverse, 'backward');
+			}
+			external_room.movethroughrooms_group_x2(invader, healer, 'backward', rooms_path[0], {costCallback: costCallback, reusePath: 0, maxOps: 200});
 			return 0;
 		}
 	}

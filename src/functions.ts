@@ -73,12 +73,14 @@ export function get_exit_xy(coor_diff: [number, number], pos: number, poses: [nu
 }
 
 export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
+	let timer = new Timer("avoid_exits", false);
     for (let i = 0; i < 50; i++) {
         costMatrix.set(0, i, 255);
         costMatrix.set(49, i, 255);
         costMatrix.set(i, 49, 255);
         costMatrix.set(i, 0, 255);
     }
+	timer.end();
 }
 
 export function restrict_passing_rooms(room_name: string): CostMatrix {

@@ -90,7 +90,8 @@ export var mineral_level: type_mineral_level = {
 export var general_minerals = <Array<GeneralMineralConstant>> Object.keys(mineral_level);
 export var t1_minerals = general_minerals.filter((e) => mineral_level[e] == 1)
 export var t2_minerals = general_minerals.filter((e) => mineral_level[e] == 2)
-export var t3_minerals = general_minerals.map((e) => mineral_level[e] == 3)
+export var t3_minerals = general_minerals.filter((e) => mineral_level[e] == 3)
 export var t12_minerals = t1_minerals.concat(t2_minerals);
 export var basic_minerals = <Array<MineralConstant>>['U', 'L', 'Z', 'K', 'X', 'O', 'H'];
 export var t012_minerals = (<Array<GeneralMineralConstant>>basic_minerals).concat(t12_minerals);
+export var bars = <ResourceConstant[]> ['utrium_bar', 'lemergium_bar', 'zynthium_bar', 'keanium_bar', 'ghodium_melt', 'oxidant', 'reductant', 'purifier', 'composite', 'crystal', 'liquid'];

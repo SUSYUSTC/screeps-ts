@@ -248,15 +248,39 @@ function send_compounds() {
 	}
 }
 
+function process_obselete_rooms(room_name: string) {
+	let room = Game.rooms[room_name];
+	for (let resource of config.obselete_rooms_resources) {
+		let this_total_amount = functions.get_total_resource_amount(room_name, resource);
+		let this_amount = room.terminal.store.getUsedCapacity(resource);
+		if (this_total_amount > 0) {
+			if (this_amount == 0) {
+				return 0;
+			}
+			let amounts = Game.controlled_rooms_with_terminal.map((e) => Game.rooms[e].terminal.store.getUsedCapacity(resource));
+			let argmin = mymath.argmin(amounts);
+			let receiving_room = Game.controlled_rooms_with_terminal[argmin];
+			let send_amount = Math.min(this_amount, Game.rooms[receiving_room].terminal.store.getFreeCapacity() - 20000);
+			if (resource == 'energy') {
+				send_amount = Math.min(5000, send_amount);
+			}
+			if (send_amount > 0) {
+				functions.send_resource(room_name, receiving_room, resource, send_amount);
+			}
+			return 0;
+		}
+	}
+}
+
 export function terminal_balance() {
 	if (Game.time % 5 == 0) {
 		get_terminal_space();
 	}
-	/*
-	if (Game.time % 200 == 0) {
-		gather_resource();
+	if (Game.time % 10 == 0) {
+		for (let obselete_room_name of config.obselete_rooms) {
+			process_obselete_rooms(obselete_room_name);
+		}
 	}
-	*/
 	if (Game.time % 40 == 0) {
 		send_basic_minerals();
 	}

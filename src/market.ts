@@ -219,12 +219,11 @@ function classify_my_orders() {
 		sell: {},
 		buy: {},
 	}
-	for (let room_name of Game.controlled_rooms_with_terminal) {
-		Game.my_orders.sell[room_name] = {};
-		Game.my_orders.buy[room_name] = {};
-	}
 	for (let order of <Array<Order>> Object.values(Game.market.orders)) {
 		let type = <"sell"|"buy"> order.type;
+		if (Game.my_orders[type][order.roomName] == undefined) {
+			Game.my_orders[type][order.roomName] = {};
+		}
 		if (Game.my_orders[type][order.roomName][order.resourceType] == undefined) {
 			Game.my_orders[type][order.roomName][order.resourceType] = [];
 		}
@@ -322,7 +321,12 @@ function auto_supply_from_market(room_name: string, resource: ResourceConstant, 
 	}
     let room = Game.rooms[room_name];
     let current_amount = functions.get_total_resource_amount(room_name, resource);
-	let orders = Game.my_orders.buy[room_name][resource];
+	let orders: Order[];
+	if (Game.my_orders.buy[room_name] == undefined) {
+		orders = [];
+	} else {
+		orders = Game.my_orders.buy[room_name][resource];
+	}
 	if (orders == undefined) {
 		orders = [];
 	}

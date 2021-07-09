@@ -147,3 +147,16 @@ export function update_multiple_structures(room_name: string, structuretype: typ
 	return output;
 };
 
+global.create_room_walls = function(room_name: string): number {
+	let room = Game.rooms[room_name];
+	let conf = config.conf_rooms[room_name];
+	for (let xy of conf.main_ramparts.concat(conf.secondary_ramparts)) {
+		let pos = room.getPositionAt(xy[0], xy[1]);
+		pos.createConstructionSite("rampart");
+	}
+	for (let xy of conf.walls) {
+		let pos = room.getPositionAt(xy[0], xy[1]);
+		pos.createConstructionSite("constructedWall");
+	}
+	return 0;
+}

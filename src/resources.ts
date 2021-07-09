@@ -14,6 +14,51 @@ global.is_pos_accessable = is_pos_accessable;
 
 var detection_period = global.is_main_server ? 500 : 200;
 
+function highway_resources_cost(room_name: string): CostMatrix {
+	let costMatrix = new PathFinder.CostMatrix;
+	let coor = functions.room2coor(room_name);
+	let is_highway = false;
+	for (let value of coor) {
+		if (value > 0) {
+			if (value % 10 == 1) {
+				is_highway = true;
+			}
+		} else {
+			if (-value % 10 == 0) {
+				is_highway = true;
+			}
+		}
+	}
+	if (!(is_highway || config.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name))) {
+		for (let i = 0; i < 50; i++) {
+			costMatrix.set(1, i, 255);
+			costMatrix.set(48, i, 255);
+			costMatrix.set(i, 48, 255);
+			costMatrix.set(i, 1, 255);
+		}
+	}
+	if (Memory.external_room_walls[room_name] !== undefined) {
+		for (let xy of Memory.external_room_walls[room_name]) {
+			costMatrix.set(xy[0], xy[1], 255);
+		}
+	}
+	return costMatrix;
+}
+
+
+function update_rooms_walls(external_room_name: string) {
+	let external_room = Game.rooms[external_room_name];
+	if (external_room == undefined) {
+		console.log(`Warning: Fail to observe room ${external_room_name} at time ${Game.time}`);
+		return -1;
+	}
+	if (Memory.external_room_walls == undefined) {
+		Memory.external_room_walls = {};
+	}
+	let walls = <Array<StructureWall>> external_room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'constructedWall');
+	Memory.external_room_walls[external_room_name] = walls.map((e) => [e.pos.x, e.pos.y]);
+}
+
 function detect_pb(room_name: string, external_room_name: string) {
 	// 1: already found, 0: pb found, -1: cannot observe, -2: cannot find pb, -3: boost resources not enough
 	let room = Game.rooms[room_name];
@@ -50,7 +95,7 @@ function detect_pb(room_name: string, external_room_name: string) {
 		"range": 1
 	}, {
 		maxOps: 6000,
-		roomCallback: functions.restrict_passing_rooms,
+		roomCallback: highway_resources_cost,
 	})
 	if (path.incomplete) {
 		console.log(`Warning: Cannot find path when detecting pb at room ${external_room_name} from room ${room_name} at time ${Game.time}`)
@@ -120,7 +165,7 @@ function detect_depo(room_name: string, external_room_name: string) {
 		"range": 1
 	}, {
 		maxOps: 6000,
-		roomCallback: functions.restrict_passing_rooms,
+		roomCallback: highway_resources_cost,
 	})
 	if (path.incomplete) {
 		return -2;
@@ -198,6 +243,7 @@ export function detect_resources(room_name: string) {
     for (let i = 0; i < external_rooms.length; i++) {
         if (Game.time % detection_period == i + 1) {
             let external_room_name = external_rooms[i];
+			update_rooms_walls(external_room_name);
 			detect_pb(room_name, external_room_name);
 			if (!global.is_main_server) {
 				detect_depo(room_name, external_room_name);
@@ -262,7 +308,7 @@ function update_pb(room_name: string, external_room_name: string) {
 			};
 			Memory.pb_log.push(pb_item);
 			if (Memory.pb_log.length > 10) {
-				Memory.pb_log = Memory.pb_log.slice(0, 10);
+				Memory.pb_log = Memory.pb_log.slice(-10);
 			}
 			if (pb_status.amount - pb_status.amount_received >= 100) {
 				console.log(`Warning: unexpected pb mining ${pb_status.name}`);

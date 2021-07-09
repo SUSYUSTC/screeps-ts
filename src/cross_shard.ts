@@ -111,6 +111,7 @@ global.clear_shardmemory = function(shards: string[]) {
 }
 
 export function sync_shard_memory() {
+	let timer = new Timer("sync_shard_memory", true);
 	// init
 	init_shard_memory();
 	// sync
@@ -198,10 +199,11 @@ export function sync_shard_memory() {
 	all_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
 	for (let creepname in all_creeps) {
 		// creep comes, copy shard memory to memory
-		if (Game.creeps[creepname] !== undefined) {
+		let creep = Game.creeps[creepname];
+		if (creep !== undefined) {
 			let creep_shardmemory = Game.InterShardMemory[Game.shard.name].creeps[creepname];
-			if (creep_shardmemory !== undefined) {
-				Game.creeps[creepname].memory = _.clone(creep_shardmemory);
+			if (creep_shardmemory !== undefined && creep.memory.role == undefined) {
+				creep.memory = _.clone(creep_shardmemory);
 			}
 		// creep leaves, delete memory
 		} else {
@@ -210,9 +212,11 @@ export function sync_shard_memory() {
 			}
 		}
 	}
+	timer.end()
 }
 
 export function update_shard_memory() {
+	let timer = new Timer("update_shard_memory", true);
 	if (!global.is_main_server) {
 		return;
 	}
@@ -225,6 +229,7 @@ export function update_shard_memory() {
 		InterShardMemory.setLocal(JSON.stringify(shardmemory));
 		console.log('update inter shard memory');
 	}
+	timer.end();
 }
 
 export function delete_creep_from_shardmemory(creep: Creep) {

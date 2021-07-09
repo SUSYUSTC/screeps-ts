@@ -13,9 +13,6 @@ import {
     conf_E19N53
 } from "./config_E19N53"
 import {
-    conf_E19N51
-} from "./config_E19N51"
-import {
     conf_E21N49
 } from "./config_E21N49"
 import {
@@ -30,6 +27,9 @@ import {
 import {
     conf_W9N39
 } from "./config_W9N39"
+import {
+    conf_W9N1
+} from "./config_W9N1"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
@@ -37,7 +37,7 @@ conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
 conf_E16N58.external_rooms.E17N58.active = true;
 conf_E9N54.external_rooms.E9N55.active = true;
-conf_E19N53.external_rooms.E19N54.active = true;
+//conf_E19N53.external_rooms.E19N54.active = true;
 
 /*
 function direction2orient(pos: number[]) {
@@ -59,9 +59,6 @@ function direction2orient(pos: number[]) {
 type type_conf_rooms = {
     [key: string]: type_conf_room;
 }
-type type_hunting = {
-    [key: string]: type_conf_hunting;
-}
 interface type_pc_conf {
     [key: string]: {
         room_name: string;
@@ -74,14 +71,15 @@ export var conf_rooms: type_conf_rooms = {
     "E15N58": conf_E15N58,
     "E14N51": conf_E14N51,
     "E19N53": conf_E19N53,
-    "E19N51": conf_E19N51,
     "E21N49": conf_E21N49,
     "E19N55": conf_E19N55,
     "E14N59": conf_E14N59,
     "E9N54": conf_E9N54,
     "W9N39": conf_W9N39,
+    "W9N1": conf_W9N1,
 }
-export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E19N51", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39"];
+export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1"];
+export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
 for (let room_name of controlled_rooms) {
@@ -121,7 +119,7 @@ export var pc_conf: type_pc_conf = {
     "PC_E": {
         "room_name": "E19N53",
         "normal_ordered": false,
-        "external_room": "E19N54",
+        //"external_room": "E19N54",
     },
     "PC_F": {
         "room_name": "E21N49",
@@ -131,20 +129,25 @@ export var pc_conf: type_pc_conf = {
         "room_name": "E14N51",
         "normal_ordered": false,
     },
+    "PC_H": {
+        "room_name": "W9N39",
+        "normal_ordered": true,
+    },
 }
+
+export var obselete_rooms_resources: ResourceConstant[] = (<ResourceConstant[]>constants.t3_minerals).concat(['power', 'battery', 'ops']).concat(constants.t2_minerals).concat(constants.t1_minerals).concat(constants.basic_minerals).concat("energy");
 export var double_powered_harvester = true;
-export var hunting: type_hunting = {};
 export var source_container_upper_limit: number = 1200;
 export var source_container_lower_limit: number = 800;
 export var link_transfer_to_main_gap: number = 800;
 export var link_transfer_from_main_gap: number = 600;
 export var main_link_amount_source: number = 800;
 export var main_link_amount_sink: number = 0;
-export var wall_strength: number = 5000;
+export var min_wall_strength: number = 5000;
+export var max_wall_strength = 2.0e7;
+export var secondary_rampart_factor = 4.0;
 export var maincarrier_ncarry_no_power: number = 8;
 export var maincarrier_ncarry_powered: number = 16;
-export var defense_compounds_storage_room = 'E19N55';
-export var external_resources_compounds_storage_room = 'E19N55';
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var newroom_energy_buying_price = {
     price: 0.6,
@@ -167,8 +170,10 @@ export var terminal_min_energy = 20000;
 export var terminal_max_energy = 80000;
 export var terminal_min_battery = 2000;
 export var terminal_max_battery = 5000;
-export var terminal_min_mineral = 5000;
-export var terminal_max_mineral = 10000;
+export var terminal_min_mineral = 3000;
+export var terminal_max_mineral = 6000;
+export var terminal_min_store_mineral = 20000;
+export var terminal_max_store_mineral = 24000;
 export var factory_min_energy = 5000;
 export var factory_max_energy = 10000;
 export var factory_min_battery = 2000;
@@ -192,6 +197,25 @@ interface type_preclaiming_rooms {
         [key: string]: type_external_shard_map
     }
 }
+var W9N1_path = [ { shard: 'shard3', roomName: 'W10N40', x: 7, y: 30 },
+				{ shard: 'shard2', roomName: 'W10N40', x: 39, y: 38 },
+				{ shard: 'shard1', roomName: 'W10N40', x: 28, y: 20 },
+				{ shard: 'shard0', roomName: 'W19N70', x: 1, y: 42 },
+//				{ shard: 'shard0', roomName: 'W21N60', x: 48, y: 35 }, //add
+				{ shard: 'shard0', roomName: 'W20N60', x: 45, y: 11 },
+				{ shard: 'shard1', roomName: 'W10N30', x: 5, y: 40 },
+				{ shard: 'shard0', roomName: 'W19N50', x: 1, y: 39 },
+				{ shard: 'shard0', roomName: 'W20N39', x: 6, y: 1 },
+				{ shard: 'shard0', roomName: 'W30N40', x: 29, y: 42 },
+				{ shard: 'shard1', roomName: 'W20N20', x: 43, y: 18 },
+				{ shard: 'shard0', roomName: 'W29N30', x: 1, y: 46 },
+				{ shard: 'shard0', roomName: 'W31N10', x: 48, y: 47 },
+				{ shard: 'shard0', roomName: 'W30S1', x: 44, y: 1 },
+				{ shard: 'shard0', roomName: 'W20S0', x: 13, y: 26 },
+				{ shard: 'shard1', roomName: 'W10S0', x: 5, y: 30 },
+				{ shard: 'shard2', roomName: 'W10S0', x: 21, y: 24 },
+				{ shard: 'shard3', roomName: 'W9N1', x: 28, y: 41 },
+			]
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
     'E16N58': {
@@ -200,19 +224,23 @@ preclaiming_rooms = {
             poses_forwardpath: [28],
         },
     },
+	'W9N39': {
+		'W9N1': {
+			shard_path: W9N1_path,
+		}
+	}
 }
 export var help_list: type_help_list = {
-	/*
-    "E14N51": {
-        "W9N39": {
-            shard_path: W9N39_path,
-            commuting_distance: global.is_main_server ? 600 : 300,
-            commuting_time: global.is_main_server ? 720 : 300,
-            n_energy_carriers: 1,
+    "W9N39": {
+        "W9N1": {
+            shard_path: W9N1_path,
+            commuting_distance: 600,
+            commuting_time: 900,
+			mine_source: false,
+            n_energy_carriers: 2,
             guard: 5,
         }
     }
-	*/
 };
 export var protected_sources: {
     [key: string]: string[]
@@ -221,7 +249,6 @@ export var protected_sources: {
     "E15N58": [],
     "E14N51": [],
     "E19N53": ['S1', 'S2'],
-    "E19N51": ['S1'],
     "E21N49": [],
     "E19N55": ['S1'],
     "E14N59": ['S1', 'S2'],
@@ -235,6 +262,37 @@ export var highway_resources: {
     "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
     "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
+}
+for (let room_name in highway_resources) {
+	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
+}
+type type_commodity_conf = {
+	[key in "U" | "L" | "Z" | "K"]: {
+		bar: 'utrium_bar' | 'lemergium_bar' | 'zynthium_bar' | 'keanium_bar';
+		L0: 'wire' | 'cell' | 'alloy' | 'condensate';
+	}
+}
+export var commodity_conf: type_commodity_conf = {
+	'U': {
+		bar: 'utrium_bar',
+		L0: 'wire',
+	},
+	'L': {
+		bar: 'lemergium_bar',
+		L0: 'cell',
+	},
+	'Z': {
+		bar: 'zynthium_bar',
+		L0: 'alloy',
+	},
+	'K': {
+		bar: 'keanium_bar',
+		L0: 'condensate',
+	},
+}
+export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = {
+	"W9N39": ["U"],
 }
 export var depo_last_cooldown = 150;
 export var depo_cd_to_boost = 15;
@@ -242,7 +300,7 @@ export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
 
 // Start of reaction, terminal and market session
-var t3_store_room: {
+export var t3_store_room: {
     [key in GeneralMineralConstant] ? : string
 } = {
     "XUH2O": "E15N58",
@@ -250,10 +308,15 @@ var t3_store_room: {
     "XLHO2": "E9N54",
     "XZH2O": "E14N51",
     "XZHO2": "E14N59",
-    "XKH2O": "E19N55",
+    "XKH2O": "W9N39",
     "XKHO2": "E21N49",
     "XGH2O": "E19N53",
-    "XGHO2": "E19N51",
+    "XGHO2": "E19N55",
+}
+export var t3_room_store: {[key: string]: GeneralMineralConstant} = {};
+for (let resource of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
+	let room_name = t3_store_room[resource];
+	t3_room_store[room_name] = resource;
 }
 type type_acceptable_prices = {
     buy: {
@@ -348,7 +411,7 @@ export var auto_sell_list: type_auto_sell_list = {
         amount: 30000,
     },
     "XKH2O": {
-        room: "E19N55",
+        room: "W9N39",
         price: 20,
         amount: 30000,
     },
@@ -363,67 +426,16 @@ export var auto_sell_list: type_auto_sell_list = {
         amount: 30000,
     },
     "XGHO2": {
-        room: "E19N51",
+        room: "E19N55",
         price: 30,
         amount: 30000,
     },
 }
 for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
     if (t3_store_room[key] !== auto_sell_list[key].room) {
-        throw Error("t3 room does not match");
+        throw Error("t3 room does not match for " + key);
     }
 }
-/*
-type type_resource_gathering_pos = {
-    [key in ResourceConstant] ? : {
-        room: string;
-        left: number;
-    }
-}
-export var resource_gathering_pos: type_resource_gathering_pos = {
-    "XUH2O": {
-        room: "E15N58",
-        left: 6000,
-    },
-    "XLH2O": {
-        room: "E16N58",
-        left: 6000,
-    },
-    "XLHO2": {
-        room: "E9N54",
-        left: 6000,
-    },
-    "XZH2O": {
-        room: "E14N51",
-        left: 6000,
-    },
-    "XZHO2": {
-        room: "E14N59",
-        left: 6000,
-    },
-    "XKH2O": {
-        room: "E19N55",
-        left: 6000,
-    },
-    "XKHO2": {
-        room: "E21N49",
-        left: 6000,
-    },
-    "XGHO2": {
-        room: "E19N51",
-        left: 6000,
-    },
-    "XGH2O": {
-        room: "E19N53",
-        left: 6000,
-    },
-}
-for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
-    if (t3_store_room[key] !== resource_gathering_pos[key].room) {
-        throw Error("t3 room does not match");
-    }
-}
-*/
 export var resources_balance: {
     [key in ResourceConstant] ? : type_resource_balance
 } = {
@@ -517,7 +529,7 @@ export var final_product_request: type_final_product_requrest = {
     "XKH2O": {
         min_amount: 0,
         expect_amount: 1200,
-        store_room: "E19N55",
+        store_room: "W9N39",
         store_good_amount: 600,
         store_expect_amount: 30000,
     },
@@ -528,13 +540,6 @@ export var final_product_request: type_final_product_requrest = {
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
-    "XGHO2": {
-        min_amount: 1200,
-        expect_amount: 2400,
-        store_room: "E19N51",
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
-    },
     "XGH2O": {
         min_amount: 0,
         expect_amount: 1200,
@@ -542,10 +547,17 @@ export var final_product_request: type_final_product_requrest = {
         store_good_amount: 600,
         store_expect_amount: 30000,
     },
+    "XGHO2": {
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "E19N55",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
 };
 for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
     if (t3_store_room[key] !== final_product_request[key].store_room) {
-        throw Error("t3 room does not match");
+        throw Error("t3 room does not match for " + key);
     }
 }
 type type_mineral_store_amount = {
@@ -808,7 +820,7 @@ export var doubled_powered_external_harvester: type_powered_harvester = {
 
 export var creep_roles_home: type_creep_role[] = ["init", "harvester", "carrier", "builder", "upgrader", "transferer", "mineharvester", "minecarrier", "wall_repairer"]
 export var creep_roles_maincarrier: type_creep_role[] = ["maincarrier"]
-export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "hunter", "home_defender", "enemy"]
+export var creep_roles_combat: type_creep_role[] = ["defender", "invader_core_attacker", "home_defender", "enemy"]
 export var creep_roles_external: type_creep_role[] = ["externalharvester", "externalcarrier", "external_init", "externalbuilder", "reserver", "preclaimer", "help_harvester", "help_carrier", "help_builder", "energy_carrier", "guard"]
 export var creep_roles_resources: type_creep_role[] = ["pb_attacker", "pb_healer", "pb_carrier", "depo_container_builder", "depo_energy_carrier", "depo_harvester", "depo_carrier"]
 export var creep_roles_all = creep_roles_home.concat(creep_roles_external).concat(creep_roles_maincarrier).concat(creep_roles_resources).concat(creep_roles_combat);
