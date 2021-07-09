@@ -179,7 +179,8 @@ export function init() {
 				external_room_name: string;
 				status: number;
 				type: DepositConstant;
-				amount_received: number;
+				received: number;
+				last_cd: number;
 			}
 		} = {};
 		for (let home_room_name of Game.controlled_rooms_with_terminal) {
@@ -194,7 +195,8 @@ export function init() {
 					external_room_name: external_room_name,
 					status: depo.status,
 					type: depo.deposit_type,
-					amount_received: depo.amount_received,
+					received: depo.amount_received,
+					last_cd: depo.last_cooldown,
 				}
 			}
 		}

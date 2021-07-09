@@ -72,7 +72,7 @@ function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: Res
 	if (options.amount == undefined) {
 		out = creep.withdraw(structure, resource_type);
 	} else {
-		out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), options.amount));
+		out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), (<GeneralStore>structure.store).getUsedCapacity(resource_type), options.amount));
 	}
     if (out == ERR_NOT_IN_RANGE) {
         movetopos_restricted(creep, structure.pos, 1);
@@ -133,7 +133,8 @@ function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
 			// mineral is not enough
 			if (creep.memory.resource_type == undefined) {
 				let amount = Game.memory[creep.room.name].exact_boost ? request.amount * 30 : request.amount * 30 - lab.mineralAmount;
-				withdraw(creep, creep.room.terminal, request.compound, {next_structure: lab, amount: amount});
+				let structure = creep.room.terminal.store.getUsedCapacity(request.compound) > 0 ? creep.room.terminal : creep.room.storage;
+				withdraw(creep, structure, request.compound, {next_structure: lab, amount: amount});
 			} else if (creep.memory.resource_type == request.compound) {
 				transfer(creep, lab, request.compound, {next_structure: creep.room.terminal});
 			} else {

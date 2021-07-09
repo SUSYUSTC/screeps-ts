@@ -302,7 +302,9 @@ export function send_resource(room_from: string, room_to: string, resource: Reso
 export function conf_body_to_boost_request(conf: type_body_conf): type_creep_boost_request {
 	let result: type_creep_boost_request = {};
 	for (let part of <Array<BodyPartConstant>> Object.keys(conf)) {
-		result[part] = conf[part].boost;
+		if (conf[part].boost !== undefined) {
+			result[part] = conf[part].boost;
+		}
 	}
 	return result;
 }
