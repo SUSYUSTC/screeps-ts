@@ -103,7 +103,16 @@ type type_external_moving_targets = {
 		room_name: string;
 	}
 }
-
+type type_main_structure_names = "storage" | "terminal" | "link" | "factory" | "powerspawn" | "nuker"
+type type_main_structure_amounts = {
+    [key in type_main_structure_names] ? : number;
+}
+type type_transport_job = {
+	resource_type: ResourceConstant;
+    from: type_main_structure_names;
+    to: type_main_structure_names;
+    amount: number;
+}
 interface CreepMemory {
     _move ? : type_creep_move;
     movable ? : boolean;
@@ -150,6 +159,7 @@ interface CreepMemory {
 	shard_move ?: type_shard_move;
 	last_present_time ?: number;
 	last_present_shard ?: string;
+	jobs ?: type_transport_job[];
 }
 interface PowerCreepMemory {
     movable ? : boolean;

@@ -146,7 +146,7 @@ export var main_link_amount_sink: number = 0;
 export var min_wall_strength: number = 5000;
 export var max_wall_strength = 2.0e7;
 export var secondary_rampart_factor = 4.0;
-export var maincarrier_ncarry_no_power: number = 8;
+export var maincarrier_ncarry_no_power: number = 16;
 export var maincarrier_ncarry_powered: number = 16;
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var newroom_energy_buying_price = {
@@ -179,6 +179,7 @@ export var factory_min_energy = 5000;
 export var factory_max_energy = 10000;
 export var factory_min_battery = 2000;
 export var factory_max_battery = 5000;
+export var powerspawn_min_energy = 2000;
 export var nuker_full_energy = 300000;
 export var nuker_full_G = 5000;
 export var powerspawn_full_power = 100;
@@ -267,30 +268,6 @@ export var highway_resources: {
 }
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
-}
-type type_commodity_conf = {
-	[key in "U" | "L" | "Z" | "K"]: {
-		bar: 'utrium_bar' | 'lemergium_bar' | 'zynthium_bar' | 'keanium_bar';
-		L0: 'wire' | 'cell' | 'alloy' | 'condensate';
-	}
-}
-export var commodity_conf: type_commodity_conf = {
-	'U': {
-		bar: 'utrium_bar',
-		L0: 'wire',
-	},
-	'L': {
-		bar: 'lemergium_bar',
-		L0: 'cell',
-	},
-	'Z': {
-		bar: 'zynthium_bar',
-		L0: 'alloy',
-	},
-	'K': {
-		bar: 'keanium_bar',
-		L0: 'condensate',
-	},
 }
 export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = {
 	"W9N39": ["U"],

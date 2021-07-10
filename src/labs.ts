@@ -132,7 +132,7 @@ function compare_product(reactants: GeneralMineralConstant[], product: MineralCo
 }
 export function reaction(room_name: string) {
     let room = Game.rooms[room_name];
-    if (room.memory.reaction_request !== undefined && room.memory.reaction_request.status !== "running") {
+    if (!(room.memory.reaction_request !== undefined && room.memory.reaction_request.status == "running")) {
         return;
     }
 	if (Game.cpu.bucket < 2000) {
@@ -149,6 +149,9 @@ export function reaction(room_name: string) {
     if (Object.keys(room.lab).length == 10) {
         let source1_lab = room.lab.S1;
         let source2_lab = room.lab.S2;
+		if (source1_lab.mineralAmount < config.react_stop_amount || source2_lab.mineralAmount < config.react_stop_amount) {
+			room.memory.reaction_request.status = 'clear';
+		}
         let react_names = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'];
 		if (room.memory.current_boost_request == undefined) {
 			react_names.push('B1');

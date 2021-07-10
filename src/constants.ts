@@ -88,10 +88,40 @@ export var mineral_level: type_mineral_level = {
     "XKHO2": 3,
 };
 export var general_minerals = <Array<GeneralMineralConstant>> Object.keys(mineral_level);
-export var t1_minerals = general_minerals.filter((e) => mineral_level[e] == 1)
-export var t2_minerals = general_minerals.filter((e) => mineral_level[e] == 2)
-export var t3_minerals = general_minerals.filter((e) => mineral_level[e] == 3)
+export var t1_minerals = general_minerals.filter((e) => mineral_level[e] == 1);
+export var t2_minerals = general_minerals.filter((e) => mineral_level[e] == 2);
+export var t3_minerals = general_minerals.filter((e) => mineral_level[e] == 3);
 export var t12_minerals = t1_minerals.concat(t2_minerals);
 export var basic_minerals = <Array<MineralConstant>>['U', 'L', 'Z', 'K', 'X', 'O', 'H'];
 export var t012_minerals = (<Array<GeneralMineralConstant>>basic_minerals).concat(t12_minerals);
 export var bars = <ResourceConstant[]> ['utrium_bar', 'lemergium_bar', 'zynthium_bar', 'keanium_bar', 'ghodium_melt', 'oxidant', 'reductant', 'purifier', 'composite', 'crystal', 'liquid'];
+export var basic_commodities : ResourceConstant[] = ['silicon', 'metal', 'biomass', 'mist'];
+type type_basic_commodity_production = {
+	[key in "U" | "L" | "Z" | "K"]: {
+		bar: CommodityConstant,
+		depo: ResourceConstant,
+		product: CommodityConstant,
+	}
+}
+export var basic_commodity_production: type_basic_commodity_production = {
+	U: {
+		bar: 'utrium_bar',
+		depo: 'silicon',
+		product: 'wire',
+	},
+	L: {
+		bar: 'lemergium_bar',
+		depo: 'biomass',
+		product: 'cell',
+	},
+	Z: {
+		bar: 'zynthium_bar',
+		depo: 'metal',
+		product: 'alloy',
+	},
+	K: {
+		bar: 'keanium_bar',
+		depo: 'mist',
+		product: 'condensate',
+	},
+}
