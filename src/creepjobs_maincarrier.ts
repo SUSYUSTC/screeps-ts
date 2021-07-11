@@ -465,7 +465,7 @@ var power_requirement: type_requirement = {
 	resource_type: ["power"],
 	from: "terminal",
 	to: "powerspawn",
-	to_min_amount: 4,
+	to_min_amount: 10,
 	to_limit_amount: 100,
 }
 
@@ -596,9 +596,9 @@ function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
 	let jobs: type_transport_job[] = [];
 	jobs = jobs.concat(get_energy_transport_jobs(creep));
 	jobs = jobs.concat(get_required_jobs(creep, factory_battery_requirement));
+	jobs = jobs.concat(get_required_jobs(creep, power_requirement));
 	if (level >= 1) {
 		jobs = jobs.concat(get_required_jobs(creep, terminal_battery_requirement));
-		jobs = jobs.concat(get_required_jobs(creep, power_requirement));
 
 		let store_mineral = config.t3_room_store[creep.room.name];
 		if (store_mineral !== undefined) {

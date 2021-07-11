@@ -118,8 +118,12 @@ export function init() {
 		Memory.power_processed_stat = 0;
 		Memory.op_power_processed_stat = 0;
 		Memory.produce_battery_stat = 0;
-		Memory.pb_log = [];
-		Memory.depo_log = [];
+		if (Memory.pb_log == undefined) {
+			Memory.pb_log = [];
+		}
+		if (Memory.depo_log == undefined) {
+			Memory.depo_log = [];
+		}
 		return 0;
 	}
 
@@ -220,8 +224,8 @@ export function init() {
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});
 		str3 += '\ndepo stat' + global.format_objs(Memory.depo_log, true);
 		str3 += '\nongoing depo' + global.format_json2(ongoing_depo, {sort: false, json: true});
-		//str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
-		//str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
+		str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
+		str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 		return vertical_split_string(vertical_split_string(str1, str2), str3);
 	}
 
@@ -235,6 +239,22 @@ export function init() {
 		}
 		for (let room_name of Game.controlled_rooms_with_terminal) {
 			let room_store = global.summarize_terminal([room_name]);
+			let keys = <Array<ResourceConstant>>Object.keys(room_store);
+			keys.forEach((e) => store[e][room_name] = room_store[e]);
+		}
+		return global.format_json2(store, {sort: true, json: true});
+	}
+
+	global.display_terminal_store = function(): string {
+		let resources = <Array<ResourceConstant>> Object.keys(global.summarize_terminal(Game.controlled_rooms_with_terminal));
+		let store: {[key in ResourceConstant] ?: {[key: string]: number}} = {};
+		let empty_resource: {[key: string]: number} = {};
+		Game.controlled_rooms_with_terminal.forEach((e) => empty_resource[e] = 0);
+		for (let resource of resources) {
+			store[resource] = _.clone(empty_resource);
+		}
+		for (let room_name of Game.controlled_rooms_with_terminal) {
+			let room_store = Game.rooms[room_name].terminal.store;
 			let keys = <Array<ResourceConstant>>Object.keys(room_store);
 			keys.forEach((e) => store[e][room_name] = room_store[e]);
 		}

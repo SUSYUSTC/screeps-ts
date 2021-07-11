@@ -155,17 +155,30 @@ export function movetopos_maincarrier(creep: Creep, pos: RoomPosition, range: nu
 
 export function charge_all(creep: Creep, moveoptions: type_movetopos_options = {}): number {
     // 0: found, 1: not found
-    if (global.memory[creep.room.name].energy_filling_list.length == 0) {
-        return 1;
-    }
-    let game_memory = Game.memory[creep.room.name];
-    let store_list = global.memory[creep.room.name].energy_filling_list.map((id) => Game.getObjectById(id));
-    let distance = store_list.map((e) => creep.pos.getRangeTo(e));
-    let argmin = mymath.argmin(distance);
-    let obj = store_list[argmin];
-    if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
-        movetopos(creep, obj.pos, 1, moveoptions);
-    }
+	if (creep.memory.current_filling_target == undefined) {
+		let game_memory = Game.memory[creep.room.name];
+		let store_list = global.memory[creep.room.name].energy_filling_list.map((id) => Game.getObjectById(id));
+		if (store_list.length == 0) {
+			return 1;
+		}
+		let distance = store_list.map((e) => creep.pos.getRangeTo(e));
+		let argmin = mymath.argmin(distance);
+		let obj = store_list[argmin];
+		creep.memory.current_filling_target = obj.id;
+		if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
+			movetopos(creep, obj.pos, 1, moveoptions);
+		}
+	} else {
+		let obj = Game.getObjectById(creep.memory.current_filling_target);
+		if (obj == undefined || (<GeneralStore>obj.store).getFreeCapacity("energy") == 0) {
+			delete creep.memory.current_filling_target;
+			charge_all(creep, moveoptions);
+		} else {
+			if (creep.transfer(obj, "energy") == ERR_NOT_IN_RANGE) {
+				movetopos(creep, obj.pos, 1, moveoptions);
+			}
+		}
+	}
     return 0;
 }
 
@@ -245,7 +258,10 @@ export function build_structure(creep: Creep, moveoptions: type_movetopos_option
 		options.priority_list = [];
 	}
     let targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
-    if (targets.length > 0) {
+	if (targets.length == 0) {
+		return 1;
+	}
+	if (creep.memory.current_building_target == undefined) {
 		for (let structureType of options.priority_list) {
 			let prior_targets = targets.filter((e) => e.structureType == structureType);
 			if (prior_targets.length > 0) {
@@ -253,17 +269,28 @@ export function build_structure(creep: Creep, moveoptions: type_movetopos_option
 				break;
 			}
 		}
-        let distance = targets.map((e) => creep.pos.getRangeTo(e));
-        let argmin = mymath.argmin(distance);
-        let target = targets[argmin];
+		let distance = targets.map((e) => creep.pos.getRangeTo(e));
+		let argmin = mymath.argmin(distance);
+		let target = targets[argmin];
+		creep.memory.current_building_target = target.id;
 		if (creep.pos.getRangeTo(target) <= 3) {
 			creep.build(target);
 		} else {
-        	movetopos(creep, target.pos, 3, moveoptions);
+			movetopos(creep, target.pos, 3, moveoptions);
 		}
-        return 0;
-    }
-    return 1;
+	} else {
+		let target = Game.getObjectById(creep.memory.current_building_target);
+		if (target == undefined) {
+			delete creep.memory.current_building_target;
+		} else {
+			if (creep.pos.getRangeTo(target) <= 3) {
+				creep.build(target);
+			} else {
+				movetopos(creep, target.pos, 3, moveoptions);
+			}
+		}
+	}
+	return 0;
 }
 export function select_linkcontainer(creep: Creep, options: {min_energy ?: number, require_safe ?: boolean} = {}): AnyStoreStructure {
 	if (options.min_energy == undefined) {

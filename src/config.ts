@@ -152,6 +152,7 @@ export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var newroom_energy_buying_price = {
     price: 0.6,
     interval: 200,
+	always_increase: true,
 }
 export var pb_power_min = 2000;
 
@@ -300,7 +301,9 @@ type type_acceptable_prices = {
     buy: {
         [key in MarketResourceConstant] ? : {
             price: number;
+			lowest_price ?: number;
             interval: number;
+			always_increase : boolean;
         }
     },
     sell: {
@@ -313,47 +316,87 @@ type type_acceptable_prices = {
 export var acceptable_prices: type_acceptable_prices = {
     "buy": {
         "U": {
-            price: 1.6,
+            price: 1.2,
             interval: 1000,
+			always_increase: true,
         },
         "L": {
             price: 0.6,
             interval: 1000,
+			always_increase: true,
         },
         "Z": {
             price: 0.6,
             interval: 1000,
+			always_increase: true,
         },
         "K": {
             price: 0.6,
             interval: 1000,
+			always_increase: true,
         },
         "X": {
-            price: 5.0,
+            price: 2.0,
             interval: 1000,
+			always_increase: true,
         },
         "H": {
             price: 0.8,
             interval: 1000,
+			always_increase: true,
         },
         "O": {
             price: 0.6,
             interval: 1000,
+			always_increase: true,
         },
         "energy": {
             price: 0.4,
+			lowest_price: 0.3,
             interval: 3000,
+			always_increase: true,
         },
         "battery": {
             price: 4.0,
             interval: 3000,
+			always_increase: true,
         },
         "ops": {
             price: 1.5,
             interval: 1000,
-        }
+			always_increase: true,
+        },
+		'utrium_bar': {
+			price: 5.0,
+			lowest_price: 3.0,
+			interval: 500,
+			always_increase: true,
+		},
+		'lemergium_bar': {
+			price: 4.0,
+			lowest_price: 2.0,
+			interval: 500,
+			always_increase: true,
+		},
+		'zynthium_bar': {
+			price: 4.0,
+			lowest_price: 2.0,
+			interval: 500,
+			always_increase: true,
+		},
+		'keanium_bar': {
+			price: 4.0,
+			lowest_price: 2.0,
+			always_increase: true,
+			interval: 500,
+		},
     },
-    "sell": {}
+    "sell": {
+        "wire": {
+            price: 480,
+			interval: -1,
+        }
+	}
 }
 type type_auto_sell_list = {
     [key in MarketResourceConstant] ? : {

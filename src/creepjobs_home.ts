@@ -91,6 +91,7 @@ export function creepjob(creep: Creep): number {
 		}
         if (creep.store.getUsedCapacity("energy") < min_fill_energy) {
 			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2), moveoptions: moveoptions_safe, require_safe: true});
+			delete creep.memory.current_filling_target;
 			creep.say("Tg");
 			return 0;
 		} else {
@@ -257,6 +258,7 @@ export function creepjob(creep: Creep): number {
 		}
 		let link_modes = Object.keys(creep.room.link);
         if (creep.store.getUsedCapacity("energy") == 0) {
+			delete creep.memory.current_building_target;
 			basic_job.get_energy(creep);
 			creep.say("Bg");
 			return 0;

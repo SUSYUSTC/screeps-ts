@@ -233,6 +233,10 @@ function classify_my_orders() {
 
 global.regulate_order_price = function(id: Id < Order > ): number {
     let order = Game.market.getOrderById(id);
+	if (order.remainingAmount < order.totalAmount / 10) {
+		Game.market.cancelOrder(order.id);
+		return 0;
+	}
 	let orders = get_market_orders(<"sell"|"buy"> order.type, order.resourceType);
     let amount = 0;
     if (order.type == 'buy') {
@@ -247,19 +251,31 @@ global.regulate_order_price = function(id: Id < Order > ): number {
         if (acceptable_price == undefined) {
             return -2;
         }
+		if (order.price < acceptable_price.lowest_price) {
+			console.log("Going to change order", order.resourceType, "to", acceptable_price.lowest_price);
+			Game.market.changeOrderPrice(order.id, acceptable_price.lowest_price);
+			return 0;
+		}
+		if (order.price > acceptable_price.price) {
+			return 0;
+		}
         for (let o of orders) {
             amount += o.amount;
             if (amount > order.amount / 3) {
-                if (o.price < acceptable_price.price) {
+                if (o.price < acceptable_price.price && o.price >= order.price) {
                     console.log("Going to change order", order.resourceType, "to", o.price + 0.001);
                     Game.market.changeOrderPrice(id, o.price + 0.001);
-                    return o.price + 0.001;
+                    return 0;
                 }
-                return 0;
+				if (!acceptable_price.always_increase) {
+					return 0;
+				}
             }
         }
-        if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && order.price < acceptable_price.price) {
-            Game.market.changeOrderPrice(id, order.price + acceptable_price.price * 0.02);
+        if (acceptable_price.interval > 0 && Game.time % acceptable_price.interval == 0 && (order.price < acceptable_price.price)) {
+			let newprice = order.price + acceptable_price.price * 0.02;
+			console.log("Going to change order", order.resourceType, "to", newprice);
+            Game.market.changeOrderPrice(id, newprice);
             return 0;
         }
     } else if (order.type == 'sell') {
@@ -394,6 +410,37 @@ export function auto_sell() {
 				"totalAmount": sell_conf.amount,
 				"roomName": sell_conf.room,
 			});
+		}
+	}
+}
+
+function sell_commodity(room_name: string, commodity: CommodityConstant) {
+	let room = Game.rooms[room_name];
+	if (Game.time % 3 !== 0) {
+		return;
+	}
+	let acceptable_price = config.acceptable_prices.sell[commodity].price;
+	let amount = room.terminal.store.getUsedCapacity(commodity);
+	if (amount * acceptable_price >= 200000) {
+		let orders = get_market_orders("buy", commodity).filter((e) => e.amount > 0);
+		if (orders.length == 0) {
+			return;
+		}
+		let argmax = mymath.argmax(orders.map((e) => e.price));
+		let order = orders[argmax];
+		if (order.price >= acceptable_price) {
+			Game.market.deal(order.id, Math.min(order.amount, amount), room_name);
+			return;
+		}
+	}
+}
+
+export function commodity_orders() {
+	for (let room_name in config.commodity_room_conf) {
+		for (let zone of config.commodity_room_conf[room_name]) {
+			let production = constants.basic_commodity_production[zone];
+			sell_commodity(room_name, production.product);
+			auto_supply_from_market(room_name, production.bar, 15000, 5000);
 		}
 	}
 }

@@ -230,6 +230,7 @@ function run_main() {
 		market.regulate_all_order_prices();
 		market.auto_sell();
 		market.market_stat();
+		market.commodity_orders();
 	} catch (err) {
 		console.log("Captured error", err.stack);
 	}

@@ -266,7 +266,7 @@ function operate_power(pc: PowerCreep) {
 		return 1;
 	} else {
 		if (pc.usePower(PWR_OPERATE_POWER, pc.room.powerSpawn) == 0) {
-			pc.memory.next_time.op_power = Game.time + 1200;
+			pc.memory.next_time.op_power = Game.time + 1050;
 		}
 		return 0;
 	}

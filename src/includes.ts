@@ -155,6 +155,8 @@ interface CreepMemory {
 	external_dict ?: {
 		[key: string]: type_external_moving_targets;
 	}
+	current_filling_target ?: Id<AnyStoreStructure>;
+	current_building_target ?: Id<ConstructionSite>;
 
 	shard_move ?: type_shard_move;
 	last_present_time ?: number;
@@ -776,6 +778,7 @@ declare module NodeJS {
 		init_stat(): number;
 		display_stat(): string;
 		display_store(): string;
+		display_terminal_store(): string;
 		spawn_PC(name: string): number;
 		set_shardmemory(keys: string[], value: any): number;
 		clear_shardmemory(shards: string[]): number;
