@@ -133,6 +133,10 @@ export var pc_conf: type_pc_conf = {
         "room_name": "W9N39",
         "normal_ordered": true,
     },
+    "PC_I": {
+        "room_name": "W9N1",
+        "normal_ordered": true,
+    },
 }
 
 export var obselete_rooms_resources: ResourceConstant[] = (<ResourceConstant[]>constants.t3_minerals).concat(['power', 'battery', 'ops']).concat(constants.t2_minerals).concat(constants.t1_minerals).concat(constants.basic_minerals).concat("energy");
@@ -163,7 +167,7 @@ export var energy_bar_to_process_operated_power: number = 0.8e6;
 export var energy_bar_to_process_not_operated_power: number = 1.2e6;
 export var min_power_with_op = 2000;
 export var min_power_without_op = 3000;
-export var max_power = 15000;
+export var max_power = 10000;
 export var storage_min_energy = 200000; // battery -> energy
 export var storage_ok_energy = 300000; // process power
 export var storage_good_energy = 400000; // process power
@@ -190,10 +194,12 @@ export var react_min_amount = 2800;
 export var react_max_amount = 3000;
 export var mineral_store_additional_amount = 20000;
 export var ops_store_amount = 10000;
+export var ops_buy_onetime_amount = 2000;
 export var mineral_buy_onetime_amount = 10000;
 export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
-export var ops_buy_onetime_amount = 2000;
+export var bar_store_amount = 6000;
+export var bar_buy_onetime_amount = 3000;
 
 interface type_preclaiming_rooms {
     [key: string]: {
@@ -393,7 +399,7 @@ export var acceptable_prices: type_acceptable_prices = {
     },
     "sell": {
         "wire": {
-            price: 480,
+            price: 500,
 			interval: -1,
         }
 	}

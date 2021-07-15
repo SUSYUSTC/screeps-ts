@@ -125,3 +125,5 @@ export var basic_commodity_production: type_basic_commodity_production = {
 		product: 'condensate',
 	},
 }
+export var combating_t3: GeneralMineralConstant[] = ['XGHO2', 'XUH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKHO2'];
+

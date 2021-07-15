@@ -44,6 +44,22 @@ global.summarize_terminal = function(rooms: string[]): type_resource_number {
     return result;
 }
 
+global.send_gift_pack = function(room_name: string): number {
+	let enough = true;
+	for (let t3 of constants.combating_t3) {
+		let send_room_name = config.t3_store_room[t3];
+		let amount = Game.rooms[send_room_name].terminal.store.getUsedCapacity(t3);
+		if (amount < 10000) {
+			return -1;
+		}
+	}
+	for (let t3 of constants.combating_t3) {
+		let send_room_name = config.t3_store_room[t3];
+		global.send_resource(send_room_name, room_name, t3, 10000, 10000);
+	}
+	return 0;
+}
+
 export function process_resource_sending_request(room_name: string) {
 	let room = Game.rooms[room_name];
 	if (room.terminal == undefined) {

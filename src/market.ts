@@ -416,9 +416,6 @@ export function auto_sell() {
 
 function sell_commodity(room_name: string, commodity: CommodityConstant) {
 	let room = Game.rooms[room_name];
-	if (Game.time % 3 !== 0) {
-		return;
-	}
 	let acceptable_price = config.acceptable_prices.sell[commodity].price;
 	let amount = room.terminal.store.getUsedCapacity(commodity);
 	if (amount * acceptable_price >= 200000) {
@@ -436,13 +433,17 @@ function sell_commodity(room_name: string, commodity: CommodityConstant) {
 }
 
 export function commodity_orders() {
+	let timer = new Timer("commodity_orders", false);
 	for (let room_name in config.commodity_room_conf) {
 		for (let zone of config.commodity_room_conf[room_name]) {
 			let production = constants.basic_commodity_production[zone];
 			sell_commodity(room_name, production.product);
-			auto_supply_from_market(room_name, production.bar, 15000, 5000);
+			if (Game.time % 100 == 0) {
+				auto_supply_from_market(room_name, production.bar, config.bar_store_amount, config.bar_buy_onetime_amount);
+			}
 		}
 	}
+	timer.end();
 }
 
 function order_stat(): type_order_total_amount {

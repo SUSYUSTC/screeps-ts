@@ -783,5 +783,6 @@ declare module NodeJS {
 		set_shardmemory(keys: string[], value: any): number;
 		clear_shardmemory(shards: string[]): number;
 		create_room_walls(room_name: string): number;
+		send_gift_pack(room_name: string): number;
     }
 }
