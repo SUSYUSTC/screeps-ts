@@ -386,9 +386,6 @@ function set_danger_mode(room_name: string) {
 
 
 function get_power_effects(room_name: string) {
-    if (Game.time % 5 == 0) {
-        return;
-    }
     if (Game.powered_rooms[room_name] == undefined) {
         return;
     }
@@ -406,15 +403,17 @@ function get_power_effects(room_name: string) {
 		}
 	}
 	if (room.powerSpawn !== undefined) {
-		let effect;
+		let effect: PowerEffect;
 		let effect_time = 0;
 		if (room.powerSpawn.effects !== undefined) {
-			effect = room.powerSpawn.effects.filter((e) => e.effect == PWR_OPERATE_POWER)[0];
+			//effect = room.powerSpawn.effects.filter((e) => (<PowerEffect>e).effect == PWR_OPERATE_POWER)[0];
+			effect = (<Array<PowerEffect>>room.powerSpawn.effects).filter((e) => e.effect == PWR_OPERATE_POWER)[0];
 		}
 		if (effect == undefined) {
 			room.powerSpawn.effect_time = 0;
 		} else {
 			room.powerSpawn.effect_time = effect.ticksRemaining;
+			room.powerSpawn.effect_level = effect.level;
 		}
 	}
 }

@@ -4,6 +4,7 @@ import * as functions from "./functions"
 import * as external_room from "./external_room";
 import * as config from "./config";
 import * as mymath from "./mymath"
+import * as invade from "./invade"
 var moveoptions = {
     reusePath: 5,
     //visualizePathStyle: {},
@@ -15,18 +16,23 @@ export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.memory.home_room_name];
     var game_memory = Game.memory[creep.memory.home_room_name];
     if (creep.memory.role == 'pb_attacker') {
-        creep.say("PA");
-		creep.memory.movable = false;
-		creep.memory.crossable = true;
-        let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
+		let attacker = creep;
+        attacker.say("PA");
+		attacker.memory.movable = false;
+		attacker.memory.crossable = true;
+        let pb_status = Game.rooms[attacker.memory.home_room_name].memory.external_resources.pb[attacker.memory.external_room_name];
+		if (pb_status == undefined) {
+			creep.suicide();
+			return 0;
+		}
 		let healer = Game.creeps[pb_status.pb_healer_name];
-		if (creep.room.name == creep.memory.home_room_name && (healer == undefined || healer.spawning) && creep.memory.working_status == undefined) {
-			if (creep.ticksToLive < 1500 - Math.floor(600/creep.body.length)) {
-				basic_job.ask_for_renew(creep);
+		if (attacker.room.name == attacker.memory.home_room_name && (healer == undefined || healer.spawning) && attacker.memory.working_status == undefined) {
+			if (attacker.ticksToLive < 1500 - Math.floor(600/attacker.body.length)) {
+				basic_job.ask_for_renew(attacker);
 			}
 			return 0;
 		}
-		creep.memory.working_status = "begin";
+		attacker.memory.working_status = "begin";
         let request: type_creep_boost_request = {};
         for (let part in config.pb_attacker_body) {
             let boost_mineral = config.pb_attacker_body[ < BodyPartConstant > part].boost;
@@ -34,72 +40,88 @@ export function creepjob(creep: Creep): number {
                 request[ < BodyPartConstant > part] = boost_mineral
             }
         }
-        if (creep.room.name == creep.memory.home_room_name && basic_job.boost_request(creep, request, true) == 1) {
-			creep.say("PAb");
+        if (attacker.room.name == attacker.memory.home_room_name && basic_job.boost_request(attacker, request, true) == 1) {
+			attacker.say("PAb");
+			return 0;
+		}
+		if (healer == undefined) {
+			invade.single_combat_melee(attacker);
+			return 0;
+		}
+		if (!(healer.memory.boost_status !== undefined && healer.memory.boost_status.boost_finished)) {
+			attacker.say("PAw");
 			return 0;
 		}
         let rooms_path = pb_status.rooms_path;
         let poses_path = pb_status.poses_path;
         let target_room = rooms_path[rooms_path.length - 1];
-        if (creep.room.name !== target_room) {
-			if (!external_room.is_moving_target_defined(creep, 'forward')) {
-				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+		if (!external_room.is_moving_target_defined(attacker, 'forward')) {
+			external_room.save_external_moving_targets(attacker, rooms_path, poses_path, 'forward');
+		}
+		if (external_room.movethroughrooms_group_x2(attacker, healer, 'forward', target_room, {reusePath: 10}) !== 1) {
+			attacker.say("PAe");
+			healer.say("PHe");
+			return 0;
+		}
+		if (invade.group2_combat_melee(attacker, healer, 4) == 0) {
+			return 0;
+		}
+		let pb_xy = pb_status.xy;
+		let pb_pos = attacker.room.getPositionAt(pb_xy[0], pb_xy[1]);
+		let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
+		if (pb == undefined) {
+			if (invade.group2_combat_melee(attacker, healer) !== 0) {
+				if (attacker.pos.getRangeTo(pb_pos) < 5) {
+					let poses_flee_to = functions.get_poses_with_fixed_range(pb_pos, 5);
+					let pos_flee_to = attacker.pos.findClosestByPath(poses_flee_to, {algorithm: 'dijkstra'});
+					attacker.moveTo(pos_flee_to, {
+						range: 0,
+						maxRooms: 1,
+						costCallback: function(room_name: string, costmatrix: CostMatrix) {
+							functions.avoid_exits(room_name, costmatrix);
+							costmatrix.set(healer.pos.x, healer.pos.y, 0)
+						}
+					});
+					healer.move(healer.pos.getDirectionTo(attacker));
+				} else if (healer.pos.getRangeTo(attacker) > 1) {
+					healer.move(healer.pos.getDirectionTo(attacker));
+				}
 			}
-			external_room.external_move(creep, 'forward', {reusePath: 10});
-			creep.memory.movable = true;
-			creep.say("PAe");
-            return 0;
-        } else {
-			let xmin = Math.max(creep.pos.x - 4, 0);
-			let xmax = Math.min(creep.pos.x + 4, 49);
-			let ymin = Math.max(creep.pos.y - 4, 0);
-			let ymax = Math.min(creep.pos.y + 4, 49);
-			let hostiles = creep.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
-			if (hostiles.length > 0) {
-				let distances = hostiles.map((e) => creep.pos.getRangeTo(e));
-				let min_distance = mymath.min(distances);
-				let closeset_hostiles = hostiles.filter((e) => creep.pos.getRangeTo(e) == min_distance);
-				let scores = closeset_hostiles.map((e) => e.getActiveBodyparts(ATTACK));
-				let argmin = mymath.argmin(scores);
-				let target = closeset_hostiles[argmin];
-				creep.moveTo(target);
-				creep.attack(target);
-				return 0;
+			return 0;
+		}
+		if (healer.pos.getRangeTo(attacker) == 1) {
+			healer.move(healer.pos.getDirectionTo(attacker));
+		} else if (healer.pos.getRangeTo(attacker) > 1) {
+			healer.moveTo(attacker.pos, {range: 1, costCallback: functions.avoid_exits});
+		}
+		if (attacker.pos.getRangeTo(pb) > 1) {
+			attacker.moveTo(pb, {
+				range: 1,
+				maxRooms: 1,
+				costCallback: function(room_name: string, costmatrix: CostMatrix) {
+					functions.avoid_exits(room_name, costmatrix);
+					costmatrix.set(healer.pos.x, healer.pos.y, 0)
+				}
+			});
+			attacker.memory.movable = true;
+			attacker.say("PAm");
+		} else {
+			if (attacker.pos.getRangeTo(healer) == 1 && attacker.hits == attacker.hitsMax) {
+				if (pb.hits > 1800) {
+					attacker.memory.ready = true;
+					attacker.attack(pb);
+					healer.heal(attacker);
+					attacker.say("PAa1");
+					healer.say("PAh1");
+				} else if (attacker.ticksToLive <= 3 || healer.ticksToLive <= 3 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
+					attacker.attack(pb);
+					healer.heal(attacker);
+					attacker.say("PAa2");
+					healer.say("PAh2");
+				}
 			}
-            let pb_xy = pb_status.xy;
-            let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
-            let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
-            if (pb == undefined) {
-                creep.suicide();
-				creep.say("PAd");
-                return 0;
-            }
-            if (creep.pos.getRangeTo(pb) > 1) {
-                creep.moveTo(pb, {
-                    range: 1,
-                    maxRooms: 1,
-                    costCallback: functions.avoid_exits
-                });
-				creep.memory.movable = true;
-				creep.say("PAm");
-            } else {
-                if (healer == undefined || healer.room.name !== creep.room.name) {
-					creep.say("PAw");
-                    return 0;
-                }
-                if (creep.pos.getRangeTo(healer) == 1 && creep.hits == creep.hitsMax) {
-                    if (pb.hits > 1800) {
-                        creep.memory.ready = true;
-                        creep.attack(pb);
-						creep.say("PAa1");
-                    } else if (creep.ticksToLive < 3 || healer.ticksToLive < 3 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
-                        creep.attack(pb);
-						creep.say("PAa2");
-                    }
-                }
-                return 0;
-            }
-        }
+			return 0;
+		}
         return 0;
     } else if (creep.memory.role == 'pb_healer') {
         // 20 heal, 20 move
@@ -107,6 +129,10 @@ export function creepjob(creep: Creep): number {
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
+		if (pb_status == undefined) {
+			creep.suicide();
+			return 0;
+		}
 		let attacker = Game.creeps[pb_status.pb_attacker_name];
 		if (creep.room.name == creep.memory.home_room_name && (attacker == undefined || attacker.spawning) && creep.memory.working_status == undefined) {
 			if (creep.ticksToLive < 1500 - Math.floor(600/creep.body.length)) {
@@ -126,62 +152,6 @@ export function creepjob(creep: Creep): number {
 			creep.say("PHb");
 			return 0;
 		}
-        let rooms_path = pb_status.rooms_path;
-        let poses_path = pb_status.poses_path;
-        let target_room = rooms_path[rooms_path.length - 1];
-        if (creep.room.name !== target_room) {
-			if (!external_room.is_moving_target_defined(creep, 'forward')) {
-				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
-			}
-			external_room.external_move(creep, 'forward', {reusePath: 10});
-			creep.memory.movable = true;
-			creep.say("PHe");
-            return 0;
-        } else {
-			let healed = false;
-			if (creep.hits < creep.hitsMax) {
-				healed = true;
-				creep.heal(creep);
-			}
-            let pb_xy = pb_status.xy;
-            let pb_pos = creep.room.getPositionAt(pb_xy[0], pb_xy[1]);
-            let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
-            if (pb == undefined) {
-                creep.suicide();
-				creep.say("PHd");
-                return 0;
-            }
-            if (creep.pos.x > 1 && creep.pos.x < 48 && creep.pos.y > 1 && creep.pos.y < 48) {
-                if (attacker.room.name !== creep.room.name) {
-					creep.say("PHw");
-                    return 0;
-                }
-                if (creep.pos.getRangeTo(attacker) > 1) {
-                    creep.moveTo(attacker, {
-                        range: 1,
-                        maxRooms: 1
-                    });
-					creep.memory.movable = true;
-					creep.say("PHm1");
-                    return 0;
-                } else {
-                    creep.memory.ready = true;
-					if (!healed) {
-						creep.heal(attacker);
-					}
-					creep.say("PHh");
-                    return 0;
-                }
-            } else {
-                creep.moveTo(pb, {
-                    range: 1,
-                    maxRooms: 1
-                });
-				creep.memory.movable = true;
-				creep.say("PHm2");
-                return 0;
-            }
-        }
         return 0;
     } else if (creep.memory.role == 'pb_carrier') {
         // 40 carry, 10 move
@@ -189,11 +159,11 @@ export function creepjob(creep: Creep): number {
         creep.memory.movable = false;
         creep.memory.crossable = true;
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
-        let rooms_path = pb_status.rooms_path;
-        let poses_path = pb_status.poses_path;
-        let target_room = rooms_path[rooms_path.length - 1];
         if (creep.store.getUsedCapacity("power") > 0) {
             if (creep.room.name !== creep.memory.home_room_name) {
+				let rooms_path = pb_status.rooms_path;
+				let poses_path = pb_status.poses_path;
+				let target_room = rooms_path[rooms_path.length - 1];
                 let add_options = {};
                 if (creep.room.name == target_room) {
                     add_options = {
@@ -215,6 +185,7 @@ export function creepjob(creep: Creep): number {
 				let out = basic_job.transfer(creep, creep.room.terminal, {sourcetype: "power"});
 				if (out == 0) {
 					pb_status.amount_received += creep.store.getUsedCapacity("power");
+					pb_status.n_pb_carrier_finished += 1;
 				}
 				creep.say("PCt");
             }
@@ -222,9 +193,14 @@ export function creepjob(creep: Creep): number {
         }
         if (creep.memory.ready && creep.room.name == creep.memory.home_room_name) {
 			creep.say("PCd");
-			pb_status.n_pb_carrier_finished += 1;
-            creep.suicide();
+			if (basic_job.ask_for_recycle_full(creep) == -1) {
+				creep.suicide();
+			}
+			return 0;
         }
+        let rooms_path = pb_status.rooms_path;
+        let poses_path = pb_status.poses_path;
+        let target_room = rooms_path[rooms_path.length - 1];
         if (creep.room.name !== target_room) {
 			if (!external_room.is_moving_target_defined(creep, 'forward')) {
 				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
@@ -469,7 +445,9 @@ export function creepjob(creep: Creep): number {
         }
         if (creep.memory.ready && creep.room.name == creep.memory.home_room_name) {
 			creep.say("DCd");
-            creep.suicide();
+			if (basic_job.ask_for_recycle_full(creep) == -1) {
+				creep.suicide();
+			}
 			return 0;
         }
         if (creep.room.name !== target_room) {

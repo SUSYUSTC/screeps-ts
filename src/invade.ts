@@ -14,13 +14,13 @@ export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
 		creep.heal(creep);
 		let d = creep.pos.getRangeTo(enemy);
 		if (d > 3) {
-			let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: 3}, {flee: false});
-			creep.moveByPath(path.path);
+			creep.moveTo(enemy.pos, {range: 3, reusePath: 0});
 		} else {
 			creep.rangedAttack(enemy);
 			if (!(aggresive && d == 3)) {
-				let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: d+1}, {flee: true});
-				creep.moveByPath(path.path);
+				let poses_to_flee = functions.get_poses_with_fixed_range(creep.pos, 3);
+				let pos_to_flee = creep.pos.findClosestByPath(poses_to_flee, {algorithm: 'dijkstra'});
+				creep.moveTo(pos_to_flee, {range: 0, reusePath: 0});
 			}
 		}
 		return 0;
@@ -29,20 +29,73 @@ export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
 	}
 }
 
-export function single_combat_melee(creep: Creep) {
-	let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
-	if (enemies.length > 0) {
-		let distances = enemies.map((e) => creep.pos.getRangeTo(e));
-		let argmin = mymath.argmin(distances);
-		let enemy = enemies[argmin];
-		if (creep.pos.getRangeTo(enemy) > 1) {
-			let path = PathFinder.search(creep.pos, {pos: enemy.pos, range: 1}, {flee: false});
-			creep.moveByPath(path.path);
-		} else {
-			creep.attack(enemy);
-			creep.move(creep.pos.getDirectionTo(enemy));
-		}
+export function single_combat_melee(invader: Creep, guard_range: number = undefined) {
+	let hostiles: Creep[];
+	if (guard_range == undefined) {
+		hostiles = invader.room.find(FIND_HOSTILE_CREEPS);
+	} else {
+		let xmin = Math.max(invader.pos.x - guard_range, 0);
+		let xmax = Math.min(invader.pos.x + guard_range, 49);
+		let ymin = Math.max(invader.pos.y - guard_range, 0);
+		let ymax = Math.min(invader.pos.y + guard_range, 49);
+		hostiles = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
 	}
+	if (hostiles.length > 0) {
+		let distances = hostiles.map((e) => invader.pos.getRangeTo(e));
+		let min_distance = mymath.min(distances);
+		let closeset_hostiles = hostiles.filter((e) => invader.pos.getRangeTo(e) == min_distance);
+		let scores = closeset_hostiles.map((e) => e.getActiveBodyparts(ATTACK));
+		let argmin = mymath.argmin(scores);
+		let target = closeset_hostiles[argmin];
+		if (invader.pos.getRangeTo(target) > 1) {
+			let path = PathFinder.search(invader.pos, {pos: target.pos, range: 1});
+			invader.moveByPath(path.path);
+		} else {
+			invader.attack(target);
+			invader.move(invader.pos.getDirectionTo(target));
+		}
+		return 0;
+	}
+	return 1;
+}
+
+export function group2_combat_melee(invader: Creep, healer: Creep, guard_range: number = undefined) {
+	let hostiles: Creep[];
+	if (guard_range == undefined) {
+		hostiles = invader.room.find(FIND_HOSTILE_CREEPS);
+	} else {
+		let xmin = Math.max(invader.pos.x - guard_range, 0);
+		let xmax = Math.min(invader.pos.x + guard_range, 49);
+		let ymin = Math.max(invader.pos.y - guard_range, 0);
+		let ymax = Math.min(invader.pos.y + guard_range, 49);
+		hostiles = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
+	}
+	if (hostiles.length > 0) {
+		let distances = hostiles.map((e) => invader.pos.getRangeTo(e));
+		let min_distance = mymath.min(distances);
+		let closeset_hostiles = hostiles.filter((e) => invader.pos.getRangeTo(e) == min_distance);
+		let scores = closeset_hostiles.map((e) => e.getActiveBodyparts(ATTACK) * 2 + e.getActiveBodyparts(RANGED_ATTACK));
+		let argmin = mymath.argmin(scores);
+		let target = closeset_hostiles[argmin];
+		invader.attack(target);
+		if (invader.fatigue == 0 && healer.fatigue == 0 && invader.pos.getRangeTo(healer) <= 1 && invader.pos.getRangeTo(target) > 1) {
+			invader.moveTo(target);
+		}
+		if (healer.hits < healer.hitsMax || healer.pos.getRangeTo(invader) > 1) {
+			healer.heal(healer);
+		} else {
+			healer.heal(invader);
+		}
+		healer.move(healer.pos.getDirectionTo(invader));
+		return 0;
+	} else if (healer.hits < healer.hitsMax) {
+		healer.heal(healer);
+		return 1;
+	} else if (invader.hits < invader.hitsMax && healer.pos.getRangeTo(invader) == 1) {
+		healer.heal(invader);
+		return 1;
+	}
+	return 1;
 }
 
 var high_valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory'];

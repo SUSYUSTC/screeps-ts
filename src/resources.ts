@@ -12,7 +12,7 @@ function is_pos_accessable(pos: RoomPosition): boolean {
 }
 global.is_pos_accessable = is_pos_accessable;
 
-var detection_period = global.is_main_server ? 500 : 200;
+var detection_period = global.is_main_server ? 300 : 200;
 
 function highway_resources_cost(room_name: string): CostMatrix {
 	let costMatrix = new PathFinder.CostMatrix;
@@ -136,7 +136,6 @@ function detect_pb(room_name: string, external_room_name: string) {
 		"pb_carrier_sizes": pb_carrier_sizes,
 		"n_pb_carrier_finished": 0,
 	}
-	room.memory.resource_cooldown_time = 500;
 	return 0;
 }
 
@@ -194,7 +193,6 @@ function detect_depo(room_name: string, external_room_name: string) {
 		"depo_harvester_name": depo_harvester_name,
 		"depo_carrier_name": depo_carrier_name,
 	}
-	room.memory.resource_cooldown_time = 500;
 	return 0;
 }
 
@@ -202,13 +200,6 @@ export function detect_resources(room_name: string) {
     let cpu_used = Game.cpu.getUsed();
 
     let room = Game.rooms[room_name];
-    if (room.memory.resource_cooldown_time == undefined) {
-        room.memory.resource_cooldown_time = 0;
-    }
-    if (room.memory.resource_cooldown_time > 0) {
-        room.memory.resource_cooldown_time -= 1;
-        return;
-    }
     if (room.controller.level < 8) {
         return;
     }
@@ -393,8 +384,21 @@ function update_depo(room_name: string, external_room_name: string) {
 			}
 			global.spawn_in_queue(room_name, depo_carrier_body, depo_status.depo_carrier_name, depo_carrier_memory, false);
 		}
-	} else {
-		if (!functions.creep_exists(depo_status.depo_harvester_name, room_name) && !functions.creep_exists(depo_status.depo_carrier_name, room_name)) {
+	} else if (depo_status.status == 2) {
+		if (!functions.creep_exists(depo_status.depo_carrier_name, room_name) && container !== undefined && container.store.getUsedCapacity() >= config.depo_carrier_body.carry.number * 50) {
+			let depo_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_carrier_body));
+			let depo_carrier_memory: CreepMemory = {
+				"home_room_name": room_name,
+				"role": "depo_carrier",
+				"external_room_name": external_room_name,
+			}
+			global.spawn_in_queue(room_name, depo_carrier_body, depo_status.depo_carrier_name, depo_carrier_memory, false);
+		}
+		if (depo_status.time_last == undefined) {
+			depo_status.time_last = 0;
+		}
+		depo_status.time_last += 1;
+		if (depo_status.time_last >= 3000) {
 			if (Memory.depo_log == undefined) {
 				Memory.depo_log = [];
 			}

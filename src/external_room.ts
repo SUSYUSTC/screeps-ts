@@ -6,6 +6,7 @@ import { Timer } from "./timer";
 
 type type_movethroughrooms_options = {
 	ignore_creep_xys ?: [number, number][],
+	avoid_exits_at_home ?: boolean,
 }
 
 function get_external_moving_targets(rooms_path: string[], poses_path: number[]): type_external_moving_targets {
@@ -96,7 +97,8 @@ export function external_move(creep: Creep | PowerCreep, password: string, add_o
 		reusepath = 5;
 	}
 	if (config.occupied_rooms.includes(creep.room.name)) {
-		basic_job.movetopos(creep, exit_pos, 0)
+		let movetopos_options = options.avoid_exits_at_home ? {avoid_exits: true} : {};
+		basic_job.movetopos(creep, exit_pos, 0, movetopos_options);
 	} else if (_move != undefined && _move.dest.room == creep.room.name && _move.dest.x == exit_pos.x && _move.dest.y == exit_pos.y && Game.time <= _move.time + reusepath) {
 		creep.moveByPath(Room.deserializePath(_move.path));
 	} else {
@@ -315,6 +317,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	// -1: error, 0: normal success, 1: already done
 	let out_invader = moveawayexit(invader);
 	let out_healer = moveawayexit(healer);
+	options.avoid_exits_at_home = true;
 	if (out_invader == 0 && out_healer == 0) {
 		return 0;
 	} else if (out_invader == 0 || out_healer == 0) {
@@ -325,6 +328,18 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 		return 1;
 	}
 	if (invader.fatigue > 0 || healer.fatigue > 0) {
+		return 0;
+	}
+	if (invader.room.name !== healer.room.name) {
+		healer.moveTo(invader, {range: 1});
+		return -1;
+	}
+	if (healer.pos.getRangeTo(invader) > 1) {
+		if (config.occupied_rooms.includes(healer.room.name)) {
+			basic_job.movetopos(healer, invader.pos, 1, {avoid_exits: true})
+		} else {
+			healer.moveTo(invader, {range: 1, maxRooms: 1, costCallback: functions.avoid_exits});
+		}
 		return 0;
 	}
 	let dict = invader.memory.external_dict[password];
@@ -338,12 +353,14 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	}
 	let findconstant = info.findconstant;
 	let all_exits = invader.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
-	let closest_exit = all_exits.filter((e) => exit_pos.getRangeTo(e) == 1)[0];
-	if (closest_exit == undefined) {
+	let closest_exits = all_exits.filter((e) => exit_pos.getRangeTo(e) == 1);
+	if (closest_exits.length == 0) {
 		console.log(`Warning: movethroughrooms_group_x2 fail at exit for invader ${invader.name} and healer ${healer.name} at time ${Game.time}`)
 		return -1;
 	}
+	let closest_exit = healer.pos.findClosestByRange(closest_exits);
 	let healer_target_pos = invader.room.getPositionAt(invader.pos.x + closest_exit.x - exit_pos.x, invader.pos.y + closest_exit.y - exit_pos.y);
+	healer.room.visual.text("here", healer_target_pos.x, healer_target_pos.y);
 	if (healer.pos.isEqualTo(healer_target_pos)) {
 		let direction = invader.pos.getDirectionTo(exit_pos);
 		invader.move(direction);
@@ -351,7 +368,12 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	} else {
 		healer.moveTo(healer_target_pos, {
 			maxRooms: 1,
-			costCallback: functions.avoid_exits
+			costCallback: function(room_name: string, costmatrix: CostMatrix) {
+				functions.avoid_exits(room_name, costmatrix);
+				if (room_name == healer_target_pos.roomName) {
+					costmatrix.set(healer_target_pos.x, healer_target_pos.y, 0);
+				}
+			}
 		})
 	}
 	return 0;

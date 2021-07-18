@@ -314,8 +314,10 @@ export function work(pc: PowerCreep) {
 	}
 	if (pc.room == undefined) {
 		if (!(pc.spawnCooldownTime > Date.now())) {
-			let room_name = config.pc_conf[pc.name].room_name;
-			global.spawn_PC(pc.name);
+			if (config.pc_conf[pc.name] !== undefined) {
+				let room_name = config.pc_conf[pc.name].room_name;
+				global.spawn_PC(pc.name);
+			}
 			return;
 		}
 		console.log(`Warning: pc ${pc.name} does not exist at time ${Game.time}`);

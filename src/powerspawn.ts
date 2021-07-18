@@ -21,8 +21,8 @@ export function process(room_name: string) {
 	if (run_process) {
 		if (room.powerSpawn.processPower() == 0) {
 			if (room.powerSpawn.effect_time > 0) {
-				Memory.power_processed_stat += 2;
-				Memory.op_power_processed_stat += 2;
+				Memory.power_processed_stat += room.powerSpawn.effect_level + 1;
+				Memory.op_power_processed_stat += room.powerSpawn.effect_level + 1;
 			} else {
 				Memory.power_processed_stat += 1;
 			}

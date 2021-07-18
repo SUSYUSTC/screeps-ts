@@ -213,6 +213,7 @@ export function init() {
 		str1 += '\nstore: ' + global.format_json(global.summarize_terminal(Game.controlled_rooms_with_terminal), {sort: true, json: true});
 		str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
 		str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
+		str2 += '\ncredits: ' + Game.market.credits.toString();
 		str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
 		str2 += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, {sort: true, json: true});
 		str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});

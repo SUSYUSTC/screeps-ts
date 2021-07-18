@@ -40,6 +40,10 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 		if (costmatrix == undefined) {
 			costmatrix = functions.get_costmatrix_road(roomName, options.safe_level);
 		}
+		if (options.avoid_exits !== undefined) {
+			functions.avoid_exits(roomName, costMatrix);
+			costmatrix.set(pos.x, pos.y, 0);
+		}
 		return costmatrix;
 	}
 	if (creep.moveTo(pos, {costCallback: costCallback, reusePath: 8, maxRooms: 1, range: range, plainCost: 2, swampCost: 10}) == ERR_NO_PATH) {
@@ -547,6 +551,27 @@ export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_option
 		}
 	}
 	return 0;
+}
+export function ask_for_recycle_full(creep: Creep, moveoptions: type_movetopos_options = {}) {
+	if (creep.store.getUsedCapacity("energy") > 0) {
+		let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
+		if (store_structure !== undefined) {
+			if (store_structure.store.getFreeCapacity() > 0) {
+				transfer(creep, store_structure);
+			}
+		}
+		return 0;
+	}
+	let container = creep.room.container.RC;
+	if (container != undefined) {
+		if (container.store.getUsedCapacity("energy") > 0) {
+			withdraw(creep, container);
+		} else {
+			ask_for_recycle(creep);
+		}
+		return 0;
+	}
+	return -1;
 }
 export function unboost(creep: Creep, moveoptions: type_movetopos_options = {}) {
     // negative: unboost return value, 0: success, 1: in progress, 2: container not found, 3: lab not found, 4: cooling down

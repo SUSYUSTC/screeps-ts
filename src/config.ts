@@ -78,7 +78,7 @@ export var conf_rooms: type_conf_rooms = {
     "W9N39": conf_W9N39,
     "W9N1": conf_W9N1,
 }
-export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1"];
+export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39"];
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -117,9 +117,8 @@ export var pc_conf: type_pc_conf = {
         //"external_room": "E9N55",
     },
     "PC_E": {
-        "room_name": "E19N53",
+        "room_name": "W9N1",
         "normal_ordered": false,
-        //"external_room": "E19N54",
     },
     "PC_F": {
         "room_name": "E21N49",
@@ -134,8 +133,9 @@ export var pc_conf: type_pc_conf = {
         "normal_ordered": true,
     },
     "PC_I": {
-        "room_name": "W9N1",
+        "room_name": "E19N53",
         "normal_ordered": true,
+        //"external_room": "E19N54",
     },
 }
 
@@ -162,11 +162,12 @@ export var pb_power_min = 2000;
 
 export var storage_gap = 50000;
 export var storage_bars: number[] = [1, 2, 3].map((e) => e * storage_gap);
-export var energy_bar_to_spawn_upgrader: number = 1.0e6;
-export var energy_bar_to_process_operated_power: number = 0.8e6;
-export var energy_bar_to_process_not_operated_power: number = 1.2e6;
-export var min_power_with_op = 2000;
-export var min_power_without_op = 3000;
+export var energy_bar_to_process_operated_power: number = 0.6e6;
+export var energy_bar_of_market_supply: number = 0.8e6;
+export var energy_bar_to_process_not_operated_power: number = 1.0e6;
+export var energy_bar_to_spawn_upgrader: number = 1.2e6;
+export var min_power_with_op = 3000;
+export var min_power_without_op = 5000;
 export var max_power = 10000;
 export var storage_min_energy = 200000; // battery -> energy
 export var storage_ok_energy = 300000; // process power
@@ -200,31 +201,35 @@ export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
 export var bar_store_amount = 6000;
 export var bar_buy_onetime_amount = 3000;
+export var buy_power_room = "E16N58";
+export var power_store_amount = 20000;
+export var power_buy_onetime_amount = 3000;
+export var credit_line = 2.5e7;
 
+var path_E11S39: type_shard_exit_point[] = [ 
+     { shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
+     { shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
+     { shard: 'shard1', roomName: 'W10S0', x: 9, y: 20 },
+     { shard: 'shard0', roomName: 'W21S0', x: 48, y: 38 },
+     { shard: 'shard0', roomName: 'W20S30', x: 37, y: 30 },
+     { shard: 'shard1', roomName: 'W10S20', x: 23, y: 4 },
+     { shard: 'shard0', roomName: 'W21S40', x: 48, y: 42 },
+     { shard: 'shard0', roomName: 'W20S50', x: 23, y: 26 },
+     { shard: 'shard1', roomName: 'W10S30', x: 27, y: 5 },
+     { shard: 'shard0', roomName: 'W21S60', x: 48, y: 41 },
+     { shard: 'shard0', roomName: 'W20S80', x: 27, y: 4 },
+     { shard: 'shard1', roomName: 'W10S40', x: 7, y: 34 },
+     { shard: 'shard0', roomName: 'W10S71', x: 44, y: 1 },
+     { shard: 'shard0', roomName: 'E40S69', x: 11, y: 48 },
+     { shard: 'shard0', roomName: 'E20S70', x: 19, y: 16 },
+     { shard: 'shard1', roomName: 'E10S40', x: 6, y: 30 },
+     { shard: 'shard2', roomName: 'E10S40', x: 42, y: 24 },
+     { shard: 'shard3', roomName: 'E11S39', x: 23, y: 14 } ]
 interface type_preclaiming_rooms {
     [key: string]: {
         [key: string]: type_external_shard_map
     }
 }
-var W9N1_path = [ { shard: 'shard3', roomName: 'W10N40', x: 7, y: 30 },
-				{ shard: 'shard2', roomName: 'W10N40', x: 39, y: 38 },
-				{ shard: 'shard1', roomName: 'W10N40', x: 28, y: 20 },
-				{ shard: 'shard0', roomName: 'W19N70', x: 1, y: 42 },
-//				{ shard: 'shard0', roomName: 'W21N60', x: 48, y: 35 }, //add
-				{ shard: 'shard0', roomName: 'W20N60', x: 45, y: 11 },
-				{ shard: 'shard1', roomName: 'W10N30', x: 5, y: 40 },
-				{ shard: 'shard0', roomName: 'W19N50', x: 1, y: 39 },
-				{ shard: 'shard0', roomName: 'W20N39', x: 6, y: 1 },
-				{ shard: 'shard0', roomName: 'W30N40', x: 29, y: 42 },
-				{ shard: 'shard1', roomName: 'W20N20', x: 43, y: 18 },
-				{ shard: 'shard0', roomName: 'W29N30', x: 1, y: 46 },
-				{ shard: 'shard0', roomName: 'W31N10', x: 48, y: 47 },
-				{ shard: 'shard0', roomName: 'W30S1', x: 44, y: 1 },
-				{ shard: 'shard0', roomName: 'W20S0', x: 13, y: 26 },
-				{ shard: 'shard1', roomName: 'W10S0', x: 5, y: 30 },
-				{ shard: 'shard2', roomName: 'W10S0', x: 21, y: 24 },
-				{ shard: 'shard3', roomName: 'W9N1', x: 28, y: 41 },
-			]
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
     'E16N58': {
@@ -233,20 +238,20 @@ preclaiming_rooms = {
             poses_forwardpath: [28],
         },
     },
-	'W9N39': {
-		'W9N1': {
-			shard_path: W9N1_path,
+	'W9N1': {
+		'E11S39': {
+			shard_path: path_E11S39,
 		}
-	}
+	},
 }
 export var help_list: type_help_list = {
-    "W9N39": {
-        "W9N1": {
-            shard_path: W9N1_path,
-            commuting_distance: 600,
-            commuting_time: 900,
+    "W9N1": {
+        "E11S39": {
+            shard_path: path_E11S39,
+            commuting_distance: 550,
+            commuting_time: 800,
 			mine_source: false,
-            n_energy_carriers: 2,
+            n_energy_carriers: 1,
             guard: 5,
         }
     }
@@ -272,12 +277,14 @@ export var highway_resources: {
     "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
+	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
 }
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
 }
 export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = {
 	"W9N39": ["U"],
+	"W9N1": ["U", "Z"],
 }
 export var depo_last_cooldown = 150;
 export var depo_cd_to_boost = 15;
@@ -357,13 +364,19 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.4,
-			lowest_price: 0.3,
-            interval: 3000,
+            price: 0.56,
+			lowest_price: 0.42,
+            interval: 1000,
 			always_increase: true,
         },
         "battery": {
-            price: 4.0,
+            price: 6.0,
+			lowest_price: 4.5,
+            interval: 1000,
+			always_increase: true,
+        },
+        "power": {
+            price: 22.0,
             interval: 3000,
 			always_increase: true,
         },
@@ -401,7 +414,11 @@ export var acceptable_prices: type_acceptable_prices = {
         "wire": {
             price: 500,
 			interval: -1,
-        }
+        },
+        "alloy": {
+            price: 540,
+			interval: -1,
+        },
 	}
 }
 type type_auto_sell_list = {
@@ -686,22 +703,22 @@ export var pb_attacker_body: type_body_conf = {
         number: 5,
         boost: "GHO2",
     },
+    "move": {
+        number: 25,
+    },
     "attack": {
         number: 20,
         boost: "UH2O",
     },
-    "move": {
-        number: 25,
-    }
 }
 export var pb_healer_body: type_body_conf = {
+    "move": {
+        number: 13,
+    },
     "heal": {
         number: 13,
         boost: "LHO2",
     },
-    "move": {
-        number: 13,
-    }
 }
 export var depo_container_builder_body: type_body_conf = {
     "work": {

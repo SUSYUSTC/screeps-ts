@@ -419,7 +419,7 @@ function get_energy_transport_jobs(creep: Creep): type_transport_job[] {
             })
         }
     }
-    if (amounts.powerspawn < config.powerspawn_min_energy) {
+    if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
         if (withdraw_from !== undefined) {
 			let amount = Math.floor((5000-amounts.powerspawn) / capacity) * capacity;
             jobs.push({
@@ -430,7 +430,7 @@ function get_energy_transport_jobs(creep: Creep): type_transport_job[] {
             })
         }
     }
-    if (amounts.nuker < 300000) {
+    if (amounts.nuker < 300000 && amounts.storage >= config.storage_min_energy) {
         if (withdraw_from !== undefined) {
             jobs.push({
 				resource_type: "energy",

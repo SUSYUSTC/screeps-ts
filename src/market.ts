@@ -331,12 +331,40 @@ global.set_resource_price = function(type: "buy" | "sell", resource: MarketResou
     return 0;
 }
 
-function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number): number {
+function buy_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number) {
+	let orders = get_market_orders("sell", resource).filter((e) => e.amount > 0);
+	let current_amount = functions.get_total_resource_amount(room_name, resource);
+	if (current_amount >= expected_amount) {
+		return 1;
+	}
+	let prices = orders.map((e) => e.price);
+	let argmin = mymath.argmin(prices);
+	let best_order = orders[argmin];
+	let acceptable_price = config.acceptable_prices.buy[resource];
+	if (acceptable_price == undefined) {
+		return -1;
+	}
+	if (best_order.price <= acceptable_price.price) {
+		let amount = Math.min(best_order.amount, order_amount);
+		Game.market.deal(best_order.id, amount, room_name);
+        console.log("deal", amount, resource, "at", room_name);
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+function auto_supply_from_market(room_name: string, resource: ResourceConstant, expected_amount: number, order_amount: number) {
 	if (Game.my_orders == undefined) {
 		classify_my_orders();
 	}
     let room = Game.rooms[room_name];
     let current_amount = functions.get_total_resource_amount(room_name, resource);
+	if (resource == 'energy') {
+		current_amount += functions.get_total_resource_amount(room_name, 'battery') * 10;
+	} else if (resource == 'battery') {
+		current_amount += functions.get_total_resource_amount(room_name, 'energy') / 10;
+	}
 	let orders: Order[];
 	if (Game.my_orders.buy[room_name] == undefined) {
 		orders = [];
@@ -381,10 +409,21 @@ export function auto_supply_resources(room_name: string) {
 			let amount = conf_mineral_store.expect_amount;;
 			auto_supply_from_market(room_name, mineral, amount, config.mineral_buy_onetime_amount);
 		}
-		auto_supply_from_market(room_name, 'battery', Math.floor((config.energy_bar_to_spawn_upgrader - config.storage_good_energy) / 10), config.battery_buy_onetime_amount);
-		auto_supply_from_market(room_name, 'energy', config.storage_good_energy + config.terminal_max_energy, config.energy_buy_onetime_amount);
+		auto_supply_from_market(room_name, 'energy', config.energy_bar_of_market_supply, config.energy_buy_onetime_amount);
+		auto_supply_from_market(room_name, 'battery', config.energy_bar_of_market_supply / 10, config.battery_buy_onetime_amount);
 		if (Game.powered_rooms[room_name] !== undefined) {
 			auto_supply_from_market(room_name, 'ops', config.ops_store_amount, config.ops_buy_onetime_amount);
+		}
+    }
+	timer.end();
+}
+
+export function auto_buy_resources(room_name: string) {
+    let room = Game.rooms[room_name];
+	let timer = new Timer("auto_supply_resources", false);
+    if (Game.controlled_rooms_with_terminal.includes(room_name)) {
+		if (room_name == config.buy_power_room && Game.time % 50 == 49 && Game.market.credits >= config.credit_line) {
+			buy_from_market(room_name, "power", config.power_store_amount, config.power_buy_onetime_amount);
 		}
     }
 	timer.end();

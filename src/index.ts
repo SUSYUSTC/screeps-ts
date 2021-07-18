@@ -5180,6 +5180,7 @@ declare const StructurePowerBank: StructurePowerBankConstructor;
  */
 interface StructurePowerSpawn extends OwnedStructure<STRUCTURE_POWER_SPAWN> {
 	effect_time ?: number;
+	effect_level ?: number;
     readonly prototype: StructurePowerSpawn;
     /**
      * The amount of energy containing in this structure.

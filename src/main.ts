@@ -157,7 +157,7 @@ function run_main() {
 			powercreeps.work(pc);
 		} catch (err) {
 			pc.say("Error");
-			console.log("Captured error", pc.room.name, err.stack);
+			console.log("Captured error", pc.name, err.stack);
 		}
     }
 	timer.end();
@@ -238,6 +238,7 @@ function run_main() {
     for (let room_name of config.controlled_rooms) {
 		try {
 			market.auto_supply_resources(room_name);
+			market.auto_buy_resources(room_name);
 			market.process_buy_order(room_name);
 			market.process_sell_order(room_name);
 		} catch (err) {

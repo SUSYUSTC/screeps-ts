@@ -51,7 +51,6 @@ interface RoomMemory {
 		[key in type_creep_role] ? : number;
     }
 	unboost_withdraw_request ? : boolean;
-    resource_cooldown_time ? : number;
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;
@@ -696,6 +695,7 @@ interface type_movetopos_options {
     costmatrix ? : CostMatrix;
     setmovable ? : boolean;
 	safe_level ? : 0 | 1 | 2;
+	avoid_exits ? : boolean;
 }
 interface type_tough_conf {
 	ratio: number;

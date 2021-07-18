@@ -258,6 +258,9 @@ export function creepjob(creep: Creep): number {
 		creep.say("c");
 		creep.memory.movable = true;
 		creep.memory.crossable = true;
+		if (creep.getActiveBodyparts(CLAIM) == 0 || creep.getActiveBodyparts(ATTACK) == 0) {
+			creep.suicide();
+		}
 		if (creep.room.name !== creep.memory.external_room_name) {
 			if (creep.memory.shard_move !== undefined) {
 				external_room.movethroughshards(creep);
@@ -274,13 +277,31 @@ export function creepjob(creep: Creep): number {
 				creep.suicide();
 				return 0;
 			}
+			let hostile = creep.room.find(FIND_HOSTILE_CREEPS).filter((e) => e.getActiveBodyparts(CLAIM))[0];
+			if (hostile !== undefined) {
+				if (creep.pos.getRangeTo(hostile) == 1) {
+					creep.attack(hostile);
+				} else {
+					creep.moveTo(hostile, {range: 1, maxRooms: 1, costCallback: functions.avoid_exits});
+				}
+				creep.say("ca");
+				return 0;
+			}
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
 				creep.moveTo(creep.room.controller, {range: 1, costCallback: functions.avoid_exits});
 				creep.say("cm");
 				return 0;
 			}
-			creep.claimController(creep.room.controller);
-			creep.say("cc");
+			if (creep.room.controller.my) {
+				creep.signController(creep.room.controller, config.sign);
+				creep.say("cs");
+			}
+			let out = creep.claimController(creep.room.controller);
+			creep.say(out.toString());
+			if (!creep.room.controller.my && out == ERR_INVALID_TARGET) {
+				creep.attackController(creep.room.controller);
+				creep.say("ca");
+			}
 		}
 		return 0;
 	} else if (creep.memory.role == 'energy_carrier') {

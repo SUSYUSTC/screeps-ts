@@ -137,7 +137,7 @@ function balance_power() {
 		let room_max = Game.rooms[rooms[argmax]];
 		let leave_amount = 0;
 		if (room_max.powerSpawn.effect_time > 0) {
-			leave_amount = room_max.powerSpawn.effect_time * 2;
+			leave_amount = room_max.powerSpawn.effect_time * room_max.powerSpawn.effect_level;
 		}
 		let max_real_amount = room_max.terminal.store.getUsedCapacity("power");
 		let amount = Math.min(Math.floor(amount_diff/2), max_real_amount - leave_amount);

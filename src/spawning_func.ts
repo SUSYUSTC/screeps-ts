@@ -174,8 +174,9 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
 }
 const getbody_preclaimer = (options: any): BodyPartConstant[] => {
     let bodyinfo: type_body_components = {
-        "claim": 1,
-        "move": 5,
+        "claim": 4,
+		"attack": 4,
+        "move": 24,
     };
     return fullreturnbody(bodyinfo);
 }
@@ -364,7 +365,7 @@ global.spawn_in_queue = function(room_name: string, body: BodyPartConstant[], na
 
 global.get_body = function(components: type_body_components): BodyPartConstant[] {
     let body: BodyPartConstant[] = [];
-    for (let part of [TOUGH, WORK, ATTACK, RANGED_ATTACK, HEAL, CARRY, CLAIM, MOVE]) {
+    for (let part of [TOUGH, WORK, CARRY, ATTACK, RANGED_ATTACK, MOVE, HEAL, CLAIM]) {
         if (components[part] !== undefined) {
             mymath.range(components[part]).forEach((e) => body.push(part));
         }
