@@ -30,6 +30,9 @@ import {
 import {
     conf_W9N1
 } from "./config_W9N1"
+import {
+    conf_E11S39
+} from "./config_E11S39"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
@@ -77,6 +80,7 @@ export var conf_rooms: type_conf_rooms = {
     "E9N54": conf_E9N54,
     "W9N39": conf_W9N39,
     "W9N1": conf_W9N1,
+    "E11S39": conf_E11S39,
 }
 export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39"];
 export var obselete_rooms: string[] = [];
@@ -159,6 +163,7 @@ export var newroom_energy_buying_price = {
 	always_increase: true,
 }
 export var pb_power_min = 2000;
+export var tower_filling_energy = 600;
 
 export var storage_gap = 50000;
 export var storage_bars: number[] = [1, 2, 3].map((e) => e * storage_gap);
@@ -267,6 +272,10 @@ export var protected_sources: {
     "E19N55": ['S1'],
     "E14N59": ['S1', 'S2'],
     "E9N54": ['S2'],
+	"W9N1": ["S1"],
+	"W9N39": ["S1"],
+	"E11S39": ["S1"],
+
 }
 export var highway_resources: {
     [key: string]: string[]

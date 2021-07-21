@@ -380,21 +380,25 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 }
 
 export function movethroughshards(creep: Creep) {
+	console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos), creep.memory._move == undefined ? undefined : creep.memory._move.time);
 	let timer = new Timer("movethroughshards", false);
 	let timer_only = new Timer("movethroughshards_only", false);
 	if (global.is_main_server) {
 		let this_shardmemory = Game.InterShardMemory[Game.shard.name];
 		if (global.main_shards.includes(Game.shard.name)) {
 			if (this_shardmemory.creeps[creep.name] == undefined) {
+				// add shardmemory.creeps
 				this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
 				Game.require_update_intershardmemory = true;
-				if (this_shardmemory.all_creeps[creep.name] == undefined) {
-					this_shardmemory.all_creeps[creep.name] = { }
-					functions.copy_key(creep.memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
-					Game.require_update_intershardmemory_modify_time = true;
-				}
 			}
-		} else if (Game.time % 10 == 0 || this_shardmemory.all_creeps[creep.name].ticksToLive == undefined) {
+			if (this_shardmemory.all_creeps[creep.name] == undefined) {
+				// add shardmemory.all_creeps
+				this_shardmemory.all_creeps[creep.name] = { }
+				functions.copy_key(creep.memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
+				Game.require_update_intershardmemory_modify_time = true;
+			}
+		}
+		if (Game.time % 10 == 0 || this_shardmemory.all_creeps[creep.name].ticksToLive == undefined) {
 			this_shardmemory.all_creeps[creep.name].ticksToLive = creep.ticksToLive;
 			Game.require_update_intershardmemory = true;
 			Game.require_update_intershardmemory_modify_time = true;

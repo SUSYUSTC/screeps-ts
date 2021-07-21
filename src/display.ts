@@ -8,7 +8,7 @@ function arrange_string(str: string, length: number): string {
     return ' '.repeat(Math.max(length - str.length, 0)) + str;
 }
 
-function obj2string(obj: any, json: boolean): string {
+function obj2string(obj: any, json: boolean, use_float: boolean): string {
 	if (obj == undefined) {
 		return 'undefined';
 	} else if (typeof obj == 'object') {
@@ -19,7 +19,7 @@ function obj2string(obj: any, json: boolean): string {
 		}
 	} else if (typeof obj == 'string') {
         return obj;
-    } else if (typeof obj == 'number' && !Number.isInteger(obj)) {
+    } else if (typeof obj == 'number' && use_float) {
         return obj.toFixed(3);
     } else {
         return obj.toString();
@@ -67,8 +67,14 @@ export function init() {
 		}
 		let keys = Object.keys(objs[0]);
 		let lengths: {[key: string]: number} = {};
+		let use_floats: {[key: string]: boolean} = {};
 		for (let key of keys) {
-			lengths[key] = mymath.max(objs.map((e) => obj2string(e[key], json).length))
+			let use_float = false;
+			if (typeof objs[0][key] === 'number') {
+				use_float = objs.filter((e) => e[key] !== parseInt(e[key])).length > 0;
+			}
+			use_floats[key]=use_float;
+			lengths[key] = mymath.max(objs.map((e) => obj2string(e[key], json, use_float).length))
 			lengths[key] = Math.max(lengths[key], key.length) + 2;
 		}
 		for (let key of keys) {
@@ -77,7 +83,7 @@ export function init() {
 		for (let obj of objs) {
 			str += '\n'
 			for (let key of keys) {
-				str += arrange_string(obj2string(obj[key], json), lengths[key])
+				str += arrange_string(obj2string(obj[key], json, use_floats[key]), lengths[key])
 			}
 		}
 		return str;

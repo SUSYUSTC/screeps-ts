@@ -562,7 +562,7 @@ export function spawn(room_name: string) {
 			}
 			if (conf_help.n_energy_carriers > 0) {
 				let spawning_energy_carriers = room_statistics.energy_carrier.filter((e) => e.spawning).map((e) => e.name);
-				let spawning_spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => e.spawning != undefined && spawning_energy_carriers.includes(e.spawning.name) && e.spawning.remainingTime > e.spawning.needTime / conf_help.n_energy_carriers);
+				let spawning_spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => e.spawning != undefined && spawning_energy_carriers.includes(e.spawning.name) && e.spawning.remainingTime > e.spawning.needTime - e.spawning.needTime / conf_help.n_energy_carriers);
 				if (spawning_spawns.length == 0 && !level1) {
 					let added_memory = {
 						"external_room_name": external_room_name,

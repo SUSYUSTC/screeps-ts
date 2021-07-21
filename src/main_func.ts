@@ -9,8 +9,12 @@ import {
     Timer
 } from "./timer";
 
-function is_not_full(structure: AnyStoreStructure): boolean {
-    return ( < GeneralStore > structure.store).getFreeCapacity("energy") > 0;
+function need_to_fill(structure: AnyStoreStructure): boolean {
+	if (structure.structureType == 'tower') {
+		return ( < GeneralStore > structure.store).getUsedCapacity("energy") < config.tower_filling_energy;
+	} else {
+		return ( < GeneralStore > structure.store).getFreeCapacity("energy") > 0;
+	}
 }
 
 function need_to_repair(structure: Structure): boolean {
@@ -87,6 +91,7 @@ function update_structures(room_name: string) {
             room.memory.n_structures = n_structures;
         }
         if (Game.time % 200 == 0 || !global.test_var || room.memory.objects_updated) {
+			// defined spawns, towers, walls, ramparts
             let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
 			let safe_pos = room.getPositionAt(conf.storage.pos[0], conf.storage.pos[1]);
             global.memory[room_name].spawn_list = spawns.map((e) => e.id);
@@ -98,12 +103,6 @@ function update_structures(room_name: string) {
             let energy_storage_list_safe = energy_storage_list.filter((e) => is_safely_connected(safe_pos, e.pos));
             global.memory[room_name].energy_storage_list = energy_storage_list.map((e) => < Id < AnyStoreStructure >> e.id)
             global.memory[room_name].energy_storage_list_safe = energy_storage_list_safe.map((e) => < Id < AnyStoreStructure >> e.id)
-
-            if (room.find(FIND_HOSTILE_CREEPS).length > 0) {
-                global.memory[room_name].repair_list = [];
-            } else {
-                global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
-            }
 
             let walls = conf.walls.map((xy) => ( < StructureWall > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'constructedWall')[0])).filter((e) => e !== undefined);
             let main_ramparts = conf.main_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
@@ -139,19 +138,25 @@ function update_structures(room_name: string) {
 				Memory.look_broken_ramparts = false;
 			}
         }
+
+		if (room.find(FIND_HOSTILE_CREEPS).length > 0) {
+			global.memory[room_name].repair_list = [];
+		} else {
+			global.memory[room_name].repair_list = _.filter(structures, (structure) => ['container', 'road'].includes(structure.structureType) && need_to_repair(structure)).map((e) => e.id);
+		}
         let spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e));
         let towers = global.memory[room_name].tower_list.map((e) => Game.getObjectById(e));
-        let energy_filling_towers = towers.filter((e) => e.store.getFreeCapacity("energy") > 400).map((e) => < Id < AnyStoreStructure >> e.id);
+        let energy_filling_towers = towers.filter((e) => e.store.getUsedCapacity("energy") < config.tower_filling_energy).map((e) => < Id < AnyStoreStructure >> e.id);
         if (Game.powered_rooms[room_name] !== undefined) {
-            let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
+            let energy_filling_spawns = spawns.filter(need_to_fill).map((e) => < Id < AnyStoreStructure >> e.id);
             global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers);
         } else {
-            let energy_filling_spawns = spawns.filter(is_not_full).map((e) => < Id < AnyStoreStructure >> e.id);
-            let energy_filling_exts = _.filter(structures, (structure) => structure.structureType == "extension" && is_not_full(structure)).map((e) => < Id < AnyStoreStructure >> e.id);
+            let energy_filling_spawns = spawns.filter(need_to_fill).map((e) => < Id < AnyStoreStructure >> e.id);
+            let energy_filling_exts = _.filter(structures, (structure) => structure.structureType == "extension" && need_to_fill(structure)).map((e) => < Id < AnyStoreStructure >> e.id);
             global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
         }
     } else {
-        global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => is_not_full(Game.getObjectById(e)));
+        global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => need_to_fill(Game.getObjectById(e)));
         global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
         global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.min_wall_strength);
     }

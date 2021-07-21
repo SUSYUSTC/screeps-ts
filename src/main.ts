@@ -54,16 +54,17 @@ function run_sub() {
 	} catch (err) {
 		console.log("Captured error:", err.stack);
 	}
+	console.log("All creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].all_creeps))
+	console.log("Registered creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].creeps))
 	for (let creepname in Game.creeps) {
 		try {
 			let creep = Game.creeps[creepname];
-			console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos), creep.memory._move == undefined ? undefined : creep.memory._move.time);
 			if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
 				creep.heal(creep);
 			}
 			external_room.movethroughshards(creep);
 		} catch (err) {
-			console.log("Captured error:", err.stack);
+			console.log("Captured error:", Game.creeps[creepname].room.name, creepname, err.stack);
 		}
 	}
 	try {
@@ -110,6 +111,9 @@ function run_main() {
 		console.log("Captured error", err.stack);
 	}
 	timer.end();
+
+	console.log("All creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].all_creeps))
+	console.log("Registered creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].creeps))
 
 	timer = new Timer("towers", true);
     for (let room_name of config.controlled_rooms) {
