@@ -158,7 +158,7 @@ export var maincarrier_ncarry_no_power: number = 16;
 export var maincarrier_ncarry_powered: number = 16;
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var newroom_energy_buying_price = {
-    price: 0.6,
+    price: 0.8,
     interval: 200,
 	always_increase: true,
 }
@@ -373,14 +373,14 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.56,
-			lowest_price: 0.42,
+            price: 0.64,
+			lowest_price: 0.4,
             interval: 1000,
 			always_increase: true,
         },
         "battery": {
             price: 6.0,
-			lowest_price: 4.5,
+			lowest_price: 4.0,
             interval: 1000,
 			always_increase: true,
         },

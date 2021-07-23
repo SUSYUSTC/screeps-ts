@@ -410,7 +410,9 @@ export function auto_supply_resources(room_name: string) {
 			auto_supply_from_market(room_name, mineral, amount, config.mineral_buy_onetime_amount);
 		}
 		auto_supply_from_market(room_name, 'energy', config.energy_bar_of_market_supply, config.energy_buy_onetime_amount);
-		auto_supply_from_market(room_name, 'battery', config.energy_bar_of_market_supply / 10, config.battery_buy_onetime_amount);
+		if (room.controller.level == 8) {
+			auto_supply_from_market(room_name, 'battery', config.energy_bar_of_market_supply / 10, config.battery_buy_onetime_amount);
+		}
 		if (Game.powered_rooms[room_name] !== undefined) {
 			auto_supply_from_market(room_name, 'ops', config.ops_store_amount, config.ops_buy_onetime_amount);
 		}

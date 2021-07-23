@@ -516,7 +516,7 @@ export function set_global_memory() {
 
 function is_independent_room(room_name: string): boolean {
 	let room = Game.rooms[room_name];
-	return room.controller.level >=7 || (room.energyCapacityAvailable >= 2300 && Game.controlled_rooms_with_terminal.includes(room_name) && room.lab.B1 !== undefined && Object.keys(room.link).length == 3);
+	return room.controller.level >=7 || (room.energyCapacityAvailable >= 2200 && Game.controlled_rooms_with_terminal.includes(room_name) && room.lab.B1 !== undefined && Object.keys(room.link).length == 3);
 }
 export function set_global_memory_last() {
 	Game.independent_rooms = Game.controlled_rooms_with_terminal.filter((e) => is_independent_room(e));
