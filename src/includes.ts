@@ -160,7 +160,11 @@ interface CreepMemory {
 	shard_move ?: type_shard_move;
 	last_present_time ?: number;
 	last_present_shard ?: string;
-	jobs ?: type_transport_job[];
+	jobs_levels ?: {
+		level0: type_transport_job[];
+		level1: type_transport_job[];
+		level2: type_transport_job[];
+	}
 }
 interface PowerCreepMemory {
     movable ? : boolean;
@@ -347,11 +351,14 @@ interface type_depo_status {
     distance: number;
     last_cooldown: number;
 	amount_received: number;
+	expected_additional_amount: number;
+	time_update_amount: number;
     time_last ?: number;
-    depo_container_builder_name ? : string;
-    depo_energy_carrier_name ? : string;
-    depo_harvester_name ? : string;
-    depo_carrier_name ? : string;
+	time_to_delete ?: number
+    depo_container_builder_names ? : string[];
+    depo_energy_carrier_names ? : string[];
+    depo_harvester_names ? : string[];
+    depo_carrier_names ? : string[];
 }
 interface type_external_resources {
     pb: {

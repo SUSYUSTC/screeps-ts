@@ -149,6 +149,9 @@ function detect_depo(room_name: string, external_room_name: string) {
 	if (room.memory.external_resources.depo[external_room_name] !== undefined) {
 		return 1;
 	}
+	if (_.filter(room.memory.external_resources.depo, (e) => e.last_cooldown <= 80).length > 0) {
+		return 1;
+	}
 	let depos = <Array<Deposit>> external_room.find(FIND_DEPOSITS);
 	if (depos.length == 0) {
 		return -2;
@@ -156,7 +159,7 @@ function detect_depo(room_name: string, external_room_name: string) {
 	let cds = depos.map((e) => e.lastCooldown);
 	let argmin = mymath.argmin(cds);
 	let depo = depos[argmin]
-	if (!(depo !== undefined && depo.lastCooldown <= config.depo_last_cooldown && depo.ticksToDecay >= 8000 && (!global.is_main_server || depo.depositType !== 'mist'))) {
+	if (!(depo !== undefined && depo.lastCooldown <= config.depo_start_max_cd && depo.ticksToDecay >= 3000 && (!global.is_main_server || depo.depositType !== 'mist'))) {
 		return -2;
 	}
 	let path = PathFinder.search(room.terminal.pos, {
@@ -188,10 +191,12 @@ function detect_depo(room_name: string, external_room_name: string) {
 		"distance": path.cost,
 		"last_cooldown": depo.lastCooldown,
 		"amount_received": 0,
-		"depo_container_builder_name": depo_container_builder_name,
-		"depo_energy_carrier_name": depo_energy_carrier_name,
-		"depo_harvester_name": depo_harvester_name,
-		"depo_carrier_name": depo_carrier_name,
+		"expected_additional_amount": 0,
+		"time_update_amount": Game.time,
+		"depo_container_builder_names": [],
+		"depo_energy_carrier_names": [],
+		"depo_harvester_names": [],
+		"depo_carrier_names": [],
 	}
 	return 0;
 }
@@ -329,7 +334,8 @@ function update_depo(room_name: string, external_room_name: string) {
 			depo_status.status = 1;
 			return;
 		}
-		if (!functions.creep_exists(depo_status.depo_container_builder_name, room_name)) {
+		depo_status.depo_container_builder_names = depo_status.depo_container_builder_names.filter((e) => functions.creep_exists(e, room_name))
+		if (depo_status.depo_container_builder_names.length == 0) {
 			let ok_container_builder = functions.is_boost_resource_enough(room_name, config.depo_container_builder_body);
 			if (!ok_container_builder) {
 				return;
@@ -340,26 +346,32 @@ function update_depo(room_name: string, external_room_name: string) {
 				"role": "depo_container_builder",
 				"external_room_name": external_room_name,
 			}
-			global.spawn_in_queue(room_name, depo_container_builder_body, depo_status.depo_container_builder_name, depo_container_builder_memory, false);
+			let depo_container_builder_name = "depo_container_builder" + external_room_name + '_' + Game.time.toString()
+			global.spawn_in_queue(room_name, depo_container_builder_body, depo_container_builder_name, depo_container_builder_memory, false);
+			depo_status.depo_container_builder_names.push(depo_container_builder_name);
 		}
-		if (!functions.creep_exists(depo_status.depo_energy_carrier_name, room_name)) {
+		depo_status.depo_energy_carrier_names = depo_status.depo_energy_carrier_names.filter((e) => functions.creep_exists(e, room_name))
+		if (depo_status.depo_energy_carrier_names.length == 0) {
 			let depo_energy_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_energy_carrier_body));
 			let depo_energy_carrier_memory: CreepMemory = {
 				"home_room_name": room_name,
 				"role": "depo_energy_carrier",
 				"external_room_name": external_room_name,
 			}
-			global.spawn_in_queue(room_name, depo_energy_carrier_body, depo_status.depo_energy_carrier_name, depo_energy_carrier_memory, false);
+			let depo_energy_carrier_name = "depo_energy_carrier" + external_room_name + '_' + Game.time.toString()
+			global.spawn_in_queue(room_name, depo_energy_carrier_body, depo_energy_carrier_name, depo_energy_carrier_memory, false);
+			depo_status.depo_energy_carrier_names.push(depo_energy_carrier_name);
 		}
 	} else if (depo_status.status == 1) {
 		if (external_room !== undefined) {
 			let depo = Game.getObjectById(depo_status.id);
-			if (depo.ticksToDecay < 200 || depo.lastCooldown >= config.depo_last_cooldown) {
+			if (depo.ticksToDecay < 200 || depo.lastCooldown >= config.depo_stop_min_cd) {
 				depo_status.status = 2;
 				return;
 			}
 		}
-		if (!functions.creep_exists(depo_status.depo_harvester_name, room_name)) {
+		depo_status.depo_harvester_names = depo_status.depo_harvester_names.filter((e) => functions.creep_exists(e, room_name, {filter: (e) => e.ticksToLive >= depo_status.distance + 150}));
+		if (depo_status.depo_harvester_names.length == 0) {
 			let request_boost = depo_status.last_cooldown >= config.depo_cd_to_boost;
 			let conf_body = request_boost ? config.powered_depo_harvester_body : config.depo_harvester_body;
 			let ok_depo_harvester = functions.is_boost_resource_enough(room_name, conf_body);
@@ -373,32 +385,39 @@ function update_depo(room_name: string, external_room_name: string) {
 				"external_room_name": external_room_name,
 				"request_boost": request_boost,
 			}
-			global.spawn_in_queue(room_name, depo_harvester_body, depo_status.depo_harvester_name, depo_harvester_memory, false);
+			let depo_harvester_name = "depo_harvester" + external_room_name + '_' + Game.time.toString()
+			global.spawn_in_queue(room_name, depo_harvester_body, depo_harvester_name, depo_harvester_memory, false);
+			depo_status.depo_harvester_names.push(depo_harvester_name);
 		}
-		if (!functions.creep_exists(depo_status.depo_carrier_name, room_name) && container !== undefined && container.store.getUsedCapacity() >= config.depo_carrier_body.carry.number * 50) {
+		depo_status.depo_carrier_names = depo_status.depo_carrier_names.filter((e) => functions.creep_exists(e, room_name, {filter: (e) => !e.memory.ready}));
+		if (container !== undefined && container.store.getUsedCapacity() + depo_status.expected_additional_amount >= config.depo_carrier_body.carry.number * 50 * (1+depo_status.depo_carrier_names.length)) {
 			let depo_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_carrier_body));
 			let depo_carrier_memory: CreepMemory = {
 				"home_room_name": room_name,
 				"role": "depo_carrier",
 				"external_room_name": external_room_name,
 			}
-			global.spawn_in_queue(room_name, depo_carrier_body, depo_status.depo_carrier_name, depo_carrier_memory, false);
+			let depo_carrier_name = "depo_carrier" + external_room_name + '_' + Game.time.toString()
+			global.spawn_in_queue(room_name, depo_carrier_body, depo_carrier_name, depo_carrier_memory, false);
+			depo_status.depo_carrier_names.push(depo_carrier_name);
 		}
 	} else if (depo_status.status == 2) {
-		if (!functions.creep_exists(depo_status.depo_carrier_name, room_name) && container !== undefined && container.store.getUsedCapacity() >= config.depo_carrier_body.carry.number * 50) {
+		let n_existing_depo_carriers = depo_status.depo_carrier_names.filter((e) => functions.creep_exists(e, room_name, {filter: (e) => !e.memory.ready})).length;
+		if (container !== undefined && container.store.getUsedCapacity() + depo_status.expected_additional_amount >= config.depo_carrier_body.carry.number * 50 * (1+n_existing_depo_carriers)) {
 			let depo_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_carrier_body));
 			let depo_carrier_memory: CreepMemory = {
 				"home_room_name": room_name,
 				"role": "depo_carrier",
 				"external_room_name": external_room_name,
 			}
-			global.spawn_in_queue(room_name, depo_carrier_body, depo_status.depo_carrier_name, depo_carrier_memory, false);
+			let depo_carrier_name = "depo_carrier" + external_room_name + '_' + Game.time.toString()
+			global.spawn_in_queue(room_name, depo_carrier_body, depo_carrier_name, depo_carrier_memory, false);
+			depo_status.depo_carrier_names.push(depo_carrier_name);
 		}
-		if (depo_status.time_last == undefined) {
-			depo_status.time_last = 0;
+		if (depo_status.time_to_delete == undefined) {
+			depo_status.time_to_delete = Game.time + 2000;
 		}
-		depo_status.time_last += 1;
-		if (depo_status.time_last >= 3000) {
+		if (Game.time >= depo_status.time_to_delete) {
 			if (Memory.depo_log == undefined) {
 				Memory.depo_log = [];
 			}

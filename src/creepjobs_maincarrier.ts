@@ -68,7 +68,7 @@ function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: Res
     if (out !== ERR_NOT_IN_RANGE && out !== OK) {
         console.log(`Warning: transfer fail with return code ${out} for maincarrier at room ${creep.room.name} at time {Game.time}`);
     }
-	return out
+    return out
 }
 
 function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {
@@ -325,17 +325,17 @@ function structure_from_name(room_name: string, name: type_main_structure_names)
 function get_amounts(room_name: string, list: type_main_structure_names[], resource_type: ResourceConstant): type_main_structure_amounts {
     let result: type_main_structure_amounts = {};
     for (let structurename of list) {
-		let structure = structure_from_name(room_name, structurename);
-		if (structure == undefined) {
-			result[structurename] = undefined;
-		} else {
-			result[structurename] = (<GeneralStore>structure.store).getUsedCapacity(resource_type);
-		}
+        let structure = structure_from_name(room_name, structurename);
+        if (structure == undefined) {
+            result[structurename] = undefined;
+        } else {
+            result[structurename] = ( < GeneralStore > structure.store).getUsedCapacity(resource_type);
+        }
     }
     return result;
 }
 
-function get_energy_transport_jobs(creep: Creep): type_transport_job[] {
+function get_energy_transport_jobs(creep: Creep, dolink: boolean): type_transport_job[] {
     let capacity = creep.store.getCapacity();
     let room = creep.room;
     let jobs: type_transport_job[] = [];
@@ -356,270 +356,277 @@ function get_energy_transport_jobs(creep: Creep): type_transport_job[] {
     } else if (amounts.terminal !== undefined) {
         transfer_to = "terminal";
     }
-    if (amounts.link !== undefined) {
-        if (amounts.link < room.memory.maincarrier_link_amount) {
-            if (withdraw_from !== undefined) {
-                jobs.push({
+	if (dolink) {
+		if (amounts.link !== undefined) {
+			if (amounts.link < room.memory.maincarrier_link_amount) {
+				if (withdraw_from !== undefined) {
+					jobs.push({
+						resource_type: "energy",
+						from: withdraw_from,
+						to: "link",
+						amount: room.memory.maincarrier_link_amount - amounts.link,
+					})
+				}
+			} else if (amounts.link > room.memory.maincarrier_link_amount) {
+				if (transfer_to !== undefined) {
+					jobs.push({
+						resource_type: "energy",
+						from: "link",
+						to: transfer_to,
+						amount: amounts.link - room.memory.maincarrier_link_amount,
+					})
+				}
+			}
+		}
+	} else {
+		if (amounts.storage !== undefined && amounts.factory !== undefined) {
+			if (amounts.storage >= config.storage_max_energy && amounts.factory < config.factory_max_energy) {
+				let amount = Math.min(amounts.storage - config.storage_max_energy + 1, config.factory_max_energy - amounts.factory)
+				amount = Math.ceil(amount / capacity) * capacity;
+				jobs.push({
 					resource_type: "energy",
-                    from: withdraw_from,
-                    to: "link",
-                    amount: room.memory.maincarrier_link_amount - amounts.link,
-                })
-            }
-        } else if (amounts.link > room.memory.maincarrier_link_amount) {
-            if (transfer_to !== undefined) {
-                jobs.push({
+					from: "storage",
+					to: "factory",
+					amount: amount,
+				})
+			} else if (amounts.storage < config.storage_min_energy && amounts.factory >= config.factory_min_energy) {
+				let amount = Math.min(config.storage_min_energy - amounts.storage, amounts.factory - config.factory_min_energy + 1)
+				amount = Math.ceil(amount / capacity) * capacity;
+				jobs.push({
 					resource_type: "energy",
-                    from: "link",
-                    to: transfer_to,
-                    amount: amounts.link - room.memory.maincarrier_link_amount,
-                })
-            }
-        }
-    }
-    if (amounts.storage !== undefined && amounts.factory !== undefined) {
-        if (amounts.storage >= config.storage_max_energy && amounts.factory < config.factory_max_energy) {
-			let amount = Math.min(amounts.storage - config.storage_max_energy + 1, config.factory_max_energy - amounts.factory)
-			amount = Math.ceil(amount / capacity) * capacity;
-            jobs.push({
-				resource_type: "energy",
-                from: "storage",
-                to: "factory",
-                amount: amount,
-            })
-        } else if (amounts.storage < config.storage_min_energy && amounts.factory >= config.factory_min_energy) {
-			let amount = Math.min(config.storage_min_energy - amounts.storage, amounts.factory - config.factory_min_energy + 1)
-			amount = Math.ceil(amount / capacity) * capacity;
-            jobs.push({
-				resource_type: "energy",
-                from: "factory",
-                to: "storage",
-                amount: amount,
-            })
-        }
-    }
-    if (amounts.storage !== undefined && amounts.terminal !== undefined) {
-        if (amounts.terminal >= config.terminal_max_energy) {
-			let amount = amounts.terminal - config.terminal_max_energy + 1;
-			amount = Math.ceil(amount / capacity) * capacity;
-            jobs.push({
-				resource_type: "energy",
-                from: "terminal",
-                to: "storage",
-                amount: amount,
-            })
-        } else if (amounts.terminal < config.terminal_min_energy) {
-			let amount = config.terminal_min_energy - amounts.terminal;
-			amount = Math.ceil(amount / capacity) * capacity;
-            jobs.push({
-				resource_type: "energy",
-                from: "storage",
-                to: "terminal",
-                amount: amount,
-            })
-        }
-    }
-    if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
-        if (withdraw_from !== undefined) {
-			let amount = Math.floor((5000-amounts.powerspawn) / capacity) * capacity;
-            jobs.push({
-				resource_type: "energy",
-                from: withdraw_from,
-                to: "powerspawn",
-                amount: amount,
-            })
-        }
-    }
-    if (amounts.nuker < 300000 && amounts.storage >= config.storage_min_energy) {
-        if (withdraw_from !== undefined) {
-            jobs.push({
-				resource_type: "energy",
-                from: withdraw_from,
-                to: "nuker",
-                amount: 300000 - amounts.nuker,
-            })
-        }
-    }
+					from: "factory",
+					to: "storage",
+					amount: amount,
+				})
+			}
+		}
+		if (amounts.storage !== undefined && amounts.terminal !== undefined) {
+			if (amounts.terminal >= config.terminal_max_energy) {
+				let amount = amounts.terminal - config.terminal_max_energy + 1;
+				amount = Math.ceil(amount / capacity) * capacity;
+				jobs.push({
+					resource_type: "energy",
+					from: "terminal",
+					to: "storage",
+					amount: amount,
+				})
+			} else if (amounts.terminal < config.terminal_min_energy) {
+				let amount = config.terminal_min_energy - amounts.terminal;
+				amount = Math.ceil(amount / capacity) * capacity;
+				jobs.push({
+					resource_type: "energy",
+					from: "storage",
+					to: "terminal",
+					amount: amount,
+				})
+			}
+		}
+		if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
+			if (withdraw_from !== undefined) {
+				let amount = Math.floor((5000 - amounts.powerspawn) / capacity) * capacity;
+				jobs.push({
+					resource_type: "energy",
+					from: withdraw_from,
+					to: "powerspawn",
+					amount: amount,
+				})
+			}
+		}
+		if (amounts.nuker < 300000 && amounts.storage >= config.storage_min_energy) {
+			if (withdraw_from !== undefined) {
+				jobs.push({
+					resource_type: "energy",
+					from: withdraw_from,
+					to: "nuker",
+					amount: 300000 - amounts.nuker,
+				})
+			}
+		}
+	}
     return jobs
 }
 
 type type_requirement = {
-	resource_type: ResourceConstant[];
+    resource_type: ResourceConstant[];
     from: type_main_structure_names;
     to: type_main_structure_names;
     to_min_amount: number;
-	to_limit_amount ?: number;
-	to_expect_amount ?: number;
+    to_limit_amount ? : number;
+    to_expect_amount ? : number;
     to_max_amount ? : number;
 }
 
 var nuker_G_requirement: type_requirement = {
-	resource_type: ["G"],
-	from: "terminal",
-	to: "nuker",
-	to_min_amount: 5000,
-	to_limit_amount: 5000,
+    resource_type: ["G"],
+    from: "terminal",
+    to: "nuker",
+    to_min_amount: 5000,
+    to_limit_amount: 5000,
 }
 
 var power_requirement: type_requirement = {
-	resource_type: ["power"],
-	from: "terminal",
-	to: "powerspawn",
-	to_min_amount: 10,
-	to_limit_amount: 100,
+    resource_type: ["power"],
+    from: "terminal",
+    to: "powerspawn",
+    to_min_amount: 10,
+    to_limit_amount: 100,
 }
 
 var terminal_battery_requirement: type_requirement = {
-	resource_type: ["battery"],
-	from: "storage",
-	to: "terminal",
-	to_min_amount: config.terminal_min_battery,
-	to_max_amount: config.terminal_max_battery,
+    resource_type: ["battery"],
+    from: "storage",
+    to: "terminal",
+    to_min_amount: config.terminal_min_battery,
+    to_max_amount: config.terminal_max_battery,
 }
 
 var factory_battery_requirement: type_requirement = {
-	resource_type: ["battery"],
-	from: "storage",
-	to: "factory",
-	to_min_amount: config.factory_min_battery,
-	to_max_amount: config.factory_max_battery,
+    resource_type: ["battery"],
+    from: "storage",
+    to: "factory",
+    to_min_amount: config.factory_min_battery,
+    to_max_amount: config.factory_max_battery,
 }
 
 var mineral_requirement: type_requirement = {
-	resource_type: constants.general_minerals,
-	from: "storage",
-	to: "terminal",
-	to_min_amount: config.terminal_min_mineral,
-	to_max_amount: config.terminal_max_mineral,
+    resource_type: constants.general_minerals,
+    from: "storage",
+    to: "terminal",
+    to_min_amount: config.terminal_min_mineral,
+    to_max_amount: config.terminal_max_mineral,
 }
 
 var store_mineral_requirement: type_requirement = {
-	resource_type: [],
-	from: "storage",
-	to: "terminal",
-	to_min_amount: config.terminal_min_store_mineral,
-	to_max_amount: config.terminal_max_store_mineral,
+    resource_type: [],
+    from: "storage",
+    to: "terminal",
+    to_min_amount: config.terminal_min_store_mineral,
+    to_max_amount: config.terminal_max_store_mineral,
 }
 
 var commodity_requirement = {
-	from: "storage",
-	to: "terminal",
-	to_min_amount: config.terminal_min_mineral,
-	to_max_amount: config.terminal_max_mineral,
+    from: "storage",
+    to: "terminal",
+    to_min_amount: config.terminal_min_mineral,
+    to_max_amount: config.terminal_max_mineral,
 }
 
 type type_commodity_requirements = {
-	bar: type_requirement;
-	depo: type_requirement;
-	product: type_requirement
+    bar: type_requirement;
+    depo: type_requirement;
+    product: type_requirement
 }
+
 function get_room_commodity_requirements(room_name: string): type_commodity_requirements {
-	let zones = config.commodity_room_conf[room_name];
-	if (zones == undefined) {
-		return undefined;
-	}
-	let productions = zones.map((e) => constants.basic_commodity_production[e]);
-	let bars = productions.map((e) => e.bar);
-	let depos = productions.map((e) => e.depo);
-	let products = productions.map((e) => e.product);
-	let result: type_commodity_requirements = {
-		bar: {
-			resource_type: bars,
-			from: "terminal",
-			to: "factory",
-			to_min_amount: 200,
-			to_expect_amount: 2000,
-		},
-		depo: {
-			resource_type: depos,
-			from: "terminal",
-			to: "factory",
-			to_min_amount: 200,
-			to_expect_amount: 2000,
-		},
-		product: {
-			resource_type: products,
-			from: "factory",
-			to: "terminal",
-			to_min_amount: 50000,
-		}
-	};
-	return result;
+    let zones = config.commodity_room_conf[room_name];
+    if (zones == undefined) {
+        return undefined;
+    }
+    let productions = zones.map((e) => constants.basic_commodity_production[e]);
+    let bars = productions.map((e) => e.bar);
+    let depos = productions.map((e) => e.depo);
+    let products = productions.map((e) => e.product);
+    let result: type_commodity_requirements = {
+        bar: {
+            resource_type: bars,
+            from: "terminal",
+            to: "factory",
+            to_min_amount: 200,
+            to_expect_amount: 2000,
+        },
+        depo: {
+            resource_type: depos,
+            from: "terminal",
+            to: "factory",
+            to_min_amount: 200,
+            to_expect_amount: 2000,
+        },
+        product: {
+            resource_type: products,
+            from: "factory",
+            to: "terminal",
+            to_min_amount: 50000,
+        }
+    };
+    return result;
 }
 
 function get_required_jobs(creep: Creep, requirement: type_requirement): type_transport_job[] {
-	let jobs: type_transport_job[] = [];
-	let capacity = creep.store.getCapacity();
-	let structure_from = structure_from_name(creep.room.name, requirement.from);
-	let structure_to = structure_from_name(creep.room.name, requirement.to);
-	if (structure_from == undefined || structure_to == undefined) {
-		return jobs;
-	}
-	for (let resource of requirement.resource_type) {
-		let amount_from = (<GeneralStore>structure_from.store).getUsedCapacity(resource);
-		let amount_to = (<GeneralStore>structure_to.store).getUsedCapacity(resource);
-		if (amount_to >= requirement.to_max_amount) {
-			let amount = amount_to - requirement.to_max_amount + 1;
-			amount = Math.ceil(amount / capacity) * capacity;
-			let job: type_transport_job = {
-				resource_type: resource,
-				from: requirement.to,
-				to: requirement.from,
-				amount: amount,
-			}
-			jobs.push(job);
-		} else if (amount_to < requirement.to_min_amount && amount_from > 0) {
-			let amount: number;
-			if (requirement.to_limit_amount !== undefined) {
-				amount = requirement.to_limit_amount - amount_to;
-			} else if (requirement.to_expect_amount !== undefined) {
-				amount = requirement.to_expect_amount - amount_to;
-				amount = Math.ceil(amount / capacity) * capacity;
-			} else {
-				amount = requirement.to_min_amount - amount_to;
-				amount = Math.ceil(amount / capacity) * capacity;
-			}
-			amount = Math.min(amount, amount_from);
-			let job: type_transport_job = {
-				resource_type: resource,
-				from: requirement.from,
-				to: requirement.to,
-				amount: amount,
-			}
-			jobs.push(job);
-		}
-	}
-	return jobs;
+    let jobs: type_transport_job[] = [];
+    let capacity = creep.store.getCapacity();
+    let structure_from = structure_from_name(creep.room.name, requirement.from);
+    let structure_to = structure_from_name(creep.room.name, requirement.to);
+    if (structure_from == undefined || structure_to == undefined) {
+        return jobs;
+    }
+    for (let resource of requirement.resource_type) {
+        let amount_from = ( < GeneralStore > structure_from.store).getUsedCapacity(resource);
+        let amount_to = ( < GeneralStore > structure_to.store).getUsedCapacity(resource);
+        if (amount_to >= requirement.to_max_amount) {
+            let amount = amount_to - requirement.to_max_amount + 1;
+            amount = Math.ceil(amount / capacity) * capacity;
+            let job: type_transport_job = {
+                resource_type: resource,
+                from: requirement.to,
+                to: requirement.from,
+                amount: amount,
+            }
+            jobs.push(job);
+        } else if (amount_to < requirement.to_min_amount && amount_from > 0) {
+            let amount: number;
+            if (requirement.to_limit_amount !== undefined) {
+                amount = requirement.to_limit_amount - amount_to;
+            } else if (requirement.to_expect_amount !== undefined) {
+                amount = requirement.to_expect_amount - amount_to;
+                amount = Math.ceil(amount / capacity) * capacity;
+            } else {
+                amount = requirement.to_min_amount - amount_to;
+                amount = Math.ceil(amount / capacity) * capacity;
+            }
+            amount = Math.min(amount, amount_from);
+            let job: type_transport_job = {
+                resource_type: resource,
+                from: requirement.from,
+                to: requirement.to,
+                amount: amount,
+            }
+            jobs.push(job);
+        }
+    }
+    return jobs;
 }
 
 function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
-	let jobs: type_transport_job[] = [];
-	jobs = jobs.concat(get_energy_transport_jobs(creep));
-	jobs = jobs.concat(get_required_jobs(creep, factory_battery_requirement));
-	jobs = jobs.concat(get_required_jobs(creep, power_requirement));
-	if (level >= 1) {
-		jobs = jobs.concat(get_required_jobs(creep, terminal_battery_requirement));
+    let jobs: type_transport_job[] = [];
+    if (level == 0) {
+        jobs = jobs.concat(get_energy_transport_jobs(creep, true));
+    } else if (level == 1) {
+        jobs = jobs.concat(get_energy_transport_jobs(creep, false));
+        jobs = jobs.concat(get_required_jobs(creep, factory_battery_requirement));
+        jobs = jobs.concat(get_required_jobs(creep, power_requirement));
+    } else {
+        jobs = jobs.concat(get_required_jobs(creep, terminal_battery_requirement));
 
-		let store_mineral = config.t3_room_store[creep.room.name];
-		if (store_mineral !== undefined) {
-			let this_mineral_requirement = _.clone(mineral_requirement);
-			this_mineral_requirement.resource_type = this_mineral_requirement.resource_type.filter((e) => e !== store_mineral);
-			let this_store_mineral_requirement = _.clone(store_mineral_requirement);
-			this_store_mineral_requirement.resource_type = [store_mineral];
-			jobs = jobs.concat(get_required_jobs(creep, this_mineral_requirement));
-			jobs = jobs.concat(get_required_jobs(creep, this_store_mineral_requirement));
-		} else {
-			jobs = jobs.concat(get_required_jobs(creep, mineral_requirement));
-		}
+        let store_mineral = config.t3_room_store[creep.room.name];
+        if (store_mineral !== undefined) {
+            let this_mineral_requirement = _.clone(mineral_requirement);
+            this_mineral_requirement.resource_type = this_mineral_requirement.resource_type.filter((e) => e !== store_mineral);
+            let this_store_mineral_requirement = _.clone(store_mineral_requirement);
+            this_store_mineral_requirement.resource_type = [store_mineral];
+            jobs = jobs.concat(get_required_jobs(creep, this_mineral_requirement));
+            jobs = jobs.concat(get_required_jobs(creep, this_store_mineral_requirement));
+        } else {
+            jobs = jobs.concat(get_required_jobs(creep, mineral_requirement));
+        }
 
-		jobs = jobs.concat(get_required_jobs(creep, nuker_G_requirement));
-		let commodity_requirements = get_room_commodity_requirements(creep.room.name);
-		if (commodity_requirements !== undefined) {
-			jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.bar));
-			jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.depo));
-			jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.product));
-		}
-	}
+        jobs = jobs.concat(get_required_jobs(creep, nuker_G_requirement));
+        let commodity_requirements = get_room_commodity_requirements(creep.room.name);
+        if (commodity_requirements !== undefined) {
+            jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.bar));
+            jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.depo));
+            jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.product));
+        }
+    }
     return jobs;
 }
 
@@ -662,24 +669,26 @@ function transfer_resource(creep: Creep, job: type_transport_job) {
         let out = transfer(creep, target, job.resource_type, {
             amount: job.amount,
         });
-		if (out == 0) {
-			job.amount -= Math.min(creep.store.getUsedCapacity(job.resource_type), job.amount);
-		}
+        if (out == 0) {
+            job.amount -= Math.min(creep.store.getUsedCapacity(job.resource_type), job.amount);
+        }
     } else {
         transfer(creep, creep.room.terminal, creep.memory.resource_type, {
             amount: job.amount,
         });
-	}
+    }
     return 1;
 }
 
+var level_names = < Array < "level0" | "level1" | "level1" >> ['level0', 'level1', 'level2'];
+var level_cds: number[] = [2, 5, 20];
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.room.name];
     if (creep.memory.role == 'maincarrier') {
         creep.say("MC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		/*
+        /*
         let link = creep.room.link.MAIN;
         let link_energy = link.store.getUsedCapacity("energy");
         if (link_energy == creep.room.memory.maincarrier_link_amount && creep.room.memory.current_boost_request == undefined) {
@@ -730,35 +739,37 @@ export function creepjob(creep: Creep): number {
             return 0;
         }
 
-		if (creep.memory.next_time == undefined) {
-			creep.memory.next_time = {};
-		}
-		if (creep.memory.next_time.level0 == undefined) {
-			creep.memory.next_time.level0 = Game.time;
-		}
-		if (creep.memory.next_time.level1 == undefined) {
-			creep.memory.next_time.level1 = Game.time;
-		}
-		if (creep.memory.jobs == undefined) {
-			creep.memory.jobs = [];
-		}
-		if (Game.time >= creep.memory.next_time.level1) {
-			let jobs = get_all_jobs(creep, 1);
-			creep.memory.jobs = jobs;
-			creep.memory.next_time.level1 = Game.time + 20;
-		} else if (Game.time >= creep.memory.next_time.level0 && creep.memory.resource_type == undefined && creep.memory.jobs.length == 0) {
-			let jobs = get_all_jobs(creep, 0);
-			creep.memory.jobs = jobs;
-			creep.memory.next_time.level0 = Game.time + 5;
-		}
-
-		creep.memory.jobs = creep.memory.jobs.filter((e) => e.amount > 0);
-		let job = creep.memory.jobs[0];
-		if (job !== undefined) {
-			transfer_resource(creep, job);
-		} else if (creep.memory.resource_type) {
-			transfer(creep, creep.room.terminal, creep.memory.resource_type);
-		}
+        if (creep.memory.next_time == undefined) {
+            creep.memory.next_time = {};
+        }
+        if (creep.memory.jobs_levels == undefined) {
+            creep.memory.jobs_levels = {
+                level0: [],
+                level1: [],
+                level2: [],
+            };
+        }
+        for (let i = 0; i < level_names.length; i++) {
+            let levelname = level_names[i];
+            if (creep.memory.next_time[levelname] == undefined) {
+                creep.memory.next_time[levelname] = Game.time;
+            }
+            if (Game.time >= creep.memory.next_time[levelname]) {
+                let jobs = get_all_jobs(creep, i);
+                creep.memory.jobs_levels[levelname] = jobs;
+                creep.memory.next_time[levelname] = Game.time + level_cds[i];
+            }
+            creep.memory.jobs_levels[levelname] = creep.memory.jobs_levels[levelname].filter((e) => e.amount > 0);
+            let job = creep.memory.jobs_levels[levelname][0];
+            if (job !== undefined) {
+                transfer_resource(creep, job);
+                return 0;
+            }
+        }
+        for (let levelname of level_names) { }
+        if (creep.memory.resource_type !== undefined) {
+            transfer(creep, creep.room.terminal, creep.memory.resource_type);
+        }
 
     }
     return 0;

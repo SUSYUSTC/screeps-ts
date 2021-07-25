@@ -38,7 +38,7 @@ import * as constants from "./constants"
 
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
-conf_E16N58.external_rooms.E17N58.active = true;
+//conf_E16N58.external_rooms.E17N58.active = true;
 //conf_E9N54.external_rooms.E9N55.active = true;
 //conf_E19N53.external_rooms.E19N54.active = true;
 
@@ -113,7 +113,7 @@ export var pc_conf: type_pc_conf = {
     "PC_C": {
         "room_name": "E16N58",
         "normal_ordered": false,
-        "external_room": "E17N58",
+        //"external_room": "E17N58",
     },
     "PC_D": {
         "room_name": "E9N54",
@@ -295,7 +295,8 @@ export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = 
 	"W9N39": ["U"],
 	"W9N1": ["U", "Z"],
 }
-export var depo_last_cooldown = 150;
+export var depo_stop_min_cd = 150;
+export var depo_start_max_cd = 60;
 export var depo_cd_to_boost = 15;
 export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
@@ -751,22 +752,22 @@ export var depo_energy_carrier_body: type_body_conf = {
 }
 export var depo_harvester_body: type_body_conf = {
     "work": {
-        number: 18,
+        number: 24,
     },
 	"carry": {
-		number: 14,
+		number: 2,
 	},
     "move": {
-        number: 18,
+        number: 24,
     },
 }
 export var powered_depo_harvester_body: type_body_conf = {
     "work": {
-        number: 16,
+        number: 32,
 		boost: "UHO2",
     },
 	"carry": {
-		number: 16,
+		number: 2,
 	},
     "move": {
         number: 16,

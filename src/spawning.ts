@@ -10,7 +10,7 @@ import {
 } from "./timer";
 
 function is_valid_creep(creep: Creep, livetime: number): boolean {
-    return (creep.ticksToLive == undefined || creep.ticksToLive > livetime);
+    return (creep.ticksToLive == undefined || creep.ticksToLive >= livetime);
 }
 
 type type_general_path_obj = {
