@@ -946,26 +946,27 @@ export function spawn(room_name: string) {
         let argmax = mymath.argmax(priorities);
         let json = jsons[argmax];
         if (json.affordable && (!json.require_full || room.energyCapacityAvailable == room.energyAvailable)) {
-            spawning_func.spawn_json(room_name, jsons[argmax]);
+            if (spawning_func.spawn_json(room_name, jsons[argmax]) == 0) {
+				return;
+			}
         }
-    } else {
-        if (queue !== undefined && queue.last !== undefined && queue.last.length > 0) {
-            let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
-            let obj = queue.last[0];
-            for (let s of spawns) {
-                let options: SpawnOptions = {
-                    memory: obj.memory
-                };
-                options = {
-                    ...options,
-                    ...spawning_func.get_spawn_energy_structures(room_name)
-                };
-                if (s.spawnCreep(obj.body, obj.name, options) == 0) {
-                    queue.last = queue.last.slice(1, undefined)
-                    return;
-                }
-            }
-            return;
-        }
-    }
+	}
+	if (queue !== undefined && queue.last !== undefined && queue.last.length > 0) {
+		let spawns = _.filter(Game.spawns, (e) => e.room.name == room_name);
+		let obj = queue.last[0];
+		for (let s of spawns) {
+			let options: SpawnOptions = {
+				memory: obj.memory
+			};
+			options = {
+				...options,
+				...spawning_func.get_spawn_energy_structures(room_name)
+			};
+			if (s.spawnCreep(obj.body, obj.name, options) == 0) {
+				queue.last = queue.last.slice(1, undefined)
+				return;
+			}
+		}
+		return;
+	}
 }

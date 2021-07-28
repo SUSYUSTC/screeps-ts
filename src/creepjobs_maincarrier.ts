@@ -54,41 +54,42 @@ function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: Res
     next_structure ? : AnyStoreStructure,
     amount ? : number
 } = {}) {
-    let out: number;
-    if (options.amount == undefined) {
-        out = creep.transfer(structure, resource_type)
-    } else {
-        out = creep.transfer(structure, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), options.amount))
-    }
-    if (out == ERR_NOT_IN_RANGE) {
+	if (creep.pos.isNearTo(structure.pos)) {
+		let out: number;
+		if (options.amount == undefined) {
+			out = creep.transfer(structure, resource_type)
+		} else {
+			out = creep.transfer(structure, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), options.amount))
+		}
+		if (out == OK && options.next_structure !== undefined) {
+			movetopos_restricted(creep, options.next_structure.pos, 1);
+		}
+		return out;
+	} else {
         movetopos_restricted(creep, structure.pos, 1);
-    } else if (options.next_structure !== undefined) {
-        movetopos_restricted(creep, options.next_structure.pos, 1);
-    }
-    if (out !== ERR_NOT_IN_RANGE && out !== OK) {
-        console.log(`Warning: transfer fail with return code ${out} for maincarrier at room ${creep.room.name} at time {Game.time}`);
-    }
-    return out
+		return 1;
+	}
 }
 
 function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {
     next_structure ? : AnyStoreStructure,
     amount ? : number
 } = {}) {
-    let out: number;
-    if (options.amount == undefined) {
-        out = creep.withdraw(structure, resource_type);
-    } else {
-        out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), ( < GeneralStore > structure.store).getUsedCapacity(resource_type), options.amount));
-    }
-    if (out == ERR_NOT_IN_RANGE) {
+	if (creep.pos.isNearTo(structure.pos)) {
+		let out: number;
+		if (options.amount == undefined) {
+			out = creep.withdraw(structure, resource_type);
+		} else {
+			out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), ( < GeneralStore > structure.store).getUsedCapacity(resource_type), options.amount));
+		}
+		if (out == OK && options.next_structure !== undefined) {
+			movetopos_restricted(creep, options.next_structure.pos, 1);
+		}
+		return out;
+	} else {
         movetopos_restricted(creep, structure.pos, 1);
-    } else if (options.next_structure !== undefined) {
-        movetopos_restricted(creep, options.next_structure.pos, 1);
-    }
-    if (out !== ERR_NOT_IN_RANGE && out !== OK) {
-        console.log(`Warning: withdraw fail with return code ${out} for maincarrier at room ${creep.room.name} at time {Game.time}`);
-    }
+		return 1;
+	}
 }
 
 function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
@@ -400,6 +401,17 @@ function get_energy_transport_jobs(creep: Creep, dolink: boolean): type_transpor
 				})
 			}
 		}
+		if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
+			if (withdraw_from !== undefined) {
+				let amount = Math.floor((5000 - amounts.powerspawn) / capacity) * capacity;
+				jobs.push({
+					resource_type: "energy",
+					from: withdraw_from,
+					to: "powerspawn",
+					amount: amount,
+				})
+			}
+		}
 		if (amounts.storage !== undefined && amounts.terminal !== undefined) {
 			if (amounts.terminal >= config.terminal_max_energy) {
 				let amount = amounts.terminal - config.terminal_max_energy + 1;
@@ -417,17 +429,6 @@ function get_energy_transport_jobs(creep: Creep, dolink: boolean): type_transpor
 					resource_type: "energy",
 					from: "storage",
 					to: "terminal",
-					amount: amount,
-				})
-			}
-		}
-		if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
-			if (withdraw_from !== undefined) {
-				let amount = Math.floor((5000 - amounts.powerspawn) / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: withdraw_from,
-					to: "powerspawn",
 					amount: amount,
 				})
 			}
@@ -468,7 +469,7 @@ var power_requirement: type_requirement = {
     resource_type: ["power"],
     from: "terminal",
     to: "powerspawn",
-    to_min_amount: 10,
+    to_min_amount: 20,
     to_limit_amount: 100,
 }
 
@@ -601,9 +602,9 @@ function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
     if (level == 0) {
         jobs = jobs.concat(get_energy_transport_jobs(creep, true));
     } else if (level == 1) {
-        jobs = jobs.concat(get_energy_transport_jobs(creep, false));
         jobs = jobs.concat(get_required_jobs(creep, factory_battery_requirement));
         jobs = jobs.concat(get_required_jobs(creep, power_requirement));
+        jobs = jobs.concat(get_energy_transport_jobs(creep, false));
     } else {
         jobs = jobs.concat(get_required_jobs(creep, terminal_battery_requirement));
 

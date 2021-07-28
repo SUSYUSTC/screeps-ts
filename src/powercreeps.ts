@@ -238,10 +238,7 @@ function operate_power(pc: PowerCreep) {
 	if (pc.carry.getUsedCapacity("ops") < 200) {
 		return -1;
 	}
-	if (Game.time < pc.memory.next_time.op_power) {
-		return -1;
-	}
-	if (pc.room.powerSpawn.effect_time > 0) {
+	if (pc.room.powerSpawn.effect_time >= 50 || pc.powers[PWR_OPERATE_POWER].cooldown > 0) {
 		return -1;
 	}
 	let power_amount = pc.room.terminal.store.getUsedCapacity("power");
@@ -265,9 +262,7 @@ function operate_power(pc: PowerCreep) {
 		basic_job.movetopos(pc, pc.room.powerSpawn.pos, 3);
 		return 1;
 	} else {
-		if (pc.usePower(PWR_OPERATE_POWER, pc.room.powerSpawn) == 0) {
-			pc.memory.next_time.op_power = Game.time + 1050;
-		}
+		pc.usePower(PWR_OPERATE_POWER, pc.room.powerSpawn);
 		return 0;
 	}
 }
@@ -325,9 +320,6 @@ export function work(pc: PowerCreep) {
 	}
 	pc.memory.movable = false;
 	pc.memory.crossable = true;
-	if (pc.memory.next_time == undefined) {
-		pc.memory.next_time = {}
-	}
 	for (let func of [generate_ops, check_status, enable, renew, exchange_ops, operate_source, operate_extension, operate_power, operate_lab]) {
 		if (func(pc) >= 0) {
 			return;

@@ -286,6 +286,12 @@ export function creepjob(creep: Creep): number {
 			let wall;
             if (creep.memory.wall_to_repair !== undefined && creep.memory.wall_min_hits !== undefined) {
                 wall = Game.getObjectById(creep.memory.wall_to_repair);
+				if (wall == null) {
+					delete creep.memory.wall_to_repair;
+					delete creep.memory.wall_min_hits;
+					creep.say("WRd");
+					return 0;
+				}
 				let this_hits;
 				if ((<Array<Id<Structure_Wall_Rampart>>>global_memory.secondary_ramparts_id).includes(creep.memory.wall_to_repair)) {
 					this_hits = wall.hits * config.secondary_rampart_factor;

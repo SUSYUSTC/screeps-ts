@@ -1,9 +1,6 @@
 //screeps
 
 import {
-    conf_E16N58
-} from "./config_E16N58"
-import {
     conf_E15N58
 } from "./config_E15N58"
 import {
@@ -38,7 +35,6 @@ import * as constants from "./constants"
 
 conf_E14N59.external_rooms.E15N59.active = true;
 conf_E19N55.external_rooms.E19N56.active = true;
-//conf_E16N58.external_rooms.E17N58.active = true;
 //conf_E9N54.external_rooms.E9N55.active = true;
 //conf_E19N53.external_rooms.E19N54.active = true;
 
@@ -70,7 +66,6 @@ interface type_pc_conf {
     }
 }
 export var conf_rooms: type_conf_rooms = {
-    "E16N58": conf_E16N58,
     "E15N58": conf_E15N58,
     "E14N51": conf_E14N51,
     "E19N53": conf_E19N53,
@@ -82,7 +77,7 @@ export var conf_rooms: type_conf_rooms = {
     "W9N1": conf_W9N1,
     "E11S39": conf_E11S39,
 }
-export var controlled_rooms: string[] = ["E16N58", "E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39"];
+export var controlled_rooms: string[] = ["E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39"];
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -111,14 +106,12 @@ export var pc_conf: type_pc_conf = {
         "external_room": "E19N56",
     },
     "PC_C": {
-        "room_name": "E16N58",
+        "room_name": "E11S39",
         "normal_ordered": false,
-        //"external_room": "E17N58",
     },
     "PC_D": {
         "room_name": "E9N54",
         "normal_ordered": false,
-        //"external_room": "E9N55",
     },
     "PC_E": {
         "room_name": "W9N1",
@@ -139,7 +132,6 @@ export var pc_conf: type_pc_conf = {
     "PC_I": {
         "room_name": "E19N53",
         "normal_ordered": true,
-        //"external_room": "E19N54",
     },
 }
 
@@ -206,7 +198,7 @@ export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
 export var bar_store_amount = 6000;
 export var bar_buy_onetime_amount = 3000;
-export var buy_power_room = "E16N58";
+export var buy_power_room = "E19N53";
 export var power_store_amount = 20000;
 export var power_buy_onetime_amount = 3000;
 export var credit_line = 2.5e7;
@@ -237,12 +229,6 @@ interface type_preclaiming_rooms {
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
-    'E16N58': {
-        'E16N57': {
-            rooms_forwardpath: ['E16N58', 'E16N57'],
-            poses_forwardpath: [28],
-        },
-    },
 	'W9N1': {
 		'E11S39': {
 			shard_path: path_E11S39,
@@ -264,7 +250,6 @@ export var help_list: type_help_list = {
 export var protected_sources: {
     [key: string]: string[]
 } = {
-    "E16N58": ['S1', 'S2'],
     "E15N58": [],
     "E14N51": [],
     "E19N53": ['S1', 'S2'],
@@ -287,6 +272,7 @@ export var highway_resources: {
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
 	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
+	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E1043'],
 }
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
@@ -306,7 +292,7 @@ export var t3_store_room: {
     [key in GeneralMineralConstant] ? : string
 } = {
     "XUH2O": "E15N58",
-    "XLH2O": "E16N58",
+    "XLH2O": "E11S39",
     "XLHO2": "E9N54",
     "XZH2O": "E14N51",
     "XZHO2": "E14N59",
@@ -374,7 +360,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.64,
+            price: 0.68,
 			lowest_price: 0.4,
             interval: 1000,
 			always_increase: true,
@@ -445,7 +431,7 @@ export var auto_sell_list: type_auto_sell_list = {
         amount: 30000,
     },
     "XLH2O": {
-        room: "E16N58",
+        room: "E11S39",
         price: 20,
         amount: 30000,
     },
@@ -555,7 +541,7 @@ export var final_product_request: type_final_product_requrest = {
     "XLH2O": {
         min_amount: 0,
         expect_amount: 1200,
-        store_room: "E16N58",
+        store_room: "E11S39",
         store_good_amount: 600,
         store_expect_amount: 30000,
     },

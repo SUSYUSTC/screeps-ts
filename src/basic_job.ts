@@ -334,18 +334,18 @@ export function get_energy(creep: Creep, options: {
 } = {}) {
     // 0: found, 1: not found
     let store_structure: AnyStoreStructure;
+	if (creep.memory.next_time == undefined) {
+		creep.memory.next_time = {};
+	}
+	if (creep.memory.next_time.select_linkcontainer == undefined) {
+		creep.memory.next_time.select_linkcontainer = Game.time;
+	}
     if (Game.time >= creep.memory.next_time.select_linkcontainer) {
 		if (options.min_energy == undefined) {
 			options.min_energy = creep.store.getFreeCapacity("energy");
 		}
 		if (options.cache_time == undefined) {
 			options.cache_time = 3;
-		}
-		if (creep.memory.next_time == undefined) {
-			creep.memory.next_time = {};
-		}
-		if (creep.memory.next_time.select_linkcontainer == undefined) {
-			creep.memory.next_time.select_linkcontainer = Game.time;
 		}
         store_structure = select_linkcontainer(creep, {min_energy: options.min_energy, require_safe: options.require_safe});
         if (store_structure == null) {

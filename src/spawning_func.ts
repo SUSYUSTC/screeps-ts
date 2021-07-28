@@ -293,8 +293,8 @@ export function spawn_json(room_name: string, json: type_spawn_json) {
             ...options,
             ...get_spawn_energy_structures(room_name)
         };
-        spawn.spawnCreep(json.body, json.creepname, options);
-        return 0;
+        let out = spawn.spawnCreep(json.body, json.creepname, options);
+        return out;
     }
     return 1;
 }

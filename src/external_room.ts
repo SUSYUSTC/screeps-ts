@@ -113,7 +113,6 @@ export function external_move(creep: Creep | PowerCreep, password: string, add_o
 						}
 					}
 					functions.avoid_exits(roomName, costMatrix);
-					costMatrix.set(exit_pos.x, exit_pos.y, 1);
 					for (let xy of options.ignore_creep_xys) {
 						costMatrix.set(xy[0], xy[1], 0);
 					}
@@ -123,96 +122,6 @@ export function external_move(creep: Creep | PowerCreep, password: string, add_o
 	}
 	timer.end();
 }
-
-/*
-export function movethroughrooms(creep: Creep | PowerCreep, rooms_path: string[], poses_path: number[], add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
-	// -1: error, 0: normal success, 1: already done, 2: correcting path
-	let timer = new Timer("movethroughrooms", false);
-    if (rooms_path.length != poses_path.length + 1) {
-        console.log(`Warning: Unexpected length of arguments in movethroughrooms for creep ${creep.name} at ${creep.room.name} at time ${Game.time}`);
-		return -1;
-    }
-    if (!(rooms_path.includes(creep.room.name))) {
-        console.log(`Warning: Creep ${creep.name} is missing in a unknown room ${creep.room.name} at time ${Game.time}`);
-		timer.end();
-        return -1;
-    }
-	if (options.replace_pos == undefined) {
-		options.replace_pos = false;
-	}
-	if (options.ignore_creep_xys == undefined) {
-		options.ignore_creep_xys = [];
-	}
-    let arg = mymath.where(rooms_path.map((e) => e == creep.room.name))[0];
-    if (arg == rooms_path.length - 1) {
-        let room1_coor = functions.room2coor(rooms_path[arg - 1]);
-        let room2_coor = functions.room2coor(rooms_path[arg]);
-        let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
-        let pos = poses_path[arg - 1];
-        let standpoint_xy = functions.get_exit_xy(coor_diff, pos, [1, 48]);
-        if (creep.pos.x == standpoint_xy[0] && creep.pos.y == standpoint_xy[1]) {
-			timer.end();
-            return 1;
-        } else {
-			creep.moveTo(standpoint_xy[0], standpoint_xy[1], {...{
-                maxRooms: 1,
-                costCallback: functions.avoid_exits
-			}, ...add_options});
-			timer.end();
-            return 0;
-        }
-    } else {
-		let return_value = 0;
-        let room1_coor = functions.room2coor(rooms_path[arg]);
-        let room2_coor = functions.room2coor(rooms_path[arg + 1]);
-        let coor_diff = <[number, number]> mymath.array_ele_minus(room2_coor, room1_coor);
-        let pos = poses_path[arg];
-        let exit_xy = functions.get_exit_xy(coor_diff, pos, [49, 0]);
-        let creeps_at_exit = creep.room.lookForAt("creep", exit_xy[0], exit_xy[1]);
-        if (creep.pos.getRangeTo(exit_xy[0], exit_xy[1]) < 3 && creeps_at_exit.length > 0 && creeps_at_exit[0].name !== creep.name) {
-			let path = PathFinder.search(creep.pos, {pos: creep.room.getPositionAt(exit_xy[0], exit_xy[1]), range: 2}, {maxRooms: 1, flee: true});
-            creep.moveByPath(path.path);
-        } else {
-			if (config.occupied_rooms.includes(creep.room.name)) {
-				basic_job.movetopos(creep, creep.room.getPositionAt(exit_xy[0], exit_xy[1]), 0)
-			} else {
-				let exit_pos = creep.room.getPositionAt(exit_xy[0], exit_xy[1]);
-				creep.moveTo(exit_pos, {...{add_options}, ...{
-					maxRooms: 1,
-					costCallback: function(roomName: string, costMatrix: CostMatrix) {
-						if (add_options.costCallback !== undefined) {
-							let result = add_options.costCallback(roomName, costMatrix);
-							if (result) {
-								costMatrix = result;
-							}
-						}
-						functions.avoid_exits(roomName, costMatrix);
-						costMatrix.set(exit_pos.x, exit_pos.y, 1);
-						for (let xy of options.ignore_creep_xys) {
-							costMatrix.set(xy[0], xy[1], 0);
-						}
-					}
-				}});
-				// check is path valid
-				if_check_path: if (Game.time % 10 == 0 && options.replace_pos) {
-					if (!functions.is_pathfinding_complete(creep, 0)) {
-						let findconstant = functions.coordiff_to_exitconstant(coor_diff);
-						let all_exits = creep.room.find(findconstant).filter((e) => e.lookFor("structure").filter((s) => s.structureType == 'constructedWall').length == 0);
-						let new_exit_pos = creep.pos.findClosestByPath(all_exits);
-						let new_exit_xy = [new_exit_pos.x, new_exit_pos.y];
-						let correct_pos = new_exit_xy.filter((e) => e > 0 && e < 49)[0];
-						poses_path[arg] = correct_pos;
-						console.log(`Warning: Invalid exit position detected for creep ${creep.name} at ${creep.room.name} at time ${Game.time}. Automatically change to closest position`);
-						return_value = 2;
-					}
-				}
-			}
-        }
-		timer.end();
-        return return_value;
-    }
-}
-*/
 
 export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], password: string, moveoptions: type_movetopos_options = {}) {
 	// 0: home room, 1: external room
@@ -249,70 +158,6 @@ export function moveawayexit(creep: Creep | PowerCreep): number {
 	}
 }
 
-/*
-export function moveawayexit_group_x2(follower: Creep, decider: Creep): number {
-	if (decider.pos.x == 0) {
-		decider.move(RIGHT);
-		if (follower.room.name !== decider.room.name) {
-			follower.move(follower.pos.getDirectionTo(49, decider.pos.y));
-		}
-		return 0;
-	} else if (decider.pos.x == 49) {
-		decider.move(LEFT);
-		if (follower.room.name !== decider.room.name) {
-			follower.move(follower.pos.getDirectionTo(0, decider.pos.y));
-		}
-		return 0;
-	} else if (decider.pos.y == 0) {
-		decider.move(BOTTOM);
-		if (follower.room.name !== decider.room.name) {
-			follower.move(follower.pos.getDirectionTo(decider.pos.x, 49));
-		}
-		return 0;
-	} else if (decider.pos.y == 49) {
-		decider.move(TOP);
-		if (follower.room.name !== decider.room.name) {
-			follower.move(follower.pos.getDirectionTo(decider.pos.x, 0));
-		}
-		return 0;
-	} else if (follower.pos.x == 0) {
-		if (decider.fatigue == 0) {
-			follower.move(RIGHT);
-			decider.move(BOTTOM);
-		} else {
-			follower.move(TOP_RIGHT);
-		}
-		return 0;
-	} else if (follower.pos.x == 49) {
-		if (decider.fatigue == 0) {
-			follower.move(LEFT);
-			decider.move(TOP);
-		} else {
-			follower.move(BOTTOM_LEFT);
-		}
-		return 0;
-	} else if (follower.pos.y == 0) {
-		if (decider.fatigue == 0) {
-			follower.move(BOTTOM);
-			decider.move(LEFT);
-		} else {
-			follower.move(BOTTOM_RIGHT);
-		}
-		return 0;
-	} else if (follower.pos.y == 49) {
-		if (decider.fatigue == 0) {
-			follower.move(TOP);
-			decider.move(RIGHT);
-		} else {
-			follower.move(TOP_LEFT);
-		}
-		return 0;
-	} else {
-		return 1;
-	}
-}
-*/
-
 export function movethroughrooms_group_x2(invader: Creep, healer: Creep, password: string, target_room_name: string, add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
 	// -1: error, 0: normal success, 1: already done
 	let out_invader = moveawayexit(invader);
@@ -347,7 +192,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	let exit_xy = info.xy;
 	let exit_pos = invader.room.getPositionAt(exit_xy[0], exit_xy[1]);
 	if (invader.pos.getRangeTo(exit_pos) > 1) {
-		external_move(invader, password, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]]}, ...options});
+		external_move(invader, password, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]], avoid_exits_at_home: true}, ...options});
 		healer.move(healer.pos.getDirectionTo(invader.pos));
 		return 0;
 	}
