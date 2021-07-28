@@ -5564,6 +5564,8 @@ declare const StructurePortal: StructurePortalConstructor;
  * A structure which produces trade commodities from base minerals and other commodities.
  */
 interface StructureFactory extends OwnedStructure<STRUCTURE_FACTORY> {
+	effect_time ?: number;
+	effect_level ?: number;
     readonly prototype: StructureFactory;
     /**
      * The amount of game ticks the factory has to wait until the next produce is possible.

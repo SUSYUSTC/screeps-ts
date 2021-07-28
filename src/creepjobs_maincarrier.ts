@@ -54,42 +54,42 @@ function transfer(creep: Creep, structure: AnyStoreStructure, resource_type: Res
     next_structure ? : AnyStoreStructure,
     amount ? : number
 } = {}) {
-	if (creep.pos.isNearTo(structure.pos)) {
-		let out: number;
-		if (options.amount == undefined) {
-			out = creep.transfer(structure, resource_type)
-		} else {
-			out = creep.transfer(structure, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), options.amount))
-		}
-		if (out == OK && options.next_structure !== undefined) {
-			movetopos_restricted(creep, options.next_structure.pos, 1);
-		}
-		return out;
-	} else {
+    if (creep.pos.isNearTo(structure.pos)) {
+        let out: number;
+        if (options.amount == undefined) {
+            out = creep.transfer(structure, resource_type)
+        } else {
+            out = creep.transfer(structure, resource_type, Math.min(creep.store.getUsedCapacity(resource_type), options.amount))
+        }
+        if (out == OK && options.next_structure !== undefined) {
+            movetopos_restricted(creep, options.next_structure.pos, 1);
+        }
+        return out;
+    } else {
         movetopos_restricted(creep, structure.pos, 1);
-		return 1;
-	}
+        return 1;
+    }
 }
 
 function withdraw(creep: Creep, structure: AnyStoreStructure, resource_type: ResourceConstant, options: {
     next_structure ? : AnyStoreStructure,
     amount ? : number
 } = {}) {
-	if (creep.pos.isNearTo(structure.pos)) {
-		let out: number;
-		if (options.amount == undefined) {
-			out = creep.withdraw(structure, resource_type);
-		} else {
-			out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), ( < GeneralStore > structure.store).getUsedCapacity(resource_type), options.amount));
-		}
-		if (out == OK && options.next_structure !== undefined) {
-			movetopos_restricted(creep, options.next_structure.pos, 1);
-		}
-		return out;
-	} else {
+    if (creep.pos.isNearTo(structure.pos)) {
+        let out: number;
+        if (options.amount == undefined) {
+            out = creep.withdraw(structure, resource_type);
+        } else {
+            out = creep.withdraw(structure, resource_type, Math.min(creep.store.getFreeCapacity(), ( < GeneralStore > structure.store).getUsedCapacity(resource_type), options.amount));
+        }
+        if (out == OK && options.next_structure !== undefined) {
+            movetopos_restricted(creep, options.next_structure.pos, 1);
+        }
+        return out;
+    } else {
         movetopos_restricted(creep, structure.pos, 1);
-		return 1;
-	}
+        return 1;
+    }
 }
 
 function boost_serve(creep: Creep, conf_maincarrier: conf_maincarrier) {
@@ -357,93 +357,93 @@ function get_energy_transport_jobs(creep: Creep, dolink: boolean): type_transpor
     } else if (amounts.terminal !== undefined) {
         transfer_to = "terminal";
     }
-	if (dolink) {
-		if (amounts.link !== undefined) {
-			if (amounts.link < room.memory.maincarrier_link_amount) {
-				if (withdraw_from !== undefined) {
-					jobs.push({
-						resource_type: "energy",
-						from: withdraw_from,
-						to: "link",
-						amount: room.memory.maincarrier_link_amount - amounts.link,
-					})
-				}
-			} else if (amounts.link > room.memory.maincarrier_link_amount) {
-				if (transfer_to !== undefined) {
-					jobs.push({
-						resource_type: "energy",
-						from: "link",
-						to: transfer_to,
-						amount: amounts.link - room.memory.maincarrier_link_amount,
-					})
-				}
-			}
-		}
-	} else {
-		if (amounts.storage !== undefined && amounts.factory !== undefined) {
-			if (amounts.storage >= config.storage_max_energy && amounts.factory < config.factory_max_energy) {
-				let amount = Math.min(amounts.storage - config.storage_max_energy + 1, config.factory_max_energy - amounts.factory)
-				amount = Math.ceil(amount / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: "storage",
-					to: "factory",
-					amount: amount,
-				})
-			} else if (amounts.storage < config.storage_min_energy && amounts.factory >= config.factory_min_energy) {
-				let amount = Math.min(config.storage_min_energy - amounts.storage, amounts.factory - config.factory_min_energy + 1)
-				amount = Math.ceil(amount / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: "factory",
-					to: "storage",
-					amount: amount,
-				})
-			}
-		}
-		if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
-			if (withdraw_from !== undefined) {
-				let amount = Math.floor((5000 - amounts.powerspawn) / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: withdraw_from,
-					to: "powerspawn",
-					amount: amount,
-				})
-			}
-		}
-		if (amounts.storage !== undefined && amounts.terminal !== undefined) {
-			if (amounts.terminal >= config.terminal_max_energy) {
-				let amount = amounts.terminal - config.terminal_max_energy + 1;
-				amount = Math.ceil(amount / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: "terminal",
-					to: "storage",
-					amount: amount,
-				})
-			} else if (amounts.terminal < config.terminal_min_energy) {
-				let amount = config.terminal_min_energy - amounts.terminal;
-				amount = Math.ceil(amount / capacity) * capacity;
-				jobs.push({
-					resource_type: "energy",
-					from: "storage",
-					to: "terminal",
-					amount: amount,
-				})
-			}
-		}
-		if (amounts.nuker < 300000 && amounts.storage >= config.storage_min_energy) {
-			if (withdraw_from !== undefined) {
-				jobs.push({
-					resource_type: "energy",
-					from: withdraw_from,
-					to: "nuker",
-					amount: 300000 - amounts.nuker,
-				})
-			}
-		}
-	}
+    if (dolink) {
+        if (amounts.link !== undefined) {
+            if (amounts.link < room.memory.maincarrier_link_amount) {
+                if (withdraw_from !== undefined) {
+                    jobs.push({
+                        resource_type: "energy",
+                        from: withdraw_from,
+                        to: "link",
+                        amount: room.memory.maincarrier_link_amount - amounts.link,
+                    })
+                }
+            } else if (amounts.link > room.memory.maincarrier_link_amount) {
+                if (transfer_to !== undefined) {
+                    jobs.push({
+                        resource_type: "energy",
+                        from: "link",
+                        to: transfer_to,
+                        amount: amounts.link - room.memory.maincarrier_link_amount,
+                    })
+                }
+            }
+        }
+    } else {
+        if (amounts.storage !== undefined && amounts.factory !== undefined) {
+            if (amounts.storage >= config.storage_max_energy && amounts.factory < config.factory_max_energy) {
+                let amount = Math.min(amounts.storage - config.storage_max_energy + 1, config.factory_max_energy - amounts.factory)
+                amount = Math.ceil(amount / capacity) * capacity;
+                jobs.push({
+                    resource_type: "energy",
+                    from: "storage",
+                    to: "factory",
+                    amount: amount,
+                })
+            } else if (amounts.storage < config.storage_min_energy && amounts.factory >= config.factory_min_energy) {
+                let amount = Math.min(config.storage_min_energy - amounts.storage, amounts.factory - config.factory_min_energy + 1)
+                amount = Math.ceil(amount / capacity) * capacity;
+                jobs.push({
+                    resource_type: "energy",
+                    from: "factory",
+                    to: "storage",
+                    amount: amount,
+                })
+            }
+        }
+        if (amounts.powerspawn < config.powerspawn_min_energy && amounts.storage >= config.storage_min_energy - 50000) {
+            if (withdraw_from !== undefined) {
+                let amount = Math.floor((5000 - amounts.powerspawn) / capacity) * capacity;
+                jobs.push({
+                    resource_type: "energy",
+                    from: withdraw_from,
+                    to: "powerspawn",
+                    amount: amount,
+                })
+            }
+        }
+        if (amounts.storage !== undefined && amounts.terminal !== undefined) {
+            if (amounts.terminal >= config.terminal_max_energy) {
+                let amount = amounts.terminal - config.terminal_max_energy + 1;
+                amount = Math.ceil(amount / capacity) * capacity;
+                jobs.push({
+                    resource_type: "energy",
+                    from: "terminal",
+                    to: "storage",
+                    amount: amount,
+                })
+            } else if (amounts.terminal < config.terminal_min_energy) {
+                let amount = config.terminal_min_energy - amounts.terminal;
+                amount = Math.ceil(amount / capacity) * capacity;
+                jobs.push({
+                    resource_type: "energy",
+                    from: "storage",
+                    to: "terminal",
+                    amount: amount,
+                })
+            }
+        }
+        if (amounts.nuker < 300000 && amounts.storage >= config.storage_min_energy) {
+            if (withdraw_from !== undefined) {
+                jobs.push({
+                    resource_type: "energy",
+                    from: withdraw_from,
+                    to: "nuker",
+                    amount: 300000 - amounts.nuker,
+                })
+            }
+        }
+    }
     return jobs
 }
 
@@ -451,10 +451,10 @@ type type_requirement = {
     resource_type: ResourceConstant[];
     from: type_main_structure_names;
     to: type_main_structure_names;
-    to_min_amount: number;
-    to_limit_amount ? : number;
-    to_expect_amount ? : number;
-    to_max_amount ? : number;
+    to_min_amount: number; // amount to start carrying
+    to_limit_amount ? : number; // at most increase to this amount
+    to_expect_amount ? : number; // at least increase to this amount
+    to_max_amount ? : number; // more than this amount will carry back
 }
 
 var nuker_G_requirement: type_requirement = {
@@ -515,7 +515,7 @@ var commodity_requirement = {
 type type_commodity_requirements = {
     bar: type_requirement;
     depo: type_requirement;
-    product: type_requirement
+    products: type_requirement[];
 }
 
 function get_room_commodity_requirements(room_name: string): type_commodity_requirements {
@@ -523,10 +523,10 @@ function get_room_commodity_requirements(room_name: string): type_commodity_requ
     if (zones == undefined) {
         return undefined;
     }
-    let productions = zones.map((e) => constants.basic_commodity_production[e]);
-    let bars = productions.map((e) => e.bar);
+    let productions = zones.map((e) => constants.commodities_related_requirements[e]);
+    let bars = productions.map((e) => e.bars).reduce((a, b) => a.concat(b));
+    bars = Array.from(new Set(bars));
     let depos = productions.map((e) => e.depo);
-    let products = productions.map((e) => e.product);
     let result: type_commodity_requirements = {
         bar: {
             resource_type: bars,
@@ -542,13 +542,27 @@ function get_room_commodity_requirements(room_name: string): type_commodity_requ
             to_min_amount: 200,
             to_expect_amount: 2000,
         },
-        product: {
-            resource_type: products,
-            from: "factory",
-            to: "terminal",
-            to_min_amount: 50000,
-        }
-    };
+		products: [],
+	}
+    for (let i = 0; i <= config.max_commodity_level; i++) {
+		let products = productions.map((e) => e.products[i]);
+		if (i == config.max_commodity_level) {
+			result.products.push({
+				resource_type: products,
+				from: "factory",
+				to: "terminal",
+				to_min_amount: Infinity,
+			});
+		} else {
+			result.products.push({
+				resource_type: products,
+				from: "terminal",
+				to: "factory",
+				to_min_amount: config.min_commodity_amount_to_keep_in_factory_by_level[i],
+				to_limit_amount: config.max_commodity_amount_to_keep_in_factory_by_level[i],
+			});
+		}
+    }
     return result;
 }
 
@@ -625,7 +639,9 @@ function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
         if (commodity_requirements !== undefined) {
             jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.bar));
             jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.depo));
-            jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.product));
+			for (let products of commodity_requirements.products) {
+				jobs = jobs.concat(get_required_jobs(creep, products));
+			}
         }
     }
     return jobs;
@@ -674,9 +690,7 @@ function transfer_resource(creep: Creep, job: type_transport_job) {
             job.amount -= Math.min(creep.store.getUsedCapacity(job.resource_type), job.amount);
         }
     } else {
-        transfer(creep, creep.room.terminal, creep.memory.resource_type, {
-            amount: job.amount,
-        });
+        transfer(creep, creep.room.terminal, creep.memory.resource_type);
     }
     return 1;
 }
@@ -755,7 +769,7 @@ export function creepjob(creep: Creep): number {
                 return 0;
             }
         }
-        for (let levelname of level_names) { }
+        for (let levelname of level_names) {}
         if (creep.memory.resource_type !== undefined) {
             transfer(creep, creep.room.terminal, creep.memory.resource_type);
         }

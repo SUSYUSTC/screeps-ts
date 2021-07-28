@@ -103,6 +103,13 @@ type type_basic_commodity_production = {
 		product: CommodityConstant,
 	}
 }
+type type_commodities_related_requirement = {
+	[key in "U" | "L" | "Z" | "K"]: {
+		bars: CommodityConstant[],
+		depo: ResourceConstant,
+		products: CommodityConstant[],
+	}
+}
 export var basic_commodity_production: type_basic_commodity_production = {
 	U: {
 		bar: 'utrium_bar',
@@ -124,6 +131,42 @@ export var basic_commodity_production: type_basic_commodity_production = {
 		depo: 'mist',
 		product: 'condensate',
 	},
+}
+export var commodities_related_requirements: type_commodities_related_requirement = {
+	U: {
+		bars: ['utrium_bar', 'oxidant'],
+		depo: 'silicon',
+		products: ['wire', 'switch'],
+	},
+	L: {
+		bars: ['lemergium_bar', 'oxidant'],
+		depo: 'biomass',
+		products: ['cell', 'phlegm'],
+	},
+	Z: {
+		bars: ['zynthium_bar'],
+		depo: 'metal',
+		products: ['alloy', 'tube'],
+	},
+	K: {
+		bars: ['keanium_bar', 'reductant'],
+		depo: 'mist',
+		products: ['condensate', 'concentrate'],
+	}
+}
+export var commodity_levels: {[key in CommodityConstant] ?: number} = {
+	'wire': 0,
+	'cell': 0,
+	'alloy': 0,
+	'condensate': 0,
+	'switch': 1,
+	'phlegm': 1,
+	'tube': 1,
+	'concentrate': 1,
+	'transistor': 2,
+	'tissue': 2,
+	'fixtures': 2,
+	'extract': 2,
 }
 export var combating_t3: GeneralMineralConstant[] = ['XGHO2', 'XUH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKHO2'];
 

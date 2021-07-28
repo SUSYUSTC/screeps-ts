@@ -201,6 +201,11 @@ export var bar_buy_onetime_amount = 3000;
 export var buy_power_room = "E19N53";
 export var power_store_amount = 20000;
 export var power_buy_onetime_amount = 3000;
+export var min_commodity_amount_to_keep_in_factory_by_level: number[] = [50];
+export var max_commodity_amount_to_keep_in_factory_by_level: number[] = [500];
+export var commodity_amount_to_start_selling_by_level: number[] = [Infinity, 0];
+export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 10000];
+export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
 var path_E11S39: type_shard_exit_point[] = [ 
@@ -280,6 +285,7 @@ for (let room_name in highway_resources) {
 export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = {
 	"W9N39": ["U"],
 	"W9N1": ["U", "Z"],
+	"E11S39": ["L"],
 }
 export var depo_stop_min_cd = 150;
 export var depo_start_max_cd = 60;
@@ -388,20 +394,32 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
 		},
 		'lemergium_bar': {
-			price: 4.0,
-			lowest_price: 2.0,
+			price: 3.0,
+			lowest_price: 1.5,
 			interval: 500,
 			always_increase: true,
 		},
 		'zynthium_bar': {
-			price: 4.0,
-			lowest_price: 2.0,
+			price: 3.0,
+			lowest_price: 1.5,
 			interval: 500,
 			always_increase: true,
 		},
 		'keanium_bar': {
-			price: 4.0,
-			lowest_price: 2.0,
+			price: 3.0,
+			lowest_price: 1.5,
+			always_increase: true,
+			interval: 500,
+		},
+		'oxidant': {
+			price: 3.0,
+			lowest_price: 1.5,
+			always_increase: true,
+			interval: 500,
+		},
+		'reductant': {
+			price: 5.0,
+			lowest_price: 3.0,
 			always_increase: true,
 			interval: 500,
 		},
@@ -411,10 +429,26 @@ export var acceptable_prices: type_acceptable_prices = {
             price: 500,
 			interval: -1,
         },
+		"switch": {
+			price: 5600,
+			interval: -1,
+		},
         "alloy": {
             price: 540,
 			interval: -1,
         },
+		"tube": {
+			price: 16000,
+			interval: -1,
+		},
+        "cell": {
+            price: 500,
+			interval: -1,
+        },
+		"phlegm": {
+			price: 8800,
+			interval: -1,
+		}
 	}
 }
 type type_auto_sell_list = {

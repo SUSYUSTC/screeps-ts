@@ -420,9 +420,13 @@ export function copy_key(obj_A: any, obj_B: any, keys: string[], B_existance: bo
     return lst;
 }
 
-export function get_total_resource_amount(room_name: string, resource: ResourceConstant) {
+export function get_total_resource_amount(room_name: string, resource: ResourceConstant, factory: boolean = false) {
     let room = Game.rooms[room_name];
-    return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
+	if (factory && room.factory !== undefined) {
+		return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource) + room.factory.store.getUsedCapacity(resource);
+	} else {
+		return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
+	}
 }
 
 export function creep_exists(creep_name: string, room_name: string, options: {filter ?: (creep: Creep) => boolean} = {}): boolean {

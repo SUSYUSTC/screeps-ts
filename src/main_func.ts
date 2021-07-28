@@ -407,11 +407,23 @@ function get_power_effects(room_name: string) {
 			lab.effect_time = effect.ticksRemaining;
 		}
 	}
+	if (room.factory !== undefined) {
+		let effect: PowerEffect;
+		let effect_time = 0;
+		if (room.factory.effects !== undefined) {
+			effect = (<Array<PowerEffect>>room.factory.effects).filter((e) => e.effect == PWR_OPERATE_FACTORY)[0];
+		}
+		if (effect == undefined) {
+			room.factory.effect_time = 0;
+		} else {
+			room.factory.effect_time = effect.ticksRemaining;
+			room.factory.effect_level = effect.level;
+		}
+	}
 	if (room.powerSpawn !== undefined) {
 		let effect: PowerEffect;
 		let effect_time = 0;
 		if (room.powerSpawn.effects !== undefined) {
-			//effect = room.powerSpawn.effects.filter((e) => (<PowerEffect>e).effect == PWR_OPERATE_POWER)[0];
 			effect = (<Array<PowerEffect>>room.powerSpawn.effects).filter((e) => e.effect == PWR_OPERATE_POWER)[0];
 		}
 		if (effect == undefined) {

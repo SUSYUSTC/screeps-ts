@@ -176,6 +176,7 @@ interface PowerCreepMemory {
 	external_dict ?: {
 		[key: string]: type_external_moving_targets;
 	}
+	working_status ?: string;
 }
 interface SpawnMemory {
     spawning_time ? : number;

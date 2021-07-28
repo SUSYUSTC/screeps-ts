@@ -40,6 +40,16 @@ global.summarize_terminal = function(rooms: string[]): type_resource_number {
                 result[resource] += storage.store.getUsedCapacity(resource);
             }
         }
+        let factory = Game.rooms[room_name].factory;
+        if (factory) {
+            let keys = < Array < ResourceConstant >> Object.keys(factory.store)
+            for (let resource of keys) {
+                if (result[resource] == undefined) {
+                    result[resource] = 0
+                }
+                result[resource] += factory.store.getUsedCapacity(resource);
+            }
+        }
     }
     return result;
 }

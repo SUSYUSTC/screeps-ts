@@ -114,7 +114,7 @@ function is_time_for_source(pc: PowerCreep) {
 	if (effect !== undefined) {
 		effect_time = effect.ticksRemaining;
 	}
-	if (Math.max(effect_time, pc.powers[PWR_REGEN_SOURCE].cooldown) < pc.pos.getRangeTo(source) + 5) {
+	if (Math.max(effect_time, pc.powers[PWR_REGEN_SOURCE].cooldown) < pc.pos.getRangeTo(source) + 10) {
 		return true;
 	}
 	return false;
@@ -303,6 +303,49 @@ function operate_lab(pc: PowerCreep) {
 	return -1;
 }
 
+function operate_factory(pc: PowerCreep) {
+	// -1: not ready, 0: operate, 1: moving
+	if (pc.powers[PWR_OPERATE_FACTORY] == undefined) {
+		return -1;
+	}
+	if (config.commodity_room_conf[pc.room.name] == undefined) {
+		return -1;
+	}
+	if (pc.carry.getUsedCapacity("ops") < 100) {
+		return -1;
+	}
+	if (Game.time < pc.memory.next_time.op_factory) {
+		return -1;
+	}
+	if (pc.room.factory.effect_time > 0) {
+		return -1;
+	}
+	pc.say("factory");
+	if (pc.pos.getRangeTo(pc.room.factory) > 3) {
+		basic_job.movetopos(pc, pc.room.factory.pos, 3);
+		return 1;
+	} else {
+		let out = pc.usePower(PWR_OPERATE_FACTORY, pc.room.factory);
+		if (out == 0) {
+			pc.memory.next_time.op_factory = Game.time + 2000;
+		}
+		return 0;
+	}
+}
+
+var name2func: {[key: string]: (pc: PowerCreep) => number} = {
+	'nothing': (pc: PowerCreep) => -1,
+	'generate_ops': generate_ops,
+	'check_status': check_status,
+	'enable': enable,
+	'renew': renew,
+	'exchange_ops': exchange_ops,
+	'operate_source': operate_source,
+	'operate_extension': operate_extension,
+	'operate_power': operate_power,
+	'operate_factory': operate_factory,
+	'operate_lab': operate_lab,
+}
 export function work(pc: PowerCreep) {
 	if (pc == undefined) {
 		return;
@@ -320,9 +363,34 @@ export function work(pc: PowerCreep) {
 	}
 	pc.memory.movable = false;
 	pc.memory.crossable = true;
-	for (let func of [generate_ops, check_status, enable, renew, exchange_ops, operate_source, operate_extension, operate_power, operate_lab]) {
+	if (pc.memory.next_time == undefined) {
+		pc.memory.next_time = {};
+	}
+	for (let func of [generate_ops, check_status]) {
 		if (func(pc) >= 0) {
 			return;
 		}
 	}
+	if (pc.memory.working_status == undefined) {
+		pc.memory.working_status = 'nothing'
+	}
+	if (Game.time < pc.memory.next_time.work) {
+		pc.say('sleep');
+		return;
+	}
+	let current_func = name2func[pc.memory.working_status];
+	if (current_func(pc) >= 0) {
+		return;
+	}
+	for (let funcname of ['enable', 'renew', 'exchange_ops', 'operate_source', 'operate_extension', 'operate_power', 'operate_factory', 'operate_lab']) {
+		if (funcname == pc.memory.working_status) {
+			continue;
+		}
+		if (name2func[funcname](pc) >= 0) {
+			pc.memory.working_status = funcname;
+			return;
+		}
+	}
+	pc.memory.working_status = 'nothing';
+	pc.memory.next_time.work = Game.time + 5;
 }
