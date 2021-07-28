@@ -308,157 +308,205 @@ export function creepjob(creep: Creep): number {
 		creep.say("EC");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		if (creep.room.name == creep.memory.home_room_name) {
-			if (creep.store.getFreeCapacity("energy") > 0) {
-				basic_job.get_energy(creep);
-				creep.say("ECg");
-				return;
-			}
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'get';
 		}
-		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
+		switch(creep.memory.working_status) {
+			case 'get': {
+				if (creep.store.getFreeCapacity("energy") > 0) {
+					basic_job.get_energy(creep);
+					creep.say("ECg");
+					break;
 				}
-				external_room.external_move(creep, 'forward');
+				creep.memory.working_status = 'external_move';
+				break;
 			}
-			creep.say("ECm");
-			return;
-		}
-		external_room.moveawayexit(creep);
-		cross_shard.delete_creep_from_shardmemory(creep);
-		if (creep.store.getUsedCapacity("energy") > 0) {
-			if (basic_job.charge_all(creep) == 0) {
-				creep.say("ECc");
-				return 0;
+			case 'external_move': {
+				if (creep.room.name !== creep.memory.external_room_name) {
+					if (creep.memory.shard_move !== undefined) {
+						external_room.movethroughshards(creep);
+					} else {
+						if (!external_room.is_moving_target_defined(creep, 'forward')) {
+							external_room.save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
+						}
+						external_room.external_move(creep, 'forward');
+					}
+					creep.say("ECm");
+					break;
+				} else if (external_room.moveawayexit(creep) == 0) {
+					break;
+				}
+				creep.memory.working_status = 'carry';
+				break;
 			}
-			let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
-			if (store_structure !== undefined) {
-				if (store_structure.store.getFreeCapacity() > 0) {
-					basic_job.transfer(creep, store_structure);
+			case 'carry': {
+				cross_shard.delete_creep_from_shardmemory(creep);
+				if (creep.store.getUsedCapacity("energy") > 0) {
+					if (basic_job.charge_all(creep) == 0) {
+						creep.say("ECc");
+						break;
+					}
+					let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
+					if (store_structure !== undefined) {
+						if (store_structure.store.getFreeCapacity() > 0) {
+							basic_job.transfer(creep, store_structure);
+						}
+					}
+					break;
+				}
+				let container = creep.room.container.RC;
+				if (container != undefined) {
+					if (container.store.getUsedCapacity("energy") > 0) {
+						basic_job.withdraw(creep, container);
+						creep.say("ECw");
+					} else {
+						basic_job.ask_for_recycle(creep);
+						creep.say("ECr");
+					}
+					break;
 				}
 			}
-			return;
-		}
-		let container = creep.room.container.RC;
-		if (container != undefined) {
-			if (container.store.getUsedCapacity("energy") > 0) {
-				basic_job.withdraw(creep, container);
-				creep.say("ECw");
-			} else {
-				basic_job.ask_for_recycle(creep);
-				creep.say("ECr");
-			}
-			return;
 		}
 	} else if (creep.memory.role == 'help_harvester') {
 		creep.say("HH");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		let source_name = creep.memory.source_name;
-		let conf_external = config.conf_rooms[creep.memory.external_room_name];
-		let container_xy = conf_external.containers[source_name].pos;
-		let container_pos = Game.rooms[creep.memory.external_room_name].getPositionAt(container_xy[0], container_xy[1])
-		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'external_move';
+		}
+		switch(creep.memory.working_status) {
+			case 'external_move': {
+				if (creep.room.name !== creep.memory.external_room_name) {
+					if (creep.memory.shard_move !== undefined) {
+						external_room.movethroughshards(creep);
+					} else {
+						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
+						if (!external_room.is_moving_target_defined(creep, 'forward')) {
+							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+						}
+						external_room.external_move(creep, 'forward');
+					}
+					creep.say("HHe");
+					break;
+				} else if (external_room.moveawayexit(creep) == 0) {
+					break;
 				}
-				external_room.external_move(creep, 'forward');
+				creep.memory.working_status = 'move';
+				break;
 			}
-			creep.say("HHe");
-			return 0;
-		}
-		if (Game.independent_rooms.includes(creep.room.name)) {
-			creep.suicide();
-			return 0;
-		}
-		cross_shard.delete_creep_from_shardmemory(creep);
-		if (basic_job.trymovetopos(creep, container_pos) !== 2) {
-			creep.say("HHm");
-			return 0;
-		}
-		creep.memory.crossable = false;
-		let source = Game.getObjectById(conf_external.sources[source_name]);
-		if (Game.time % 2 == 1) {
-			basic_job.harvest_with_container(creep, source, creep.room.container[source_name]);
-			creep.say("HHh");
+			case 'move': {
+				cross_shard.delete_creep_from_shardmemory(creep);
+				let source_name = creep.memory.source_name;
+				let conf_external = config.conf_rooms[creep.memory.external_room_name];
+				let container_xy = conf_external.containers[source_name].pos;
+				let container_pos = Game.rooms[creep.memory.external_room_name].getPositionAt(container_xy[0], container_xy[1])
+				if (basic_job.trymovetopos(creep, container_pos) !== 2) {
+					creep.say("HHm");
+					break;
+				}
+				creep.memory.working_status = 'harvest';
+				break;
+			}
+			case 'harvest': {
+				if (Game.independent_rooms.includes(creep.room.name)) {
+					creep.suicide();
+					return 0;
+				}
+				creep.memory.crossable = false;
+				let source_name = creep.memory.source_name;
+				let conf_external = config.conf_rooms[creep.memory.external_room_name];
+				let source = Game.getObjectById(conf_external.sources[source_name]);
+				if (Game.time % 2 == 1) {
+					basic_job.harvest_with_container(creep, source, creep.room.container[source_name]);
+					creep.say("HHh");
+				}
+				break;
+
+			}
 		}
 		return 0;
 	} else if (creep.memory.role == 'help_carrier') {
 		creep.say("HC");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'external_move';
+		}
+		switch(creep.memory.working_status) {
+			case 'external_move': {
+				if (creep.room.name !== creep.memory.external_room_name) {
+					if (creep.memory.shard_move !== undefined) {
+						external_room.movethroughshards(creep);
+					} else {
+						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
+						if (!external_room.is_moving_target_defined(creep, 'forward')) {
+							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+						}
+						external_room.external_move(creep, 'forward');
+					}
+					creep.say("HCe");
+					break;
+				} else if (external_room.moveawayexit(creep) == 0) {
+					break;
 				}
-				external_room.external_move(creep, 'forward');
+				creep.memory.working_status = 'work';
+				break;
 			}
-			creep.say("HCe");
-			return 0;
-		}
-		external_room.moveawayexit(creep);
-		if (Game.independent_rooms.includes(creep.room.name)) {
-			creep.suicide();
-			return 0;
-		}
-		cross_shard.delete_creep_from_shardmemory(creep);
-		let source_name = creep.memory.source_name;
-		let conf_external = config.conf_rooms[creep.memory.external_room_name];
-		let room_external = Game.rooms[creep.memory.external_room_name];
-		let conf_container = conf_external.containers[source_name];
-		let container_source = creep.room.container[source_name];
-		if (container_source == undefined) {
-			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
-			basic_job.trymovetopos(creep, transferer_stay_pos);
-			creep.say("HCm1");
-			return 0;
-		}
-		let store_structure: StructureContainer|StructureStorage;
-		//if (creep.memory.subrole == 'builder' && creep.room.storage !== undefined) {
-		if (creep.room.storage !== undefined) {
-			store_structure = creep.room.storage;
-		} else if (creep.room.container.CT !== undefined) {
-			store_structure = creep.room.container.CT;
-		}
-		let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
-		if (store_structure == undefined && help_builders.length == 0) {
-			let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
-			basic_job.trymovetopos(creep, transferer_stay_pos);
-			creep.say("HCm2");
-			return 0;
-		}
-		if (creep.ticksToLive < 20) {
-			basic_job.return_energy_before_die(creep);
-			creep.say("HCd");
-		}
-		if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, container_source, {exact: true});
-			creep.say("HCw");
-			return 0;
-		}
-		if (store_structure !== undefined) {
-			let in_range = creep.pos.getRangeTo(store_structure) <= 3;
-			let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(store_structure) <= 3).length > 0;
-			if (!((in_range && energy_carriers_in_range) || store_structure.store.getFreeCapacity("energy") == 0 )) {
-				basic_job.transfer(creep, store_structure);
-			}
-			creep.say("HCt1");
-		} else {
-			let help_builder = help_builders[0];
-			if (help_builder.store.getFreeCapacity() > 0) {
-				basic_job.transfer(creep, help_builder);
-				creep.say("HCt2");
+			case 'work': {
+				if (Game.independent_rooms.includes(creep.room.name)) {
+					creep.suicide();
+					break;
+				}
+				cross_shard.delete_creep_from_shardmemory(creep);
+				let source_name = creep.memory.source_name;
+				let container_source = creep.room.container[source_name];
+				if (container_source == undefined) {
+					let conf_external = config.conf_rooms[creep.memory.external_room_name];
+					let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
+					basic_job.trymovetopos(creep, transferer_stay_pos);
+					creep.say("HCm1");
+					break;
+				}
+				if (creep.ticksToLive < 20) {
+					basic_job.return_energy_before_die(creep);
+					creep.say("HCd");
+					break;
+				}
+				if (creep.store.getUsedCapacity("energy") == 0) {
+					basic_job.withdraw(creep, container_source, {exact: true});
+					creep.say("HCw");
+					break;
+				}
+				let store_structure: StructureContainer|StructureStorage;
+				if (creep.room.storage !== undefined) {
+					store_structure = creep.room.storage;
+				} else if (creep.room.container.CT !== undefined) {
+					store_structure = creep.room.container.CT;
+				}
+				if (store_structure == undefined) {
+					let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
+					if (help_builders.length == 0) {
+						let conf_external = config.conf_rooms[creep.memory.external_room_name];
+						let transferer_stay_pos = creep.room.getPositionAt(conf_external.transferer_stay_pos[0], conf_external.transferer_stay_pos[1]);
+						basic_job.trymovetopos(creep, transferer_stay_pos);
+						creep.say("HCm2");
+						break;
+					} else {
+						let help_builder = help_builders[0];
+						if (help_builder.store.getFreeCapacity() > 0) {
+							basic_job.transfer(creep, help_builder);
+							creep.say("HCt2");
+						}
+					}
+				} else {
+					let in_range = creep.pos.getRangeTo(store_structure) <= 3;
+					let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(store_structure) <= 3).length > 0;
+					if (!((in_range && energy_carriers_in_range) || store_structure.store.getFreeCapacity("energy") == 0 )) {
+						basic_job.transfer(creep, store_structure);
+					}
+					creep.say("HCt1");
+				}
+				break;
 			}
 		}
 		return 0;
@@ -468,65 +516,81 @@ export function creepjob(creep: Creep): number {
 		if (creep.memory.crossable == undefined) {
 			creep.memory.crossable = true;
 		}
-		if (creep.memory.request_boost) {
-			let boost_resource: MineralCompoundConstant = creep.memory.subrole == 'builder' ? "LH2O" : "GH2O";
-			if (basic_job.boost_request(creep, {"work": boost_resource}, false) == 1) {
-				creep.say("HBb");
-				return 0;
-			}
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'boost';
 		}
-		let conf_external = config.conf_rooms[creep.memory.external_room_name];
-		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+		switch(creep.memory.working_status) {
+			case 'boost': {
+				if (creep.memory.request_boost) {
+					let boost_resource: MineralCompoundConstant = creep.memory.subrole == 'builder' ? "LH2O" : "GH2O";
+					if (basic_job.boost_request(creep, {"work": boost_resource}, false) == 1) {
+						creep.say("HBb");
+						break;
+					}
 				}
-				external_room.external_move(creep, 'forward');
+				creep.memory.working_status = 'external_move';
+				break;
 			}
-			creep.say("HBe");
-			return 0;
+			let conf_external = config.conf_rooms[creep.memory.external_room_name];
+			case 'external_move': {
+				if (creep.room.name !== creep.memory.external_room_name) {
+					if (creep.memory.shard_move !== undefined) {
+						external_room.movethroughshards(creep);
+					} else {
+						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
+						if (!external_room.is_moving_target_defined(creep, 'forward')) {
+							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
+						}
+						external_room.external_move(creep, 'forward');
+					}
+					creep.say("HBe");
+					break;
+				} else if (external_room.moveawayexit(creep) == 0) {
+					break;
+				}
+				creep.memory.working_status = 'work';
+				break;
+			}
+			case 'work': {
+				if (Game.independent_rooms.includes(creep.room.name)) {
+					creep.suicide();
+					break;
+				}
+				cross_shard.delete_creep_from_shardmemory(creep);
+				if (creep.ticksToLive < 20 && creep.store.getUsedCapacity("energy") == 0) {
+					creep.suicide();
+					creep.say("HBd");
+					break;
+				}
+				let store_structure: AnyStoreStructure;
+				//if (creep.memory.subrole == 'builder' && creep.room.storage !== undefined) {
+				if (creep.room.terminal !== undefined) {
+					store_structure = creep.room.terminal;
+				} else if (creep.room.storage !== undefined) {
+					store_structure = creep.room.storage;
+				} else if (creep.room.container.CT !== undefined) {
+					store_structure = creep.room.container.CT;
+				}
+				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") == 0) {
+					basic_job.withdraw(creep, store_structure);
+					creep.say("HBw");
+					return 0;
+				}
+				if (basic_job.build_structure(creep, {}, {priority_list: ["storage"]}) == 0) {
+					creep.say("HBb");
+					creep.memory.crossable = true;
+					return 0;
+				}
+				let locations = conf_external.upgraders.locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
+				basic_job.movetoposexceptoccupied(creep, locations);
+				creep.upgradeController(creep.room.controller);
+				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
+					basic_job.withdraw(creep, store_structure);
+				}
+				creep.memory.crossable = false;
+				creep.say("HBu");
+			}
 		}
-		external_room.moveawayexit(creep);
-		if (Game.independent_rooms.includes(creep.room.name)) {
-			creep.suicide();
-			return 0;
-		}
-		cross_shard.delete_creep_from_shardmemory(creep);
-		if (creep.ticksToLive < 20 && creep.store.getUsedCapacity("energy") == 0) {
-			creep.suicide();
-			creep.say("HBd");
-			return 0;
-		}
-		let store_structure: AnyStoreStructure;
-		//if (creep.memory.subrole == 'builder' && creep.room.storage !== undefined) {
-		if (creep.room.terminal !== undefined) {
-			store_structure = creep.room.terminal;
-		} else if (creep.room.storage !== undefined) {
-			store_structure = creep.room.storage;
-		} else if (creep.room.container.CT !== undefined) {
-			store_structure = creep.room.container.CT;
-		}
-		if (store_structure !== undefined && creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, store_structure);
-			creep.say("HBw");
-			return 0;
-		}
-		if (basic_job.build_structure(creep, {}, {priority_list: ["storage"]}) == 0) {
-			creep.say("HBb");
-			creep.memory.crossable = true;
-			return 0;
-		}
-		let locations = conf_external.upgraders.locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
-		basic_job.movetoposexceptoccupied(creep, locations);
-		creep.upgradeController(creep.room.controller);
-		if (store_structure !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
-			basic_job.withdraw(creep, store_structure);
-		}
-		creep.memory.crossable = false;
-		creep.say("HBu");
 		return 0;
 	} else if (creep.memory.role == 'guard') {
 		creep.say("G");

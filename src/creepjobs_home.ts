@@ -23,7 +23,7 @@ export function creepjob(creep: Creep): number {
         creep.say("H")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		if (creep.memory.half_time && Game.time % 2 == 0) {
+		if (creep.memory.half_time && Game.time % 2 == 1) {
 			return 0;
 		}
         let source_name = creep.memory.source_name;
@@ -35,55 +35,53 @@ export function creepjob(creep: Creep): number {
 			creep.say("Hf2")
 			return 0;
 		}
-		if (basic_job.discard_useless_from_container(creep, container_source, "energy") == 0) {
-			creep.say("Hd")
-			return 0;
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'move';
 		}
-		if (basic_job.trymovetopos(creep, container_source.pos, moveoptions_noset) !== 2) {
-			creep.say("Hm")
-			return 0;
+		switch(creep.memory.working_status) {
+			case 'move': {
+				if (basic_job.discard_useless_from_container(creep, container_source, "energy") == 0) {
+					creep.say("Hd")
+					break;
+				}
+				if (basic_job.trymovetopos(creep, container_source.pos, moveoptions_noset) !== 2) {
+					creep.say("Hm")
+					break;
+				}
+				creep.memory.working_status = 'work';
+				break;
+			}
+			case 'work': {
+				if (basic_job.repair_container(creep) == 0) {
+					creep.say("Hr")
+					break;
+				}
+				basic_job.harvest_source(creep, source);
+				creep.say("Hh")
+				let harvest_rate = creep.getActiveBodyparts(WORK) * 2;
+				if (link_source !== undefined) {
+					let container_amount = container_source.store.getUsedCapacity("energy");
+					let creep_amount = creep.store.getUsedCapacity("energy");
+					if (container_amount == 2000) {
+						console.log(`Warning: Source ${creep.memory.source_name} at room ${creep.room.name} overflows at time ${Game.time}`);
+					}
+					if (container_amount >= config.source_container_upper_limit && creep_amount <= harvest_rate) {
+						creep.withdraw(container_source, "energy");
+						creep.say("Hw")
+					} else if (creep.store.getFreeCapacity() < harvest_rate && container_amount >= config.source_container_lower_limit) {
+						creep.transfer(link_source, "energy");
+						creep.say("Ht")
+					}
+				}
+				break;
+			}
 		}
-        if (creep.ticksToLive < 5) {
-			if (creep.store.getUsedCapacity("energy") == 0) {
-				creep.suicide();
-			} else {
-				creep.transfer(container_source, "energy");
-			}
-			creep.say("Hd")
-			return 0;
-        }
-		if (basic_job.repair_container(creep) == 0) {
-			creep.say("Hr")
-			return 0;
-		}
-        basic_job.harvest_source(creep, source);
-		creep.say("Hh")
-		let harvest_rate = creep.getActiveBodyparts(WORK) * 2;
-        if (link_source !== undefined) {
-			let container_amount = container_source.store.getUsedCapacity("energy");
-			let creep_amount = creep.store.getUsedCapacity("energy");
-			if (container_amount == 2000) {
-				console.log(`Warning: Source ${creep.memory.source_name} at room ${creep.room.name} overflows at time ${Game.time}`);
-			}
-            if (container_amount >= config.source_container_upper_limit && creep_amount <= harvest_rate) {
-                creep.withdraw(container_source, "energy");
-				creep.say("Hw")
-            } else if (creep.store.getFreeCapacity() < harvest_rate && container_amount >= config.source_container_lower_limit) {
-                creep.transfer(link_source, "energy");
-				creep.say("Ht")
-			}
-        }
         return 0;
     } else if (creep.memory.role == 'transferer') {
         creep.say("T")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-        let min_fill_energy;
-        if (creep.room.controller.level >= 7) {
-            min_fill_energy = 100;
-        } else {
-            min_fill_energy = 50;
-        }
+        let min_fill_energy = creep.room.controller.level >= 7 ? 100 : 50;
 		if (creep.ticksToLive < 20) {
 			basic_job.return_energy_before_die(creep);
 			creep.say("Td");
@@ -104,45 +102,64 @@ export function creepjob(creep: Creep): number {
         creep.say("U")
         creep.memory.movable = false;
         creep.memory.crossable = false;
-		if (basic_job.boost_request(creep, {"work": "GH2O"}, false, moveoptions_noset) == 1) {
-			creep.say("Ub");
-			return 0;
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'boost';
 		}
-		let stop_withdrawing = (creep.room.controller.level == 8) && creep.memory.boost_status !== undefined && creep.memory.boost_status.boost_finished && (creep.ticksToLive < conf.upgraders.distance + 30);
-		if (stop_withdrawing && creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.unboost(creep);
-			creep.say("Uub");
-			return 0;
+		switch(creep.memory.working_status) {
+			case 'boost': {
+				if (basic_job.boost_request(creep, {"work": "GH2O"}, false, moveoptions_noset) == 1) {
+					creep.say("Ub");
+					break;
+				}
+				creep.memory.working_status = 'move';
+				break;
+			}
+			case 'move': {
+				let conf_locations = conf.upgraders.locations;
+				let locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
+				let output = basic_job.movetoposexceptoccupied(creep, locations);
+				if (output == 0) {
+					creep.say("Um");
+					break;
+				} else if (output == 1) {
+					basic_job.movetopos(creep, creep.room.controller.pos, 1);
+					break;
+				}
+				creep.memory.working_status = 'work';
+				break;
+			}
+			case 'work': {
+				let stop_withdrawing = (creep.ticksToLive < conf.upgraders.distance + 30) && (creep.room.controller.level == 8) && creep.memory.boost_status !== undefined && creep.memory.boost_status.boost_finished;
+				if (stop_withdrawing && creep.store.getUsedCapacity("energy") == 0) {
+					creep.memory.working_status = 'unboost';
+					break;
+				}
+				let container = creep.room.container.CT;
+				let link = creep.room.link.CT;
+				if (container !== undefined && basic_job.repair_container(creep, container) == 0) {
+					creep.say("Ur");
+					break;
+				}
+				if (!stop_withdrawing && creep.store.getUsedCapacity("energy") < creep.getActiveBodyparts(WORK) * 2 && creep.ticksToLive >= 10) {
+					let use_link = (container == undefined) || (link !== undefined && link.store.getUsedCapacity("energy") > container.store.getUsedCapacity("energy"));
+					var lower_limit = (link !== undefined ? 100 : 800);
+					if (use_link) {
+						basic_job.withdraw(creep, link, {left: lower_limit});
+					} else {
+						basic_job.withdraw(creep, container, {left: lower_limit});
+					}
+					creep.say("Uw");
+				}
+				basic_job.upgrade_controller(creep, creep.room.controller);
+				creep.say("Uu");
+				break;
+			}
+			case 'unboost': {
+				basic_job.unboost(creep);
+				creep.say("Uub");
+				break;
+			}
 		}
-        if (true) {
-            let conf_locations = conf.upgraders.locations;
-            let locations = conf_locations.map((e) => creep.room.getPositionAt(e[0], e[1]));
-            let output = basic_job.movetoposexceptoccupied(creep, locations);
-            if (output == 0) {
-				creep.say("Um");
-                return 0;
-            } else if (output == 1) {
-                basic_job.movetopos(creep, creep.room.controller.pos, 1);
-            }
-        }
-        let container = creep.room.container.CT;
-		let link = creep.room.link.CT;
-		if (container !== undefined && basic_job.repair_container(creep, container) == 0) {
-			creep.say("Ur");
-			return 0;
-		}
-		if (!stop_withdrawing && creep.store.getUsedCapacity("energy") < creep.getActiveBodyparts(WORK) * 2 && creep.ticksToLive >= 10) {
-			let use_link = (container == undefined) || (link !== undefined && link.store.getUsedCapacity("energy") > container.store.getUsedCapacity("energy"));
-            var lower_limit = (link !== undefined ? 100 : 800);
-            if (use_link) {
-                basic_job.withdraw(creep, link, {left: lower_limit});
-            } else {
-                basic_job.withdraw(creep, container, {left: lower_limit});
-            }
-			creep.say("Uw");
-        }
-        basic_job.upgrade_controller(creep, creep.room.controller);
-		creep.say("Uu");
         return 0;
     } else if (creep.memory.role == 'carrier') {
         creep.say("C")
@@ -183,24 +200,46 @@ export function creepjob(creep: Creep): number {
 			creep.say("MHf");
             return 0;
         }
-		if (basic_job.boost_request(creep, {"work": "UHO2"}, true) !== 0) {
-			creep.say("MHb");
-			return 0;
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'boost';
 		}
-        let xy = conf.containers.MINE.pos;
-        let pos = creep.room.getPositionAt(xy[0], xy[1]);
-        let mine = Game.getObjectById(conf.mine);
-        let mine_container = creep.room.container.MINE;
-		if (mine_container == undefined) {
-			creep.say("MHf");
-		}
-		if (basic_job.trymovetopos(creep, pos, moveoptions_noset) !== 2) {
-			creep.say("MHm");
-			return 0;
-		}
-		if (mine_container.store.getFreeCapacity() >= creep.getActiveBodyparts(WORK) * 5) {
-			basic_job.harvest_source(creep, mine);
-			creep.say("MHh");
+		switch(creep.memory.working_status) {
+			case 'boost': {
+				if (basic_job.boost_request(creep, {"work": "UHO2"}, true) !== 0) {
+					creep.say("MHb");
+					break;
+				}
+				creep.memory.working_status = 'move';
+				break;
+			}
+			case 'move': {
+				let xy = conf.containers.MINE.pos;
+				let pos = creep.room.getPositionAt(xy[0], xy[1]);
+				let mine = Game.getObjectById(conf.mine);
+				let mine_container = creep.room.container.MINE;
+				if (mine_container == undefined) {
+					creep.say("MHf");
+					break;
+				}
+				if (basic_job.trymovetopos(creep, pos, moveoptions_noset) !== 2) {
+					creep.say("MHm");
+					break;
+				}
+				creep.memory.working_status = 'work';
+				break;
+			}
+			case 'work': {
+				if (creep.room.extractor.cooldown > 0) {
+					break;
+				}
+				let mine = Game.getObjectById(conf.mine);
+				let mine_container = creep.room.container.MINE;
+				if (mine_container.store.getFreeCapacity() >= creep.getActiveBodyparts(WORK) * 5) {
+					basic_job.harvest_source(creep, mine);
+					creep.say("MHh");
+				}
+				break;
+			}
 		}
         return 0;
     } else if (creep.memory.role == 'minecarrier') {

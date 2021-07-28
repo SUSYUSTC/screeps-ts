@@ -689,18 +689,6 @@ export function creepjob(creep: Creep): number {
         creep.say("MC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
-        /*
-        let link = creep.room.link.MAIN;
-        let link_energy = link.store.getUsedCapacity("energy");
-        if (link_energy == creep.room.memory.maincarrier_link_amount && creep.room.memory.current_boost_request == undefined) {
-            if (Game.time < creep.memory.next_time.wakeup) {
-                creep.say("sleep");
-                return 0;
-            }
-        } else {
-            creep.memory.next_time.wakeup = Game.time;
-        }
-		*/
         if (creep.ticksToLive < 6 && creep.store.getUsedCapacity() == 0) {
             creep.suicide();
             return 0;
