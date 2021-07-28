@@ -6,7 +6,6 @@ import { Timer } from "./timer";
 
 type type_movethroughrooms_options = {
 	ignore_creep_xys ?: [number, number][],
-	avoid_exits_at_home ?: boolean,
 }
 
 function get_external_moving_targets(rooms_path: string[], poses_path: number[]): type_external_moving_targets {
@@ -97,8 +96,7 @@ export function external_move(creep: Creep | PowerCreep, password: string, add_o
 		reusepath = 5;
 	}
 	if (config.occupied_rooms.includes(creep.room.name)) {
-		let movetopos_options = options.avoid_exits_at_home ? {avoid_exits: true} : {};
-		basic_job.movetopos(creep, exit_pos, 0, movetopos_options);
+		basic_job.movetopos(creep, exit_pos, 0);
 	} else if (_move != undefined && _move.dest.room == creep.room.name && _move.dest.x == exit_pos.x && _move.dest.y == exit_pos.y && Game.time <= _move.time + reusepath) {
 		creep.moveByPath(Room.deserializePath(_move.path));
 	} else {
@@ -162,7 +160,6 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	// -1: error, 0: normal success, 1: already done
 	let out_invader = moveawayexit(invader);
 	let out_healer = moveawayexit(healer);
-	options.avoid_exits_at_home = true;
 	if (out_invader == 0 && out_healer == 0) {
 		return 0;
 	} else if (out_invader == 0 || out_healer == 0) {
@@ -181,7 +178,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	}
 	if (healer.pos.getRangeTo(invader) > 1) {
 		if (config.occupied_rooms.includes(healer.room.name)) {
-			basic_job.movetopos(healer, invader.pos, 1, {avoid_exits: true})
+			basic_job.movetopos(healer, invader.pos, 1)
 		} else {
 			healer.moveTo(invader, {range: 1, maxRooms: 1, costCallback: functions.avoid_exits});
 		}
@@ -192,7 +189,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	let exit_xy = info.xy;
 	let exit_pos = invader.room.getPositionAt(exit_xy[0], exit_xy[1]);
 	if (invader.pos.getRangeTo(exit_pos) > 1) {
-		external_move(invader, password, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]], avoid_exits_at_home: true}, ...options});
+		external_move(invader, password, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]]}, ...options});
 		healer.move(healer.pos.getDirectionTo(invader.pos));
 		return 0;
 	}

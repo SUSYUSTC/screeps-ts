@@ -519,6 +519,7 @@ export function creepjob(creep: Creep): number {
 		if (creep.memory.working_status == undefined) {
 			creep.memory.working_status = 'boost';
 		}
+		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		switch(creep.memory.working_status) {
 			case 'boost': {
 				if (creep.memory.request_boost) {
@@ -531,7 +532,6 @@ export function creepjob(creep: Creep): number {
 				creep.memory.working_status = 'external_move';
 				break;
 			}
-			let conf_external = config.conf_rooms[creep.memory.external_room_name];
 			case 'external_move': {
 				if (creep.room.name !== creep.memory.external_room_name) {
 					if (creep.memory.shard_move !== undefined) {

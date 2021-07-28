@@ -703,7 +703,6 @@ interface type_movetopos_options {
     costmatrix ? : CostMatrix;
     setmovable ? : boolean;
 	safe_level ? : 0 | 1 | 2;
-	avoid_exits ? : boolean;
 }
 interface type_tough_conf {
 	ratio: number;

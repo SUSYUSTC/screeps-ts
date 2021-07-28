@@ -169,4 +169,3 @@ export var commodity_levels: {[key in CommodityConstant] ?: number} = {
 	'extract': 2,
 }
 export var combating_t3: GeneralMineralConstant[] = ['XGHO2', 'XUH2O', 'XLHO2', 'XZH2O', 'XZHO2', 'XKHO2'];
-

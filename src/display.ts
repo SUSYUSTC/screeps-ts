@@ -52,8 +52,8 @@ function vertical_split_string(str1: string, str2: string): string {
 export function init() {
 	global.visualize_cost = function(room_name: string, x_center: number, y_center: number, range: number): number {
 		let cost = functions.get_costmatrix_road(room_name);
-		for (let x = x_center - range; x <= x_center + range; x++) {
-			for (let y = y_center - range; y <= y_center + range; y++) {
+		for (let x = Math.max(x_center - range, 0); x <= Math.min(x_center + range, 49); x++) {
+			for (let y = Math.max(y_center - range, 0); y <= Math.min(y_center + range, 49); y++) {
 				Game.rooms[room_name].visual.text(cost.get(x, y).toString(), x, y);
 			}
 		}

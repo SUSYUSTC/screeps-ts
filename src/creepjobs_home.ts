@@ -52,11 +52,11 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'work': {
-				if (basic_job.repair_container(creep) == 0) {
+				if (basic_job.repair_container(creep, container_source) == 0) {
 					creep.say("Hr")
 					break;
 				}
-				basic_job.harvest_source(creep, source);
+				creep.harvest(source);
 				creep.say("Hh")
 				let harvest_rate = creep.getActiveBodyparts(WORK) * 2;
 				if (link_source !== undefined) {

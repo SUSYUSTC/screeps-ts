@@ -35,13 +35,14 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 	if (options.safe_level == undefined) {
 		options.safe_level = 0;
 	}
+
 	function costCallback(roomName: string, costMatrix: CostMatrix) {
 		let costmatrix = options.costmatrix;
 		if (costmatrix == undefined) {
 			costmatrix = functions.get_costmatrix_road(roomName, options.safe_level);
 		}
-		if (options.avoid_exits !== undefined) {
-			functions.avoid_exits(roomName, costMatrix);
+		if (pos.x == 0 || pos.x == 49 || pos.y == 0 || pos.y == 49) {
+			costmatrix = costmatrix.clone();
 			costmatrix.set(pos.x, pos.y, 0);
 		}
 		return costmatrix;
@@ -75,11 +76,6 @@ export function movetopos(creep: Creep | PowerCreep, pos: RoomPosition, range: n
 		creep.memory.movable = true;
 	}
 	timer.end();
-	/*
-	if (Game.actions_count - timer.begin_count > 0) {
-		console.log("movetopos", creep.name, Game.actions_count - timer.begin_count, Game.cpu.getUsed() - timer.begin_time);
-	}
-	*/
     return 0;
 }
 

@@ -175,6 +175,12 @@ export function update_basic_costmatrices() {
                 structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
                 sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
                 structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+				for (let i=0; i<50; i++) {
+					costmatrix.set(i, 0, 255);
+					costmatrix.set(i, 49, 255);
+					costmatrix.set(0, i, 255);
+					costmatrix.set(49, i, 255);
+				}
             }
             global.basic_costmatrices[room_name] = costmatrix.clone();
             if (config.controlled_rooms.includes(room_name)) {
@@ -469,4 +475,12 @@ export function get_poses_with_fixed_range(pos: RoomPosition, range: number): Ro
     }
     xys = xys.filter((e) => e[0] > range && e[1] > range && e[0] < 49 - range && e[1] < 49 - range);
     return xys.map((e) => new RoomPosition(e[0], e[1], pos.roomName));
+}
+
+export function can_use_cached_path(pos: RoomPosition, _move: type_creep_move) {
+	if ( _move !== undefined && Game.time <= _move.time && pos.x == _move.dest.x && pos.y == _move.dest.y && pos.roomName == _move.dest.room) {
+		return true;
+	} else {
+		return false;
+	}
 }
