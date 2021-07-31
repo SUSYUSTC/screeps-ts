@@ -5,6 +5,12 @@ import * as functions from "./functions"
 import * as basic_job from "./basic_job"
 import * as external_room from "./external_room"
 
+var show_options = {
+	radius: 0.2,
+	fill: "#ff0000",
+	opacity: 1.0,
+}
+
 export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
 	let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
 	if (enemies.length > 0) {
@@ -34,11 +40,7 @@ export function single_combat_melee(invader: Creep, guard_range: number = undefi
 	if (guard_range == undefined) {
 		hostiles = invader.room.find(FIND_HOSTILE_CREEPS);
 	} else {
-		let xmin = Math.max(invader.pos.x - guard_range, 0);
-		let xmax = Math.min(invader.pos.x + guard_range, 49);
-		let ymin = Math.max(invader.pos.y - guard_range, 0);
-		let ymax = Math.min(invader.pos.y + guard_range, 49);
-		hostiles = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
+		hostiles = invader.pos.findInRange(FIND_HOSTILE_CREEPS, guard_range);
 	}
 	if (hostiles.length > 0) {
 		let distances = hostiles.map((e) => invader.pos.getRangeTo(e));
@@ -64,11 +66,7 @@ export function group2_combat_melee(invader: Creep, healer: Creep, guard_range: 
 	if (guard_range == undefined) {
 		hostiles = invader.room.find(FIND_HOSTILE_CREEPS);
 	} else {
-		let xmin = Math.max(invader.pos.x - guard_range, 0);
-		let xmax = Math.min(invader.pos.x + guard_range, 49);
-		let ymin = Math.max(invader.pos.y - guard_range, 0);
-		let ymax = Math.min(invader.pos.y + guard_range, 49);
-		hostiles = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep).filter((e) => !e.my);
+		hostiles = invader.pos.findInRange(FIND_HOSTILE_CREEPS, guard_range);
 	}
 	if (hostiles.length > 0) {
 		let distances = hostiles.map((e) => invader.pos.getRangeTo(e));
@@ -90,10 +88,10 @@ export function group2_combat_melee(invader: Creep, healer: Creep, guard_range: 
 		return 0;
 	} else if (healer.hits < healer.hitsMax) {
 		healer.heal(healer);
-		return 1;
+		return 0;
 	} else if (invader.hits < invader.hitsMax && healer.pos.getRangeTo(invader) == 1) {
 		healer.heal(invader);
-		return 1;
+		return 0;
 	}
 	return 1;
 }
@@ -121,26 +119,8 @@ function get_structure_score(invader: Creep, structure: Structure): number {
 	return score;
 }
 
-function get_structures_in_range(invader: Creep, range: number): Structure[] {
-	let xmin = Math.max(invader.pos.x - range, 0);
-	let xmax = Math.min(invader.pos.x + range, 49);
-	let ymin = Math.max(invader.pos.y - range, 0);
-	let ymax = Math.min(invader.pos.y + range, 49);
-	let structures_in_range = invader.room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).map((e) => e.structure);
-	return structures_in_range;
-}
-
-function get_creeps_in_range(invader: Creep, range: number): Creep[] {
-	let xmin = Math.max(invader.pos.x - range, 0);
-	let xmax = Math.min(invader.pos.x + range, 49);
-	let ymin = Math.max(invader.pos.y - range, 0);
-	let ymax = Math.min(invader.pos.y + range, 49);
-	let creeps_in_range = invader.room.lookForAtArea("creep", ymin, xmin, ymax, xmax, true).map((e) => e.creep);
-	return creeps_in_range;
-}
-
 function get_most_valued_structure_in_range(invader: Creep, range: number): Structure {
-	let structures_in_range = get_structures_in_range(invader, range).filter((e) => valued_structures.includes(e.structureType));
+	let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, range).filter((e) => valued_structures.includes(e.structureType));
 	if (structures_in_range.length == 0) {
 		return undefined;
 	}
@@ -150,7 +130,7 @@ function get_most_valued_structure_in_range(invader: Creep, range: number): Stru
 }
 
 function get_most_valued_creep_in_range(invader: Creep, range: number): Creep {
-	let creeps_in_range = get_creeps_in_range(invader, range).filter((e) => !e.my && with_rampart(e.pos) == 0 && !e.spawning);
+	let creeps_in_range = invader.pos.findInRange(FIND_HOSTILE_CREEPS, range).filter((e) => !e.my && with_rampart(e.pos) == 0 && !e.spawning);
 	if (creeps_in_range.length == 0) {
 		return undefined;
 	}
@@ -160,13 +140,13 @@ function get_most_valued_creep_in_range(invader: Creep, range: number): Creep {
 }
 
 function get_mass_damage_on_creeps(invader: Creep): number {
-	let creeps_in_range = get_creeps_in_range(invader, 3).filter((e) => !e.my && with_rampart(e.pos) == 0 && !e.spawning);
+	let creeps_in_range = invader.pos.findInRange(FIND_HOSTILE_CREEPS, 3).filter((e) => with_rampart(e.pos) == 0 && !e.spawning);
 	let mass_damages = creeps_in_range.map((e) => mass_damage[invader.pos.getRangeTo(e)]);
 	return mymath.array_sum(mass_damages);
 }
 
 function get_mass_damage_on_structures(invader: Creep): number {
-	let structures_in_range = get_structures_in_range(invader, 3).filter((e) => owned_structures.includes(e.structureType) && (e.structureType == 'rampart' || with_rampart(e.pos) == 0));
+	let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, 3).filter((e) => owned_structures.includes(e.structureType) && (e.structureType == 'rampart' || with_rampart(e.pos) == 0));
 	let mass_damages = structures_in_range.map((e) => mass_damage[invader.pos.getRangeTo(e)]);
 	return mymath.array_sum(mass_damages);
 }
@@ -179,7 +159,7 @@ export function auto_dismantle(invader_name: string) {
 	let target_structure = get_most_valued_structure_in_range(invader, 1);
 	if (target_structure !== undefined) {
 		invader.dismantle(target_structure);
-		invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y);
+		invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y, show_options);
 		return;
 	}
 }
@@ -192,13 +172,13 @@ export function auto_attack(invader_name: string) {
 	let target_creep = get_most_valued_creep_in_range(invader, 1);
 	if (target_creep !== undefined) {
 		invader.attack(target_creep);
-		invader.room.visual.circle(target_creep.pos.x, target_creep.pos.y);
+		invader.room.visual.circle(target_creep.pos.x, target_creep.pos.y, show_options);
 		return;
 	}
 	let target_structure = get_most_valued_structure_in_range(invader, 1);
 	if (target_structure !== undefined) {
 		invader.attack(target_structure);
-		invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y);
+		invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y, show_options);
 		return;
 	}
 }

@@ -522,9 +522,13 @@ export function repair_container(creep: Creep, container: StructureContainer = u
     return 1;
 }
 export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options = {}) {
+	//  0: scheduled, 1: not necessary, 2: cannot find spawn
+	if (creep.ticksToLive >= 1500 - Math.floor(600/creep.body.length)) {
+		return 1;
+	}
     let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => !e.spawning);
 	if (spawns.length == 0) {
-		return -1;
+		return 2;
 	}
     let distances = spawns.map((e) => creep.pos.getRangeTo(e));
     let argmin = mymath.argmin(distances);
@@ -685,4 +689,17 @@ export function harvest_with_container(creep: Creep, source: Source, container: 
 	}
     creep.harvest(source);
     return 0;
+}
+
+export function waiting_for_spawn(names: string[]) {
+	// 0: scheduled, 1: all spawned
+	let creeps = names.map((e) => Game.creeps[e]);
+	let spawned_creeps = creeps.filter((e) => e !== undefined && !e.spawning);
+	if (spawned_creeps.length == creeps.length) {
+		return 1;
+	} else {
+		for (let creep of spawned_creeps) {
+			ask_for_renew(creep);
+		}
+	}
 }

@@ -30,7 +30,8 @@ export function produce(room_name: string) {
     if (commodity_conf !== undefined) {
         for (let resource of commodity_conf) {
             let production = constants.commodities_related_requirements[resource];
-            for (let level = production.products.length - 1; level >= 0; level--) {
+			let levels = [0].concat(mymath.range(production.products.length).reverse().slice(0, -1));
+            for (let level of levels) {
                 let product = production.products[level];
                 if (level > 0 && room.factory.effect_level !== level) {
                     continue;

@@ -161,3 +161,58 @@ global.create_room_walls = function(room_name: string): number {
 	Memory.look_broken_ramparts = true;
 	return 0;
 }
+
+var show_options = {
+	radius: 0.6,
+	fill: "#ff0000",
+	opacity: 1.0,
+}
+function remove_unregistered_named_structures(room_name: string, structuretype: type_named_structures, conf: conf_named_structures, action: boolean = false): number {
+	let room = Game.rooms[room_name];
+	let structures = room.find(FIND_STRUCTURES).filter((e) => e.structureType == structuretype);
+	let compressed_conf_xys: number[] = [];
+	for (let name in conf) {
+		compressed_conf_xys = compressed_conf_xys.concat(conf[name].pos[0] * 50 + conf[name].pos[1]);
+	}
+	let set_compressed_conf_xys = new Set(compressed_conf_xys);
+	structures = structures.filter((e) => !set_compressed_conf_xys.has(e.pos.x * 50 + e.pos.y))
+	for (let structure of structures) {
+		if (action) {
+			structure.destroy();
+		} else {
+			room.visual.circle(structure.pos, show_options);
+		}
+	}
+	return structures.length;
+}
+function remove_unregistered_multiple_structures(room_name: string, structuretype: type_multiple_structures, conf: conf_multiple_structures, action: boolean = false): number {
+	let room = Game.rooms[room_name];
+	let structures = room.find(FIND_STRUCTURES).filter((e) => e.structureType == structuretype);
+	let compressed_conf_xys: number[] = [];
+	for (let name in conf) {
+		compressed_conf_xys = compressed_conf_xys.concat(conf[name].map((xy) => xy[0] * 50 + xy[1]));
+	}
+	let set_compressed_conf_xys = new Set(compressed_conf_xys);
+	structures = structures.filter((e) => !set_compressed_conf_xys.has(e.pos.x * 50 + e.pos.y))
+	for (let structure of structures) {
+		if (action) {
+			structure.destroy();
+		} else {
+			room.visual.circle(structure.pos, show_options);
+		}
+	}
+	return structures.length;
+}
+
+global.remove_unregistered_structures = function(room_name: string, action: boolean = false): number {
+	let conf = config.conf_rooms[room_name];
+	let n = 0;
+	n += remove_unregistered_multiple_structures(room_name, 'road', conf.roads, action);
+	n += remove_unregistered_multiple_structures(room_name, 'extension', conf.extensions, action);
+	n += remove_unregistered_multiple_structures(room_name, 'tower', conf.towers, action);
+	n += remove_unregistered_named_structures(room_name, 'link', conf.links, action);
+	n += remove_unregistered_named_structures(room_name, 'container', conf.containers, action);
+	n += remove_unregistered_named_structures(room_name, 'spawn', conf.spawns, action);
+	n += remove_unregistered_named_structures(room_name, 'lab', conf.labs, action);
+	return n;
+}

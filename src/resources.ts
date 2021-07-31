@@ -1,6 +1,9 @@
 import * as mymath from "./mymath"
 import * as functions from "./functions"
 import * as config from "./config"
+//import * as basic_job from "./basic_job"
+//import * as external_room from "./external_room"
+//import * as invade from "./invade"
 function is_pos_accessable(pos: RoomPosition): boolean {
     let room = Game.rooms[pos.roomName];
     let xmin = Math.min(25, pos.x);
@@ -123,6 +126,7 @@ function detect_pb(room_name: string, external_room_name: string) {
 		"name": name,
 		"xy": [pb.pos.x, pb.pos.y],
 		"id": pb.id,
+		"hits": undefined,
 		"status": 0,
 		"time_last": 0,
 		"rooms_path": exits_path.rooms_path,
@@ -170,6 +174,7 @@ function detect_depo(room_name: string, external_room_name: string) {
 		roomCallback: highway_resources_cost,
 	})
 	if (path.incomplete) {
+		console.log(`Warning: deposit at ${external_room_name} is too far from ${room_name}`);
 		return -2;
 	}
 	let name = `depo_${external_room_name}_${depo.depositType}_${Game.time}`;
@@ -189,6 +194,7 @@ function detect_depo(room_name: string, external_room_name: string) {
 		"rooms_path": exits_path.rooms_path,
 		"poses_path": exits_path.poses_path,
 		"distance": path.cost,
+		"last_active_time": Game.time,
 		"last_cooldown": depo.lastCooldown,
 		"amount_received": 0,
 		"expected_additional_amount": 0,
@@ -317,16 +323,20 @@ function update_depo(room_name: string, external_room_name: string) {
 	let depo_status = room.memory.external_resources.depo[external_room_name];
 	let external_room = Game.rooms[external_room_name];
 	let container: StructureContainer;
+	let depo = Game.getObjectById(depo_status.id);
+	if (depo != null) {
+		depo_status.last_cooldown = depo.lastCooldown;
+	}
 	if (external_room !== undefined) {
 		let container_pos = external_room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
 		container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
 		if (container !== undefined) {
 			depo_status.container_hits = container.hits;
 		}
-	}
-	let depo = Game.getObjectById(depo_status.id);
-	if (depo != undefined) {
-		depo_status.last_cooldown = depo.lastCooldown;
+		if (depo == null) {
+			delete room.memory.external_resources.depo[external_room_name];
+			return;
+		}
 	}
 	if (depo_status.status == 0) {
 		// build container
@@ -462,3 +472,157 @@ export function update_resources(room_name: string) {
     }
 }
 
+/*
+function pb_group_combat(attacker: Creep, healer: Creep) {
+	if (attacker == undefined) {
+		return 0;
+	}
+	let out: number;
+	if (healer == undefined) {
+		out = invade.single_combat_melee(attacker);
+	} else {
+		out = invade.group2_combat_melee(attacker, healer, 5);
+	}
+	return out;
+
+}
+
+export function run_pb_miner_group(pb_status: type_pb_status) {
+	if (pb_status.working_status == undefined) {
+		pb_status.working_status = 'spawning';
+	}
+	let attacker = Game.creeps[pb_status.pb_attacker_name];
+	let healer = Game.creeps[pb_status.pb_healer_name];
+	switch(pb_status.working_status) {
+		case 'spawning': {
+			if (functions.waiting_for_spawn([pb_status.pb_attacker_name, pb_status.pb_healer_name]) == 0) {
+				break;
+			}
+			pb_status.working_status = 'boost';
+			break;
+		}
+		case 'boost': {
+			let attacker_request = functions.conf_body_to_boost_request(config.pb_attacker_body);
+			let out_attacker = basic_job.boost_request(attacker, attacker_request, true);
+			let healer_request = functions.conf_body_to_boost_request(config.pb_healer_body);
+			let out_healer = basic_job.boost_request(healer, healer_request, true);
+			attacker.say("PAb");
+			healer.say("PHb");
+			if (out_attacker == 1 || out_healer == 1) {
+				break;
+			}
+			pb_status.working_status = 'external_move';
+			break;
+		}
+		case 'external_move': {
+			if (external_room.moveawayexit(attacker) == 0 || external_room.moveawayexit(healer) == 0) {
+				break;
+			}
+			if (pb_group_combat(attacker, healer) == 0) {
+				break;
+			}
+			let rooms_path = pb_status.rooms_path;
+			let poses_path = pb_status.poses_path;
+			let target_room = rooms_path[rooms_path.length - 1];
+			if (!external_room.is_moving_target_defined(attacker, 'forward')) {
+				external_room.save_external_moving_targets(attacker, rooms_path, poses_path, 'forward');
+			}
+			if (external_room.movethroughrooms_group_x2(attacker, healer, 'forward', target_room, {reusePath: 10}) !== 1) {
+				attacker.say("PAe");
+				healer.say("PHe");
+				break;
+			}
+			pb_status.working_status = 'move';
+			break;
+		}
+		case 'move': {
+			if (pb_group_combat(attacker, healer) == 0) {
+				break;
+			}
+			let pb_xy = pb_status.xy;
+			let pb_pos = attacker.room.getPositionAt(pb_xy[0], pb_xy[1]);
+			let pb = < StructurePowerBank > (pb_pos.lookFor("structure").filter((e) => e.structureType == 'powerBank')[0]);
+			if (pb == undefined) {
+				pb_status.working_status = 'guard';
+				break;
+			}
+			attacker.say("PHm");
+			if (attacker.pos.isNearTo(pb)) {
+				if (healer.pos.isNearTo(attacker)) {
+					pb_status.working_status = 'attack';
+				} else {
+					healer.moveTo(attacker.pos, {range: 1, costCallback: functions.avoid_exits});
+				}
+			} else {
+				attacker.moveTo(pb, {
+					range: 1,
+					maxRooms: 1,
+					costCallback: function(room_name: string, costmatrix: CostMatrix) {
+						functions.avoid_exits(room_name, costmatrix);
+						costmatrix.set(healer.pos.x, healer.pos.y, 0)
+					}
+				});
+				attacker.say("PAm");
+				if (healer.pos.isNearTo(attacker)) {
+					healer.move(healer.pos.getDirectionTo(attacker));
+				} else {
+					healer.moveTo(attacker.pos, {range: 1, costCallback: functions.avoid_exits});
+				}
+			}
+			break;
+		}
+		case 'attack': {
+			if (pb_group_combat(attacker, healer) == 0) {
+				pb_status.working_status = 'move';
+				break;
+			}
+			let pb = Game.getObjectById(pb_status.id);
+			if (pb == undefined) {
+				pb_status.working_status = 'guard';
+				break;
+			}
+			pb_status.hits = pb.hits;
+			if (attacker.hits == attacker.hitsMax) {
+				if (pb.hits > 1800) {
+					attacker.memory.ready = true;
+					attacker.attack(pb);
+					healer.heal(attacker);
+					attacker.say("PAa1");
+					healer.say("PHh1");
+				} else if (attacker.ticksToLive <= 3 || healer.ticksToLive <= 3 || mymath.all(pb_status.pb_carrier_names.map((e) => Game.creeps[e].memory.ready))) {
+					attacker.attack(pb);
+					healer.heal(attacker);
+					attacker.say("PAa2");
+					healer.say("PHh2");
+				}
+			} else {
+				healer.heal(attacker);
+				healer.say("PHh3");
+			}
+			break;
+		}
+		case 'guard': {
+			let pb_xy = pb_status.xy;
+			let pb_pos = attacker.room.getPositionAt(pb_xy[0], pb_xy[1]);
+			if (invade.group2_combat_melee(attacker, healer) !== 0) {
+				if (attacker.pos.getRangeTo(pb_pos) < 5) {
+					let poses_flee_to = functions.get_poses_with_fixed_range(pb_pos, 5);
+					let pos_flee_to = attacker.pos.findClosestByPath(poses_flee_to, {algorithm: 'dijkstra'});
+					attacker.moveTo(pos_flee_to, {
+						range: 0,
+						maxRooms: 1,
+						costCallback: function(room_name: string, costmatrix: CostMatrix) {
+							functions.avoid_exits(room_name, costmatrix);
+							costmatrix.set(healer.pos.x, healer.pos.y, 0)
+						}
+					});
+					healer.move(healer.pos.getDirectionTo(attacker));
+				} else if (healer.pos.getRangeTo(attacker) > 1) {
+					healer.move(healer.pos.getDirectionTo(attacker));
+				}
+			}
+			break;
+		}
+	}
+}
+*/

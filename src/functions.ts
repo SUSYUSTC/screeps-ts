@@ -84,6 +84,12 @@ export function avoid_exits(room_name: string, costMatrix: CostMatrix) {
     timer.end();
 }
 
+export function ignore_objects(costMatrix: CostMatrix, poses: RoomPosition[]) {
+	for (let pos of poses) {
+		costMatrix.set(pos.x, pos.y, 0);
+	}
+}
+
 export function restrict_passing_rooms(room_name: string): CostMatrix {
     let costMatrix = new PathFinder.CostMatrix;
     let coor = room2coor(room_name);
@@ -275,6 +281,11 @@ export function is_boost_resource_enough(room_name: string, request: type_body_c
 }
 
 export function sort_str(s1: string, s2: string): number {
+	let s1_upper = (s1[0] == s1[0].toUpperCase());
+	let s2_upper = (s2[0] == s2[0].toUpperCase());
+	if (s1_upper !== s2_upper) {
+		return s1_upper ? -1 : 1;
+	}
     if (s1.length !== s2.length) {
         return s1.length - s2.length;
     }
@@ -473,12 +484,12 @@ export function get_poses_with_fixed_range(pos: RoomPosition, range: number): Ro
         xys.push([x - d, y - range]);
         xys.push([x + d, y + range]);
     }
-    xys = xys.filter((e) => e[0] > range && e[1] > range && e[0] < 49 - range && e[1] < 49 - range);
+    xys = xys.filter((e) => e[0] > 0 && e[1] > 0 && e[0] < 49 && e[1] < 49);
     return xys.map((e) => new RoomPosition(e[0], e[1], pos.roomName));
 }
 
-export function can_use_cached_path(pos: RoomPosition, _move: type_creep_move) {
-	if ( _move !== undefined && Game.time <= _move.time && pos.x == _move.dest.x && pos.y == _move.dest.y && pos.roomName == _move.dest.room) {
+export function can_use_cached_path(pos: RoomPosition, _move: type_creep_move, reuse_time: number) {
+	if ( _move !== undefined && Game.time <= _move.time + reuse_time && pos.x == _move.dest.x && pos.y == _move.dest.y && pos.roomName == _move.dest.room) {
 		return true;
 	} else {
 		return false;

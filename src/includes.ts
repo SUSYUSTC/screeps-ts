@@ -327,6 +327,7 @@ interface type_pb_status {
     id: Id < StructurePowerBank > ;
     xy: number[];
     status: number;
+	hits: number;
     time_last: number;
     rooms_path: string[];
     poses_path: number[];
@@ -338,6 +339,7 @@ interface type_pb_status {
     n_pb_carrier_finished: number;
     amount: number;
 	amount_received: number;
+	working_status ?: string;
 }
 interface type_depo_status {
     name: string;
@@ -353,6 +355,7 @@ interface type_depo_status {
     last_cooldown: number;
 	amount_received: number;
 	expected_additional_amount: number;
+	last_active_time: number;
 	time_update_amount: number;
     time_last ?: number;
 	time_to_delete ?: number
@@ -488,6 +491,10 @@ interface Memory {
 		[key: string]: type_xy[];
 	}
 }
+type type_movethroughrooms_options = {
+	ignore_creep_xys ?: [number, number][],
+}
+
 type type_shard_exit_point = {
 	shard: string,
 	roomName: string,
@@ -757,7 +764,7 @@ declare module NodeJS {
             }
         }
         test_var ? : boolean;
-        visualize_cost(room_name: string, x_center: number, y_center: number, range: number): number;
+        visualize_cost(room_name: string, x_center: number, y_center: number, range: number, costmatrix: CostMatrix): number;
         cancel_reaction(room_name: string): number;
         set_reaction_request(room_name: string, compound: MineralCompoundConstant, amount: number): number;
         get_best_order(room_name: string, typ: "buy" | "sell", resource: MarketResourceConstant, num: number, energy_price: number): type_order_result[];
@@ -776,6 +783,7 @@ declare module NodeJS {
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
         update_layout(room_name: string, check_all: boolean): any;
+		remove_unregistered_structures(room_name: string): number;
 		get_tough_conf(creep: Creep): type_tough_conf;
 		get_body(components: type_body_components): BodyPartConstant[];
 		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number;

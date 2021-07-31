@@ -71,7 +71,7 @@ function exchange_ops(pc: PowerCreep): number {
 	}
 	let has_op_power = pc.powers[PWR_OPERATE_POWER] !== undefined;
 	let ops_lower_space = has_op_power ? 250 : 50;
-	let ops_upper_space = 50
+	let ops_upper_space = 50;
 	let ops_exchange_space = ops_lower_space + ops_upper_space + (has_op_power ? 200 : 50);
 	if (pc.carry.getUsedCapacity("ops") >= pc.carryCapacity - ops_upper_space) {
 		pc.say("ops>");
@@ -235,7 +235,7 @@ function operate_power(pc: PowerCreep) {
 	if (pc.powers[PWR_OPERATE_POWER] == undefined) {
 		return -1;
 	}
-	if (pc.carry.getUsedCapacity("ops") < 200) {
+	if (pc.carry.getUsedCapacity("ops") < 250) {
 		return -1;
 	}
 	if (pc.room.powerSpawn.effect_time >= 50 || pc.powers[PWR_OPERATE_POWER].cooldown > 0) {
@@ -272,7 +272,7 @@ function operate_lab(pc: PowerCreep) {
 	if (pc.powers[PWR_OPERATE_LAB] == undefined) {
 		return -1;
 	}
-	if (pc.carry.getUsedCapacity("ops") < 10) {
+	if (pc.carry.getUsedCapacity("ops") < 50) {
 		return -1;
 	}
 	if (pc.room.memory.reaction_request == undefined) {
@@ -314,9 +314,6 @@ function operate_factory(pc: PowerCreep) {
 	if (pc.carry.getUsedCapacity("ops") < 100) {
 		return -1;
 	}
-	if (Game.time < pc.memory.next_time.op_factory) {
-		return -1;
-	}
 	if (pc.room.factory.effect_time > 0) {
 		return -1;
 	}
@@ -325,10 +322,7 @@ function operate_factory(pc: PowerCreep) {
 		basic_job.movetopos(pc, pc.room.factory.pos, 3);
 		return 1;
 	} else {
-		let out = pc.usePower(PWR_OPERATE_FACTORY, pc.room.factory);
-		if (out == 0) {
-			pc.memory.next_time.op_factory = Game.time + 2000;
-		}
+		pc.usePower(PWR_OPERATE_FACTORY, pc.room.factory);
 		return 0;
 	}
 }
@@ -366,7 +360,7 @@ export function work(pc: PowerCreep) {
 	if (pc.memory.next_time == undefined) {
 		pc.memory.next_time = {};
 	}
-	for (let func of [generate_ops, check_status]) {
+	for (let func of [generate_ops, check_status, enable, renew]) {
 		if (func(pc) >= 0) {
 			return;
 		}
@@ -382,7 +376,7 @@ export function work(pc: PowerCreep) {
 	if (current_func(pc) >= 0) {
 		return;
 	}
-	for (let funcname of ['enable', 'renew', 'exchange_ops', 'operate_source', 'operate_extension', 'operate_power', 'operate_factory', 'operate_lab']) {
+	for (let funcname of ['exchange_ops', 'operate_source', 'operate_extension', 'operate_power', 'operate_factory', 'operate_lab']) {
 		if (funcname == pc.memory.working_status) {
 			continue;
 		}

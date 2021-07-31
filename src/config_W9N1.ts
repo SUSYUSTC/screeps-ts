@@ -453,7 +453,8 @@ export var conf_W9N1: type_conf_room =
         [41, 27],
         [41, 35],
         [41, 37],
-        [41, 39]
+        [41, 39],
+        [24, 43]
     ],
     "safe_boundary": [
         [14, 37],

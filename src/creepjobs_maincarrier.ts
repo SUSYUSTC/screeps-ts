@@ -455,6 +455,8 @@ type type_requirement = {
     to_limit_amount ? : number; // at most increase to this amount
     to_expect_amount ? : number; // at least increase to this amount
     to_max_amount ? : number; // more than this amount will carry back
+	onetime_min_amount ? : number; // transfer with amount smaller than this amount will not be operated
+	onetime_max_amount ? : number; // transfer amount will reduce to this amount if exceeding this amount
 }
 
 var nuker_G_requirement: type_requirement = {
@@ -552,6 +554,7 @@ function get_room_commodity_requirements(room_name: string): type_commodity_requ
 				from: "factory",
 				to: "terminal",
 				to_min_amount: Infinity,
+				onetime_min_amount: config.onetime_min_commodity_amount_to_transfer[i],
 			});
 		} else {
 			result.products.push({
@@ -559,11 +562,18 @@ function get_room_commodity_requirements(room_name: string): type_commodity_requ
 				from: "terminal",
 				to: "factory",
 				to_min_amount: config.min_commodity_amount_to_keep_in_factory_by_level[i],
-				to_limit_amount: config.max_commodity_amount_to_keep_in_factory_by_level[i],
+				to_max_amount: config.max_commodity_amount_to_keep_in_factory_by_level[i],
+				onetime_min_amount: config.onetime_min_commodity_amount_to_transfer[i],
+				onetime_max_amount: config.onetime_max_commodity_amount_to_transfer[i],
 			});
 		}
     }
     return result;
+}
+
+var room_commodity_requirements: {[key: string]: type_commodity_requirements} = {};
+for (let room_name of config.controlled_rooms) {
+	room_commodity_requirements[room_name] = get_room_commodity_requirements(room_name);
 }
 
 function get_required_jobs(creep: Creep, requirement: type_requirement): type_transport_job[] {
@@ -580,6 +590,12 @@ function get_required_jobs(creep: Creep, requirement: type_requirement): type_tr
         if (amount_to >= requirement.to_max_amount) {
             let amount = amount_to - requirement.to_max_amount + 1;
             amount = Math.ceil(amount / capacity) * capacity;
+			if (requirement.onetime_max_amount !== undefined) {
+				amount = Math.min(requirement.onetime_max_amount, amount);
+			}
+			if (amount < requirement.onetime_min_amount) {
+				continue;
+			}
             let job: type_transport_job = {
                 resource_type: resource,
                 from: requirement.to,
@@ -599,6 +615,12 @@ function get_required_jobs(creep: Creep, requirement: type_requirement): type_tr
                 amount = Math.ceil(amount / capacity) * capacity;
             }
             amount = Math.min(amount, amount_from);
+			if (requirement.onetime_max_amount !== undefined) {
+				amount = Math.min(requirement.onetime_max_amount, amount);
+			}
+			if (amount < requirement.onetime_min_amount) {
+				continue;
+			}
             let job: type_transport_job = {
                 resource_type: resource,
                 from: requirement.from,
@@ -635,7 +657,7 @@ function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
         }
 
         jobs = jobs.concat(get_required_jobs(creep, nuker_G_requirement));
-        let commodity_requirements = get_room_commodity_requirements(creep.room.name);
+        let commodity_requirements = room_commodity_requirements[creep.room.name];
         if (commodity_requirements !== undefined) {
             jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.bar));
             jobs = jobs.concat(get_required_jobs(creep, commodity_requirements.depo));

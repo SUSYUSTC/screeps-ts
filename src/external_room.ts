@@ -4,10 +4,6 @@ import * as config from "./config"
 import * as basic_job from "./basic_job"
 import { Timer } from "./timer";
 
-type type_movethroughrooms_options = {
-	ignore_creep_xys ?: [number, number][],
-}
-
 function get_external_moving_targets(rooms_path: string[], poses_path: number[]): type_external_moving_targets {
 	// -1: error, 0: normal success, 1: already done, 2: correcting path
 	let dict: type_external_moving_targets = {};
@@ -200,23 +196,26 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 		console.log(`Warning: movethroughrooms_group_x2 fail at exit for invader ${invader.name} and healer ${healer.name} at time ${Game.time}`)
 		return -1;
 	}
-	let closest_exit = healer.pos.findClosestByRange(closest_exits);
-	let healer_target_pos = invader.room.getPositionAt(invader.pos.x + closest_exit.x - exit_pos.x, invader.pos.y + closest_exit.y - exit_pos.y);
-	healer.room.visual.text("here", healer_target_pos.x, healer_target_pos.y);
-	if (healer.pos.isEqualTo(healer_target_pos)) {
-		let direction = invader.pos.getDirectionTo(exit_pos);
-		invader.move(direction);
-		healer.move(direction);
-	} else {
-		healer.moveTo(healer_target_pos, {
-			maxRooms: 1,
-			costCallback: function(room_name: string, costmatrix: CostMatrix) {
-				functions.avoid_exits(room_name, costmatrix);
-				if (room_name == healer_target_pos.roomName) {
-					costmatrix.set(healer_target_pos.x, healer_target_pos.y, 0);
-				}
+	let moveTo_options: MoveToOpts = {
+		range: 1,
+		maxRooms: 1,
+		costCallback: function(room_name: string, costmatrix: CostMatrix) {
+			let range2_poses = functions.get_poses_with_fixed_range(invader.pos, 2);
+			for (let pos of range2_poses) {
+				costmatrix.set(pos.x, pos.y, 255);
 			}
-		})
+			functions.avoid_exits(room_name, costmatrix);
+		}
+	}
+	let closest_exit = healer.pos.findClosestByPath(closest_exits, moveTo_options);
+	healer.room.visual.text("here", closest_exit.x, closest_exit.y);
+	if (healer.pos.isNearTo(closest_exit)) {
+		let invader_direction = invader.pos.getDirectionTo(exit_pos);
+		let healer_direction = healer.pos.getDirectionTo(closest_exit);
+		invader.move(invader_direction);
+		healer.move(healer_direction);
+	} else {
+		healer.moveTo(closest_exit, moveTo_options)
 	}
 	return 0;
 }

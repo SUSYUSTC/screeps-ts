@@ -50,11 +50,13 @@ function vertical_split_string(str1: string, str2: string): string {
 }
 
 export function init() {
-	global.visualize_cost = function(room_name: string, x_center: number, y_center: number, range: number): number {
-		let cost = functions.get_costmatrix_road(room_name);
+	global.visualize_cost = function(room_name: string, x_center: number, y_center: number, range: number, costmatrix: CostMatrix = undefined): number {
+		if (costmatrix == undefined) {
+			costmatrix = functions.get_costmatrix_road(room_name);
+		}
 		for (let x = Math.max(x_center - range, 0); x <= Math.min(x_center + range, 49); x++) {
 			for (let y = Math.max(y_center - range, 0); y <= Math.min(y_center + range, 49); y++) {
-				Game.rooms[room_name].visual.text(cost.get(x, y).toString(), x, y);
+				Game.rooms[room_name].visual.text(costmatrix.get(x, y).toString(), x, y);
 			}
 		}
 		return 0;
@@ -71,7 +73,7 @@ export function init() {
 		for (let key of keys) {
 			let use_float = false;
 			if (typeof objs[0][key] === 'number') {
-				use_float = objs.filter((e) => e[key] !== parseInt(e[key])).length > 0;
+				use_float = objs.filter((e) => e[key] != undefined && e[key] !== parseInt(e[key])).length > 0;
 			}
 			use_floats[key]=use_float;
 			lengths[key] = mymath.max(objs.map((e) => obj2string(e[key], json, use_float).length))
@@ -164,6 +166,7 @@ export function init() {
 				amount: number;
 				status: number;
 				time_last: number;
+				hits: number;
 			}
 		} = {};
 		for (let home_room_name of Game.controlled_rooms_with_terminal) {
@@ -179,6 +182,7 @@ export function init() {
 					amount: pb.amount,
 					status: pb.status,
 					time_last: pb.time_last,
+					hits: pb.hits,
 				}
 			}
 		}

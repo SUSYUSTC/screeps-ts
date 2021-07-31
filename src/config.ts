@@ -201,32 +201,15 @@ export var bar_buy_onetime_amount = 3000;
 export var buy_power_room = "E19N53";
 export var power_store_amount = 20000;
 export var power_buy_onetime_amount = 3000;
+export var onetime_min_commodity_amount_to_transfer: number[] = [100, 20];
+export var onetime_max_commodity_amount_to_transfer: number[] = [200, 100];
 export var min_commodity_amount_to_keep_in_factory_by_level: number[] = [50];
 export var max_commodity_amount_to_keep_in_factory_by_level: number[] = [500];
-export var commodity_amount_to_start_selling_by_level: number[] = [Infinity, 0];
-export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 10000];
+export var commodity_amount_to_start_selling_by_level: number[] = [15000, 0];
+export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 1200];
 export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
-var path_E11S39: type_shard_exit_point[] = [ 
-     { shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
-     { shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
-     { shard: 'shard1', roomName: 'W10S0', x: 9, y: 20 },
-     { shard: 'shard0', roomName: 'W21S0', x: 48, y: 38 },
-     { shard: 'shard0', roomName: 'W20S30', x: 37, y: 30 },
-     { shard: 'shard1', roomName: 'W10S20', x: 23, y: 4 },
-     { shard: 'shard0', roomName: 'W21S40', x: 48, y: 42 },
-     { shard: 'shard0', roomName: 'W20S50', x: 23, y: 26 },
-     { shard: 'shard1', roomName: 'W10S30', x: 27, y: 5 },
-     { shard: 'shard0', roomName: 'W21S60', x: 48, y: 41 },
-     { shard: 'shard0', roomName: 'W20S80', x: 27, y: 4 },
-     { shard: 'shard1', roomName: 'W10S40', x: 7, y: 34 },
-     { shard: 'shard0', roomName: 'W10S71', x: 44, y: 1 },
-     { shard: 'shard0', roomName: 'E40S69', x: 11, y: 48 },
-     { shard: 'shard0', roomName: 'E20S70', x: 19, y: 16 },
-     { shard: 'shard1', roomName: 'E10S40', x: 6, y: 30 },
-     { shard: 'shard2', roomName: 'E10S40', x: 42, y: 24 },
-     { shard: 'shard3', roomName: 'E11S39', x: 23, y: 14 } ]
 interface type_preclaiming_rooms {
     [key: string]: {
         [key: string]: type_external_shard_map
@@ -234,13 +217,9 @@ interface type_preclaiming_rooms {
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {}
 preclaiming_rooms = {
-	'W9N1': {
-		'E11S39': {
-			shard_path: path_E11S39,
-		}
-	},
 }
 export var help_list: type_help_list = {
+	/*
     "W9N1": {
         "E11S39": {
             shard_path: path_E11S39,
@@ -251,6 +230,7 @@ export var help_list: type_help_list = {
             guard: 5,
         }
     }
+	*/
 };
 export var protected_sources: {
     [key: string]: string[]
@@ -277,7 +257,7 @@ export var highway_resources: {
     "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
 	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
 	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
-	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E1043'],
+	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E10S43'],
 }
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
@@ -383,7 +363,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "ops": {
-            price: 1.5,
+            price: 5.0,
             interval: 1000,
 			always_increase: true,
         },
@@ -430,7 +410,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
         },
 		"switch": {
-			price: 5600,
+			price: 5400,
 			interval: -1,
 		},
         "alloy": {
@@ -446,7 +426,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
         },
 		"phlegm": {
-			price: 8800,
+			price: 8600,
 			interval: -1,
 		}
 	}
