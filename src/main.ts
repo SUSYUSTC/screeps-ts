@@ -115,6 +115,20 @@ function run_main() {
 	console.log("All creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].all_creeps))
 	console.log("Registered creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].creeps))
 
+	timer = new Timer("invade_groups_x2", true);
+	if (Memory.invade_groups_x2 == undefined) {
+		Memory.invade_groups_x2 = {};
+	}
+	for (let groupname in Memory.invade_groups_x2) {
+		try {
+			console.log(global.format_json(Memory.invade_groups_x2[groupname], {json: false, skipkeys: ['costmatrix']}))
+			invade.run_invader_group_x2(groupname);
+		} catch (err) {
+			console.log("Captured error", groupname, err.stack);
+		}
+	}
+	timer.end();
+
 	timer = new Timer("towers", true);
     for (let room_name of config.controlled_rooms) {
 		try {

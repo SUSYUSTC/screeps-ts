@@ -97,7 +97,13 @@ export function init() {
 		if (options.sort) {
 			keys = keys.sort(functions.sort_str);
 		}
+		if (options.skipkeys == undefined) {
+			options.skipkeys = [];
+		}
 		for (let key of keys) {
+			if (options.skipkeys.includes(key)) {
+				continue;
+			}
 			let item: any = {...{keyname: key}, ...{value: obj[key]}};
 			arr.push(item);
 		}
@@ -110,7 +116,13 @@ export function init() {
 		if (options.sort) {
 			keys = keys.sort(functions.sort_str);
 		}
+		if (options.skipkeys == undefined) {
+			options.skipkeys = [];
+		}
 		for (let key of keys) {
+			if (options.skipkeys.includes(key)) {
+				continue;
+			}
 			let item: any = {...{keyname: key}, ...(_.clone(obj[key]))};
 			arr.push(item);
 		}

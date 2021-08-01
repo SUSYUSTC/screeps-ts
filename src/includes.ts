@@ -426,6 +426,11 @@ interface type_invade_group_x2 {
 	invade_level: number;
 	assign: type_invade_assign;
 	home_room_name: string;
+	target_room_name ?: string;
+	shard_path: type_shard_exit_point[];
+	working_status ?: string;
+	target_structure_id ?: Id<Structure>;
+	costmatrix ?: number[];
 }
 
 type type_order_total_amount = {
@@ -476,7 +481,6 @@ interface Memory {
 	}
 	pb_log ? : type_pb_log[];
 	depo_log ? : type_depo_log[];
-	invade_costmatrices ?: {[key: string]: number[]};
 	invade_groups_x2 ?: {
 		[key: string]: type_invade_group_x2;
 	};
@@ -721,6 +725,7 @@ interface type_costmatrices {
 type type_format_options = {
 	json ?: boolean;
 	sort ?: boolean;
+	skipkeys ?: string[];
 }
 type type_resource_balance = {
 		gap: number;

@@ -221,6 +221,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 }
 
 export function movethroughshards(creep: Creep) {
+	// -1: Error, 0: scheduled, 1: finished
 	console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos), creep.memory._move == undefined ? undefined : creep.memory._move.time);
 	let timer = new Timer("movethroughshards", false);
 	let timer_only = new Timer("movethroughshards_only", false);
@@ -249,8 +250,9 @@ export function movethroughshards(creep: Creep) {
 	let pathfinding = false;
 	if (shard_move.shard !== Game.shard.name) {
 		let first_index = shard_move.shard_path.findIndex((e) => e.shard == Game.shard.name);
-		if (first_index == -1 && shard_move.shard.length == 1) {
+		if (first_index == -1 && shard_move.shard_path.length <= 1) {
 			shard_move.shard_path = [];
+			return 1;
 		} else {
 			shard_move.shard_path = shard_move.shard_path.slice(first_index);
 		}
@@ -296,5 +298,6 @@ export function movethroughshards(creep: Creep) {
 		external_move(creep, 'shard', {reusePath: 20});
 	}
 	timer.end();
+	return 0;
 }
 

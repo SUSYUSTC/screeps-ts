@@ -126,7 +126,7 @@ export function tower_damage(dis: number): number {
     } else if (dis > 20) {
         return 150;
     } else {
-        return 3000 / dis;
+        return 750 - dis * 30
     }
 }
 
@@ -160,6 +160,25 @@ export function get_invader_costmatrix(room_name: string, damage_threshold: numb
     return costmatrix;
 }
 
+export function construct_elementary_costmatrix(room_name: string) {
+	let costmatrix = new PathFinder.CostMatrix;
+	let terrain = new Room.Terrain(room_name);
+	let room = Game.rooms[room_name];
+	let structures = room.find(FIND_STRUCTURES);
+	let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+	structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
+	structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	for (let i=0; i<50; i++) {
+		costmatrix.set(i, 0, 255);
+		costmatrix.set(i, 49, 255);
+		costmatrix.set(0, i, 255);
+		costmatrix.set(49, i, 255);
+	}
+	return costmatrix;
+}
+
 export function update_basic_costmatrices() {
     if (global.basic_costmatrices == undefined) {
         global.basic_costmatrices = {};
@@ -171,23 +190,7 @@ export function update_basic_costmatrices() {
             continue;
         }
         if (global.basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
-            let costmatrix = new PathFinder.CostMatrix;
-            let terrain = new Room.Terrain(room_name);
-            if (Game.rooms[room_name] !== undefined) {
-                let room = Game.rooms[room_name];
-                let structures = room.find(FIND_STRUCTURES);
-                let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-                structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
-                structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-                sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-                structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-				for (let i=0; i<50; i++) {
-					costmatrix.set(i, 0, 255);
-					costmatrix.set(i, 49, 255);
-					costmatrix.set(0, i, 255);
-					costmatrix.set(49, i, 255);
-				}
-            }
+			let costmatrix = construct_elementary_costmatrix(room_name);
             global.basic_costmatrices[room_name] = costmatrix.clone();
             if (config.controlled_rooms.includes(room_name)) {
                 global.basic_costmatrices_safe[room_name] = costmatrix.clone();
@@ -469,10 +472,10 @@ export function creep_exists(creep_name: string, room_name: string, options: {fi
     return false;
 }
 
-export function get_poses_with_fixed_range(pos: RoomPosition, range: number): RoomPosition[] {
+export function get_xys_with_fixed_range(pos: RoomPosition, range: number): [number, number][] {
     let x = pos.x;
     let y = pos.y;
-    let xys = [
+    let xys: [number, number][] = [
         [x - range, y - range],
         [x - range, y + range],
         [x + range, y - range],
@@ -485,6 +488,29 @@ export function get_poses_with_fixed_range(pos: RoomPosition, range: number): Ro
         xys.push([x + d, y + range]);
     }
     xys = xys.filter((e) => e[0] > 0 && e[1] > 0 && e[0] < 49 && e[1] < 49);
+	return xys;
+}
+export function get_poses_with_fixed_range(pos: RoomPosition, range: number): RoomPosition[] {
+	let xys = get_xys_with_fixed_range(pos, range)
+    return xys.map((e) => new RoomPosition(e[0], e[1], pos.roomName));
+}
+
+export function get_xys_within_range(pos: RoomPosition, range: number): [number, number][] {
+	let xmin = Math.max(0, pos.x - range);
+	let xmax = Math.min(49, pos.x + range);
+	let ymin = Math.max(0, pos.y - range);
+	let ymax = Math.min(49, pos.y + range);
+	let xys: [number, number][] = [];
+	for (let x=xmin;x<=xmax;x++) {
+		for (let y=ymin;y<=ymax;y++) {
+			xys.push([x, y]);
+		}
+	}
+	return xys
+}
+
+export function get_poses_within_range(pos: RoomPosition, range: number): RoomPosition[] {
+	let xys = get_xys_within_range(pos, range);
     return xys.map((e) => new RoomPosition(e[0], e[1], pos.roomName));
 }
 
@@ -495,3 +521,56 @@ export function can_use_cached_path(pos: RoomPosition, _move: type_creep_move, r
 		return false;
 	}
 }
+
+export function get_creep_invading_ability(creep: Creep): type_body_components {
+    let result: type_body_components = {
+        "work": 0,
+        "move": 0,
+        "attack": 0,
+        "ranged_attack": 0,
+        "heal": 0,
+        "tough": 0,
+    }
+    for (let body of creep.body) {
+        if (result[body.type] == undefined) {
+            continue;
+        }
+        if (body.boost !== undefined) {
+            let compound_letter_number = ( < string > body.boost).length;
+            if (compound_letter_number == 2) {
+                result[body.type] += 2;
+            } else if (compound_letter_number == 4) {
+                result[body.type] += 3;
+            } else if (compound_letter_number == 5) {
+                result[body.type] += 4;
+            }
+        } else {
+            result[body.type] += 1;
+        }
+    }
+    return result;
+}
+
+export function get_room_invading_ability(room_name: string): type_body_components {
+    let result: type_body_components = {
+        "work": 0,
+        "move": 0,
+        "attack": 0,
+        "ranged_attack": 0,
+        "heal": 0,
+        "tough": 0,
+    }
+    let room = Game.rooms[room_name];
+    let hostile_creeps = find_hostile(room);
+    for (let hc of hostile_creeps) {
+        if (hc.owner.username == 'Invader') {
+            continue;
+        }
+        let ability = get_creep_invading_ability(hc);
+        for (let body in result) {
+            result[ < BodyPartConstant > body] += ability[ < BodyPartConstant > body];
+        }
+    }
+    return result;
+}
+

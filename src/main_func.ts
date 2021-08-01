@@ -378,7 +378,7 @@ function update_external(room_name: string) {
 }
 
 function set_danger_mode(room_name: string) {
-    let enemies_components = defense.get_room_invading_ability(room_name)
+    let enemies_components = functions.get_room_invading_ability(room_name)
     let enemies_CE = mymath.array_sum(Object.values(enemies_components));
     if (enemies_CE >= 50 && enemies_components.heal >= 20) {
         console.log(`Warning: Invasion detected at room ${room_name}!`);

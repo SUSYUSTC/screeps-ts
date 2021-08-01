@@ -61,58 +61,6 @@ function get_one_invader_type(creep: Creep): null | invader_type {
     };
 }
 
-export function get_creep_invading_ability(creep: Creep): type_body_components {
-    let result: type_body_components = {
-        "work": 0,
-        "move": 0,
-        "attack": 0,
-        "ranged_attack": 0,
-        "heal": 0,
-        "tough": 0,
-    }
-    for (let body of creep.body) {
-        if (result[body.type] == undefined) {
-            continue;
-        }
-        if (body.boost !== undefined) {
-            let compound_letter_number = ( < string > body.boost).length;
-            if (compound_letter_number == 2) {
-                result[body.type] += 2;
-            } else if (compound_letter_number == 4) {
-                result[body.type] += 3;
-            } else if (compound_letter_number == 5) {
-                result[body.type] += 4;
-            }
-        } else {
-            result[body.type] += 1;
-        }
-    }
-    return result;
-}
-
-export function get_room_invading_ability(room_name: string): type_body_components {
-    let result: type_body_components = {
-        "work": 0,
-        "move": 0,
-        "attack": 0,
-        "ranged_attack": 0,
-        "heal": 0,
-        "tough": 0,
-    }
-    let room = Game.rooms[room_name];
-    let hostile_creeps = functions.find_hostile(room);
-    for (let hc of hostile_creeps) {
-        if (hc.owner.username == 'Invader') {
-            continue;
-        }
-        let ability = get_creep_invading_ability(hc);
-        for (let body in result) {
-            result[ < BodyPartConstant > body] += ability[ < BodyPartConstant > body];
-        }
-    }
-    return result;
-}
-
 export function get_defense_type(room: Room): string {
     var enemies = functions.find_hostile(room);
     var enemy_types = enemies.map((e) => functions.analyze_component(e));
@@ -331,7 +279,7 @@ export function defend_home(room_name: string) {
 		}
 		return;
     }
-	let heal_abilities = enemies.map((creep) => get_creep_invading_ability(creep).heal);
+	let heal_abilities = enemies.map((creep) => functions.get_creep_invading_ability(creep).heal);
     let distance_matrix = get_distance_matrix(enemies.map((e) => e.pos));
     let max_healed_amount: number[] = [];
     for (let i = 0; i < enemies.length; i++) {
