@@ -121,7 +121,7 @@ function run_main() {
 	}
 	for (let groupname in Memory.invade_groups_x2) {
 		try {
-			console.log(global.format_json(Memory.invade_groups_x2[groupname], {json: false, skipkeys: ['costmatrix']}))
+			console.log(global.format_json(Memory.invade_groups_x2[groupname], {json: false, skipkeys: ['costmatrix', 'shard_path']}))
 			invade.run_invader_group_x2(groupname);
 		} catch (err) {
 			console.log("Captured error", groupname, err.stack);

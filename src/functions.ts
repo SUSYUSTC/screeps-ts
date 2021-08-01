@@ -449,7 +449,7 @@ export function get_total_resource_amount(room_name: string, resource: ResourceC
 	}
 }
 
-export function creep_exists(creep_name: string, room_name: string, options: {filter ?: (creep: Creep) => boolean} = {}): boolean {
+export function creep_exists(creep_name: string, room_name: string, options: {filter ?: (creep: Creep) => boolean, search_shard ?: boolean} = {}): boolean {
 	let creep = Game.creeps[creep_name];
     if (creep !== undefined) {
 		if (creep.spawning) {
@@ -469,6 +469,11 @@ export function creep_exists(creep_name: string, room_name: string, options: {fi
             return true;
         }
     }
+	if (options.search_shard) {
+		if (Game.InterShardMemory[Game.shard.name].all_creeps[creep_name] !== undefined) {
+			return true;
+		}
+	}
     return false;
 }
 

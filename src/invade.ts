@@ -28,6 +28,7 @@ var show_gray = {
 }
 
 var high_valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory'];
+var low_valued_structures: StructureConstant[] = ['rampart', 'constructedWall'];
 var valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart', 'constructedWall'];
 var owned_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart'];
 var mass_damage: {
@@ -152,7 +153,7 @@ function get_structure_cost(invader: Creep, structure: Structure, ref_hits: numb
     ref_hits = Math.max(ref_hits, 400000);
     let hits = structure.hits + (structure.structureType == 'rampart' ? 0 : with_rampart(structure.pos));
     let tower_score = (structure.structureType == 'tower' ? 2 : 0);
-    return Math.max(Math.ceil(hits * 20 / ref_hits), 240) + tower_score + 1;
+    return Math.min(Math.ceil(hits * 20 / ref_hits), 240) + tower_score + 1;
 }
 
 function get_most_valued_structure_in_range(invader: Creep, range: number): Structure {
@@ -426,18 +427,20 @@ function get_final_combat_costmatrix(groupname: string): CostMatrix {
 function determine_attacking_structure(creep: Creep, costmatrix: CostMatrix): Structure {
     costmatrix = costmatrix.clone();
     let structures = creep.room.find(FIND_STRUCTURES).filter((e) => valued_structures.includes(e.structureType));
-    if (structures.length == 0) {
+	let key_structures = structures.filter((e) => !low_valued_structures.includes(e.structureType)); 
+	let non_key_structures = structures.filter((e) => low_valued_structures.includes(e.structureType));
+    if (key_structures.length == 0) {
         return undefined;
     }
     let rampart_walls = structures.filter((e) => ['rampart', 'constructedWall'].includes(e.structureType) && e.hits >= 50000)
     let mean_hits = rampart_walls.length == 0 ? 0 : mymath.array_sum(rampart_walls.map((e) => e.hits)) / rampart_walls.length;
-    let costs = structures.map((e) => get_structure_cost(creep, e, mean_hits));
-    for (let i = 0; i < structures.length; i++) {
-        let pos = structures[i].pos;
-        let cost = costs[i];
+    let key_costs = key_structures.map((e) => get_structure_cost(creep, e, mean_hits));
+    for (let i = 0; i < key_structures.length; i++) {
+        let pos = key_structures[i].pos;
+        let cost = key_costs[i];
         costmatrix.set(pos.x, pos.y, cost);
     }
-    let structure = creep.pos.findClosestByPath(structures, {
+    let structure = creep.pos.findClosestByPath(key_structures, {
         algorithm: 'dijkstra',
         maxRooms: 1,
         costCallback: function(roomName: string, costMatrix: CostMatrix) {
@@ -445,7 +448,26 @@ function determine_attacking_structure(creep: Creep, costmatrix: CostMatrix): St
                 return costmatrix;
             }
         },
-        maxOps: 2000,
+        maxOps: 500,
+    });
+	if (structure != null) {
+		return structure;
+	}
+    let non_key_costs = non_key_structures.map((e) => get_structure_cost(creep, e, mean_hits));
+    for (let i = 0; i < non_key_structures.length; i++) {
+        let pos = non_key_structures[i].pos;
+        let cost = non_key_costs[i];
+        costmatrix.set(pos.x, pos.y, cost);
+    }
+    structure = creep.pos.findClosestByPath(structures, {
+        algorithm: 'dijkstra',
+        maxRooms: 1,
+        costCallback: function(roomName: string, costMatrix: CostMatrix) {
+            if (roomName == creep.room.name) {
+                return costmatrix;
+            }
+        },
+        maxOps: 500,
     });
     return structure;
 }
@@ -760,7 +782,7 @@ let invade_conf_levels: type_invade_conf_levels = {
 //export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string, rooms_path: string[], poses_path: number[]) {
 export function run_invader_group_x2(groupname: string) {
     let group = Memory.invade_groups_x2[groupname];
-    if (!functions.creep_exists(group.invader_name, group.home_room_name) || !functions.creep_exists(group.healer_name, group.home_room_name)) {
+    if (!functions.creep_exists(group.invader_name, group.home_room_name, {search_shard: true}) || !functions.creep_exists(group.healer_name, group.home_room_name, {search_shard: true})) {
         delete Memory.invade_groups_x2[groupname];
         return;
     }

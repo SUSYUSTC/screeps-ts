@@ -743,6 +743,9 @@ declare module NodeJS {
 		main_shards: string[];
 		sub_shards: string[];
 		all_shards: string[];
+		my_shard_paths: {
+			[key: string]: type_shard_exit_point[];
+		}
 		controlled_rooms: string[];
         basic_costmatrices: type_costmatrices,
         basic_costmatrices_safe: type_costmatrices,

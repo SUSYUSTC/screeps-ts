@@ -55,6 +55,28 @@ function direction2orient(pos: number[]) {
 }
 */
 
+var path_E29S21: type_shard_exit_point[] =    [
+	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
+	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
+	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
+	{ shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
+	{ shard: 'shard0', roomName: 'E40S70', x: 18, y: 13 },
+	{ shard: 'shard1', roomName: 'E20S40', x: 9, y: 21 },
+	{ shard: 'shard0', roomName: 'E31S70', x: 1, y: 2 },
+	{ shard: 'shard0', roomName: 'E31S50', x: 1, y: 5 },
+	{ shard: 'shard0', roomName: 'E30S40', x: 26, y: 23 },
+	{ shard: 'shard1', roomName: 'E20S20', x: 39, y: 9 },
+	{ shard: 'shard0', roomName: 'E39S30', x: 48, y: 3 },
+	{ shard: 'shard0', roomName: 'E40S19', x: 29, y: 48 },
+	{ shard: 'shard0', roomName: 'E61S20', x: 1, y: 31 },
+	{ shard: 'shard0', roomName: 'E60S30', x: 15, y: 43 },
+	{ shard: 'shard1', roomName: 'E30S20', x: 20, y: 31 },
+	{ shard: 'shard2', roomName: 'E30S20', x: 23, y: 5 } 
+];
+global.my_shard_paths = {
+	"E29S21": path_E29S21,
+}
+
 type type_conf_rooms = {
     [key: string]: type_conf_room;
 }
@@ -215,8 +237,12 @@ interface type_preclaiming_rooms {
         [key: string]: type_external_shard_map
     }
 }
-export var preclaiming_rooms: type_preclaiming_rooms = {}
-preclaiming_rooms = {
+export var preclaiming_rooms: type_preclaiming_rooms = {
+	"E11S39": {
+		"E29S21": {
+			shard_path: path_E29S21,
+		}
+	}
 }
 export var help_list: type_help_list = {
 	/*

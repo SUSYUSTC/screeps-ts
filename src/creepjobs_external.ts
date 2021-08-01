@@ -274,7 +274,7 @@ export function creepjob(creep: Creep): number {
 		} else {
 			cross_shard.delete_creep_from_shardmemory(creep);
 			if (creep.room.controller.my) {
-				creep.suicide();
+				creep.signController(creep.room.controller, config.sign);
 				return 0;
 			}
 			let hostile = creep.room.find(FIND_HOSTILE_CREEPS).filter((e) => e.getActiveBodyparts(CLAIM))[0];
@@ -291,10 +291,6 @@ export function creepjob(creep: Creep): number {
 				creep.moveTo(creep.room.controller, {range: 1, costCallback: functions.avoid_exits});
 				creep.say("cm");
 				return 0;
-			}
-			if (creep.room.controller.my) {
-				creep.signController(creep.room.controller, config.sign);
-				creep.say("cs");
 			}
 			let out = creep.claimController(creep.room.controller);
 			creep.say(out.toString());
