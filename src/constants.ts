@@ -97,19 +97,20 @@ export var t012_minerals = (<Array<GeneralMineralConstant>>basic_minerals).conca
 export var bars = <ResourceConstant[]> ['utrium_bar', 'lemergium_bar', 'zynthium_bar', 'keanium_bar', 'ghodium_melt', 'oxidant', 'reductant', 'purifier', 'composite', 'crystal', 'liquid'];
 export var basic_commodities : ResourceConstant[] = ['silicon', 'metal', 'biomass', 'mist'];
 type type_basic_commodity_production = {
-	[key in "U" | "L" | "Z" | "K"]: {
+	[key in type_zone]: {
 		bar: CommodityConstant,
 		depo: ResourceConstant,
 		product: CommodityConstant,
 	}
 }
 type type_commodities_related_requirement = {
-	[key in "U" | "L" | "Z" | "K"]: {
+	[key in type_zone]: {
 		bars: CommodityConstant[],
 		depo: ResourceConstant,
 		products: CommodityConstant[],
 	}
 }
+export var zones: type_zone[] = ["U", "L", "Z", "K"];
 export var basic_commodity_production: type_basic_commodity_production = {
 	U: {
 		bar: 'utrium_bar',

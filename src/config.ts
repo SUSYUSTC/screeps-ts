@@ -213,8 +213,8 @@ export var react_stop_amount = 20;
 export var react_min_amount = 2800;
 export var react_max_amount = 3000;
 export var mineral_store_additional_amount = 20000;
-export var ops_store_amount = 10000;
-export var ops_buy_onetime_amount = 2000;
+export var ops_store_amount = 15000;
+export var ops_buy_onetime_amount = 5000;
 export var mineral_buy_onetime_amount = 10000;
 export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
@@ -229,6 +229,8 @@ export var min_commodity_amount_to_keep_in_factory_by_level: number[] = [50];
 export var max_commodity_amount_to_keep_in_factory_by_level: number[] = [500];
 export var commodity_amount_to_start_selling_by_level: number[] = [15000, 0];
 export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 1200];
+export var deposit_sending_amount_gap: number = 10000;
+export var commodity_sending_amount_gap: number[] = [2000, 200];
 export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
@@ -240,7 +242,7 @@ interface type_preclaiming_rooms {
 export var preclaiming_rooms: type_preclaiming_rooms = {
 	"E11S39": {
 		"E29S21": {
-			shard_path: path_E29S21,
+			shard_path: path_E29S21.concat([{ shard: 'shard3', roomName: 'E29S21', x: 15, y: 2 }]),
 		}
 	}
 }
@@ -372,7 +374,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.68,
+            price: 0.735,
 			lowest_price: 0.4,
             interval: 1000,
 			always_increase: true,
@@ -389,8 +391,8 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "ops": {
-            price: 5.0,
-            interval: 1000,
+            price: 4.0,
+            interval: 2000,
 			always_increase: true,
         },
 		'utrium_bar': {
@@ -528,6 +530,24 @@ export var resources_balance: {
         min: 3000,
         amount: 1000,
     },
+}
+{
+	for (let zone of constants.zones) {
+		let rooms = Object.keys(commodity_room_conf).filter((e) => commodity_room_conf[e].includes(zone));
+		let production = constants.commodities_related_requirements[zone];
+		resources_balance[production.depo] = {
+			gap: deposit_sending_amount_gap,
+			amount: Math.floor(deposit_sending_amount_gap / 2),
+			rooms: rooms,
+		}
+		for (let i=0;i<max_commodity_level;i++) {
+			resources_balance[production.products[i]] = {
+				gap: commodity_sending_amount_gap[i],
+				amount: Math.floor(commodity_sending_amount_gap[i] / 2),
+				rooms: rooms,
+			}
+		}
+	}
 }
 type type_final_product_requrest = {
     [key in GeneralMineralConstant] ? : {
@@ -778,8 +798,14 @@ export var depo_energy_carrier_body: type_body_conf = {
 }
 export var depo_harvester_body: type_body_conf = {
     "work": {
-        number: 24,
+        number: 20,
     },
+	"attack": {
+		number: 2,
+	},
+	"heal": {
+		number: 2,
+	},
 	"carry": {
 		number: 2,
 	},
@@ -789,9 +815,17 @@ export var depo_harvester_body: type_body_conf = {
 }
 export var powered_depo_harvester_body: type_body_conf = {
     "work": {
-        number: 32,
+        number: 30,
 		boost: "UHO2",
     },
+	"attack": {
+		number: 1,
+		boost: "UH2O",
+	},
+	"heal": {
+		number: 1,
+		boost: "LHO2",
+	},
 	"carry": {
 		number: 2,
 	},

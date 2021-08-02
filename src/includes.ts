@@ -364,6 +364,7 @@ interface type_depo_status {
     depo_harvester_names ? : string[];
     depo_carrier_names ? : string[];
 }
+type type_zone = "U" | "L" | "Z" | "K";
 interface type_external_resources {
     pb: {
         [key: string]: type_pb_status;
@@ -728,9 +729,10 @@ type type_format_options = {
 	skipkeys ?: string[];
 }
 type type_resource_balance = {
-		gap: number;
-		min ?: number;
-		amount: number;
+	gap: number;
+	min ?: number;
+	amount: number;
+	rooms ?: string[]
 }
 type type_product_request = {
 	product ?: MineralCompoundConstant;

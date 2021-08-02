@@ -779,7 +779,7 @@ export function creepjob(creep: Creep): number {
             if (creep.memory.next_time[levelname] == undefined) {
                 creep.memory.next_time[levelname] = Game.time;
             }
-            if (Game.time >= creep.memory.next_time[levelname]) {
+            if (Game.time >= creep.memory.next_time[levelname] && creep.memory.resource_type == undefined) {
                 let jobs = get_all_jobs(creep, i);
                 creep.memory.jobs_levels[levelname] = jobs;
                 creep.memory.next_time[levelname] = Game.time + level_cds[i];

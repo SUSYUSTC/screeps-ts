@@ -410,6 +410,7 @@ export function creepjob(creep: Creep): number {
 			creep.memory.working_status = 'boost';
 		}
 		let depo_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.depo[creep.memory.external_room_name];
+		let do_attack = false;
 		switch(creep.memory.working_status) {
 			case 'boost': {
 				let boost_request = functions.conf_body_to_boost_request(config.powered_depo_harvester_body);
@@ -438,19 +439,51 @@ export function creepjob(creep: Creep): number {
 				creep.memory.working_status = 'move';
 				break;
 			}
+			case 'fight': {
+				console.log(`Warning: creep ${creep.name} fighting in room ${creep.room.name} at tick ${Game.time}`);
+				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
+				if (hostile == undefined) {
+					if (creep.hits == creep.hitsMax) {
+						creep.memory.working_status = 'move';
+					} else {
+						creep.heal(creep);
+					}
+				} else {
+					if (creep.pos.isNearTo(hostile)) {
+						creep.attack(hostile);
+					} else {
+						creep.moveTo(hostile, {range: 1, costCallback: functions.avoid_exits});
+						creep.heal(creep);
+					}
+				}
+				break;
+			}
 			case 'move': {
+				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
+				if (hostile !== undefined) {
+					creep.memory.working_status = 'fight';
+					break;
+				}
 				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
 				if (!creep.pos.isEqualTo(container_pos)) {
-					if (container_pos.lookFor("creep").length > 0) {
-						creep.moveTo(container_pos, {reusePath: 10, costCallback: functions.avoid_exits, maxRooms: 1, range: 2});
-					} else {
-						creep.moveTo(container_pos, {reusePath: 10, costCallback: functions.avoid_exits, maxRooms: 1, range: 0});
+					let creep_on_container = container_pos.lookFor("creep")[0];
+					let range = 0;
+					if (creep_on_container !== undefined) {
+						range = 2;
+					}
+					if (creep.pos.getRangeTo(container_pos) > range) {
+						creep.moveTo(container_pos, {reusePath: 10, costCallback: functions.avoid_exits, maxRooms: 1, range: range});
 					}
 					creep.say("DHm");
 					break;
 				}
 			}
 			case 'work': {
+				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
+				if (hostile !== undefined) {
+					creep.memory.working_status = 'fight';
+					break;
+				}
 				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
 				let container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
 				if (container == undefined) {

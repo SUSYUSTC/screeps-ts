@@ -102,29 +102,8 @@ export function process_resource_sending_request(room_name: string) {
 	}
 }
 
-/*
-function support_developing_rooms() {
-	let helping_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level >= 8);
-	let helped_rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].controller.level < 8);
-    for (let helped_room of helped_rooms) {
-		let costs = helping_rooms.map((e) => Game.market.calcTransactionCost(1000, e, helped_room));
-		let helping_room_name = helping_rooms[mymath.argmin(costs)];
-		let source_storage = Game.rooms[helping_room_name].storage.store.getUsedCapacity("energy");
-		let source_terminal = Game.rooms[helping_room_name].terminal.store.getUsedCapacity("energy");
-        let target_storage = Game.rooms[helped_room].storage.store.getUsedCapacity("energy");
-        let target_terminal = Game.rooms[helped_room].terminal.store.getUsedCapacity("energy");
-        if (source_storage >= config.storage_full && source_terminal >= 50000 && target_storage < config.storage_full && target_terminal < 100000) {
-			let out = functions.send_resource(helping_room_name, helped_room, "energy", 25000);
-			if (out == 0) {
-				return;
-			}
-        }
-    }
-}
-*/
-
 function balance_resource(resource: ResourceConstant, conf: type_resource_balance) {
-	let rooms = Game.controlled_rooms_with_terminal;
+	let rooms = conf.rooms !== undefined ? conf.rooms.filter((e) => Game.controlled_rooms_with_terminal.includes(e)) : Game.controlled_rooms_with_terminal;
 	let ns = rooms.map((e) => Game.rooms[e].storage.store.getUsedCapacity(resource) + Game.rooms[e].terminal.store.getUsedCapacity(resource));
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
@@ -154,6 +133,13 @@ function balance_power() {
 		if (amount >= 500) {
 			let out = functions.send_resource(room_max.name, room_min.name, "power", amount);
 		}
+	}
+}
+
+function balance_commodity(zone: "U" | "L" | "Z" | "K") {
+	let rooms = Object.keys(config.commodity_room_conf).filter((e) => config.commodity_room_conf[e].includes(zone)).filter((e) => Game.controlled_rooms_with_terminal.includes(e));
+	for (let i=0;i<config.max_commodity_level;i++) {
+		let product = constants.commodities_related_requirements[zone].products[i];
 	}
 }
 
