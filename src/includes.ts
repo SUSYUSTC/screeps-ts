@@ -457,7 +457,8 @@ type type_market_stat = {
 	};
 }
 interface Memory {
-	stop_running ?: boolean
+	stop_running ?: boolean;
+	showdirection ?: boolean;
     creeps: {
         [name: string]: CreepMemory
     };

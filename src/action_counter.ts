@@ -70,36 +70,10 @@ let functionsToWarp = [
     {name: 'StructureTower.repair', parent: StructureTower.prototype, val: StructureTower.prototype.repair},
 ]
 
-/*
-let functionsToWarp_creep = [
-    {name: 'Creep.attack', parent: Creep.prototype, val: Creep.prototype.attack},
-    {name: 'Creep.attackController', parent: Creep.prototype, val: Creep.prototype.attackController},
-    {name: 'Creep.build', parent: Creep.prototype, val: Creep.prototype.build},
-    {name: 'Creep.claimController', parent: Creep.prototype, val: Creep.prototype.claimController},
-    {name: 'Creep.dismantle', parent: Creep.prototype, val: Creep.prototype.dismantle},
-    {name: 'Creep.drop', parent: Creep.prototype, val: Creep.prototype.drop},
-    {name: 'Creep.generateSafeMode', parent: Creep.prototype, val: Creep.prototype.generateSafeMode},
-    {name: 'Creep.harvest', parent: Creep.prototype, val: Creep.prototype.harvest},
-    {name: 'Creep.heal', parent: Creep.prototype, val: Creep.prototype.heal},
-    {name: 'Creep.move', parent: Creep.prototype, val: Creep.prototype.move},
-    {name: 'Creep.notifyWhenAttacked', parent: Creep.prototype, val: Creep.prototype.notifyWhenAttacked},
-    {name: 'Creep.pickup', parent: Creep.prototype, val: Creep.prototype.pickup},
-    {name: 'Creep.rangedAttack', parent: Creep.prototype, val: Creep.prototype.rangedAttack},
-    {name: 'Creep.rangedHeal', parent: Creep.prototype, val: Creep.prototype.rangedHeal},
-    {name: 'Creep.rangedMassAttack', parent: Creep.prototype, val: Creep.prototype.rangedMassAttack},
-    {name: 'Creep.repair', parent: Creep.prototype, val: Creep.prototype.repair},
-    {name: 'Creep.reserveController', parent: Creep.prototype, val: Creep.prototype.reserveController},
-    {name: 'Creep.signController', parent: Creep.prototype, val: Creep.prototype.signController},
-    {name: 'Creep.suicide', parent: Creep.prototype, val: Creep.prototype.suicide},
-    {name: 'Creep.transfer', parent: Creep.prototype, val: Creep.prototype.transfer},
-    {name: 'Creep.upgradeController', parent: Creep.prototype, val: Creep.prototype.upgradeController},
-    {name: 'Creep.withdraw', parent: Creep.prototype, val: Creep.prototype.withdraw},
-]
-*/
-
 /**
  * Warp functions, it should be call when global reset.
  */
+
 export function warpActions(){
     functionsToWarp.forEach(({name, parent, val}) => warpAction(name, parent, val))
 }
@@ -112,6 +86,10 @@ function warpAction(name: string, parent: any, action: any){
         let code = action.apply(this, arguments);
 
         if(code === OK) {
+			if (this.commands == undefined) {
+				this.commands = {}
+			}
+			this.commands[actionName] = arguments;
 			Game.actions_count += 1;
         }
 

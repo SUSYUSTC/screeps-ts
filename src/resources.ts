@@ -1,9 +1,9 @@
 import * as mymath from "./mymath"
 import * as functions from "./functions"
 import * as config from "./config"
-//import * as basic_job from "./basic_job"
-//import * as external_room from "./external_room"
-//import * as invade from "./invade"
+import * as basic_job from "./basic_job"
+import * as external_room from "./external_room"
+import * as invade from "./invade"
 function is_pos_accessable(pos: RoomPosition): boolean {
     let room = Game.rooms[pos.roomName];
     let xmin = Math.min(25, pos.x);
@@ -466,13 +466,17 @@ export function update_resources(room_name: string) {
     }
     for (let external_room_name in room.memory.external_resources.pb) {
 		update_pb(room_name, external_room_name);
+		try {
+			run_pb_miner_group(room.memory.external_resources.pb[external_room_name]);
+		} catch(err) {
+			console.log("Captured error for pb miner group at room", external_room_name, err.stack);
+		}
     }
     for (let external_room_name in room.memory.external_resources.depo) {
 		update_depo(room_name, external_room_name);
     }
 }
 
-/*
 function pb_group_combat(attacker: Creep, healer: Creep) {
 	if (attacker == undefined) {
 		return 0;
@@ -493,9 +497,20 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 	}
 	let attacker = Game.creeps[pb_status.pb_attacker_name];
 	let healer = Game.creeps[pb_status.pb_healer_name];
+	if (attacker == undefined && healer == undefined) {
+		return;
+	}
+	if (attacker !== undefined) {
+		attacker.memory.movable = false;
+		attacker.memory.crossable = true;
+	}
+	if (healer !== undefined) {
+		healer.memory.movable = false;
+		healer.memory.crossable = true;
+	}
 	switch(pb_status.working_status) {
 		case 'spawning': {
-			if (functions.waiting_for_spawn([pb_status.pb_attacker_name, pb_status.pb_healer_name]) == 0) {
+			if (basic_job.waiting_for_spawn([pb_status.pb_attacker_name, pb_status.pb_healer_name]) == 0) {
 				break;
 			}
 			pb_status.working_status = 'boost';
@@ -625,4 +640,3 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 		}
 	}
 }
-*/

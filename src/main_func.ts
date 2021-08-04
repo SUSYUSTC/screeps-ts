@@ -445,9 +445,9 @@ var set_room_memory_functions: {
     "update_link_and_container": update_link_and_container,
     "update_mine": update_mine,
     "update_external": update_external,
+    "get_power_effects": get_power_effects,
     "detect_resources": resources.detect_resources,
     "update_resources": resources.update_resources,
-    "get_power_effects": get_power_effects,
 }
 
 var set_room_memory_functions_order = ["update_structures", "update_layout", "generate_structures", "update_construction_sites", "update_link_and_container", "update_mine", "update_external", "detect_resources", "update_resources", "get_power_effects"];
@@ -471,7 +471,7 @@ export function set_room_memory(room_name: string) {
 
     for (let function_name of set_room_memory_functions_order) {
 		//let timer = new Timer(function_name, false);
-        set_room_memory_functions[function_name](room_name);
+		set_room_memory_functions[function_name](room_name);
         //timer.end();
     }
 

@@ -114,16 +114,44 @@ export function group2_combat_melee(invader: Creep, healer: Creep, guard_range: 
         let scores = closeset_hostiles.map((e) => e.getActiveBodyparts(ATTACK) * 2 + e.getActiveBodyparts(RANGED_ATTACK));
         let argmin = mymath.argmin(scores);
         let target = closeset_hostiles[argmin];
+		if (healer.pos.isNearTo(invader)) {
+			if (!invader.pos.isNearTo(target) && invader.fatigue == 0) {
+				if (healer.fatigue == 0) {
+					// move together
+					if (invader.pos.isNearTo(healer)) {
+						invader.moveTo(target, {range: 1, reusePath: 0, maxRooms: 1, costCallback: functions.avoid_exits});
+						healer.move(healer.pos.getDirectionTo(invader));
+					}
+				} else {
+					// only invader move
+					if (healer.pos.getRangeTo(target) <= 2) {
+						let range2xys = functions.get_xys_with_fixed_range(healer.pos, 2);
+						let costCallback = function(roomName: string, costMatrix: CostMatrix) {
+							range2xys.forEach((e) => costMatrix.set(e[0], e[1], 255));
+						}
+						invader.moveTo(target, {range: 1, reusePath: 0, maxRooms: 1, costCallback: costCallback});
+					}
+				}
+			} else {
+				if (healer.fatigue == 0 && healer.pos.isNearTo(target)) {
+					// only healer move
+					let invader_range2xys = functions.get_xys_with_fixed_range(invader.pos, 2);
+					let costCallback = function(roomName: string, costMatrix: CostMatrix) {
+						invader_range2xys.forEach((e) => costMatrix.set(e[0], e[1], 255));
+					}
+					let back_pos = invader.room.getPositionAt(invader.pos.x * 2 - target.pos.x, invader.pos.y * 2 - target.pos.y);
+					invader.moveTo(back_pos, {range: 0, reusePath: 0, maxRooms: 1, costCallback: costCallback});
+				}
+			}
+		} else {
+			healer.moveTo(invader, {range: 1, reusePath: 0, maxRooms: 1, costCallback: functions.avoid_exits});
+		}
         invader.attack(target);
-        if (invader.fatigue == 0 && healer.fatigue == 0 && invader.pos.getRangeTo(healer) <= 1 && invader.pos.getRangeTo(target) > 1) {
-            invader.moveTo(target);
-        }
         if (healer.hits < healer.hitsMax || healer.pos.getRangeTo(invader) > 1) {
             healer.heal(healer);
         } else {
             healer.heal(invader);
         }
-        healer.move(healer.pos.getDirectionTo(invader));
         return 0;
     } else if (healer.hits < healer.hitsMax) {
         healer.heal(healer);

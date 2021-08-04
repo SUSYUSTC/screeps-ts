@@ -1074,6 +1074,7 @@ declare const ConstructionSite: ConstructionSiteConstructor;
  * Each creep consists of up to 50 body parts with the following possible types:
  */
 interface Creep extends RoomObject {
+	commands: any;
     readonly prototype: Creep;
 
     /**

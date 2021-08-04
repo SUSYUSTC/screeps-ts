@@ -104,6 +104,9 @@ export function process_resource_sending_request(room_name: string) {
 
 function balance_resource(resource: ResourceConstant, conf: type_resource_balance) {
 	let rooms = conf.rooms !== undefined ? conf.rooms.filter((e) => Game.controlled_rooms_with_terminal.includes(e)) : Game.controlled_rooms_with_terminal;
+	if (rooms.length == 0) {
+		return;
+	}
 	let ns = rooms.map((e) => Game.rooms[e].storage.store.getUsedCapacity(resource) + Game.rooms[e].terminal.store.getUsedCapacity(resource));
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
@@ -117,6 +120,9 @@ function balance_resource(resource: ResourceConstant, conf: type_resource_balanc
 
 function balance_power() {
 	let rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].powerSpawn !== undefined);
+	if (rooms.length == 0) {
+		return;
+	}
 	let net_power_amounts = rooms.map((e) => Game.rooms[e].terminal.store.getUsedCapacity("power") - (Game.rooms[e].storage.store.getUsedCapacity("energy") - config.storage_min_energy)/50);
 	let argmin = mymath.argmin(net_power_amounts);
 	let argmax = mymath.argmax(net_power_amounts);
@@ -142,27 +148,6 @@ function balance_commodity(zone: "U" | "L" | "Z" | "K") {
 		let product = constants.commodities_related_requirements[zone].products[i];
 	}
 }
-
-/*
-function gather_resource() {
-	let resources = <Array<ResourceConstant>> Object.keys(config.resource_gathering_pos);
-	for (let room_name of Game.controlled_rooms_with_terminal) {
-		let store = Game.rooms[room_name].terminal.store;
-		for (let resource of resources) {
-			let left_amount = config.resource_gathering_pos[resource].left;
-			let target_room_name = config.resource_gathering_pos[resource].room;
-			if (room_name == target_room_name) {
-				continue;
-			}
-			let amount = store.getUsedCapacity(resource);
-			if (amount > left_amount) {
-				let out = functions.send_resource(room_name, target_room_name, resource, amount - left_amount);
-				break;
-			}
-		}
-	}
-}
-*/
 
 function get_terminal_space() {
 	let valid_rooms = Game.controlled_rooms_with_terminal;

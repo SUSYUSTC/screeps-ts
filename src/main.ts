@@ -38,8 +38,10 @@ import * as powercreeps from "./powercreeps"
 import { Timer } from "./timer";
 import * as defense from "./defense";
 import * as cross_shard from "./cross_shard";
+import * as constants from "./constants"
 import * as control from "./control";
 action_counter.warpActions();
+//action_counter.warpMove();
 
 function run_sub() {
 	console.log()
@@ -153,7 +155,7 @@ function run_main() {
 	try {
 		for (let name in Game.creeps) {
 			let creep = Game.creeps[name];
-				creepjobs.creepjob(creep);
+			creepjobs.creepjob(creep);
 		}
 	} catch (err) {
 		console.log("Captured error", err.stack);
@@ -300,5 +302,13 @@ module.exports.loop = function() {
 		run_main();
 	} else {
 		run_sub();
+	}
+	if (Memory.showdirection) {
+		for (let creepname in Game.creeps) {
+			let creep = Game.creeps[creepname];
+			if (creep.commands !== undefined && creep.commands.move !== undefined) {
+				creep.say(constants.direction2name[<DirectionConstant>(creep.commands.move[0])]);
+			}
+		}
 	}
 }

@@ -700,11 +700,19 @@ function transfer_resource(creep: Creep, job: type_transport_job) {
     creep.say(get_resource_name(job.resource_type) + ": " + structure_names[job.from] + ">" + structure_names[job.to]);
     if (creep.memory.resource_type == undefined) {
         let target = structure_from_name(creep.room.name, job.from);
+		let usedamount = (<GeneralStore>target.store).getUsedCapacity(job.resource_type);
+		if (job.amount > usedamount) {
+			job.amount = usedamount;
+		}
         withdraw(creep, target, job.resource_type, {
             amount: job.amount,
         });
     } else if (creep.memory.resource_type == job.resource_type) {
         let target = structure_from_name(creep.room.name, job.to);
+		let freeamount = (<GeneralStore>target.store).getFreeCapacity(job.resource_type);
+		if (job.amount > freeamount) {
+			job.amount = freeamount;
+		}
         let out = transfer(creep, target, job.resource_type, {
             amount: job.amount,
         });

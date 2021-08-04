@@ -37,6 +37,7 @@ export function get_expected_addition_amount(cd: number, last_cd: number, t: num
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.memory.home_room_name];
     var game_memory = Game.memory[creep.memory.home_room_name];
+	/*
     if (creep.memory.role == 'pb_attacker') {
 		let attacker = creep;
         attacker.say("PA");
@@ -174,6 +175,8 @@ export function creepjob(creep: Creep): number {
 		}
         return 0;
     } else if (creep.memory.role == 'pb_carrier') {
+	*/
+    if (creep.memory.role == 'pb_carrier') {
         // 40 carry, 10 move
         creep.say("PC");
         creep.memory.movable = false;
@@ -270,7 +273,6 @@ export function creepjob(creep: Creep): number {
 					external_room.external_move(creep, 'backward', {reusePath: 10}, movethroughrooms_options);
 					creep.memory.movable = true;
 					creep.say("PCe1");
-					creep.say(constants.direction2name[Room.deserializePath(creep.memory._move.path)[0].direction]);
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
 					break;

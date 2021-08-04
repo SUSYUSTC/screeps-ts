@@ -154,13 +154,9 @@ export function moveawayexit(creep: Creep | PowerCreep): number {
 
 export function movethroughrooms_group_x2(invader: Creep, healer: Creep, password: string, target_room_name: string, add_options: MoveToOpts = {}, options: type_movethroughrooms_options = {} ) {
 	// -1: error, 0: normal success, 1: already done
-	let out_invader = moveawayexit(invader);
-	let out_healer = moveawayexit(healer);
-	if (out_invader == 0 && out_healer == 0) {
+	if (moveawayexit(invader) == 0) {
+		moveawayexit(healer);
 		return 0;
-	} else if (out_invader == 0 || out_healer == 0) {
-		console.log(`Warning: movethroughrooms_group_x2 fail at exit for invader ${invader.name} and healer ${healer.name} at time ${Game.time}`)
-		return -1;
 	}
 	if (invader.room.name == target_room_name && healer.room.name == target_room_name) {
 		return 1;
@@ -187,6 +183,7 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 	if (invader.pos.getRangeTo(exit_pos) > 1) {
 		external_move(invader, password, add_options, {...{ignore_creep_xys: [[healer.pos.x, healer.pos.y]]}, ...options});
 		healer.move(healer.pos.getDirectionTo(invader.pos));
+		console.log(invader.name, healer.name);
 		return 0;
 	}
 	let findconstant = info.findconstant;
