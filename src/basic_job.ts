@@ -701,5 +701,6 @@ export function waiting_for_spawn(names: string[]) {
 		for (let creep of spawned_creeps) {
 			ask_for_renew(creep);
 		}
+		return 0;
 	}
 }

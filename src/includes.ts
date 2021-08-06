@@ -684,6 +684,9 @@ interface Game {
 			}
 		},
 	}
+	commodity_orders ?: {
+		[key in MarketResourceConstant] ?: Order;
+	}
 }
 
 type type_order_result = {
@@ -789,17 +792,13 @@ declare module NodeJS {
         auto_sell(room_name: string, resource: MarketResourceConstant, max_score: number, amount: number, energy_price: number): number;
         spawn_in_queue(room_name: string, body: BodyPartConstant[], name: string, memory: any, first: boolean): number;
         send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number, onetime_max: number): number;
-        restrict_passing_rooms(room_name: string): CostMatrix;
         get_product_request(room_name: string, resource: GeneralMineralConstant, is_final: boolean): type_product_request;
         regulate_order_price(id: Id < Order > ): number;
         set_resource_price(type: "buy" | "sell", resource: MarketResourceConstant, price: number): number;
         update_layout(room_name: string, check_all: boolean): any;
 		remove_unregistered_structures(room_name: string): number;
-		get_tough_conf(creep: Creep): type_tough_conf;
 		get_body(components: type_body_components): BodyPartConstant[];
 		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number;
-		is_pos_accessable(pos: RoomPosition): boolean;
-		reset_market_stat(): number;
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;

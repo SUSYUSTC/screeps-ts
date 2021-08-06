@@ -152,8 +152,6 @@ function get_tough_conf(creep: Creep): type_tough_conf {
     return tough_conf;
 }
 
-global.get_tough_conf = get_tough_conf;
-
 function get_distance_matrix(poses: RoomPosition[]): number[][] {
     let distance_matrix = [];
     for (let i = 0; i < poses.length; i++) {

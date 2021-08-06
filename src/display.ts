@@ -2,6 +2,7 @@
 import * as mymath from "./mymath";
 import * as config from "./config";
 import * as functions from "./functions";
+import * as market from "./market";
 import * as _ from "lodash";
 
 function arrange_string(str: string, length: number): string {
@@ -130,7 +131,7 @@ export function init() {
 	}
 
 	global.init_stat = function(): number {
-		global.reset_market_stat();
+		market.reset_market_stat();
 		Memory.reaction_log = {};
 		Memory.stat_reset_time = Game.time;
 		Memory.stat_reset_realtime = (new Date()).getTime() / 1000;

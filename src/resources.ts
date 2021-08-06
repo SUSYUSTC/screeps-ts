@@ -13,8 +13,6 @@ function is_pos_accessable(pos: RoomPosition): boolean {
     let n_walls = room.lookForAtArea("structure", ymin, xmin, ymax, xmax, true).filter((e) => e.structure.structureType == 'constructedWall').length;
     return n_walls == 0;
 }
-global.is_pos_accessable = is_pos_accessable;
-
 var detection_period = global.is_main_server ? 300 : 200;
 
 function highway_resources_cost(room_name: string): CostMatrix {
@@ -465,19 +463,19 @@ export function update_resources(room_name: string) {
         room.memory.external_resources.depo = {};
     }
     for (let external_room_name in room.memory.external_resources.pb) {
-		update_pb(room_name, external_room_name);
 		try {
 			run_pb_miner_group(room.memory.external_resources.pb[external_room_name]);
 		} catch(err) {
 			console.log("Captured error for pb miner group at room", external_room_name, err.stack);
 		}
+		update_pb(room_name, external_room_name);
     }
     for (let external_room_name in room.memory.external_resources.depo) {
 		update_depo(room_name, external_room_name);
     }
 }
 
-function pb_group_combat(attacker: Creep, healer: Creep) {
+function pb_group_combat(attacker: Creep, healer: Creep, range: number = undefined) {
 	if (attacker == undefined) {
 		return 0;
 	}
@@ -485,7 +483,7 @@ function pb_group_combat(attacker: Creep, healer: Creep) {
 	if (healer == undefined) {
 		out = invade.single_combat_melee(attacker);
 	} else {
-		out = invade.group2_combat_melee(attacker, healer, 5);
+		out = invade.group2_combat_melee(attacker, healer, range);
 	}
 	return out;
 
@@ -530,10 +528,7 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 			break;
 		}
 		case 'external_move': {
-			if (external_room.moveawayexit(attacker) == 0 || external_room.moveawayexit(healer) == 0) {
-				break;
-			}
-			if (pb_group_combat(attacker, healer) == 0) {
+			if (pb_group_combat(attacker, healer, 5) == 0) {
 				break;
 			}
 			let rooms_path = pb_status.rooms_path;
@@ -551,7 +546,7 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 			break;
 		}
 		case 'move': {
-			if (pb_group_combat(attacker, healer) == 0) {
+			if (pb_group_combat(attacker, healer, 5) == 0) {
 				break;
 			}
 			let pb_xy = pb_status.xy;
@@ -587,7 +582,7 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 			break;
 		}
 		case 'attack': {
-			if (pb_group_combat(attacker, healer) == 0) {
+			if (pb_group_combat(attacker, healer, 5) == 0) {
 				pb_status.working_status = 'move';
 				break;
 			}
@@ -617,9 +612,15 @@ export function run_pb_miner_group(pb_status: type_pb_status) {
 			break;
 		}
 		case 'guard': {
+			if (attacker == undefined) {
+				break;
+			}
 			let pb_xy = pb_status.xy;
 			let pb_pos = attacker.room.getPositionAt(pb_xy[0], pb_xy[1]);
-			if (invade.group2_combat_melee(attacker, healer) !== 0) {
+			if (pb_group_combat(attacker, healer) !== 0) {
+				if (healer == undefined) {
+					break;
+				}
 				if (attacker.pos.getRangeTo(pb_pos) < 5) {
 					let poses_flee_to = functions.get_poses_with_fixed_range(pb_pos, 5);
 					let pos_flee_to = attacker.pos.findClosestByPath(poses_flee_to, {algorithm: 'dijkstra'});

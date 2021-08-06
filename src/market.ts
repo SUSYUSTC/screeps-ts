@@ -455,22 +455,36 @@ export function auto_sell() {
 	}
 }
 
+function find_commodity_order(commodity: CommodityConstant): Order {
+	if (Game.commodity_orders !== undefined && Game.commodity_orders[commodity] !== undefined) {
+		return Game.commodity_orders[commodity];
+	}
+	let acceptable_price = config.acceptable_prices.sell[commodity].price;
+	let orders = get_market_orders("buy", commodity).filter((e) => e.amount > 0);
+	if (orders.length == 0) {
+		return undefined;
+	}
+	let argmax = mymath.argmax(orders.map((e) => e.price));
+	let order = orders[argmax];
+	if (order.price >= acceptable_price) {
+		if (Game.commodity_orders == undefined) {
+			Game.commodity_orders = {};
+		}
+		Game.commodity_orders[commodity] = order;
+		return order;
+	}
+}
+
 function sell_commodity(room_name: string, commodity: CommodityConstant) {
 	let room = Game.rooms[room_name];
-	if (room.terminal.store.getUsedCapacity(commodity) == 0) {
-		return;
-	}
 	let acceptable_price = config.acceptable_prices.sell[commodity].price;
 	let amount = room.terminal.store.getUsedCapacity(commodity);
 	if (amount * acceptable_price >= 200000) {
-		let orders = get_market_orders("buy", commodity).filter((e) => e.amount > 0);
-		if (orders.length == 0) {
-			return;
-		}
-		let argmax = mymath.argmax(orders.map((e) => e.price));
-		let order = orders[argmax];
-		if (order.price >= acceptable_price) {
-			Game.market.deal(order.id, Math.min(order.amount, amount), room_name);
+		let order = find_commodity_order(commodity);
+		if (order !== undefined) {
+			let deal_amount = Math.min(order.amount, amount);
+			Game.market.deal(order.id, deal_amount, room_name);
+			console.log("deal", deal_amount, commodity, "at", room_name);
 			return;
 		}
 	}
@@ -478,17 +492,27 @@ function sell_commodity(room_name: string, commodity: CommodityConstant) {
 
 export function commodity_orders() {
 	let timer = new Timer("commodity_orders", false);
-	for (let room_name in config.commodity_room_conf) {
-		let room = Game.rooms[room_name];
-		for (let zone of config.commodity_room_conf[room_name]) {
-			let production = constants.commodities_related_requirements[zone];
-			for (let product of production.products) {
-				let level = constants.commodity_levels[product];
-				if (room.terminal.store.getUsedCapacity(product) >= config.commodity_amount_to_start_selling_by_level[level]) {
-					sell_commodity(room_name, product);
+	for (let zone of config.all_zones) {
+		let production = constants.commodities_related_requirements[zone];
+		for (let product of production.products) {
+			let level = constants.commodity_levels[product];
+			let order = find_commodity_order(product);
+			if (order !== undefined) {
+				console.log("commodity order", order.amount, product, "found at", order.roomName);
+				for (let room_name of config.commodity_selling_rooms) {
+					let room = Game.rooms[room_name];
+					if (room.terminal.store.getUsedCapacity(product) >= config.commodity_amount_to_start_selling_by_level[level]) {
+						sell_commodity(room_name, product);
+					}
 				}
 			}
-			if (Game.time % 100 == 0) {
+		}
+	}
+	if (Game.time % 100 == 0) {
+		for (let room_name in config.commodity_room_conf) {
+			let room = Game.rooms[room_name];
+			for (let zone of config.commodity_room_conf[room_name]) {
+				let production = constants.commodities_related_requirements[zone];
 				for (let bar of production.bars) {
 					auto_supply_from_market(room_name, bar, config.bar_store_amount, config.bar_buy_onetime_amount);
 				}
@@ -513,7 +537,7 @@ function order_stat(): type_order_total_amount {
 	return order_total_amount;
 }
 
-global.reset_market_stat = function(): number {
+export function reset_market_stat(): number {
 	Memory.market_accumulation_stat = {
 		sell: {},
 		buy: {},

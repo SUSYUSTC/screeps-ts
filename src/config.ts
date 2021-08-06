@@ -176,7 +176,7 @@ export var newroom_energy_buying_price = {
     interval: 200,
 	always_increase: true,
 }
-export var pb_power_min = 2000;
+export var pb_power_min = 3000;
 export var tower_filling_energy = 600;
 
 export var storage_gap = 50000;
@@ -230,7 +230,7 @@ export var max_commodity_amount_to_keep_in_factory_by_level: number[] = [500];
 export var commodity_amount_to_start_selling_by_level: number[] = [15000, 0];
 export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 1200];
 export var deposit_sending_amount_gap: number = 10000;
-export var commodity_sending_amount_gap: number[] = [2000, 200];
+export var commodity_sending_amount_gap: number[] = [2000, 100];
 export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
@@ -290,11 +290,13 @@ export var highway_resources: {
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
 }
-export var commodity_room_conf: {[key: string]: Array<"U" | "L" | "Z" | "K">} = {
+export var commodity_room_conf: {[key: string]: type_zone[]} = {
 	"W9N39": ["U"],
 	"W9N1": ["U", "Z"],
 	"E11S39": ["L"],
 }
+export var all_zones = Array.from(new Set((<type_zone[][]> Object.values(commodity_room_conf)).reduce((a, b) => a.concat(b), [])));
+export var commodity_selling_rooms: string[] = Object.keys(commodity_room_conf).concat(['E21N49']);
 export var depo_stop_min_cd = 150;
 export var depo_start_max_cd = 60;
 export var depo_cd_to_boost = 15;
@@ -359,12 +361,12 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "X": {
-            price: 2.0,
+            price: 1.0,
             interval: 1000,
 			always_increase: true,
         },
         "H": {
-            price: 0.8,
+            price: 1.0,
             interval: 1000,
 			always_increase: true,
         },
@@ -533,18 +535,19 @@ export var resources_balance: {
 }
 {
 	for (let zone of constants.zones) {
-		let rooms = Object.keys(commodity_room_conf).filter((e) => commodity_room_conf[e].includes(zone));
+		let deposit_processing_rooms = Object.keys(commodity_room_conf).filter((e) => commodity_room_conf[e].includes(zone));
 		let production = constants.commodities_related_requirements[zone];
 		resources_balance[production.depo] = {
 			gap: deposit_sending_amount_gap,
 			amount: Math.floor(deposit_sending_amount_gap / 2),
-			rooms: rooms,
+			rooms: deposit_processing_rooms,
 		}
-		for (let i=0;i<max_commodity_level;i++) {
+		for (let i=0;i<=max_commodity_level;i++) {
 			resources_balance[production.products[i]] = {
 				gap: commodity_sending_amount_gap[i],
 				amount: Math.floor(commodity_sending_amount_gap[i] / 2),
-				rooms: rooms,
+				rooms: commodity_selling_rooms,
+				min: commodity_sending_amount_gap[i],
 			}
 		}
 	}

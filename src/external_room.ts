@@ -245,7 +245,8 @@ export function movethroughshards(creep: Creep) {
 	}
 	let shard_move = global.is_main_server ? Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move : creep.memory.shard_move;
 	let pathfinding = false;
-	if (shard_move.shard !== Game.shard.name) {
+	if (shard_move.shard_path[0].shard !== Game.shard.name) {
+		// portal between shards
 		let first_index = shard_move.shard_path.findIndex((e) => e.shard == Game.shard.name);
 		if (first_index == -1 && shard_move.shard_path.length <= 1) {
 			shard_move.shard_path = [];
@@ -254,15 +255,11 @@ export function movethroughshards(creep: Creep) {
 			shard_move.shard_path = shard_move.shard_path.slice(first_index);
 		}
 		pathfinding = true;
-	} else if (!shard_move.rooms_path.includes(creep.room.name)) {
+	} else if (shard_move.rooms_path == undefined || !shard_move.rooms_path.includes(creep.room.name)) {
+		// portal within shard
 		shard_move.shard_path = shard_move.shard_path.slice(1);
 		pathfinding = true;
 	}
-	/*
-	if (!is_moving_target_defined(creep, 'shard')) {
-		pathfinding = true;
-	}
-	*/
 	if (pathfinding) {
 		console.log("shard path finding");
 		let this_shardmemory = Game.InterShardMemory[Game.shard.name];
@@ -270,7 +267,6 @@ export function movethroughshards(creep: Creep) {
 		let target_pos = new RoomPosition(target_rxy.x, target_rxy.y, target_rxy.roomName);
 		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 0}, {roomCallback: function(room_name: string) { return new PathFinder.CostMatrix } });
 		let exits_path = functions.get_exits_from_path(path.path);
-		shard_move.shard = Game.shard.name;
 		shard_move.rooms_path = exits_path.rooms_path;
 		shard_move.poses_path = exits_path.poses_path;
 		clear_external_moving_targets(creep, 'shard');

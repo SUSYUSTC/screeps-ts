@@ -252,6 +252,7 @@ export function creepjob(creep: Creep): number {
 					creep.say("PCm3");
 					break;
 				}
+				creep.memory.ready = true;
 				creep.say("PCw");
 				break;
 			}

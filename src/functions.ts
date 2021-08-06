@@ -118,8 +118,6 @@ export function restrict_passing_rooms(room_name: string): CostMatrix {
     }
 }
 
-global.restrict_passing_rooms = restrict_passing_rooms;
-
 export function tower_damage(dis: number): number {
     if (dis < 5) {
         return 600;
