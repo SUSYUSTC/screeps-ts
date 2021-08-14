@@ -96,13 +96,6 @@ export var basic_minerals = <Array<MineralConstant>>['U', 'L', 'Z', 'K', 'X', 'O
 export var t012_minerals = (<Array<GeneralMineralConstant>>basic_minerals).concat(t12_minerals);
 export var bars = <ResourceConstant[]> ['utrium_bar', 'lemergium_bar', 'zynthium_bar', 'keanium_bar', 'ghodium_melt', 'oxidant', 'reductant', 'purifier', 'composite', 'crystal', 'liquid'];
 export var basic_commodities : ResourceConstant[] = ['silicon', 'metal', 'biomass', 'mist'];
-type type_basic_commodity_production = {
-	[key in type_zone]: {
-		bar: CommodityConstant,
-		depo: ResourceConstant,
-		product: CommodityConstant,
-	}
-}
 type type_commodities_related_requirement = {
 	[key in type_zone]: {
 		bars: CommodityConstant[],
@@ -111,28 +104,6 @@ type type_commodities_related_requirement = {
 	}
 }
 export var zones: type_zone[] = ["U", "L", "Z", "K"];
-export var basic_commodity_production: type_basic_commodity_production = {
-	U: {
-		bar: 'utrium_bar',
-		depo: 'silicon',
-		product: 'wire',
-	},
-	L: {
-		bar: 'lemergium_bar',
-		depo: 'biomass',
-		product: 'cell',
-	},
-	Z: {
-		bar: 'zynthium_bar',
-		depo: 'metal',
-		product: 'alloy',
-	},
-	K: {
-		bar: 'keanium_bar',
-		depo: 'mist',
-		product: 'condensate',
-	},
-}
 export var commodities_related_requirements: type_commodities_related_requirement = {
 	U: {
 		bars: ['utrium_bar', 'oxidant'],

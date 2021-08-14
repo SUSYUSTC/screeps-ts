@@ -227,10 +227,11 @@ export var onetime_min_commodity_amount_to_transfer: number[] = [100, 20];
 export var onetime_max_commodity_amount_to_transfer: number[] = [200, 100];
 export var min_commodity_amount_to_keep_in_factory_by_level: number[] = [50];
 export var max_commodity_amount_to_keep_in_factory_by_level: number[] = [500];
-export var commodity_amount_to_start_selling_by_level: number[] = [15000, 0];
+export var commodity_amount_to_start_selling_by_level: number[] = [2000, 0];
 export var commodity_amount_to_stop_production_by_level: number[] = [Infinity, 1200];
-export var deposit_sending_amount_gap: number = 10000;
-export var commodity_sending_amount_gap: number[] = [2000, 100];
+export var deposit_sending_amount: number = 5000;
+export var bar_sending_amount: number = 500;
+export var commodity_sending_amount: number[] = [2000, 50];
 export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
@@ -294,9 +295,10 @@ export var commodity_room_conf: {[key: string]: type_zone[]} = {
 	"W9N39": ["U"],
 	"W9N1": ["U", "Z"],
 	"E11S39": ["L"],
+	"E21N49": ["L"],
 }
 export var all_zones = Array.from(new Set((<type_zone[][]> Object.values(commodity_room_conf)).reduce((a, b) => a.concat(b), [])));
-export var commodity_selling_rooms: string[] = Object.keys(commodity_room_conf).concat(['E21N49']);
+export var commodity_selling_rooms: string[] = Object.keys(commodity_room_conf);
 export var depo_stop_min_cd = 150;
 export var depo_start_max_cd = 60;
 export var depo_cd_to_boost = 15;
@@ -308,6 +310,7 @@ export var t3_store_room: {
     [key in GeneralMineralConstant] ? : string
 } = {
     "XUH2O": "E15N58",
+	"XUHO2": "W9N1",
     "XLH2O": "E11S39",
     "XLHO2": "E9N54",
     "XZH2O": "E14N51",
@@ -388,12 +391,12 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "power": {
-            price: 22.0,
+            price: 25,
             interval: 3000,
 			always_increase: true,
         },
         "ops": {
-            price: 4.0,
+            price: 8.0,
             interval: 2000,
 			always_increase: true,
         },
@@ -422,8 +425,8 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: 500,
 		},
 		'oxidant': {
-			price: 3.0,
-			lowest_price: 1.5,
+			price: 5.0,
+			lowest_price: 3.0,
 			always_increase: true,
 			interval: 500,
 		},
@@ -440,11 +443,11 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
         },
 		"switch": {
-			price: 5400,
+			price: 5200,
 			interval: -1,
 		},
         "alloy": {
-            price: 540,
+            price: 750,
 			interval: -1,
         },
 		"tube": {
@@ -452,7 +455,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			interval: -1,
 		},
         "cell": {
-            price: 500,
+            price: 600,
 			interval: -1,
         },
 		"phlegm": {
@@ -471,47 +474,52 @@ type type_auto_sell_list = {
 export var auto_sell_list: type_auto_sell_list = {
     "XUH2O": {
         room: "E15N58",
-        price: 20,
+        price: 18,
+        amount: 30000,
+    },
+    "XUHO2": {
+        room: "W9N1",
+        price: 17,
         amount: 30000,
     },
     "XLH2O": {
         room: "E11S39",
-        price: 20,
+        price: 16,
         amount: 30000,
     },
     "XLHO2": {
         room: "E9N54",
-        price: 20,
+        price: 15,
         amount: 30000,
     },
     "XZH2O": {
         room: "E14N51",
-        price: 25,
+        price: 20,
         amount: 30000,
     },
     "XZHO2": {
         room: "E14N59",
-        price: 20,
+        price: 15,
         amount: 30000,
     },
     "XKH2O": {
         room: "W9N39",
-        price: 20,
+        price: 16,
         amount: 30000,
     },
     "XKHO2": {
         room: "E21N49",
-        price: 20,
+        price: 15,
         amount: 30000,
     },
     "XGH2O": {
         room: "E19N53",
-        price: 25,
+        price: 22,
         amount: 30000,
     },
     "XGHO2": {
         room: "E19N55",
-        price: 30,
+        price: 25,
         amount: 30000,
     },
 }
@@ -538,18 +546,29 @@ export var resources_balance: {
 		let deposit_processing_rooms = Object.keys(commodity_room_conf).filter((e) => commodity_room_conf[e].includes(zone));
 		let production = constants.commodities_related_requirements[zone];
 		resources_balance[production.depo] = {
-			gap: deposit_sending_amount_gap,
-			amount: Math.floor(deposit_sending_amount_gap / 2),
+			gap: deposit_sending_amount * 2,
+			amount: deposit_sending_amount,
+			rooms: deposit_processing_rooms,
+		}
+		resources_balance[production.bars[0]] = {
+			gap: bar_sending_amount * 2,
+			amount: bar_sending_amount,
 			rooms: deposit_processing_rooms,
 		}
 		for (let i=0;i<=max_commodity_level;i++) {
 			resources_balance[production.products[i]] = {
-				gap: commodity_sending_amount_gap[i],
-				amount: Math.floor(commodity_sending_amount_gap[i] / 2),
+				gap: commodity_sending_amount[i],
+				amount: commodity_sending_amount[i],
 				rooms: commodity_selling_rooms,
-				min: commodity_sending_amount_gap[i],
+				min: commodity_sending_amount[i],
 			}
 		}
+	}
+	resources_balance['oxidant'] = {
+		gap: bar_sending_amount * 2,
+		amount: bar_sending_amount,
+		rooms: commodity_selling_rooms,
+		min: bar_sending_amount,
 	}
 }
 type type_final_product_requrest = {
@@ -598,6 +617,13 @@ export var final_product_request: type_final_product_requrest = {
         min_amount: 1200,
         expect_amount: 2400,
         store_room: "E15N58",
+        store_good_amount: 1800,
+        store_expect_amount: 30000,
+    },
+    "XUHO2": {
+        min_amount: 1200,
+        expect_amount: 2400,
+        store_room: "W9N1",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },

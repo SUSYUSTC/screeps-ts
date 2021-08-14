@@ -265,6 +265,10 @@ export var conf_E9N54: type_conf_room =
             "pos": [24, 38],
             "RCL": 6
         },
+        "RC": {
+            "pos": [21, 45],
+            "RCL": 1
+        },
         "S1": {
             "pos": [11, 35],
             "RCL": 1
