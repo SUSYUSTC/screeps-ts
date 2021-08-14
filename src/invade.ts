@@ -831,7 +831,7 @@ export function run_invader_group_x2(groupname: string) {
         case 'spawn': {
             let out = basic_job.waiting_for_spawn([group.invader_name, group.healer_name]);
             if (out == 1) {
-                group.working_status = 'boost';
+                group.working_status = 'shard_move';
             }
             break;
         }
@@ -843,7 +843,7 @@ export function run_invader_group_x2(groupname: string) {
             let output_invader = basic_job.boost_request(invader, invader_boost_request, true);
             let output_healer = basic_job.boost_request(healer, healer_boost_request, true);
             if (output_invader == 0 && output_healer == 0) {
-                group.working_status = 'shard_move'
+                group.working_status = 'shard_move';
             }
             break;
         }
@@ -896,8 +896,10 @@ export function init() {
         let body_confs = invade_conf_to_body_conf(invade_conf.conf, assign);
         let invader_body = functions.conf_body_to_body_components(body_confs.invader);
         let heal_body = functions.conf_body_to_body_components(body_confs.healer);
-        global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
-        global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
+        //global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
+        //global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
+        global.spawn_in_queue(home_room_name, [ATTACK, MOVE], invader_name, {}, false);
+        global.spawn_in_queue(home_room_name, [HEAL, MOVE], healer_name, {}, false);
         if (Memory.invade_groups_x2 == undefined) {
             Memory.invade_groups_x2 = {};
         }

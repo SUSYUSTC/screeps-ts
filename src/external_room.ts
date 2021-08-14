@@ -244,6 +244,7 @@ export function movethroughshards(creep: Creep) {
 		}
 	}
 	let shard_move = global.is_main_server ? Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move : creep.memory.shard_move;
+	console.log(creep.name, JSON.stringify(shard_move));
 	let pathfinding = false;
 	if (shard_move.shard_path[0].shard !== Game.shard.name) {
 		// portal between shards
@@ -255,7 +256,10 @@ export function movethroughshards(creep: Creep) {
 			shard_move.shard_path = shard_move.shard_path.slice(first_index);
 		}
 		pathfinding = true;
-	} else if (shard_move.rooms_path == undefined || !shard_move.rooms_path.includes(creep.room.name)) {
+	}
+	if (shard_move.rooms_path == undefined) {
+		pathfinding = true;
+	} else if (shard_move.rooms_path !== undefined && !shard_move.rooms_path.includes(creep.room.name)) {
 		// portal within shard
 		shard_move.shard_path = shard_move.shard_path.slice(1);
 		pathfinding = true;
