@@ -55,7 +55,7 @@ function direction2orient(pos: number[]) {
 }
 */
 
-var path_E29S21: type_shard_exit_point[] =    [
+var path_E29S21: type_shard_exit_point[] = [
 	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
 	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
 	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
@@ -73,8 +73,27 @@ var path_E29S21: type_shard_exit_point[] =    [
 	{ shard: 'shard1', roomName: 'E30S20', x: 20, y: 31 },
 	{ shard: 'shard2', roomName: 'E30S20', x: 23, y: 5 } 
 ];
+
+var path_W41S41: type_shard_exit_point[] = [
+	 { shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
+     { shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
+     { shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
+     { shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
+     { shard: 'shard0', roomName: 'E40S71', x: 7, y: 1 },
+     { shard: 'shard0', roomName: 'W10S70', x: 6, y: 23 },
+     { shard: 'shard1', roomName: 'W10S40', x: 21, y: 41 },
+     { shard: 'shard0', roomName: 'W20S79', x: 19, y: 48 },
+     { shard: 'shard0', roomName: 'W30S80', x: 42, y: 18 },
+     { shard: 'shard1', roomName: 'W20S40', x: 35, y: 35 },
+     { shard: 'shard0', roomName: 'W40S71', x: 2, y: 1 },
+     { shard: 'shard0', roomName: 'W70S70', x: 41, y: 14 },
+     { shard: 'shard1', roomName: 'W40S40', x: 26, y: 6 },
+     { shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
+];
+ 
 global.my_shard_paths = {
 	"E29S21": path_E29S21,
+	"W41S41": path_W41S41,
 }
 
 type type_conf_rooms = {
@@ -241,11 +260,13 @@ interface type_preclaiming_rooms {
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
+	/*
 	"E11S39": {
 		"E29S21": {
 			shard_path: path_E29S21.concat([{ shard: 'shard3', roomName: 'E29S21', x: 15, y: 2 }]),
 		}
 	}
+	*/
 }
 export var help_list: type_help_list = {
 	/*

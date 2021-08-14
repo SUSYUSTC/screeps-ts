@@ -798,7 +798,7 @@ declare module NodeJS {
         update_layout(room_name: string, check_all: boolean): any;
 		remove_unregistered_structures(room_name: string): number;
 		get_body(components: type_body_components): BodyPartConstant[];
-		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign): number;
+		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign, shard_path: type_shard_exit_point[]): number;
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;
