@@ -831,7 +831,7 @@ export function run_invader_group_x2(groupname: string) {
         case 'spawn': {
             let out = basic_job.waiting_for_spawn([group.invader_name, group.healer_name]);
             if (out == 1) {
-                group.working_status = 'shard_move';
+                group.working_status = 'boost';
             }
             break;
         }
@@ -871,8 +871,8 @@ export function run_invader_group_x2(groupname: string) {
             }
             if (n_finished == 2) {
                 group.working_status = 'work';
-                cross_shard.delete_creep_from_shardmemory(invader);
-                cross_shard.delete_creep_from_shardmemory(healer);
+                cross_shard.delete_creep_from_shardmemory(invader.name);
+                cross_shard.delete_creep_from_shardmemory(healer.name);
             }
             break;
         }
@@ -896,10 +896,10 @@ export function init() {
         let body_confs = invade_conf_to_body_conf(invade_conf.conf, assign);
         let invader_body = functions.conf_body_to_body_components(body_confs.invader);
         let heal_body = functions.conf_body_to_body_components(body_confs.healer);
-        //global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
-        //global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
-        global.spawn_in_queue(home_room_name, [ATTACK, MOVE], invader_name, {}, false);
-        global.spawn_in_queue(home_room_name, [HEAL, MOVE], healer_name, {}, false);
+        global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
+        global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
+        //global.spawn_in_queue(home_room_name, [ATTACK, MOVE], invader_name, {}, false);
+        //global.spawn_in_queue(home_room_name, [HEAL, MOVE], healer_name, {}, false);
         if (Memory.invade_groups_x2 == undefined) {
             Memory.invade_groups_x2 = {};
         }

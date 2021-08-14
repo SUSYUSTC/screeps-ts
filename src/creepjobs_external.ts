@@ -258,8 +258,9 @@ export function creepjob(creep: Creep): number {
 		creep.say("c");
 		creep.memory.movable = true;
 		creep.memory.crossable = true;
-		if (creep.getActiveBodyparts(CLAIM) == 0 || creep.getActiveBodyparts(ATTACK) == 0) {
+		if (creep.getActiveBodyparts(CLAIM) == 0) {
 			creep.suicide();
+			return 0;
 		}
 		if (creep.room.name !== creep.memory.external_room_name) {
 			if (creep.memory.shard_move !== undefined) {
@@ -272,7 +273,7 @@ export function creepjob(creep: Creep): number {
 			}
 			creep.say("ce");
 		} else {
-			cross_shard.delete_creep_from_shardmemory(creep);
+			cross_shard.delete_creep_from_shardmemory(creep.name);
 			if (creep.room.controller.my) {
 				creep.signController(creep.room.controller, config.sign);
 				return 0;
@@ -336,7 +337,7 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'carry': {
-				cross_shard.delete_creep_from_shardmemory(creep);
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				if (creep.store.getUsedCapacity("energy") > 0) {
 					if (basic_job.charge_all(creep) == 0) {
 						creep.say("ECc");
@@ -391,7 +392,7 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'move': {
-				cross_shard.delete_creep_from_shardmemory(creep);
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				let source_name = creep.memory.source_name;
 				let conf_external = config.conf_rooms[creep.memory.external_room_name];
 				let container_xy = conf_external.containers[source_name].pos;
@@ -453,7 +454,7 @@ export function creepjob(creep: Creep): number {
 					creep.suicide();
 					break;
 				}
-				cross_shard.delete_creep_from_shardmemory(creep);
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				let source_name = creep.memory.source_name;
 				let container_source = creep.room.container[source_name];
 				if (container_source == undefined) {
@@ -552,7 +553,7 @@ export function creepjob(creep: Creep): number {
 					creep.suicide();
 					break;
 				}
-				cross_shard.delete_creep_from_shardmemory(creep);
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				if (creep.ticksToLive < 20 && creep.store.getUsedCapacity("energy") == 0) {
 					creep.suicide();
 					creep.say("HBd");
@@ -606,7 +607,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("Ge");
 			return 0;
 		}
-		cross_shard.delete_creep_from_shardmemory(creep);
+		cross_shard.delete_creep_from_shardmemory(creep.name);
 		if (invade.single_combat_ranged(creep, true) == 0) {
 			creep.say("Gra");
 		} else {

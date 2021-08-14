@@ -244,7 +244,6 @@ export function movethroughshards(creep: Creep) {
 		}
 	}
 	let shard_move = global.is_main_server ? Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move : creep.memory.shard_move;
-	console.log(creep.name, JSON.stringify(shard_move));
 	let pathfinding = false;
 	if (shard_move.shard_path[0].shard !== Game.shard.name) {
 		// portal between shards
@@ -255,6 +254,8 @@ export function movethroughshards(creep: Creep) {
 		} else {
 			shard_move.shard_path = shard_move.shard_path.slice(first_index);
 		}
+		delete shard_move.rooms_path;
+		delete shard_move.poses_path;
 		pathfinding = true;
 	}
 	if (shard_move.rooms_path == undefined) {
@@ -270,6 +271,9 @@ export function movethroughshards(creep: Creep) {
 		let target_rxy = shard_move.shard_path[0];
 		let target_pos = new RoomPosition(target_rxy.x, target_rxy.y, target_rxy.roomName);
 		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 0}, {roomCallback: function(room_name: string) { return new PathFinder.CostMatrix } });
+		if (path.incomplete) {
+			return -1;
+		}
 		let exits_path = functions.get_exits_from_path(path.path);
 		shard_move.rooms_path = exits_path.rooms_path;
 		shard_move.poses_path = exits_path.poses_path;

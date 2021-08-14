@@ -169,7 +169,7 @@ export function sync_shard_memory() {
 				Game.require_update_intershardmemory_modify_time = true;
 			// not found in other shards
 			} else {
-				if (this_creeps[creepname].last_present_time < Game.time - 50) {
+				if (this_creeps[creepname].last_present_time < Game.time - 30) {
 					delete this_creeps[creepname];
 					creeps_to_remove.push(creepname);
 					Game.require_update_intershardmemory = true;
@@ -183,6 +183,8 @@ export function sync_shard_memory() {
 			console.log('registered_shard', registered_shard);
 			if (registered_shard !== undefined) {
 				this_creeps[creepname] = _.clone(Game.InterShardMemory[registered_shard].creeps[creepname]);
+				this_creeps[creepname].last_present_time = Game.time;
+				this_creeps[creepname].last_present_shard = Game.shard.name;
 				Game.require_update_intershardmemory = true;
 				Game.require_update_intershardmemory_modify_time = true;
 			}
@@ -232,13 +234,13 @@ export function update_shard_memory() {
 	timer.end();
 }
 
-export function delete_creep_from_shardmemory(creep: Creep) {
+export function delete_creep_from_shardmemory(name: string) {
 	if (!global.is_main_server) {
 		return;
 	}
 	let all_creeps = Game.InterShardMemory[Game.shard.name].all_creeps
-	if (all_creeps[creep.name] !== undefined) {
-		delete all_creeps[creep.name];
+	if (all_creeps[name] !== undefined) {
+		delete all_creeps[name];
 		Game.require_update_intershardmemory = true;
 		Game.require_update_intershardmemory = true;
 	}

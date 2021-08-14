@@ -28,6 +28,9 @@ export function fullreturnbody(list: type_body_components): BodyPartConstant[] {
     }
     return body;
 }
+const getbody_signer = (options: any) => {
+    return returnbody(0, 0, 1);
+}
 const getbody_external_init = (options: any) => {
     return fullreturnbody(options.body);
 }
@@ -174,9 +177,9 @@ const getbody_reserver = (options: any): BodyPartConstant[] => {
 }
 const getbody_preclaimer = (options: any): BodyPartConstant[] => {
     let bodyinfo: type_body_components = {
-        "claim": 4,
-		"attack": 4,
-        "move": 24,
+        "claim": 2,
+		//"attack": 4,
+        "move": 10,
     };
     return fullreturnbody(bodyinfo);
 }
