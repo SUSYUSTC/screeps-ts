@@ -27,10 +27,10 @@ var show_gray = {
     opacity: 0.3,
 }
 
-var high_valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory'];
-var low_valued_structures: StructureConstant[] = ['rampart', 'constructedWall'];
-var valued_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart', 'constructedWall'];
-var owned_structures: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart'];
+var key_structure_list: StructureConstant[] = ['spawn', 'tower'];
+var wall_structure_list: StructureConstant[] = ['rampart', 'constructedWall'];
+var valued_structure_list: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart', 'constructedWall'];
+var owned_structure_list: StructureConstant[] = ['extension', 'spawn', 'tower', 'link', 'lab', 'nuker', 'powerSpawn', 'factory', 'rampart'];
 var mass_damage: {
     [key: number]: number
 } = {
@@ -38,6 +38,8 @@ var mass_damage: {
     2: 4,
     3: 1,
 }
+
+var key_structure_importance_factor = 10;
 
 export function single_combat_ranged(creep: Creep, aggresive: boolean = false) {
     let enemies = creep.room.find(FIND_HOSTILE_CREEPS);
@@ -172,25 +174,19 @@ function with_rampart(pos: RoomPosition): number {
     }
 }
 
-function get_structure_score(invader: Creep, structure: Structure): number {
-    let score = structure.hits + (structure.structureType == 'rampart' ? 0 : with_rampart(structure.pos)) + invader.pos.getRangeTo(structure) * 1000 + (structure.structureType == 'tower' ? 0 : 10000)
-    return score;
-}
-
-function get_structure_cost(invader: Creep, structure: Structure, ref_hits: number): number {
+function get_structure_cost(invader: Creep, structure: Structure, ref_hits: number = 0): number {
     ref_hits = Math.max(ref_hits, 400000);
     let hits = structure.hits + (structure.structureType == 'rampart' ? 0 : with_rampart(structure.pos));
-    let tower_score = (structure.structureType == 'tower' ? 2 : 0);
-    return Math.min(Math.ceil(hits * 20 / ref_hits), 240) + tower_score + 1;
+    return hits * 40 / ref_hits;
 }
 
-function get_most_valued_structure_in_range(invader: Creep, range: number): Structure {
-    let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, range).filter((e) => valued_structures.includes(e.structureType));
+function get_most_valued_structure_in_range(invader: Creep, range: number, ref_hits: number): Structure {
+    let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, range).filter((e) => valued_structure_list.includes(e.structureType));
     if (structures_in_range.length == 0) {
         return undefined;
     }
-    let scores = structures_in_range.map((e) => get_structure_score(invader, e));
-    let argmin = mymath.argmin(scores);
+    let costs = structures_in_range.map((e) => get_structure_cost(invader, e, ref_hits));
+    let argmin = mymath.argmin(costs);
     return structures_in_range[argmin];
 }
 
@@ -211,17 +207,23 @@ function get_mass_damage_on_creeps(invader: Creep): number {
 }
 
 function get_mass_damage_on_structures(invader: Creep): number {
-    let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, 3).filter((e) => owned_structures.includes(e.structureType) && (e.structureType == 'rampart' || with_rampart(e.pos) == 0));
+    let structures_in_range = invader.pos.findInRange(FIND_STRUCTURES, 3).filter((e) => owned_structure_list.includes(e.structureType) && (e.structureType == 'rampart' || with_rampart(e.pos) == 0));
     let mass_damages = structures_in_range.map((e) => mass_damage[invader.pos.getRangeTo(e)]);
     return mymath.array_sum(mass_damages);
 }
 
-export function auto_dismantle(invader_name: string) {
-    let invader = Game.creeps[invader_name];
+export function auto_dismantle(group: type_invade_group_x2) {
+    let invader = Game.creeps[group.invader_name];
     if (config.occupied_rooms.includes(invader.room.name)) {
         return;
     }
-    let target_structure = get_most_valued_structure_in_range(invader, 1);
+	let target_structure: Structure;
+	if (group.target_structure_id != undefined) {
+		target_structure = Game.getObjectById(group.target_structure_id);
+	}
+	if (target_structure == undefined || invader.pos.getRangeTo(target_structure) > 1) {
+		target_structure = get_most_valued_structure_in_range(invader, 1, group.ref_hits);
+	}
     if (target_structure !== undefined) {
         invader.dismantle(target_structure);
         invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y, show_red);
@@ -229,8 +231,8 @@ export function auto_dismantle(invader_name: string) {
     }
 }
 
-export function auto_attack(invader_name: string) {
-    let invader = Game.creeps[invader_name];
+export function auto_attack(group: type_invade_group_x2) {
+    let invader = Game.creeps[group.invader_name];
     if (config.occupied_rooms.includes(invader.room.name)) {
         return;
     }
@@ -240,16 +242,22 @@ export function auto_attack(invader_name: string) {
         invader.room.visual.circle(target_creep.pos.x, target_creep.pos.y, show_red);
         return;
     }
-    let target_structure = get_most_valued_structure_in_range(invader, 1);
-    if (target_structure !== undefined) {
+	let target_structure: Structure;
+	if (group.target_structure_id != undefined) {
+		target_structure = Game.getObjectById(group.target_structure_id);
+	}
+	if (target_structure == undefined || invader.pos.getRangeTo(target_structure) > 1) {
+		target_structure = get_most_valued_structure_in_range(invader, 1, group.ref_hits);
+	}
+    if (target_structure != undefined) {
         invader.attack(target_structure);
         invader.room.visual.circle(target_structure.pos.x, target_structure.pos.y, show_red);
         return;
     }
 }
 
-export function auto_ranged_attack(invader_name: string) {
-    let invader = Game.creeps[invader_name];
+export function auto_ranged_attack(group: type_invade_group_x2) {
+    let invader = Game.creeps[group.invader_name];
     if (config.occupied_rooms.includes(invader.room.name)) {
         return;
     }
@@ -266,23 +274,29 @@ export function auto_ranged_attack(invader_name: string) {
         invader.rangedMassAttack();
         return;
     }
-    let target_structure = get_most_valued_structure_in_range(invader, 3);
+	let target_structure: Structure;
+	if (group.target_structure_id != undefined) {
+		target_structure = Game.getObjectById(group.target_structure_id);
+	}
+	if (target_structure == undefined || invader.pos.getRangeTo(target_structure) > 3) {
+		target_structure = get_most_valued_structure_in_range(invader, 1, group.ref_hits);
+	}
     if (target_structure !== undefined) {
         invader.rangedAttack(target_structure);
         return;
     }
 }
 
-export function auto_invade(invader_name: string) {
-    let invader = Game.creeps[invader_name];
+export function auto_invade(group: type_invade_group_x2) {
+    let invader = Game.creeps[group.invader_name];
     if (invader.getActiveBodyparts(ATTACK) > 0) {
-        auto_attack(invader_name);
+        auto_attack(group);
     } else {
         if (invader.getActiveBodyparts(RANGED_ATTACK) > 0) {
-            auto_ranged_attack(invader_name);
+            auto_ranged_attack(group);
         }
         if (invader.getActiveBodyparts(WORK) > 0) {
-            auto_dismantle(invader_name);
+            auto_dismantle(group);
         }
     }
 }
@@ -368,16 +382,34 @@ function get_total_towers_damage(xy: [number, number], towers: [number, number][
     return damage
 }
 
+function terrain2cost(t: number): number {
+	switch(t) {
+		case 0: {
+			return 1;
+		}
+		case 1: {
+			return 255;
+		}
+		case 2: {
+			return 5;
+		}
+	}
+}
 function get_combat_costmatrix(room_name: string, allow_damage: number): CostMatrix {
     let room = Game.rooms[room_name];
+	let terrain = new Room.Terrain(room_name);
     let costmatrix = functions.construct_elementary_costmatrix(room_name);
     let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
     let tower_xys = towers.map((e) => < [number, number] > [e.pos.x, e.pos.y]);
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
-            if (costmatrix.get(i, j) == 255) {
-                continue;
-            }
+			if (costmatrix.get(i, j) == 0) {
+				let t = terrain.get(i, j);
+				costmatrix.set(i, j, terrain2cost(t));
+				if (costmatrix.get(i, j) == 255) {
+					continue;
+				}
+			}
             let damage = get_total_towers_damage([i, j], tower_xys);
             if (damage > allow_damage) {
                 costmatrix.set(i, j, 255);
@@ -391,6 +423,7 @@ function update_combat_costmatrix(room_name: string, costmatrix: CostMatrix, all
     let room = Game.rooms[room_name];
     let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
     let tower_xys = towers.map((e) => < [number, number] > [e.pos.x, e.pos.y]);
+	room.find(FIND_HOSTILE_POWER_CREEPS).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
     let hostiles = room.find(FIND_HOSTILE_CREEPS);
     let additional_damages: {
         [key in number]: {
@@ -400,6 +433,7 @@ function update_combat_costmatrix(room_name: string, costmatrix: CostMatrix, all
         }
     } = {};
     for (let creep of hostiles) {
+		costmatrix.set(creep.pos.x, creep.pos.y, 255);
         let body_components = functions.get_creep_invading_ability(creep);
         if (body_components.ranged_attack > 0) {
             let xys = functions.get_xys_within_range(creep.pos, 5);
@@ -443,7 +477,7 @@ function update_combat_costmatrix(room_name: string, costmatrix: CostMatrix, all
 
 function get_final_combat_costmatrix(groupname: string): CostMatrix {
     let group = Memory.invade_groups_x2[groupname];
-    let allow_damage = invade_conf_levels[group.invade_level].damage;
+    let allow_damage = group.protection_level * 320;
     if (group.costmatrix == undefined || Game.time % 50 == 0) {
         group.costmatrix = get_combat_costmatrix(group.target_room_name, allow_damage).serialize();
     }
@@ -452,52 +486,90 @@ function get_final_combat_costmatrix(groupname: string): CostMatrix {
     return costmatrix;
 }
 
-function determine_attacking_structure(creep: Creep, costmatrix: CostMatrix): Structure {
-    costmatrix = costmatrix.clone();
-    let structures = creep.room.find(FIND_STRUCTURES).filter((e) => valued_structures.includes(e.structureType));
-	let key_structures = structures.filter((e) => !low_valued_structures.includes(e.structureType)); 
-	let non_key_structures = structures.filter((e) => low_valued_structures.includes(e.structureType));
-    if (key_structures.length == 0) {
-        return undefined;
-    }
-    let rampart_walls = structures.filter((e) => ['rampart', 'constructedWall'].includes(e.structureType) && e.hits >= 50000)
-    let mean_hits = rampart_walls.length == 0 ? 0 : mymath.array_sum(rampart_walls.map((e) => e.hits)) / rampart_walls.length;
-    let key_costs = key_structures.map((e) => get_structure_cost(creep, e, mean_hits));
-    for (let i = 0; i < key_structures.length; i++) {
-        let pos = key_structures[i].pos;
-        let cost = key_costs[i];
-        costmatrix.set(pos.x, pos.y, cost);
-    }
-    let structure = creep.pos.findClosestByPath(key_structures, {
-        algorithm: 'dijkstra',
-        maxRooms: 1,
-        costCallback: function(roomName: string, costMatrix: CostMatrix) {
-            if (roomName == creep.room.name) {
-                return costmatrix;
-            }
-        },
-        maxOps: 500,
-    });
-	if (structure != null) {
-		return structure;
+function get_structure_in_the_way(path: RoomPosition[]): Structure {
+	for (let pos of path) {
+		let structure_in_the_way = pos.lookFor(LOOK_STRUCTURES).filter((e) => !['road', 'container'].includes(e.structureType))[0];
+		if (structure_in_the_way !== undefined) {
+			return structure_in_the_way;
+		}
 	}
-    let non_key_costs = non_key_structures.map((e) => get_structure_cost(creep, e, mean_hits));
-    for (let i = 0; i < non_key_structures.length; i++) {
-        let pos = non_key_structures[i].pos;
-        let cost = non_key_costs[i];
+	return undefined;
+}
+
+function determine_attacking_structure(group: type_invade_group_x2, costmatrix: CostMatrix): Structure {
+	let creep = Game.creeps[group.invader_name];
+    costmatrix = costmatrix.clone();
+    let structures = creep.room.find(FIND_STRUCTURES).filter((e) => valued_structure_list.includes(e.structureType));
+	let nonwall_structures = structures.filter((e) => !wall_structure_list.includes(e.structureType));
+	let key_structures = nonwall_structures.filter((e) => key_structure_list.includes(e.structureType));
+    let wall_structures = structures.filter((e) => wall_structure_list.includes(e.structureType) && e.hits >= 50000)
+    let mean_hits = wall_structures.length == 0 ? 0 : mymath.array_mean(wall_structures.map((e) => e.hits));
+	group.ref_hits = mean_hits;
+    let wall_structures_costs = wall_structures.map((e) => get_structure_cost(creep, e, mean_hits));
+    let nonwall_costs = nonwall_structures.map((e) => get_structure_cost(creep, e, mean_hits));
+	group.visual_costs = {};
+    for (let i = 0; i < wall_structures_costs.length; i++) {
+        let pos = wall_structures[i].pos;
+        let cost = Math.ceil(wall_structures_costs[i]) + 1;
         costmatrix.set(pos.x, pos.y, cost);
+		group.visual_costs[pos.x + pos.y * 50] = {x: pos.x, y: pos.y, cost: cost};
     }
-    structure = creep.pos.findClosestByPath(structures, {
-        algorithm: 'dijkstra',
+    for (let i = 0; i < nonwall_structures.length; i++) {
+        let pos = nonwall_structures[i].pos;
+        let cost = Math.ceil(nonwall_costs[i]) + 1;
+        costmatrix.set(pos.x, pos.y, cost);
+		group.visual_costs[pos.x + pos.y * 50] = {x: pos.x, y: pos.y, cost: cost};
+    }
+	if (key_structures.length == 0) {
+		let controller_path = PathFinder.search(creep.pos, {pos: creep.room.controller.pos, range: 1}, {
+			maxRooms: 1,
+			roomCallback: function(roomName: string) {
+				if (roomName == creep.room.name) {
+					return costmatrix;
+				}
+			},
+			maxCost: 500,
+		});
+		let structure_in_the_way = get_structure_in_the_way(controller_path.path);
+		if (structure_in_the_way !== undefined) {
+			return structure_in_the_way;
+		} else {
+			return undefined;
+		}
+	}
+    let key_path = PathFinder.search(creep.pos, key_structures.map((e) => e.pos), {
         maxRooms: 1,
-        costCallback: function(roomName: string, costMatrix: CostMatrix) {
+        roomCallback: function(roomName: string) {
             if (roomName == creep.room.name) {
                 return costmatrix;
             }
         },
-        maxOps: 500,
+        maxCost: 500,
     });
-    return structure;
+	let allowed_cost_for_wall_structure_list = key_path.incomplete ? 500 : key_path.cost;
+    for (let i = 0; i < nonwall_structures.length; i++) {
+        let pos = nonwall_structures[i].pos;
+        let cost = Math.ceil(nonwall_costs[i] * key_structure_importance_factor) + 1;
+        costmatrix.set(pos.x, pos.y, cost);
+    }
+    let nonwall_path = PathFinder.search(creep.pos, nonwall_structures.map((e) => e.pos), {
+        maxRooms: 1,
+        roomCallback: function(roomName: string) {
+            if (roomName == creep.room.name) {
+                return costmatrix;
+            }
+        },
+        maxCost: allowed_cost_for_wall_structure_list,
+    });
+	let final_path = nonwall_path.incomplete ? key_path.path : nonwall_path.path;
+	let final_pos = final_path.slice(-1)[0];
+	let structure = nonwall_structures.filter((e) => final_pos.isEqualTo(e.pos))[0];
+	group.visual_path = final_path.map((e) => [e.x, e.y]);
+	let structure_in_the_way = get_structure_in_the_way(final_path);
+	if (structure_in_the_way !== undefined) {
+		return structure_in_the_way;
+	}
+	return structure;
 }
 
 export function automove_group_x2(groupname: string): number {
@@ -609,7 +681,7 @@ export function automove_group_x2(groupname: string): number {
         }
         let timer = new Timer("attack_structure", false);
         let refind_structure = false;
-        if (group.target_structure_id == undefined || Game.time % 20 == 0) {
+        if (group.target_structure_id == undefined || Game.time % 10 == 0) {
             refind_structure = true;
         } else {
             let structure = Game.getObjectById(group.target_structure_id);
@@ -618,12 +690,19 @@ export function automove_group_x2(groupname: string): number {
             }
         }
         if (refind_structure) {
-            let structure = determine_attacking_structure(invader, costmatrix);
-            if (structure == undefined) {
+            let structure = determine_attacking_structure(group, costmatrix);
+            if (structure == null) {
+				delete group.target_structure_id;
                 return 0;
             }
             group.target_structure_id = structure.id;
         }
+		if (group.visual_costs !== undefined) {
+			_.forEach(group.visual_costs, (e) => invader.room.visual.text(e.cost.toString(), e.x, e.y));
+		}
+		if (group.visual_path !== undefined) {
+			invader.room.visual.poly(group.visual_path);
+		}
         let structure = Game.getObjectById(group.target_structure_id);
         invader.room.visual.circle(structure.pos, show_blue);
 		if (!invader.pos.isNearTo(structure)) {
@@ -641,63 +720,18 @@ export function automove_group_x2(groupname: string): number {
     return 0;
 }
 
-type invade_types = "attack" | "ranged_attack" | "dismantle";
-type body_types = "invade" | "heal" | "tough" | "move";
-/*
-type type_invader_conf_levels = {
-	[key: number]: {
-		boost: {
-			[key in invade_types | "heal"]: type_body_conf;
-		};
-		damage: number;
-	}
-}
-*/
-type type_invade_conf = {
-    [key in body_types]: {
-        number: number;
-        boost_level: number;
-    }
-}
-type type_invade_conf_levels = {
-    [key: number]: {
-        conf: type_invade_conf
-        damage: number;
-    }
-}
-
 var boost_mapping: {
-    [key in "tough" | "heal" | "move" | "attack" | "ranged_attack" | "work"]: {
-        [key: number]: MineralBoostConstant
-    }
+    [key in "tough" | "heal" | "move" | "attack" | "ranged_attack" | "work"]: MineralBoostConstant
 } = {
-    tough: {
-        2: "GHO2",
-        3: "XGHO2"
-    },
-    heal: {
-        2: "LHO2",
-        3: "XLHO2"
-    },
-    move: {
-        2: "ZHO2",
-        3: "XZHO2"
-    },
-    attack: {
-        2: "UH2O",
-        3: "XUH2O"
-    },
-    ranged_attack: {
-        2: "KHO2",
-        3: "XKHO2",
-    },
-    work: {
-        2: "ZH2O",
-        3: "XZH2O",
-    },
+    tough: 'XGHO2',
+	heal: 'XLHO2',
+	move: 'XZHO2',
+	attack: 'XUH2O',
+	ranged_attack: 'XKHO2',
+	work: 'XZH2O',
 }
 
-function invade_conf_to_body_conf(conf: type_invade_conf, assign: type_invade_assign): {
+function invade_conf_to_body_conf(protection_level: number, assign: type_invade_assign): {
     [key in "healer" | "invader"]: type_body_conf
 } {
     let body_conf_invader: type_body_conf = {};
@@ -711,20 +745,27 @@ function invade_conf_to_body_conf(conf: type_invade_conf, assign: type_invade_as
     if (assign.work == undefined) {
         assign.work = 0;
     }
-    if (assign.attack + assign.ranged_attack + assign.work !== conf.invade.number) {
+	if (protection_level > 10) {
+		return undefined;
+	}
+    if (assign.attack + assign.ranged_attack + assign.work + protection_level * 2 > 40) {
         return undefined;
     }
     body_conf_invader.tough = body_conf_healer.tough = {
-        number: conf.tough.number,
-        boost: boost_mapping.tough[conf.tough.boost_level],
+        number: protection_level * 2,
+        boost: boost_mapping.tough,
     }
-    body_conf_invader.move = body_conf_healer.move = {
-        number: conf.move.number,
-        boost: boost_mapping.move[conf.move.boost_level],
+    body_conf_healer.move = {
+        number: protection_level,
+        boost: boost_mapping.move,
+    }
+    body_conf_invader.move = {
+        number: Math.ceil((assign.attack + assign.ranged_attack + assign.work + protection_level * 2) / 4),
+        boost: boost_mapping.move,
     }
     body_conf_healer.heal = {
-        number: conf.heal.number,
-        boost: boost_mapping.heal[conf.heal.boost_level],
+        number: protection_level * 2,
+        boost: boost_mapping.heal,
     }
     for (let part of < Array < keyof typeof assign >> Object.keys(assign)) {
         if (assign[part] == 0) {
@@ -732,79 +773,13 @@ function invade_conf_to_body_conf(conf: type_invade_conf, assign: type_invade_as
         }
         body_conf_invader[part] = {
             number: assign[part],
-            boost: boost_mapping[part][conf.invade.boost_level],
+            boost: boost_mapping[part],
         }
     }
     return {
         invader: body_conf_invader,
         healer: body_conf_healer,
     }
-}
-
-let invade_conf_levels: type_invade_conf_levels = {
-    1: {
-        conf: {
-            "invade": {
-                "number": 20,
-                "boost_level": 2,
-            },
-            "heal": {
-                "number": 20,
-                "boost_level": 2,
-            },
-            "tough": {
-                "number": 16,
-                "boost_level": 2,
-            },
-            "move": {
-                "number": 12,
-                "boost_level": 2,
-            },
-        },
-        damage: 1440,
-    },
-    2: {
-        conf: {
-            "invade": {
-                "number": 20,
-                "boost_level": 2,
-            },
-            "heal": {
-                "number": 20,
-                "boost_level": 2,
-            },
-            "tough": {
-                "number": 16,
-                "boost_level": 3,
-            },
-            "move": {
-                "number": 12,
-                "boost_level": 2,
-            },
-        },
-        damage: 2400,
-    },
-    3: {
-        conf: {
-            "invade": {
-                "number": 20,
-                "boost_level": 3,
-            },
-            "heal": {
-                "number": 20,
-                "boost_level": 3,
-            },
-            "tough": {
-                "number": 20,
-                "boost_level": 3,
-            },
-            "move": {
-                "number": 10,
-                "boost_level": 3,
-            },
-        },
-        damage: 3200,
-    },
 }
 
 //export function run_invader_group_x2(groupname: string, target_room_name: string, flagname: string, rooms_path: string[], poses_path: number[]) {
@@ -836,8 +811,7 @@ export function run_invader_group_x2(groupname: string) {
             break;
         }
         case 'boost': {
-            let invade_conf = invade_conf_levels[group.invade_level];
-            let body_confs = invade_conf_to_body_conf(invade_conf.conf, group.assign);
+            let body_confs = invade_conf_to_body_conf(group.protection_level, group.assign);
             let invader_boost_request = functions.conf_body_to_boost_request(body_confs.invader);
             let healer_boost_request = functions.conf_body_to_boost_request(body_confs.healer);
             let output_invader = basic_job.boost_request(invader, invader_boost_request, true);
@@ -881,7 +855,7 @@ export function run_invader_group_x2(groupname: string) {
             automove_group_x2(groupname);
             timer.end()
             timer = new Timer("autoinvade", false);
-            auto_invade(invader.name);
+            auto_invade(group);
             timer.end()
             break;
         }
@@ -889,27 +863,31 @@ export function run_invader_group_x2(groupname: string) {
 }
 
 export function init() {
-    global.spawn_invader_group_x2 = function(home_room_name: string, level: number, groupname: string, assign: type_invade_assign, shard_path: type_shard_exit_point[] = []): number {
+    global.spawn_invader_group_x2 = function(home_room_name: string, groupname: string, protection_level: number, assign: type_invade_assign, shard_path: type_shard_exit_point[] = []): number {
         let invader_name = "invader" + groupname + Game.time.toString();
         let healer_name = "healer" + groupname + Game.time.toString();
-        let invade_conf = invade_conf_levels[level];
-        let body_confs = invade_conf_to_body_conf(invade_conf.conf, assign);
+        let body_confs = invade_conf_to_body_conf(protection_level, assign);
+		if (body_confs == undefined) {
+			return 1;
+		}
         let invader_body = functions.conf_body_to_body_components(body_confs.invader);
         let heal_body = functions.conf_body_to_body_components(body_confs.healer);
         global.spawn_in_queue(home_room_name, global.get_body(invader_body), invader_name, {}, false);
         global.spawn_in_queue(home_room_name, global.get_body(heal_body), healer_name, {}, false);
-        //global.spawn_in_queue(home_room_name, [ATTACK, MOVE], invader_name, {}, false);
-        //global.spawn_in_queue(home_room_name, [HEAL, MOVE], healer_name, {}, false);
         if (Memory.invade_groups_x2 == undefined) {
             Memory.invade_groups_x2 = {};
         }
+		if (Memory.invade_groups_x2[groupname] !== undefined) {
+			return 1;
+		}
         Memory.invade_groups_x2[groupname] = {
-            "home_room_name": home_room_name,
-            "invader_name": invader_name,
-            "healer_name": healer_name,
-            "invade_level": level,
-            "assign": assign,
-            "shard_path": shard_path,
+            home_room_name: home_room_name,
+            invader_name: invader_name,
+            healer_name: healer_name,
+			protection_level: protection_level,
+            assign: assign,
+            shard_path: shard_path,
+			time: Game.time,
         }
         return 0;
     }

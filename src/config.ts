@@ -260,11 +260,13 @@ interface type_preclaiming_rooms {
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
+	/*
 	"E11S39": {
 		"W41S41": {
 			shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 31, y: 13 }]),
 		}
 	}
+	*/
 }
 export var help_list: type_help_list = {
 	/*

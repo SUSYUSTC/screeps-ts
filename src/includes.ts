@@ -424,14 +424,24 @@ type type_invade_assign = {
 interface type_invade_group_x2 {
     healer_name: string;
 	invader_name: string;
-	invade_level: number;
+	protection_level: number;
 	assign: type_invade_assign;
 	home_room_name: string;
+	time: number;
 	target_room_name ?: string;
 	shard_path: type_shard_exit_point[];
 	working_status ?: string;
 	target_structure_id ?: Id<Structure>;
 	costmatrix ?: number[];
+	ref_hits ?: number;
+	visual_costs ?: {
+		[key: number]: {
+			x: number;
+			y: number;
+			cost: number;
+		}
+	}
+	visual_path ?: [number, number][];
 }
 
 type type_order_total_amount = {
@@ -798,7 +808,7 @@ declare module NodeJS {
         update_layout(room_name: string, check_all: boolean): any;
 		remove_unregistered_structures(room_name: string): number;
 		get_body(components: type_body_components): BodyPartConstant[];
-		spawn_invader_group_x2(home_room_name: string, level: number, groupname: string, assign: type_invade_assign, shard_path: type_shard_exit_point[]): number;
+		spawn_invader_group_x2(home_room_name: string, groupname: string, protection_level: number, assign: type_invade_assign, shard_path: type_shard_exit_point[]): number;
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;

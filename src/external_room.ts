@@ -245,6 +245,9 @@ export function movethroughshards(creep: Creep) {
 	}
 	let shard_move = global.is_main_server ? Game.InterShardMemory[Game.shard.name].creeps[creep.name].shard_move : creep.memory.shard_move;
 	let pathfinding = false;
+	if (shard_move.shard_path[0] == undefined) {
+		return 1;
+	}
 	if (shard_move.shard_path[0].shard !== Game.shard.name) {
 		// portal between shards
 		let first_index = shard_move.shard_path.findIndex((e) => e.shard == Game.shard.name);
