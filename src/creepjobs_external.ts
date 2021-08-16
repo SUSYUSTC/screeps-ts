@@ -337,11 +337,11 @@ export function creepjob(creep: Creep): number {
 				} else if (external_room.moveawayexit(creep) == 0) {
 					break;
 				}
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				creep.memory.working_status = 'carry';
 				break;
 			}
 			case 'carry': {
-				cross_shard.delete_creep_from_shardmemory(creep.name);
 				if (creep.store.getUsedCapacity("energy") > 0) {
 					if (basic_job.charge_all(creep) == 0) {
 						creep.say("ECc");
@@ -392,11 +392,19 @@ export function creepjob(creep: Creep): number {
 				} else if (external_room.moveawayexit(creep) == 0) {
 					break;
 				}
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				creep.memory.working_status = 'move';
 				break;
 			}
 			case 'move': {
-				cross_shard.delete_creep_from_shardmemory(creep.name);
+				if (Game.independent_rooms.includes(creep.room.name)) {
+					creep.suicide();
+					return 0;
+				}
+				if (creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'harvester' && e.memory.source_name == creep.memory.source_name)[0] !== undefined) {
+					creep.suicide();
+					return 0;
+				}
 				let source_name = creep.memory.source_name;
 				let conf_external = config.conf_rooms[creep.memory.external_room_name];
 				let container_xy = conf_external.containers[source_name].pos;
@@ -410,6 +418,10 @@ export function creepjob(creep: Creep): number {
 			}
 			case 'harvest': {
 				if (Game.independent_rooms.includes(creep.room.name)) {
+					creep.suicide();
+					return 0;
+				}
+				if (creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'harvester' && e.memory.source_name == creep.memory.source_name)[0] !== undefined) {
 					creep.suicide();
 					return 0;
 				}
@@ -450,6 +462,7 @@ export function creepjob(creep: Creep): number {
 				} else if (external_room.moveawayexit(creep) == 0) {
 					break;
 				}
+				cross_shard.delete_creep_from_shardmemory(creep.name);
 				creep.memory.working_status = 'work';
 				break;
 			}
@@ -458,7 +471,6 @@ export function creepjob(creep: Creep): number {
 					creep.suicide();
 					break;
 				}
-				cross_shard.delete_creep_from_shardmemory(creep.name);
 				let source_name = creep.memory.source_name;
 				let container_source = creep.room.container[source_name];
 				if (container_source == undefined) {
@@ -476,6 +488,10 @@ export function creepjob(creep: Creep): number {
 				if (creep.store.getUsedCapacity("energy") == 0) {
 					basic_job.withdraw(creep, container_source, {exact: true});
 					creep.say("HCw");
+					break;
+				}
+				if (creep.ticksToLive < 500 && creep.store.getFreeCapacity() == 0) {
+					creep.memory.working_status = 'renew';
 					break;
 				}
 				let store_structure: StructureContainer|StructureStorage;
@@ -506,6 +522,13 @@ export function creepjob(creep: Creep): number {
 						basic_job.transfer(creep, store_structure);
 					}
 					creep.say("HCt1");
+				}
+				break;
+			}
+			case 'renew': {
+				let out = basic_job.ask_for_renew(creep);
+				if (out < 0) {
+					creep.memory.working_status = 'work';
 				}
 				break;
 			}

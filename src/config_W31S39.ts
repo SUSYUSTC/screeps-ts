@@ -335,10 +335,10 @@ export var conf_W31S39: type_conf_room =
     "mine": <Id<Mineral>>"5bbcb1d440062e4259e933b0",
     "harvesters": {
         "S1": {
-            "commuting_time": 27
+            "commuting_distance": 7
         },
         "S2": {
-            "commuting_time": 45
+            "commuting_distance": 13
         }
     },
     "minecarrier_distance": 29,

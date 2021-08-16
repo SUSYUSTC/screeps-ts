@@ -88,6 +88,68 @@ function creep_statistics() {
     Game.creep_statistics_done = true;
     timer.end();
 }
+function spawn_dev(room_name: string) {
+	let room = Game.rooms[room_name];
+	let ok = room.controller.level >= 2 && Object.keys(room.spawn).length >= 1;
+	if (!ok) {
+		return;
+	}
+    let conf = config.conf_rooms[room.name];
+    let room_statistics = Game.creep_statistics[room_name];
+    let sources_name = Object.keys(conf.sources);
+    let game_memory = Game.memory[room_name];
+    let link_modes = Object.keys(room.link);
+    let jsons: type_spawn_json[] = [];
+    for (let source_name of sources_name) {
+        let link_mode = link_modes.includes('CT') && link_modes.includes(source_name);
+
+        let with_carry = 0;
+        let with_harvest = 5;
+        let with_move = 1;
+        let half_time = false;
+		if (room.energyCapacityAvailable >= 600) {
+			let this_container = room.container[source_name];
+			let is_container_broken = (this_container.hitsMax - this_container.hits >= 100000);
+			if (is_container_broken) {
+				with_carry = 1;
+			}
+		}
+        let pretime = conf.harvesters[source_name].commuting_distance * Math.ceil(with_harvest / (with_move * 2)) + (with_harvest + with_move + with_carry) * 3 + 15;
+        let harvesters = room_statistics.harvester.filter((e) => e.memory.source_name == source_name && is_valid_creep(e, pretime));
+        let n_harvesters = harvesters.length;
+        if (n_harvesters == 0) {
+            let added_memory = {
+                "source_name": source_name,
+                "pc_level": game_memory.pc_source_level,
+                "half_time": half_time,
+            };
+            let options = {
+                "with_harvest": with_harvest,
+                "with_carry": with_carry,
+                "with_move": with_move,
+                "max_energy": room.energyCapacityAvailable,
+            };
+            let priority = 101;
+            let added_json = {
+                "priority": priority,
+                "require_full": false,
+            };
+            let json = spawning_func.prepare_role("harvester", room.energyAvailable, added_memory, options, added_json);
+            jsons.push(json);
+        }
+    }
+    if (jsons.length >= 1) {
+        let priorities = jsons.map((e) => e.priority);
+        let argmax = mymath.argmax(priorities);
+        let json = jsons[argmax];
+        if (json.affordable && (!json.require_full || room.energyCapacityAvailable == room.energyAvailable)) {
+            if (spawning_func.spawn_json(room_name, jsons[argmax]) == 0) {
+				return;
+			}
+        }
+	}
+}
+
 export function spawn(room_name: string) {
     let room = Game.rooms[room_name];
     let queue = room.memory.additional_spawn_queue;
@@ -123,6 +185,7 @@ export function spawn(room_name: string) {
     let room_statistics = Game.creep_statistics[room_name];
     let sources_name = Object.keys(conf.sources);
     if (!Game.independent_rooms.includes(room_name)) {
+		spawn_dev(room_name);
         return;
     }
     let link_modes = Object.keys(room.link);
@@ -168,7 +231,7 @@ export function spawn(room_name: string) {
                 }
             }
         }
-        let pretime = conf.harvesters[source_name].commuting_time + (with_harvest + with_move + with_move) * Math.ceil(with_harvest / (with_move * 2)) + 15;
+        let pretime = conf.harvesters[source_name].commuting_distance * Math.ceil(with_harvest / (with_move * 2)) + (with_harvest + with_move + with_carry) * 3 + 15;
         let harvesters = room_statistics.harvester.filter((e) => e.memory.source_name == source_name && is_valid_creep(e, pretime));
         let n_harvesters = harvesters.length;
         if (n_harvesters == 0) {
@@ -472,64 +535,60 @@ export function spawn(room_name: string) {
             let path_dict = get_path_dict(conf_help);
             let conf_external = config.conf_rooms[external_room_name];
             let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-			let level1 = external_room.controller.level == 1;
+			let level1 = external_room.energyCapacityAvailable < 550;
 			let level6 = external_room.controller.level == 6;
 			if (n_spawning == 0) {
-				if (conf_help.mine_source || level1) {
-					for (let source_name in config.conf_rooms[external_room_name].sources) {
-						let help_harvester_time = conf_help.commuting_time + 75;
-						let help_harvesters = room_statistics.help_harvester.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_harvester_time)).map((e) => e.name);
-						help_harvesters = help_harvesters.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_harvester' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_harvester_time));
-						let help_carrier_time = conf_help.commuting_time + conf_external.carriers[source_name].number * 6;
-						let help_carriers = room_statistics.help_carrier.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_carrier_time)).map((e) => e.name);
-						help_carriers = help_carriers.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_carrier' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_carrier_time));
-						if (help_harvesters.length == 0) {
-							let added_memory = {
-								"source_name": source_name,
-								"external_room_name": external_room_name,
-								"home_room_name": room_name,
-							};
-							added_memory = {
-								...added_memory,
-								...path_dict,
-							};
-							let options = {};
-							let priority = 42;
-							let added_json = {
-								"priority": priority,
-								"require_full": false
-							};
-							let json = spawning_func.prepare_role("help_harvester", room.energyAvailable, added_memory, options, added_json);
-							jsons.push(json);
-						}
-						if (help_carriers.length == 0 && (external_room.link.CT == undefined || external_room.link[source_name] == undefined)) {
-							let n_carry = conf_help.n_carrys !== undefined ? conf_help.n_carrys[source_name] : conf_external.carriers[source_name].number;
-							let added_memory = {
-								"source_name": source_name,
-								"external_room_name": external_room_name,
-								"home_room_name": room_name,
-							};
-							added_memory = {
-								...added_memory,
-								...path_dict,
-							};
-							let options = {
-								"max_parts": n_carry,
-							};
-							let priority = 41;
-							let added_json = {
-								"priority": priority,
-								"require_full": false
-							};
-							let json = spawning_func.prepare_role("help_carrier", room.energyAvailable, added_memory, options, added_json);
-							jsons.push(json);
-						}
+				for (let source_name in config.conf_rooms[external_room_name].sources) {
+					let help_harvester_time = conf_help.commuting_time + 75;
+					let help_harvesters = room_statistics.help_harvester.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_harvester_time)).map((e) => e.name);
+					help_harvesters = help_harvesters.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_harvester' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_harvester_time));
+					//let help_carrier_time = conf_help.commuting_time + conf_external.carriers[source_name].number * 6;
+					let help_carrier_time = 0;
+					let help_carriers = room_statistics.help_carrier.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_carrier_time)).map((e) => e.name);
+					help_carriers = help_carriers.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_carrier' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_carrier_time));
+					if (help_harvesters.length == 0 && level1) {
+						let added_memory = {
+							"source_name": source_name,
+							"external_room_name": external_room_name,
+							"home_room_name": room_name,
+						};
+						added_memory = {
+							...added_memory,
+							...path_dict,
+						};
+						let options = {};
+						let priority = 42;
+						let added_json = {
+							"priority": priority,
+							"require_full": false
+						};
+						let json = spawning_func.prepare_role("help_harvester", room.energyAvailable, added_memory, options, added_json);
+						jsons.push(json);
+					}
+					if (help_carriers.length == 0 && (external_room.link.CT == undefined || external_room.link[source_name] == undefined)) {
+						let n_carry = conf_help.n_carrys !== undefined ? conf_help.n_carrys[source_name] : conf_external.carriers[source_name].number;
+						let added_memory = {
+							"source_name": source_name,
+							"external_room_name": external_room_name,
+							"home_room_name": room_name,
+						};
+						added_memory = {
+							...added_memory,
+							...path_dict,
+						};
+						let options = {
+							"max_parts": n_carry,
+						};
+						let priority = 41;
+						let added_json = {
+							"priority": priority,
+							"require_full": false
+						};
+						let json = spawning_func.prepare_role("help_carrier", room.energyAvailable, added_memory, options, added_json);
+						jsons.push(json);
 					}
 				}
-				let n_builder_needed = 0;
-				if (conf_help.mine_source || level1 || level6) {
-					n_builder_needed += 1;
-				}
+				let n_builder_needed = 1;
 				if (!level1 && !level6) {
 					n_builder_needed += conf_help.n_energy_carriers;
 				}

@@ -238,7 +238,7 @@ interface conf_upgraders {
 }
 interface conf_harvesters {
     [key: string]: {
-        commuting_time: number;
+        commuting_distance: number;
     }
 }
 interface conf_maincarrier {

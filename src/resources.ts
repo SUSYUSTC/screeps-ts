@@ -213,6 +213,9 @@ export function detect_resources(room_name: string) {
         return;
     }
     let game_memory = Game.memory[room_name];
+	if (game_memory.danger_mode) {
+		return;
+	}
     let external_rooms = config.highway_resources[room_name];
     if (external_rooms == undefined || !global.memory[room_name].unique_structures_status.observer.finished) {
         return;
@@ -447,6 +450,10 @@ function update_depo(room_name: string, external_room_name: string) {
 
 export function update_resources(room_name: string) {
     let room = Game.rooms[room_name];
+    let game_memory = Game.memory[room_name];
+	if (game_memory.danger_mode) {
+		return;
+	}
     if (room.controller.level < 8) {
         return;
     }
