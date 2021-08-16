@@ -296,7 +296,11 @@ export function creepjob(creep: Creep): number {
 			let out = creep.claimController(creep.room.controller);
 			creep.say(out.toString());
 			if (!creep.room.controller.my && out == ERR_INVALID_TARGET) {
-				creep.attackController(creep.room.controller);
+				let out = creep.attackController(creep.room.controller);
+				if (out == 0) {
+					let home_room = Game.rooms[creep.memory.home_room_name];
+					home_room.memory.next_preclaim_time[creep.memory.external_room_name] = Game.time + 1000;
+				}
 				creep.say("ca");
 			}
 		}

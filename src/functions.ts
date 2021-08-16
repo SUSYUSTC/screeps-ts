@@ -138,7 +138,6 @@ export function find_hostile(room: Room): Creep[] {
 
 export function get_invader_costmatrix(room_name: string, damage_threshold: number): CostMatrix {
     let timer = new Timer("get_invader_costmatrix", false);
-
     let room = Game.rooms[room_name];
     let costmatrix = new PathFinder.CostMatrix;
     let terrain = new Room.Terrain(room_name);
@@ -158,8 +157,11 @@ export function get_invader_costmatrix(room_name: string, damage_threshold: numb
     return costmatrix;
 }
 
-export function construct_elementary_costmatrix(room_name: string) {
-	let costmatrix = new PathFinder.CostMatrix;
+export function construct_elementary_costmatrix(room_name: string, costmatrix: CostMatrix = undefined) {
+    let timer = new Timer("construct_elementary_costmatrix", false);
+	if (costmatrix == undefined) {
+		costmatrix = new PathFinder.CostMatrix;
+	}
 	let terrain = new Room.Terrain(room_name);
 	let room = Game.rooms[room_name];
 	let structures = room.find(FIND_STRUCTURES);
@@ -174,6 +176,7 @@ export function construct_elementary_costmatrix(room_name: string) {
 		costmatrix.set(0, i, 255);
 		costmatrix.set(49, i, 255);
 	}
+	timer.end()
 	return costmatrix;
 }
 

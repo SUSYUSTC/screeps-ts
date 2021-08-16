@@ -398,17 +398,15 @@ function terrain2cost(t: number): number {
 function get_combat_costmatrix(room_name: string, allow_damage: number): CostMatrix {
     let room = Game.rooms[room_name];
 	let terrain = new Room.Terrain(room_name);
-    let costmatrix = functions.construct_elementary_costmatrix(room_name);
+    let costmatrix = new PathFinder.CostMatrix;
     let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
     let tower_xys = towers.map((e) => < [number, number] > [e.pos.x, e.pos.y]);
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
-			if (costmatrix.get(i, j) == 0) {
-				let t = terrain.get(i, j);
-				costmatrix.set(i, j, terrain2cost(t));
-				if (costmatrix.get(i, j) == 255) {
-					continue;
-				}
+			let t = terrain.get(i, j);
+			costmatrix.set(i, j, terrain2cost(t));
+			if (costmatrix.get(i, j) == 255) {
+				continue;
 			}
             let damage = get_total_towers_damage([i, j], tower_xys);
             if (damage > allow_damage) {
@@ -421,6 +419,7 @@ function get_combat_costmatrix(room_name: string, allow_damage: number): CostMat
 
 function update_combat_costmatrix(room_name: string, costmatrix: CostMatrix, allow_damage: number) {
     let room = Game.rooms[room_name];
+	functions.construct_elementary_costmatrix(room_name, costmatrix);
     let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
     let tower_xys = towers.map((e) => < [number, number] > [e.pos.x, e.pos.y]);
 	room.find(FIND_HOSTILE_POWER_CREEPS).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
@@ -502,8 +501,9 @@ function determine_attacking_structure(group: type_invade_group_x2, costmatrix: 
     let structures = creep.room.find(FIND_STRUCTURES).filter((e) => valued_structure_list.includes(e.structureType));
 	let nonwall_structures = structures.filter((e) => !wall_structure_list.includes(e.structureType));
 	let key_structures = nonwall_structures.filter((e) => key_structure_list.includes(e.structureType));
-    let wall_structures = structures.filter((e) => wall_structure_list.includes(e.structureType) && e.hits >= 50000)
-    let mean_hits = wall_structures.length == 0 ? 0 : mymath.array_mean(wall_structures.map((e) => e.hits));
+    let wall_structures = structures.filter((e) => wall_structure_list.includes(e.structureType))
+    let nonzero_wall_structures = wall_structures.filter((e) => e.hits >= 50000)
+    let mean_hits = nonzero_wall_structures.length == 0 ? 0 : mymath.array_mean(nonzero_wall_structures.map((e) => e.hits));
 	group.ref_hits = mean_hits;
     let wall_structures_costs = wall_structures.map((e) => get_structure_cost(creep, e, mean_hits));
     let nonwall_costs = nonwall_structures.map((e) => get_structure_cost(creep, e, mean_hits));
@@ -609,6 +609,12 @@ export function automove_group_x2(groupname: string): number {
     if (external_room.movethroughrooms_group_x2(invader, healer, 'forward', group.target_room_name) == 0) {
         return 0;
     }
+	if (group.visual_costs !== undefined) {
+		_.forEach(group.visual_costs, (e) => invader.room.visual.text(e.cost.toString(), e.x, e.y));
+	}
+	if (group.visual_path !== undefined) {
+		invader.room.visual.poly(group.visual_path);
+	}
     if (invader.fatigue > 0 || healer.fatigue > 0) {
         return 0;
     }
@@ -654,13 +660,13 @@ export function automove_group_x2(groupname: string): number {
         invader.room.visual.circle(pos_to_flee, show_blue);
         timer.end()
     } else {
-        let hostiles = invader.pos.findInRange(FIND_HOSTILE_CREEPS, 8);
+        let hostiles = invader.pos.findInRange(FIND_HOSTILE_CREEPS, 6).filter((e) => with_rampart(e.pos) == 0);
         if (hostiles.length > 0 && (invader.getActiveBodyparts(ATTACK) > 0 || invader.getActiveBodyparts(RANGED_ATTACK) > 0)) {
             let timer = new Timer("fight", false);
             let closest = invader.pos.findClosestByPath(hostiles, {
                 ...moveoptions,
                 ...{
-                    maxOps: 50
+                    maxCost: 50
                 }
             });
             if (closest != null) {
@@ -697,12 +703,6 @@ export function automove_group_x2(groupname: string): number {
             }
             group.target_structure_id = structure.id;
         }
-		if (group.visual_costs !== undefined) {
-			_.forEach(group.visual_costs, (e) => invader.room.visual.text(e.cost.toString(), e.x, e.y));
-		}
-		if (group.visual_path !== undefined) {
-			invader.room.visual.poly(group.visual_path);
-		}
         let structure = Game.getObjectById(group.target_structure_id);
         invader.room.visual.circle(structure.pos, show_blue);
 		if (!invader.pos.isNearTo(structure)) {

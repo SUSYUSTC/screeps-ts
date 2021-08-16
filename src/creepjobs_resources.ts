@@ -306,54 +306,111 @@ export function creepjob(creep: Creep): number {
 		creep.say("DB");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		if (basic_job.boost_request(creep, {"work": "LH2O"}, true) == 1) {
-			creep.say("DBb");
-			return 0;
-		}
-		if (creep.room.name == creep.memory.home_room_name && creep.store.getFreeCapacity() > 0) {
-			basic_job.get_energy(creep);
-			creep.say("DBg");
-			return 0;
+		if (creep.memory.working_status == undefined) {
+			creep.memory.working_status = 'boost';
 		}
         let depo_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.depo[creep.memory.external_room_name];
-        let rooms_path = depo_status.rooms_path;
-        let poses_path = depo_status.poses_path;
-        let target_room = rooms_path[rooms_path.length - 1];
-        if (creep.room.name !== target_room) {
-			if (!external_room.is_moving_target_defined(creep, 'forward')) {
-				external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+		switch(creep.memory.working_status) {
+			case 'boost': {
+				if (basic_job.boost_request(creep, {"work": "LH2O"}, true) == 1) {
+					creep.say("DBb");
+					break;
+				}
+				creep.memory.working_status = 'get';
+				break;
 			}
-			external_room.external_move(creep, 'forward', {reusePath: 10});
-			creep.memory.movable = true;
-			creep.say("DBe");
-            return 0;
-		}
-		let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
-		let container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
-		if (container !== undefined) {
-			depo_status.status = 1;
-			if (creep.pos.isEqualTo(container)) {
-				let path = PathFinder.search(creep.pos, {pos: container_pos, range: 1}, {flee: true});
-				creep.moveByPath(path.path);
-			} else {
-				creep.suicide();
+			case 'get': {
+				if (creep.store.getFreeCapacity() > 0) {
+					basic_job.get_energy(creep);
+					creep.say("DBg");
+					break;
+				}
+				creep.memory.working_status = 'external_move';
+				break;
 			}
-			creep.say("DBd");
-			return 0;
+			case 'external_move': {
+				let rooms_path = depo_status.rooms_path;
+				let poses_path = depo_status.poses_path;
+				let target_room = rooms_path[rooms_path.length - 1];
+				if (creep.room.name !== target_room) {
+					if (!external_room.is_moving_target_defined(creep, 'forward')) {
+						external_room.save_external_moving_targets(creep, rooms_path, poses_path, 'forward');
+					}
+					external_room.external_move(creep, 'forward', {reusePath: 10});
+					creep.memory.movable = true;
+					creep.say("DBe");
+					break;
+				} else if (external_room.moveawayexit(creep) == 0) {
+					creep.say("DBe");
+					break;
+				}
+				creep.memory.working_status = 'move';
+				break;
+			}
+			case 'fight': {
+				console.log(`Warning: creep ${creep.name} fighting in room ${creep.room.name} at tick ${Game.time}`);
+				let hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
+				if (hostiles.length == 0) {
+					creep.memory.working_status = 'move';
+				} else {
+					let hostile = creep.pos.findClosestByRange(hostiles);
+					if (creep.pos.isNearTo(hostile)) {
+						creep.attack(hostile);
+					} else {
+						creep.moveTo(hostile, {range: 1, costCallback: functions.avoid_exits});
+					}
+				}
+				break;
+			}
+			case 'move': {
+				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
+				if (hostile !== undefined) {
+					creep.memory.working_status = 'fight';
+					break;
+				}
+				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
+				if (!creep.pos.isEqualTo(container_pos)) {
+					creep.moveTo(container_pos, {reusePath: 10, costCallback: functions.avoid_exits, maxRooms: 1, range: 0});
+					creep.say("DBm");
+					break;
+				}
+				creep.memory.working_status = 'work';
+				break;
+			}
+			case 'work': {
+				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
+				if (hostile !== undefined) {
+					creep.memory.working_status = 'fight';
+					break;
+				}
+				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
+				let container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
+				if (container !== undefined) {
+					depo_status.status = 1;
+					creep.memory.working_status = 'guard';
+					creep.say("DBd");
+					break;
+				}
+				let container_site = container_pos.lookFor("constructionSite").filter((e) => e.structureType == 'container')[0];
+				if (container_site == undefined) {
+					container_pos.createConstructionSite("container");
+					creep.say("DBc");
+				} else {
+					creep.build(container_site);
+					creep.say("DBb");
+				}
+				break;
+			}
+			case 'guard': {
+				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
+				if (creep.pos.getRangeTo(container_pos) < 5) {
+					let path = PathFinder.search(creep.pos, {pos: container_pos, range: 5}, {flee: true});
+					creep.moveByPath(path.path);
+				} else {
+					creep.suicide();
+				}
+			}
 		}
-		if (!creep.pos.isEqualTo(container_pos)) {
-			creep.moveTo(container_pos, {reusePath: 10, costCallback: functions.avoid_exits, maxRooms: 1, range: 0});
-			creep.say("DBm");
-			return 0;
-		}
-		let container_site = container_pos.lookFor("constructionSite").filter((e) => e.structureType == 'container')[0];
-		if (container_site == undefined) {
-			container_pos.createConstructionSite("container");
-			creep.say("DBc");
-			return 0;
-		}
-		creep.build(container_site);
-		creep.say("DBb");
 		return 0;
 	} else if (creep.memory.role == 'depo_energy_carrier') {
 		creep.say("DE");

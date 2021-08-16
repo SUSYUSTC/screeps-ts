@@ -51,6 +51,9 @@ interface RoomMemory {
 		[key in type_creep_role] ? : number;
     }
 	unboost_withdraw_request ? : boolean;
+	next_preclaim_time ?: {
+		[key: string]: number;
+	}
 }
 interface type_all_named_structures_status {
     container: type_named_structures_status < StructureContainer > ;

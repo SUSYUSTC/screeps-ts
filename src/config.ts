@@ -91,9 +91,29 @@ var path_W41S41: type_shard_exit_point[] = [
      { shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
 ];
  
+var path_W31S39: type_shard_exit_point[] = [
+	{ shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
+	{ shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
+	{ shard: 'shard1', roomName: 'W10S0', x: 9, y: 20 },
+	{ shard: 'shard0', roomName: 'W20S1', x: 6, y: 1 },
+	{ shard: 'shard0', roomName: 'W29S0', x: 1, y: 38 },
+	{ shard: 'shard0', roomName: 'W30S30', x: 21, y: 17 },
+	{ shard: 'shard1', roomName: 'W20S20', x: 24, y: 36 },
+	{ shard: 'shard0', roomName: 'W30S39', x: 2, y: 48 },
+	{ shard: 'shard0', roomName: 'W50S40', x: 34, y: 8 },
+	{ shard: 'shard1', roomName: 'W30S20', x: 34, y: 25 },
+	{ shard: 'shard0', roomName: 'W61S30', x: 48, y: 46 },
+	{ shard: 'shard0', roomName: 'W61S60', x: 48, y: 33 },
+	{ shard: 'shard0', roomName: 'W60S70', x: 25, y: 16 },
+	{ shard: 'shard1', roomName: 'W30S40', x: 22, y: 24 },
+	{ shard: 'shard2', roomName: 'W30S40', x: 38, y: 14 }
+];
+
+
 global.my_shard_paths = {
 	"E29S21": path_E29S21,
 	"W41S41": path_W41S41,
+	"W31S39": path_W31S39,
 }
 
 type type_conf_rooms = {
@@ -260,21 +280,24 @@ interface type_preclaiming_rooms {
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
-	/*
 	"E11S39": {
 		"W41S41": {
 			shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 31, y: 13 }]),
 		}
-	}
-	*/
+	},
+	"W9N1": {
+		"W31S39": {
+			shard_path: path_W31S39.concat([{ shard: 'shard3', roomName: 'W31S39', x: 32, y: 32 }]),
+		}
+	},
 }
 export var help_list: type_help_list = {
 	/*
     "W9N1": {
-        "E11S39": {
-            shard_path: path_E11S39,
-            commuting_distance: 550,
-            commuting_time: 800,
+        "W31S39": {
+            shard_path: path_W31S39,
+            commuting_distance: 500,
+            commuting_time: 750,
 			mine_source: false,
             n_energy_carriers: 1,
             guard: 5,
@@ -828,9 +851,13 @@ export var pb_healer_body: type_body_conf = {
 }
 export var depo_container_builder_body: type_body_conf = {
     "work": {
-        number: 8,
+        number: 6,
         boost: "LH2O",
     },
+	"attack": {
+		number: 2,
+		boost: "UH2O",
+	},
     "carry": {
         number: 24,
     },

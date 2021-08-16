@@ -275,6 +275,7 @@ export function movethroughshards(creep: Creep) {
 		let target_pos = new RoomPosition(target_rxy.x, target_rxy.y, target_rxy.roomName);
 		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 0}, {roomCallback: function(room_name: string) { return new PathFinder.CostMatrix } });
 		if (path.incomplete) {
+			console.log("Warning: shard path finding fail for creep", creep.name, "in room", creep.room.name, "at time", Game.time);
 			return -1;
 		}
 		let exits_path = functions.get_exits_from_path(path.path);

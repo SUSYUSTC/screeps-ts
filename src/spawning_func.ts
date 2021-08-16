@@ -170,16 +170,16 @@ const getbody_externalcarrier = (options: any): BodyPartConstant[] => {
 const getbody_reserver = (options: any): BodyPartConstant[] => {
     let n_parts = Math.min(options.max_parts, Math.floor(options.max_energy / 650));
     let bodyinfo: type_body_components = {
+        "move": n_parts,
         "claim": n_parts,
-        "move": n_parts
     };
     return fullreturnbody(bodyinfo);
 }
 const getbody_preclaimer = (options: any): BodyPartConstant[] => {
     let bodyinfo: type_body_components = {
-        "claim": 2,
-		//"attack": 4,
-        "move": 10,
+        "move": 20,
+		"attack": 2,
+        "claim": 8,
     };
     return fullreturnbody(bodyinfo);
 }

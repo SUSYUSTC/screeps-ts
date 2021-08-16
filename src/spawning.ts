@@ -613,7 +613,13 @@ export function spawn(room_name: string) {
 
     // preclaimers
     if_claimer: if (config.preclaiming_rooms[room_name] !== undefined && !game_memory.danger_mode) {
+		if (room.memory.next_preclaim_time == undefined) {
+			room.memory.next_preclaim_time = {};
+		}
         for (let external_room_name in config.preclaiming_rooms[room_name]) {
+			if (Game.time < room.memory.next_preclaim_time[external_room_name]) {
+				continue;
+			}
             let external_room = Game.rooms[external_room_name];
             if (external_room !== undefined && external_room.controller.my) {
                 break if_claimer;
