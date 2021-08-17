@@ -1,17 +1,21 @@
 export var conf_E9N54: type_conf_room =
 {
     "extensions": {
-        "6": [
+        "2": [
             [20, 45],
             [20, 46],
             [21, 43],
             [22, 47],
-            [22, 43],
+            [22, 43]
+        ],
+        "3": [
             [20, 43],
             [20, 47],
             [19, 46],
             [19, 44],
-            [23, 43],
+            [23, 43]
+        ],
+        "6": [
             [21, 48],
             [22, 48],
             [18, 45],
@@ -351,13 +355,13 @@ export var conf_E9N54: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 10
         },
         "storage": {
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 8
         }
     },
     "maincarrier": {

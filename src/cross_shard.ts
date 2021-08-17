@@ -152,8 +152,9 @@ export function sync_shard_memory() {
 		}
 		// creep exists
 		if (this_creeps[creepname] !== undefined && Game.creeps[creepname] !== undefined) {
-			let defined = (this_creeps[creepname].last_present_time !== undefined && this_creeps[creepname].last_present_shard !== undefined);
-			if (!defined || Game.time % 10 == 0 || Game.shard.name !== this_creeps[creepname].last_present_shard) {
+			let cache_time_ok = (Game.time % 5 !== 0) || (this_creeps[creepname].last_present_time > Game.time - 10);
+			let cache_shard_ok = this_creeps[creepname].last_present_shard == Game.shard.name;
+			if (!cache_time_ok || !cache_shard_ok) {
 				this_creeps[creepname].last_present_time = Game.time;
 				this_creeps[creepname].last_present_shard = Game.shard.name;
 				Game.require_update_intershardmemory = true;
@@ -169,7 +170,7 @@ export function sync_shard_memory() {
 				Game.require_update_intershardmemory_modify_time = true;
 			// not found in other shards
 			} else {
-				if (this_creeps[creepname].last_present_time < Game.time - 30) {
+				if (this_creeps[creepname].last_present_time < Game.time - 50) {
 					delete this_creeps[creepname];
 					creeps_to_remove.push(creepname);
 					Game.require_update_intershardmemory = true;

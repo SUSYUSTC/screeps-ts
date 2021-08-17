@@ -62,11 +62,7 @@ const getbody_help_carrier = (options: any) => {
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_help_builder = (options: any) => {
-	if (options.subrole == 'builder') {
-		return returnbody(16, 16, 16);
-	} else {
-		return returnbody(20, 10, 20);
-	}
+    return returnbody(options.work, options.carry, options.move);
 }
 const getbody_energy_carrier = (options: any) => {
     return fullreturnbody({
@@ -76,11 +72,7 @@ const getbody_energy_carrier = (options: any) => {
 	})
 }
 const getbody_guard = (options: any) => {
-    return fullreturnbody({
-		move: options.n_parts + 1,
-		ranged_attack: options.n_parts,
-		heal: 1,
-	});
+	return fullreturnbody(options.bodyinfo);
 }
 const getbody_wall_repairer = (options: any) => {
     let n_work = 20;

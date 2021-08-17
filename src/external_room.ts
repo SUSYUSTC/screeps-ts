@@ -237,7 +237,8 @@ export function movethroughshards(creep: Creep) {
 				Game.require_update_intershardmemory_modify_time = true;
 			}
 		}
-		if (Game.time % 10 == 0 || this_shardmemory.all_creeps[creep.name].ticksToLive == undefined) {
+		let cache_ok = (Game.time % 5 !== 0) || (this_shardmemory.all_creeps[creep.name].ticksToLive > creep.ticksToLive - 10);
+		if (!cache_ok) {
 			this_shardmemory.all_creeps[creep.name].ticksToLive = creep.ticksToLive;
 			Game.require_update_intershardmemory = true;
 			Game.require_update_intershardmemory_modify_time = true;

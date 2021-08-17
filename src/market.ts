@@ -566,6 +566,12 @@ export function market_stat() {
 			let stat = Memory.market_accumulation_stat.buy[transaction.resourceType];
 			stat.tot_number += transaction.amount;
 			stat.tot_price += transaction.amount * order.price;
+			if (transaction.resourceType == 'energy') {
+				if (Memory.energy_supplied_amount_from_market[transaction.to] == undefined) {
+					Memory.energy_supplied_amount_from_market[transaction.to] = 0;
+				}
+				Memory.energy_supplied_amount_from_market[transaction.to] += transaction.amount;
+			}
 		}
 	}
 

@@ -426,7 +426,7 @@ function update_depo(room_name: string, external_room_name: string) {
 			depo_status.depo_carrier_names.push(depo_carrier_name);
 		}
 		if (depo_status.time_to_delete == undefined) {
-			depo_status.time_to_delete = Game.time + 2000;
+			depo_status.time_to_delete = Game.time + 3000;
 		}
 		if (Game.time >= depo_status.time_to_delete) {
 			if (Memory.depo_log == undefined) {

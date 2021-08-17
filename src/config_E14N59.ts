@@ -1,17 +1,21 @@
 export var conf_E14N59: type_conf_room =
 {
     "extensions": {
-        "6": [
+        "2": [
             [22, 32],
             [22, 29],
             [23, 29],
             [21, 29],
-            [20, 31],
+            [20, 31]
+        ],
+        "3": [
             [24, 31],
             [24, 30],
             [20, 30],
             [24, 32],
-            [20, 32],
+            [20, 32]
+        ],
+        "6": [
             [21, 33],
             [22, 28],
             [19, 31],
@@ -358,19 +362,19 @@ export var conf_E14N59: type_conf_room =
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 10
         },
         "S2": {
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 10
         },
         "storage": {
             "preferences": {
                 "CT": 0
             },
-            "number": 12
+            "number": 8
         }
     },
     "maincarrier": {

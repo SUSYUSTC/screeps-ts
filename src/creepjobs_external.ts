@@ -401,7 +401,7 @@ export function creepjob(creep: Creep): number {
 					creep.suicide();
 					return 0;
 				}
-				if (creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'harvester' && e.memory.source_name == creep.memory.source_name)[0] !== undefined) {
+				if (creep.room.find(FIND_MY_CREEPS).filter((e) => !e.spawning && e.memory.role == 'harvester' && e.memory.source_name == creep.memory.source_name)[0] !== undefined) {
 					creep.suicide();
 					return 0;
 				}
@@ -471,6 +471,11 @@ export function creepjob(creep: Creep): number {
 					creep.suicide();
 					break;
 				}
+				let others = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_carrier' && e.memory.source_name == creep.memory.source_name && e.ticksToLive > creep.ticksToLive)
+				if (others.length > 0) {
+					creep.suicide();
+					return;
+				}
 				let source_name = creep.memory.source_name;
 				let container_source = creep.room.container[source_name];
 				if (container_source == undefined) {
@@ -486,12 +491,24 @@ export function creepjob(creep: Creep): number {
 					break;
 				}
 				if (creep.store.getUsedCapacity("energy") == 0) {
-					basic_job.withdraw(creep, container_source, {exact: true});
+					let dropped_resource = container_source.pos.lookFor("resource").filter((e) => e.resourceType == 'energy')[0];
+					if (dropped_resource !== undefined && dropped_resource.amount >= creep.store.getFreeCapacity()) {
+						if (creep.pos.isNearTo(dropped_resource)) {
+							creep.pickup(dropped_resource);
+						} else {
+							basic_job.movetopos(creep, dropped_resource.pos, 1);
+						}
+					} else {
+						basic_job.withdraw(creep, container_source, {exact: true});
+					}
 					creep.say("HCw");
 					break;
 				}
-				if (creep.ticksToLive < 500 && creep.store.getFreeCapacity() == 0) {
+				if (creep.ticksToLive < 500 && creep.store.getFreeCapacity() == 0 && Object.keys(creep.room.spawn).length > 0) {
 					creep.memory.working_status = 'renew';
+					break;
+				}
+				if (basic_job.charge_all(creep) == 0) {
 					break;
 				}
 				let store_structure: StructureContainer|StructureStorage;
@@ -526,7 +543,8 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'renew': {
-				let out = basic_job.ask_for_renew(creep);
+				creep.say("HCr");
+				let out = basic_job.fill_and_renew(creep);
 				if (out < 0) {
 					creep.memory.working_status = 'work';
 				}

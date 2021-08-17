@@ -139,6 +139,7 @@ export function init() {
 		Memory.power_processed_stat = 0;
 		Memory.op_power_processed_stat = 0;
 		Memory.produce_battery_stat = 0;
+		Memory.energy_supplied_amount_from_market = {};
 		if (Memory.pb_log == undefined) {
 			Memory.pb_log = [];
 		}
@@ -157,6 +158,7 @@ export function init() {
 				battery: number;
 				power: number;
 				reaction: string;
+				energy_buying: number;
 			}
 		} = {};
 		for (let room_name of Game.controlled_rooms_with_terminal) {
@@ -167,7 +169,8 @@ export function init() {
 				energy: room.storage.store.getUsedCapacity("energy") + room.terminal.store.getUsedCapacity("energy"), 
 				battery: room.storage.store.getUsedCapacity("battery") + room.terminal.store.getUsedCapacity("battery"),
 				power: room.terminal.store.getUsedCapacity("power"),
-				reaction: room.memory.reaction_request !== undefined ? room.memory.reaction_request.product : ''
+				reaction: room.memory.reaction_request !== undefined ? room.memory.reaction_request.product : '',
+				energy_buying: Memory.energy_supplied_amount_from_market[room_name],
 			}
 		}
 		let tot_energies = mymath.array_sum(Game.controlled_rooms_with_terminal.map((e) => room_summary[e].energy + room_summary[e].battery * 10));
@@ -242,7 +245,7 @@ export function init() {
 		str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
 		str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
 		str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
-		str3 += '\nroom store amount: ' + global.format_json2(room_summary, {sort: false, json: true});
+		str3 += '\nroom summary: ' + global.format_json2(room_summary, {sort: false, json: true});
 		str3 += '\ntotal energy: ' + tot_energies;
 		str3 += '\npb stat' + global.format_objs(Memory.pb_log, true);
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});

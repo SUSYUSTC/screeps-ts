@@ -198,6 +198,7 @@ export function withdraw(creep: Creep, structure: AnyStoreStructure, options: {
     sourcetype ? : ResourceConstant,
     moveoptions ? : type_movetopos_options,
 	max_amount ?: number,
+	pickup ?: boolean,
 } = {}) {
     // -1: not doing anything, 0: move, 1: withdraw
     if (options.moveoptions == undefined) {

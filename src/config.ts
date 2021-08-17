@@ -30,11 +30,14 @@ import {
 import {
     conf_E11S39
 } from "./config_E11S39"
+import {
+    conf_W31S39
+} from "./config_W31S39"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
 conf_E14N59.external_rooms.E15N59.active = true;
-conf_E19N55.external_rooms.E19N56.active = true;
+//conf_E19N55.external_rooms.E19N56.active = true;
 //conf_E9N54.external_rooms.E9N55.active = true;
 //conf_E19N53.external_rooms.E19N54.active = true;
 
@@ -137,8 +140,9 @@ export var conf_rooms: type_conf_rooms = {
     "W9N39": conf_W9N39,
     "W9N1": conf_W9N1,
     "E11S39": conf_E11S39,
+	"W31S39": conf_W31S39,
 }
-export var controlled_rooms: string[] = ["E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39"];
+export var controlled_rooms: string[] = ["E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39"];
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -164,7 +168,6 @@ export var pc_conf: type_pc_conf = {
     "PC_B": {
         "room_name": "E19N55",
         "normal_ordered": true,
-        "external_room": "E19N56",
     },
     "PC_C": {
         "room_name": "E11S39",
@@ -292,18 +295,25 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 	},
 }
 export var help_list: type_help_list = {
-	/*
     "W9N1": {
         "W31S39": {
-            shard_path: path_W31S39,
+            shard_path: path_W31S39.concat([{ shard: 'shard3', roomName: 'W31S39', x: 32, y: 32 }]),
             commuting_distance: 500,
-            commuting_time: 750,
-			mine_source: false,
+            commuting_time: 800,
             n_energy_carriers: 1,
-            guard: 5,
+            guard: {
+				ranged_attack: {
+					number: 8,
+				},
+				heal: {
+					number: 2,
+				},
+				move: {
+					number: 10,
+				},
+			},
         }
     }
-	*/
 };
 export var protected_sources: {
     [key: string]: string[]

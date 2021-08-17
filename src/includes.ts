@@ -509,6 +509,9 @@ interface Memory {
 	external_room_walls: {
 		[key: string]: type_xy[];
 	}
+	energy_supplied_amount_from_market ?: {
+		[key: string]: number;
+	}
 }
 type type_movethroughrooms_options = {
 	ignore_creep_xys ?: [number, number][],
@@ -582,8 +585,7 @@ type type_help_list = {
                 [key: string]: number;
             }
 			n_energy_carriers: number;
-			mine_source: boolean;
-			guard ?: number;
+			guard ?: type_body_conf;
         }
     }
 }
