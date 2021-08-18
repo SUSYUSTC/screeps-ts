@@ -349,13 +349,14 @@ export function creepjob(creep: Creep): number {
 			}
 			case 'fight': {
 				console.log(`Warning: creep ${creep.name} fighting in room ${creep.room.name} at tick ${Game.time}`);
-				let hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
+				let hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
 				if (hostiles.length == 0) {
 					creep.memory.working_status = 'move';
 				} else {
 					let hostile = creep.pos.findClosestByRange(hostiles);
 					if (creep.pos.isNearTo(hostile)) {
 						creep.attack(hostile);
+						creep.move(creep.pos.getDirectionTo(hostile));
 					} else {
 						creep.moveTo(hostile, {range: 1, costCallback: functions.avoid_exits});
 					}
@@ -402,12 +403,21 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'guard': {
-				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
-				if (creep.pos.getRangeTo(container_pos) < 5) {
-					let path = PathFinder.search(creep.pos, {pos: container_pos, range: 5}, {flee: true});
-					creep.moveByPath(path.path);
+				let hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 8);
+				if (hostiles.length == 0) {
+					let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
+					if (creep.pos.getRangeTo(container_pos) < 4) {
+						let path = PathFinder.search(creep.pos, {pos: container_pos, range: 5}, {flee: true});
+						creep.moveByPath(path.path);
+					}
 				} else {
-					creep.suicide();
+					let hostile = creep.pos.findClosestByRange(hostiles);
+					if (creep.pos.isNearTo(hostile)) {
+						creep.attack(hostile);
+						creep.move(creep.pos.getDirectionTo(hostile));
+					} else {
+						creep.moveTo(hostile, {range: 1, costCallback: functions.avoid_exits});
+					}
 				}
 			}
 		}
@@ -511,6 +521,7 @@ export function creepjob(creep: Creep): number {
 				} else {
 					if (creep.pos.isNearTo(hostile)) {
 						creep.attack(hostile);
+						creep.move(creep.pos.getDirectionTo(hostile));
 					} else {
 						creep.moveTo(hostile, {range: 1, costCallback: functions.avoid_exits});
 						creep.heal(creep);

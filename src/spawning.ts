@@ -108,11 +108,7 @@ function spawn_dev(room_name: string) {
         let with_move = 1;
         let half_time = false;
 		if (room.energyCapacityAvailable >= 600) {
-			let this_container = room.container[source_name];
-			let is_container_broken = (this_container.hitsMax - this_container.hits >= 100000);
-			if (is_container_broken) {
-				with_carry = 1;
-			}
+			with_carry = 1;
 		}
         let pretime = conf.harvesters[source_name].commuting_distance * Math.ceil(with_harvest / (with_move * 2)) + (with_harvest + with_move + with_carry) * 3 + 15;
         let harvesters = room_statistics.harvester.filter((e) => e.memory.source_name == source_name && is_valid_creep(e, pretime));
@@ -347,49 +343,57 @@ export function spawn(room_name: string) {
             jsons.push(json);
         }
     }
-    let max_upgrade;
-    if (room.controller.level == 8) {
-        let room_energy = (room.storage == undefined) ? 0 : functions.get_total_resource_amount(room_name, "energy") + functions.get_total_resource_amount(room_name, "battery") * 10;
-        let storage_condition = room_energy >= config.energy_bar_to_spawn_upgrader;
-        if ((storage_condition && Game.cpu.bucket >= 8000) || room.controller.ticksToDowngrade <= 100000) {
-            max_upgrade = 15;
-        } else {
-            max_upgrade = 0;
-        }
-    } else {
-        max_upgrade = (room.memory.storage_level + 1) * 18;
-        if (room.storage == undefined || room.storage.store.getUsedCapacity("energy") < 5000) {
-            max_upgrade -= n_builds_needed * 3;
-        }
-    }
-    if (max_upgrade > 0 && !game_memory.danger_mode) {
-        let upgrader_spawning_time = 21;
-        if (room.energyCapacityAvailable >= 2400) {
-            upgrader_spawning_time = 84;
-        } else if (room.energyCapacityAvailable >= 1200) {
-            upgrader_spawning_time = 42;
-        }
-        let commuting_time_factor = 3;
-        if (room.controller.level == 8) {
-            commuting_time_factor = 1;
-        }
-        let upgraders = room_statistics.upgrader.filter((e) => is_valid_creep(e, conf.upgraders.distance * commuting_time_factor + upgrader_spawning_time));
-        let n_upgrades = spawning_func.get_nbody(upgraders, 'work');
-        if (n_upgrades < max_upgrade && upgraders.length < conf.upgraders.locations.length) {
-            let added_memory: any = {};
-            let options = {
-                "max_energy": room.energyCapacityAvailable,
-                "rcl8": (room.controller.level == 8),
-            };
-            let priority = 0;
-            let added_json = {
-                "priority": priority,
-                "require_full": true && game_memory.lack_energy,
-            };
-            let json = spawning_func.prepare_role("upgrader", room.energyAvailable, added_memory, options, added_json);
-            jsons.push(json);
-        }
-    }
+
+	if (room.link.CT !== undefined && room.link.MAIN !== undefined) {
+		let max_upgrade;
+		if (room.controller.level == 8) {
+			let room_energy = (room.storage == undefined) ? 0 : functions.get_total_resource_amount(room_name, "energy") + functions.get_total_resource_amount(room_name, "battery") * 10;
+			let storage_condition = room_energy >= config.energy_bar_to_spawn_upgrader;
+			if ((storage_condition && Game.cpu.bucket >= 8000) || room.controller.ticksToDowngrade <= 100000) {
+				max_upgrade = 15;
+			} else {
+				max_upgrade = 0;
+			}
+		} else {
+			let link_dis = room.link.CT.pos.getRangeTo(room.link.MAIN);
+			let max_upgrade_allowed_by_link = 800 / (link_dis + 2);
+			max_upgrade = (room.memory.storage_level + 1) * 18;
+			if (room.storage == undefined || room.storage.store.getUsedCapacity("energy") < 5000) {
+				max_upgrade -= n_builds_needed * 3;
+			}
+			if (max_upgrade > max_upgrade_allowed_by_link) {
+				max_upgrade -= Math.ceil((max_upgrade_allowed_by_link - max_upgrade) / 18) * 18;
+			}
+		}
+		if (max_upgrade > 0 && !game_memory.danger_mode) {
+			let upgrader_spawning_time = 21;
+			if (room.energyCapacityAvailable >= 2400) {
+				upgrader_spawning_time = 84;
+			} else if (room.energyCapacityAvailable >= 1200) {
+				upgrader_spawning_time = 42;
+			}
+			let commuting_time_factor = 3;
+			if (room.controller.level == 8) {
+				commuting_time_factor = 1;
+			}
+			let upgraders = room_statistics.upgrader.filter((e) => is_valid_creep(e, conf.upgraders.distance * commuting_time_factor + upgrader_spawning_time));
+			let n_upgrades = spawning_func.get_nbody(upgraders, 'work');
+			if (n_upgrades < max_upgrade && upgraders.length < conf.upgraders.locations.length) {
+				let added_memory: any = {};
+				let options = {
+					"max_energy": room.energyCapacityAvailable,
+					"rcl8": (room.controller.level == 8),
+				};
+				let priority = 0;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("upgrader", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		}
+	}
 
     // transferer
     let transferers = room_statistics.transferer.filter((e) => is_valid_creep(e, 150));
@@ -477,32 +481,34 @@ export function spawn(room_name: string) {
         }
     }
 
-    let powered = game_memory.pc_source_level !== undefined;
-    let maincarrier_ncarry: number;
-    if (powered) {
-        maincarrier_ncarry = config.maincarrier_ncarry_powered;
-    } else {
-        maincarrier_ncarry = config.maincarrier_ncarry_no_power;
-    }
-    let maincarriers = room_statistics.maincarrier.filter((e) => is_valid_creep(e, maincarrier_ncarry * 3 + 30));
-    let n_maincarriers = maincarriers.length;
-    let n_maincarriers_needed = 0;
-    if (link_modes.includes('CT') && link_modes.includes('MAIN') && room.storage !== undefined) {
-        n_maincarriers_needed = 1;
-    }
-    if (n_maincarriers < n_maincarriers_needed) {
-        let added_memory = {};
-        let options = {
-            "max_parts": maincarrier_ncarry,
-        };
-        let priority = 110;
-        let added_json = {
-            "priority": priority,
-            "require_full": false
-        };
-        let json = spawning_func.prepare_role("maincarrier", room.energyAvailable, added_memory, options, added_json);
-        jsons.push(json);
-    }
+	{
+		let powered = game_memory.pc_power_level >= 2;
+		let maincarrier_ncarry: number;
+		if (powered) {
+			maincarrier_ncarry = config.maincarrier_ncarry_powered;
+		} else {
+			maincarrier_ncarry = config.maincarrier_ncarry_no_power;
+		}
+		let maincarriers = room_statistics.maincarrier.filter((e) => is_valid_creep(e, maincarrier_ncarry * 3 + 30));
+		let n_maincarriers = maincarriers.length;
+		let n_maincarriers_needed = 0;
+		if (link_modes.includes('CT') && link_modes.includes('MAIN') && room.storage !== undefined) {
+			n_maincarriers_needed = 1;
+		}
+		if (n_maincarriers < n_maincarriers_needed) {
+			let added_memory = {};
+			let options = {
+				"max_parts": maincarrier_ncarry,
+			};
+			let priority = 110;
+			let added_json = {
+				"priority": priority,
+				"require_full": false
+			};
+			let json = spawning_func.prepare_role("maincarrier", room.energyAvailable, added_memory, options, added_json);
+			jsons.push(json);
+		}
+	}
 
     // wall_repairer
     let wall_repairers = room_statistics.wall_repairer;
@@ -742,6 +748,7 @@ export function spawn(room_name: string) {
                 continue;
             }
             let conf_external: type_external_map;
+			let powered = game_memory.pc_source_level !== undefined;
             if (powered) {
                 conf_external = conf.external_rooms[external_room_name].powered_source;
             } else {

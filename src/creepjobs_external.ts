@@ -343,7 +343,8 @@ export function creepjob(creep: Creep): number {
 			}
 			case 'carry': {
 				if (creep.store.getUsedCapacity("energy") > 0) {
-					if (basic_job.charge_all(creep) == 0) {
+					let renewing = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.working_status == 'renew').length > 0;
+					if (!renewing && basic_job.charge_all(creep) == 0) {
 						creep.say("ECc");
 						break;
 					}
@@ -508,7 +509,8 @@ export function creepjob(creep: Creep): number {
 					creep.memory.working_status = 'renew';
 					break;
 				}
-				if (basic_job.charge_all(creep) == 0) {
+				let renewing = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.working_status == 'renew').length > 0;
+				if (!renewing && basic_job.charge_all(creep) == 0) {
 					break;
 				}
 				let store_structure: StructureContainer|StructureStorage;
@@ -618,7 +620,7 @@ export function creepjob(creep: Creep): number {
 					creep.say("HBw");
 					return 0;
 				}
-				if (basic_job.build_structure(creep, {}, {priority_list: ["storage"]}) == 0) {
+				if (basic_job.build_structure(creep, {}, {priority_list: ["terminal", "storage"]}) == 0) {
 					creep.say("HBb");
 					creep.memory.crossable = true;
 					return 0;

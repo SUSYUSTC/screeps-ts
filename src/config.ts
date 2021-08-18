@@ -211,7 +211,7 @@ export var min_wall_strength: number = 5000;
 export var max_wall_strength = 2.0e7;
 export var secondary_rampart_factor = 4.0;
 export var maincarrier_ncarry_no_power: number = 16;
-export var maincarrier_ncarry_powered: number = 16;
+export var maincarrier_ncarry_powered: number = 32;
 export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
 export var newroom_energy_buying_price = {
     price: 0.8,
@@ -221,8 +221,8 @@ export var newroom_energy_buying_price = {
 export var pb_power_min = 3000;
 export var tower_filling_energy = 600;
 
-export var storage_gap = 50000;
-export var storage_bars: number[] = [1, 2, 3].map((e) => e * storage_gap);
+export var storage_gap = 30000;
+export var storage_bars: number[] = [1, 2, 3, 4, 5].map((e) => e * storage_gap);
 export var energy_bar_to_process_operated_power: number = 0.6e6;
 export var energy_bar_of_market_supply: number = 0.8e6;
 export var energy_bar_to_process_not_operated_power: number = 1.0e6;
@@ -450,7 +450,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "ops": {
-            price: 8.0,
+            price: 12.0,
             interval: 2000,
 			always_increase: true,
         },

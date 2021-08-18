@@ -659,6 +659,7 @@ interface Game {
                 [key: string]: boolean;
             }
             pc_source_level ? : number;
+            pc_power_level ? : number;
             terminal_send_requested ? : boolean;
 			exact_boost ? : boolean;
         }

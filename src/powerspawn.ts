@@ -6,9 +6,6 @@ export function process(room_name: string) {
 	if (room.powerSpawn == undefined) {
 		return 1;
 	}
-	if (Game.cpu.bucket < 5000) {
-		return 1;
-	}
 	let run_process = false;
 	let pc_name = Game.powered_rooms[room_name];
 	if (pc_name !== undefined && Game.powerCreeps[pc_name].powers[PWR_OPERATE_POWER] !== undefined) {
@@ -16,6 +13,9 @@ export function process(room_name: string) {
 			run_process = true;
 		}
 	} else {
+		if (Game.cpu.bucket < 5000) {
+			return 1;
+		}
 		if (room.terminal.store.getUsedCapacity("power") >= config.min_power_without_op && functions.get_total_resource_amount(room_name, "energy") + functions.get_total_resource_amount(room_name, "battery") * 10 >= config.energy_bar_to_process_not_operated_power) {
 			run_process = true;
 		}

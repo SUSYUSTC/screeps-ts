@@ -241,6 +241,9 @@ function operate_power(pc: PowerCreep) {
 	if (pc.room.powerSpawn.effect_time >= 50 || pc.powers[PWR_OPERATE_POWER].cooldown > 0) {
 		return -1;
 	}
+	if (Game.cpu.bucket < 5000) {
+		return -1;
+	}
 	let power_amount = pc.room.terminal.store.getUsedCapacity("power");
 	let energy_amount = functions.get_total_resource_amount(pc.room.name, "energy");
 	let battery_amount = functions.get_total_resource_amount(pc.room.name, "battery");
