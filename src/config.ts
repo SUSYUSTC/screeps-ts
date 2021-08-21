@@ -433,13 +433,13 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.735,
+            price: 0.72,
 			lowest_price: 0.4,
             interval: 1000,
 			always_increase: true,
         },
         "battery": {
-            price: 6.0,
+            price: 5.6,
 			lowest_price: 4.0,
             interval: 1000,
 			always_increase: true,
@@ -450,7 +450,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "ops": {
-            price: 12.0,
+            price: 8.0,
             interval: 2000,
 			always_increase: true,
         },

@@ -16,7 +16,6 @@ interface RoomMemory {
     n_sites ? : number;
     n_structures ? : number;
     ticks_to_spawn_builder ? : number;
-    objects_updated ? : boolean;
     current_boost_request ? : type_current_boost_request;
     reaction_request ? : type_reaction_request;
     objects_to_buy ? : {
@@ -658,6 +657,7 @@ interface Game {
             are_links_source ? : {
                 [key: string]: boolean;
             }
+			check_link ? : boolean;
             pc_source_level ? : number;
             pc_power_level ? : number;
             terminal_send_requested ? : boolean;

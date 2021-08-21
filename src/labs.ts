@@ -5,22 +5,6 @@ import * as config from "./config"
 import * as constants from "./constants"
 import { Timer } from "./timer"
 
-/*
-function get_all_reactants(obj: GeneralMineralConstant): GeneralMineralConstant[] {
-    if (['Z', 'K', 'U', 'L', 'X', 'O', 'H'].includes(obj)) {
-        return [obj];
-    } else {
-        let reactant1 = constants.allowed_reactions[ < MineralCompoundConstant > obj][0];
-        let reactant2 = constants.allowed_reactions[ < MineralCompoundConstant > obj][1];
-        let s1 = get_all_reactants(reactant1);
-        let s2 = get_all_reactants(reactant2);
-        let reactants_set = new Set(s1.concat(s2));
-        reactants_set.add(obj);
-        return Array.from(reactants_set);
-    }
-}
-*/
-
 global.cancel_reaction = function(room_name: string): number {
     let room = Game.rooms[room_name];
 	room.memory.reaction_request = {

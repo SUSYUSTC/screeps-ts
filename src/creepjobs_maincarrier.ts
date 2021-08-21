@@ -256,7 +256,7 @@ function react_serve(creep: Creep, conf_maincarrier: conf_maincarrier): number {
                 for (let lab_name in creep.room.lab) {
                     let lab = creep.room.lab[lab_name];
                     if (lab.mineralType !== undefined) {
-                        if (creep.store.getUsedCapacity() > 0) {
+                        if (creep.memory.resource_type !== undefined) {
                             transfer(creep, creep.room.terminal, creep.memory.resource_type, {
                                 next_structure: lab
                             });

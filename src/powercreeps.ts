@@ -232,7 +232,8 @@ function operate_extension(pc: PowerCreep) {
 
 function operate_power(pc: PowerCreep) {
 	// -1: not ready, 0: operate, 1: moving
-	if (pc.powers[PWR_OPERATE_POWER] == undefined) {
+	let power2 = Game.memory[pc.memory.home_room_name].pc_power_level >= 2;
+	if (!power2) {
 		return -1;
 	}
 	if (pc.carry.getUsedCapacity("ops") < 250) {

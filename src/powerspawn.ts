@@ -7,11 +7,10 @@ export function process(room_name: string) {
 		return 1;
 	}
 	let run_process = false;
-	let pc_name = Game.powered_rooms[room_name];
-	if (pc_name !== undefined && Game.powerCreeps[pc_name].powers[PWR_OPERATE_POWER] !== undefined) {
-		if (room.powerSpawn.effect_time > 0) {
-			run_process = true;
-		}
+	//if (Game.memory[room_name].pc_power_level >= 2) {
+	if (room.powerSpawn.effect_time > 0) {
+		run_process = true;
+	//	}
 	} else {
 		if (Game.cpu.bucket < 5000) {
 			return 1;

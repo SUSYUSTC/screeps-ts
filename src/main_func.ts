@@ -68,10 +68,7 @@ function generate_unique_structure(room_name: string, structuretype: type_unique
 	}
 }
 
-function update_structures(room_name: string) {
-    let room = Game.rooms[room_name];
-    let game_memory = Game.memory[room_name];
-    let conf = config.conf_rooms[room_name];
+function update_layout(room_name: string, check_all: boolean = false) {
     if (global.memory[room_name].named_structures_status == undefined) {
         let named_structures_status: any = {};
         named_structures.forEach((e) => named_structures_status[e] = {});
@@ -82,15 +79,61 @@ function update_structures(room_name: string) {
         unique_structures.forEach((e) => unique_structures_status[e] = {});
         global.memory[room_name].unique_structures_status = < type_all_unique_structures_status > unique_structures_status;
     }
+	let interval = Game.rooms[room_name].controller.level > 1 ? 100: 20;
+    if (Game.time % interval !== 0 && !check_all && global.test_var) {
+        return;
+    }
+    let conf = config.conf_rooms[room_name];
+    let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
+    if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room !== undefined && Game.rooms[corresponding_pc_conf.external_room] !== undefined) {
+        layout.update_multiple_structures(corresponding_pc_conf.external_room, "road", {
+            "0": conf.external_rooms[corresponding_pc_conf.external_room].powered_source.roads
+        }, true);
+    }
+    let level_finished = true;
+    let containers_finished = (layout.update_named_structures(room_name, "container", conf.containers, true) == 0);
+    let links_finished = (layout.update_named_structures(room_name, "link", conf.links, true) == 0);
+    let spawns_finished = (layout.update_named_structures(room_name, "spawn", conf.spawns, true) == 0);
+    let roads_finished = (layout.update_multiple_structures(room_name, "road", conf.roads, true, check_all) == 0);
+    let extensions_finished = (layout.update_multiple_structures(room_name, "extension", conf.extensions, true, check_all) == 0);
+    let towers_finished = (layout.update_multiple_structures(room_name, "tower", conf.towers, true, check_all) == 0);
+    //console.log("containers", containers_finished, "links", links_finished, "spawns", spawns_finished, "roads", roads_finished, "extension", extensions_finished, "towers", towers_finished)
+    //level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
+    let storage_finished = (layout.update_unique_structures(room_name, "storage", conf.storage, true) == 0);
+    let terminal_finished = (layout.update_unique_structures(room_name, "terminal", conf.terminal, true) == 0);
+    let extractor_finished = (layout.update_unique_structures(room_name, "extractor", conf.extractor, true) == 0);
+    //level_finished = level_finished && storage_finished && terminal_finished && extractor_finished;
+    //console.log("storage", storage_finished, "terminal", terminal_finished, "extractor", extractor_finished);
+    let labs_finished = (layout.update_named_structures(room_name, "lab", conf.labs, true) == 0);
+    let ps_finished = (layout.update_unique_structures(room_name, "powerSpawn", conf.powerspawn, true) == 0);
+    let factory_finished = (layout.update_unique_structures(room_name, "factory", conf.factory, true) == 0);
+    let nuker_finished = (layout.update_unique_structures(room_name, "nuker", conf.nuker, true) == 0);
+    let observer_finished = (layout.update_unique_structures(room_name, "observer", conf.observer, true) == 0);
+    //console.log("labs", labs_finished, "ps", ps_finished, "factory", factory_finished, "nuker", nuker_finished, "observer", observer_finished);
+}
+
+function generate_structures(room_name: string) {
+	generate_named_structures(room_name, "container");
+	generate_named_structures(room_name, "lab");
+	generate_named_structures(room_name, "link");
+	generate_named_structures(room_name, "spawn");
+	generate_unique_structure(room_name, "factory");
+	generate_unique_structure(room_name, "nuker");
+	generate_unique_structure(room_name, "powerSpawn");
+	generate_unique_structure(room_name, "observer");
+	generate_unique_structure(room_name, "extractor");
+}
+
+function update_structures(room_name: string) {
+    let room = Game.rooms[room_name];
+    let game_memory = Game.memory[room_name];
+    let conf = config.conf_rooms[room_name];
     if (room.energyCapacityAvailable < 3000 || room.energyAvailable < 2000 || Game.time % 40 == 0 || (game_memory.danger_mode && Game.time % 5 == 0) || !global.test_var) {
         let structures = room.find(FIND_STRUCTURES);
-        room.memory.objects_updated = false;
-        let n_structures = structures.length;
-        if (room.memory.n_structures !== n_structures) {
-            room.memory.objects_updated = true;
-            room.memory.n_structures = n_structures;
-        }
-        if (Game.time % 200 == 0 || !global.test_var || room.memory.objects_updated) {
+		let n_structures = structures.length;
+        let objects_updated = room.memory.n_structures == n_structures;
+		room.memory.n_structures = n_structures;
+        if (Game.time % 200 == 0 || !global.test_var || objects_updated) {
 			// defined spawns, towers, walls, ramparts
             let spawns = < StructureSpawn[] > _.filter(structures, (structure) => structure.structureType == "spawn");
 			let safe_pos = room.getPositionAt(conf.storage.pos[0], conf.storage.pos[1]);
@@ -99,10 +142,18 @@ function update_structures(room_name: string) {
             let towers = < StructureTower[] > _.filter(structures, (structure) => structure.structureType == "tower");
             global.memory[room_name].tower_list = towers.map((e) => e.id);
 
-            let energy_storage_list = _.filter(structures, (structure) => ['container', 'link', 'storage', 'terminal'].includes(structure.structureType));
+			let energy_storage_list = <AnyStoreStructure[]>[];
+			energy_storage_list = energy_storage_list.concat(Object.values(room.container))
+			energy_storage_list = energy_storage_list.concat(Object.keys(room.link).filter((e) => e !== 'MAIN').map((e) => room.link[e]));
+			if (room.storage !== undefined) {
+				energy_storage_list.push(room.storage);
+			}
+			if (room.terminal !== undefined) {
+				energy_storage_list.push(room.terminal);
+			}
             let energy_storage_list_safe = energy_storage_list.filter((e) => is_safely_connected(safe_pos, e.pos));
-            global.memory[room_name].energy_storage_list = energy_storage_list.map((e) => < Id < AnyStoreStructure >> e.id)
-            global.memory[room_name].energy_storage_list_safe = energy_storage_list_safe.map((e) => < Id < AnyStoreStructure >> e.id)
+            global.memory[room_name].energy_storage_list = energy_storage_list.map((e) => e.id)
+            global.memory[room_name].energy_storage_list_safe = energy_storage_list_safe.map((e) => e.id)
 
             let walls = conf.walls.map((xy) => ( < StructureWall > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'constructedWall')[0])).filter((e) => e !== undefined);
             let main_ramparts = conf.main_ramparts.map((xy) => ( < StructureRampart > room.getPositionAt(xy[0], xy[1]).lookFor("structure").filter((e) => e.structureType == 'rampart')[0])).filter((e) => e !== undefined);
@@ -162,52 +213,6 @@ function update_structures(room_name: string) {
     }
 }
 
-function update_layout(room_name: string, check_all: boolean = false) {
-	let interval = Game.rooms[room_name].controller.level > 1 ? 100: 20;
-    if (Game.time % interval !== 0 && !check_all && global.test_var && !Game.rooms[room_name].memory.objects_updated) {
-        return;
-    }
-    let conf = config.conf_rooms[room_name];
-    let corresponding_pc_conf = _.filter(config.pc_conf, (e) => e.room_name == room_name)[0];
-    if (corresponding_pc_conf !== undefined && corresponding_pc_conf.external_room !== undefined && Game.rooms[corresponding_pc_conf.external_room] !== undefined) {
-        layout.update_multiple_structures(corresponding_pc_conf.external_room, "road", {
-            "0": conf.external_rooms[corresponding_pc_conf.external_room].powered_source.roads
-        }, true);
-    }
-    let level_finished = true;
-    let containers_finished = (layout.update_named_structures(room_name, "container", conf.containers, true) == 0);
-    let links_finished = (layout.update_named_structures(room_name, "link", conf.links, true) == 0);
-    let spawns_finished = (layout.update_named_structures(room_name, "spawn", conf.spawns, true) == 0);
-    let roads_finished = (layout.update_multiple_structures(room_name, "road", conf.roads, true, check_all) == 0);
-    let extensions_finished = (layout.update_multiple_structures(room_name, "extension", conf.extensions, true, check_all) == 0);
-    let towers_finished = (layout.update_multiple_structures(room_name, "tower", conf.towers, true, check_all) == 0);
-    //console.log("containers", containers_finished, "links", links_finished, "spawns", spawns_finished, "roads", roads_finished, "extension", extensions_finished, "towers", towers_finished)
-    //level_finished = level_finished && containers_finished && links_finished && spawns_finished && roads_finished && extensions_finished && towers_finished;
-    let storage_finished = (layout.update_unique_structures(room_name, "storage", conf.storage, true) == 0);
-    let terminal_finished = (layout.update_unique_structures(room_name, "terminal", conf.terminal, true) == 0);
-    let extractor_finished = (layout.update_unique_structures(room_name, "extractor", conf.extractor, true) == 0);
-    //level_finished = level_finished && storage_finished && terminal_finished && extractor_finished;
-    //console.log("storage", storage_finished, "terminal", terminal_finished, "extractor", extractor_finished);
-    let labs_finished = (layout.update_named_structures(room_name, "lab", conf.labs, true) == 0);
-    let ps_finished = (layout.update_unique_structures(room_name, "powerSpawn", conf.powerspawn, true) == 0);
-    let factory_finished = (layout.update_unique_structures(room_name, "factory", conf.factory, true) == 0);
-    let nuker_finished = (layout.update_unique_structures(room_name, "nuker", conf.nuker, true) == 0);
-    let observer_finished = (layout.update_unique_structures(room_name, "observer", conf.observer, true) == 0);
-    //console.log("labs", labs_finished, "ps", ps_finished, "factory", factory_finished, "nuker", nuker_finished, "observer", observer_finished);
-}
-
-function generate_structures(room_name: string) {
-	generate_named_structures(room_name, "container");
-	generate_named_structures(room_name, "lab");
-	generate_named_structures(room_name, "link");
-	generate_named_structures(room_name, "spawn");
-	generate_unique_structure(room_name, "factory");
-	generate_unique_structure(room_name, "nuker");
-	generate_unique_structure(room_name, "powerSpawn");
-	generate_unique_structure(room_name, "observer");
-	generate_unique_structure(room_name, "extractor");
-}
-
 function update_construction_sites(room_name: string) {
     let room = Game.rooms[room_name];
     if (Game.time % 5 == 0) {
@@ -220,11 +225,7 @@ function update_construction_sites(room_name: string) {
         if (n_sites > room.memory.n_sites) {
             room.memory.ticks_to_spawn_builder = 8;
         }
-        if (room.memory.n_sites !== n_sites) {
-            room.memory.objects_updated = true;
-            room.memory.n_sites = n_sites;
-        }
-        room.memory.n_sites = sites.length;
+        room.memory.n_sites = n_sites;
 
         let sites_progressleft = sites.map((e) => e.progressTotal - e.progress);
         room.memory.sites_total_progressleft = mymath.array_sum(sites_progressleft);
@@ -249,7 +250,8 @@ function update_link_and_container(room_name: string) {
     let conf = config.conf_rooms[room_name];
     let game_memory = Game.memory[room_name];
     let link_modes = Object.keys(room.link);
-    if (Game.powered_rooms[room_name] == undefined && Game.time % 3 !== 0) {
+	game_memory.check_link = room.controller.level < 8 || Game.powered_rooms[room_name] !== undefined || Game.time % 3 == 0;
+    if (!game_memory.check_link) {
         return;
     }
     game_memory.are_links_source = {};
@@ -438,19 +440,19 @@ function get_power_effects(room_name: string) {
 var set_room_memory_functions: {
     [key: string]: any
 } = {
-    "update_structures": update_structures,
     "update_layout": update_layout,
     "generate_structures": generate_structures,
+    "update_structures": update_structures,
     "update_construction_sites": update_construction_sites,
     "update_link_and_container": update_link_and_container,
     "update_mine": update_mine,
     "update_external": update_external,
-    "get_power_effects": get_power_effects,
     "detect_resources": resources.detect_resources,
     "update_resources": resources.update_resources,
+    "get_power_effects": get_power_effects,
 }
 
-var set_room_memory_functions_order = ["update_structures", "update_layout", "generate_structures", "update_construction_sites", "update_link_and_container", "update_mine", "update_external", "detect_resources", "update_resources", "get_power_effects"];
+var set_room_memory_functions_order = ["update_layout", "generate_structures", "update_structures", "update_construction_sites", "update_link_and_container", "update_mine", "update_external", "detect_resources", "update_resources", "get_power_effects"];
 
 export function set_room_memory(room_name: string) {
 	if (Game.rooms[room_name] == undefined) {

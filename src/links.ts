@@ -1,12 +1,12 @@
 import * as mymath from "./mymath";
 import * as config from "./config";
 export function work(room_name: string) {
-	if (Game.memory[room_name].pc_source_level == undefined && Game.time % 3 !== 0) {
+    let game_memory = Game.memory[room_name];
+	if (!game_memory.check_link) {
 		return;
 	}
     let room = Game.rooms[room_name];
     let conf = config.conf_rooms[room_name];
-    let game_memory = Game.memory[room_name];
     if (!("links" in conf)) {
         return;
     }
