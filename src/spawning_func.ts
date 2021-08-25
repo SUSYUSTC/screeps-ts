@@ -66,8 +66,8 @@ const getbody_help_builder = (options: any) => {
 }
 const getbody_energy_carrier = (options: any) => {
     return fullreturnbody({
-		"carry": 20,
-		"heal": 5,
+		"carry": 25-options.n_heal,
+		"heal": options.n_heal,
 		"move": 25,
 	})
 }
@@ -75,9 +75,9 @@ const getbody_guard = (options: any) => {
 	return fullreturnbody(options.bodyinfo);
 }
 const getbody_wall_repairer = (options: any) => {
-    let n_work = 20;
+    let n_work = 24;
     let n_carry = 8;
-    let n_move = 14;
+    let n_move = 16;
     return returnbody(n_work, n_carry, n_move);
 }
 const getbody_harvester = (options: any): BodyPartConstant[] => {

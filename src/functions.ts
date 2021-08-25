@@ -105,7 +105,7 @@ export function restrict_passing_rooms(room_name: string): CostMatrix {
             }
         }
     }
-    if (is_highway || config.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
+    if (is_highway || Game.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
         return costMatrix;
     } else {
         for (let i = 0; i < 50; i++) {
@@ -190,10 +190,10 @@ export function update_basic_costmatrices() {
         if (Game.rooms[room_name] == undefined) {
             continue;
         }
-        if (global.basic_costmatrices[room_name] == undefined || Game.rooms[room_name].memory.objects_updated || Game.time % 200 == 0) {
+        if (global.basic_costmatrices[room_name] == undefined || Game.time % 200 == 0) {
 			let costmatrix = construct_elementary_costmatrix(room_name);
             global.basic_costmatrices[room_name] = costmatrix.clone();
-            if (config.controlled_rooms.includes(room_name)) {
+            if (Game.controlled_rooms.includes(room_name)) {
                 global.basic_costmatrices_safe[room_name] = costmatrix.clone();
                 global.basic_costmatrices_defense[room_name] = costmatrix.clone();
                 config.conf_rooms[room_name].safe_boundary.forEach((e) => global.basic_costmatrices_safe[room_name].set(e[0], e[1], 255));
@@ -443,11 +443,17 @@ export function copy_key(obj_A: any, obj_B: any, keys: string[], B_existance: bo
 
 export function get_total_resource_amount(room_name: string, resource: ResourceConstant, factory: boolean = false) {
     let room = Game.rooms[room_name];
-	if (factory && room.factory !== undefined) {
-		return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource) + room.factory.store.getUsedCapacity(resource);
-	} else {
-		return room.terminal.store.getUsedCapacity(resource) + room.storage.store.getUsedCapacity(resource);
+	let amount = 0;
+	if (room.storage !== undefined) {
+		amount += room.storage.store.getUsedCapacity(resource);
 	}
+	if (room.terminal !== undefined) {
+		amount += room.terminal.store.getUsedCapacity(resource);
+	}
+	if (factory && room.factory !== undefined) {
+		amount += room.factory.store.getUsedCapacity(resource);
+	}
+	return amount;
 }
 
 export function creep_exists(creep_name: string, room_name: string, options: {filter ?: (creep: Creep) => boolean, search_shard ?: boolean} = {}): boolean {

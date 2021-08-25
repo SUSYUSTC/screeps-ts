@@ -727,6 +727,7 @@ function transfer_resource(creep: Creep, job: type_transport_job) {
 
 var level_names = < Array < "level0" | "level1" | "level1" >> ['level0', 'level1', 'level2'];
 var level_cds: number[] = [2, 5, 20];
+var level_cds_obselete: number[] = [2, 4, 6];
 export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.room.name];
     if (creep.memory.role == 'maincarrier') {
@@ -790,7 +791,8 @@ export function creepjob(creep: Creep): number {
             if (Game.time >= creep.memory.next_time[levelname] && creep.memory.resource_type == undefined) {
                 let jobs = get_all_jobs(creep, i);
                 creep.memory.jobs_levels[levelname] = jobs;
-                creep.memory.next_time[levelname] = Game.time + level_cds[i];
+				let cd = config.obselete_rooms.includes(creep.room.name) ? level_cds_obselete[i] : level_cds[i];
+                creep.memory.next_time[levelname] = Game.time + cd;
             }
             creep.memory.jobs_levels[levelname] = creep.memory.jobs_levels[levelname].filter((e) => e.amount > 0);
             let job = creep.memory.jobs_levels[levelname][0];

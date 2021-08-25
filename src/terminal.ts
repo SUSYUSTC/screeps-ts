@@ -107,7 +107,7 @@ function balance_resource(resource: ResourceConstant, conf: type_resource_balanc
 	if (rooms.length == 0) {
 		return;
 	}
-	let ns = rooms.map((e) => Game.rooms[e].storage.store.getUsedCapacity(resource) + Game.rooms[e].terminal.store.getUsedCapacity(resource));
+	let ns = rooms.map((e) => functions.get_total_resource_amount(e, resource));
 	let argmin = mymath.argmin(ns);
 	let argmax = mymath.argmax(ns);
 	if (ns[argmax] - ns[argmin] >= conf.gap) {
@@ -119,7 +119,7 @@ function balance_resource(resource: ResourceConstant, conf: type_resource_balanc
 }
 
 function balance_power() {
-	let rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].powerSpawn !== undefined);
+	let rooms = Game.controlled_rooms_with_terminal.filter((e) => Game.rooms[e].powerSpawn !== undefined && Game.rooms[e].storage !== undefined);
 	if (rooms.length == 0) {
 		return;
 	}

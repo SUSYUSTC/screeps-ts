@@ -207,9 +207,9 @@ function update_structures(room_name: string) {
             global.memory[room_name].energy_filling_list = energy_filling_spawns.concat(energy_filling_towers).concat(energy_filling_exts);
         }
     } else {
-        global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => need_to_fill(Game.getObjectById(e)));
-        global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => need_to_repair(Game.getObjectById(e)));
-        global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => Game.getObjectById(e).hits < config.min_wall_strength);
+        global.memory[room_name].energy_filling_list = global.memory[room_name].energy_filling_list.filter((e) => {let s = Game.getObjectById(e); return s !== null && need_to_fill(s)});
+        global.memory[room_name].repair_list = global.memory[room_name].repair_list.filter((e) => {let s = Game.getObjectById(e); return s !== null && need_to_repair(s)} );
+        global.memory[room_name].ramparts_to_repair = global.memory[room_name].ramparts_to_repair.filter((e) => {let s = Game.getObjectById(e); return s !== null && s.hits < config.min_wall_strength});
     }
 }
 
@@ -285,7 +285,10 @@ function update_link_and_container(room_name: string) {
         } else if (mymath.any(source_links.map((e) => link_energies[e] >= config.main_link_amount_sink + config.link_transfer_to_main_gap))) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
-        }
+        } else if (room.controller.level < 8) {
+			room.memory.is_mainlink_source = true;
+			room.memory.maincarrier_link_amount = config.main_link_amount_source;
+		}
         if (link_energies['Ext'] !== undefined && link_energies['Ext'] > 0 && room.link.Ext.cooldown <= 3) {
             room.memory.is_mainlink_source = false;
             room.memory.maincarrier_link_amount = config.main_link_amount_sink;
@@ -495,7 +498,7 @@ export function set_global_memory() {
     }
     let timer = new Timer("set_global_memory", true);
 
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
         Game.memory[room_name] = {};
     }
     Game.creep_jobtypes = {
@@ -505,7 +508,7 @@ export function set_global_memory() {
         combat: [],
         resource: [],
     }
-	Game.controlled_rooms_with_terminal = config.controlled_rooms.filter((e) =>  Game.rooms[e] !== undefined && Game.rooms[e].storage !== undefined && Game.rooms[e].storage.my && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
+	Game.controlled_rooms_with_terminal = Game.controlled_rooms.filter((e) =>  Game.rooms[e] !== undefined && Game.rooms[e].terminal !== undefined && Game.rooms[e].terminal.my);
     for (let spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name];
         if (spawn.memory.spawning_time == undefined) {

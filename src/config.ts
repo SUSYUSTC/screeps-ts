@@ -1,9 +1,6 @@
 //screeps
 
 import {
-    conf_E15N58
-} from "./config_E15N58"
-import {
     conf_E14N51
 } from "./config_E14N51"
 import {
@@ -33,30 +30,13 @@ import {
 import {
     conf_W31S39
 } from "./config_W31S39"
+import {
+    conf_W41S41
+} from "./config_W41S41"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
-conf_E14N59.external_rooms.E15N59.active = true;
-//conf_E19N55.external_rooms.E19N56.active = true;
-//conf_E9N54.external_rooms.E9N55.active = true;
-//conf_E19N53.external_rooms.E19N54.active = true;
-
-/*
-function direction2orient(pos: number[]) {
-    if (pos[0] == 0 && pos[1] == 1) {
-        return BOTTOM;
-    }
-    if (pos[0] == 0 && pos[1] == -1) {
-        return TOP;
-    }
-    if (pos[0] == 1 && pos[1] == 0) {
-        return RIGHT;
-    }
-    if (pos[0] == -1 && pos[1] == 0) {
-        return LEFT;
-    }
-}
-*/
+//conf_E14N59.external_rooms.E15N59.active = true;
 
 var path_E29S21: type_shard_exit_point[] = [
 	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
@@ -78,20 +58,13 @@ var path_E29S21: type_shard_exit_point[] = [
 ];
 
 var path_W41S41: type_shard_exit_point[] = [
-	 { shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
-     { shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
-     { shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
-     { shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
-     { shard: 'shard0', roomName: 'E40S71', x: 7, y: 1 },
-     { shard: 'shard0', roomName: 'W10S70', x: 6, y: 23 },
-     { shard: 'shard1', roomName: 'W10S40', x: 21, y: 41 },
-     { shard: 'shard0', roomName: 'W20S79', x: 19, y: 48 },
-     { shard: 'shard0', roomName: 'W30S80', x: 42, y: 18 },
-     { shard: 'shard1', roomName: 'W20S40', x: 35, y: 35 },
-     { shard: 'shard0', roomName: 'W40S71', x: 2, y: 1 },
-     { shard: 'shard0', roomName: 'W70S70', x: 41, y: 14 },
-     { shard: 'shard1', roomName: 'W40S40', x: 26, y: 6 },
-     { shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
+	{ shard: 'shard3', roomName: 'W30S40', x: 31, y: 23 },
+	{ shard: 'shard2', roomName: 'W30S40', x: 14, y: 39 },
+	{ shard: 'shard1', roomName: 'W30S40', x: 34, y: 25 },
+	{ shard: 'shard0', roomName: 'W50S69', x: 7, y: 48 },
+	{ shard: 'shard0', roomName: 'W70S70', x: 41, y: 14 },
+	{ shard: 'shard1', roomName: 'W40S40', x: 26, y: 6 },
+	{ shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
 ];
  
 var path_W31S39: type_shard_exit_point[] = [
@@ -112,11 +85,10 @@ var path_W31S39: type_shard_exit_point[] = [
 	{ shard: 'shard2', roomName: 'W30S40', x: 38, y: 14 }
 ];
 
-
 global.my_shard_paths = {
 	"E29S21": path_E29S21,
-	"W41S41": path_W41S41,
 	"W31S39": path_W31S39,
+	"W41S41": path_W41S41,
 }
 
 type type_conf_rooms = {
@@ -130,7 +102,6 @@ interface type_pc_conf {
     }
 }
 export var conf_rooms: type_conf_rooms = {
-    "E15N58": conf_E15N58,
     "E14N51": conf_E14N51,
     "E19N53": conf_E19N53,
     "E21N49": conf_E21N49,
@@ -141,8 +112,9 @@ export var conf_rooms: type_conf_rooms = {
     "W9N1": conf_W9N1,
     "E11S39": conf_E11S39,
 	"W31S39": conf_W31S39,
+	"W41S41": conf_W41S41,
 }
-export var controlled_rooms: string[] = ["E15N58", "E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39"];
+export var controlled_rooms: string[] = ["E14N51", "E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41"];
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -163,7 +135,6 @@ export var pc_conf: type_pc_conf = {
     "PC_A": {
         "room_name": "E14N59",
         "normal_ordered": true,
-        "external_room": "E15N59",
     },
     "PC_B": {
         "room_name": "E19N55",
@@ -186,7 +157,7 @@ export var pc_conf: type_pc_conf = {
         "normal_ordered": false,
     },
     "PC_G": {
-        "room_name": "E14N51",
+        "room_name": "W31S39",
         "normal_ordered": false,
     },
     "PC_H": {
@@ -212,7 +183,7 @@ export var max_wall_strength = 2.0e7;
 export var secondary_rampart_factor = 4.0;
 export var maincarrier_ncarry_no_power: number = 16;
 export var maincarrier_ncarry_powered: number = 32;
-export var allowed_passing_rooms = ['E17N58', 'E17N59', 'E15N59', 'E14N59'];
+export var allowed_passing_rooms: string[] = [];
 export var newroom_energy_buying_price = {
     price: 0.8,
     interval: 200,
@@ -262,9 +233,9 @@ export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
 export var bar_store_amount = 6000;
 export var bar_buy_onetime_amount = 3000;
-export var buy_power_room = "E19N53";
+export var buy_power_rooms = ["E19N53", "W9N1", "W31S39"];
 export var power_store_amount = 20000;
-export var power_buy_onetime_amount = 3000;
+export var power_buy_onetime_amount = 10000;
 export var onetime_min_commodity_amount_to_transfer: number[] = [100, 20];
 export var onetime_max_commodity_amount_to_transfer: number[] = [200, 100];
 export var min_commodity_amount_to_keep_in_factory_by_level: number[] = [50];
@@ -283,24 +254,20 @@ interface type_preclaiming_rooms {
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
-	"E11S39": {
-		"W41S41": {
-			shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 31, y: 13 }]),
+    "W31S39": {
+        "W41S41": {
+            shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 22, y: 3 }]),
 		}
-	},
-	"W9N1": {
-		"W31S39": {
-			shard_path: path_W31S39.concat([{ shard: 'shard3', roomName: 'W31S39', x: 32, y: 32 }]),
-		}
-	},
+	}
 }
 export var help_list: type_help_list = {
-    "W9N1": {
-        "W31S39": {
-            shard_path: path_W31S39.concat([{ shard: 'shard3', roomName: 'W31S39', x: 32, y: 32 }]),
-            commuting_distance: 500,
-            commuting_time: 800,
+    "W31S39": {
+        "W41S41": {
+            shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 22, y: 3 }]),
+            commuting_distance: 300,
+            commuting_time: 400,
             n_energy_carriers: 1,
+			n_heals_of_energy_carrier: 0,
             guard: {
 				ranged_attack: {
 					number: 8,
@@ -318,7 +285,6 @@ export var help_list: type_help_list = {
 export var protected_sources: {
     [key: string]: string[]
 } = {
-    "E15N58": [],
     "E14N51": [],
     "E19N53": ['S1', 'S2'],
     "E21N49": [],
@@ -328,16 +294,16 @@ export var protected_sources: {
 	"W9N1": ["S1"],
 	"W9N39": ["S1"],
 	"E11S39": ["S1"],
+	"W31S39": ["S1"],
 
 }
 export var highway_resources: {
     [key: string]: string[]
 } = {
     "E19N55": ['E20N51', 'E20N52', 'E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
-    "E14N51": ['E10N48', 'E10N49', 'E10N50', 'E11N50', 'E12N50', 'E13N50', 'E14N50', 'E15N50', 'E16N50', 'E17N50'],
-    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
+    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E16N50', 'E17N50', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
     "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
-    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58'],
+    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58', 'E11N50', 'E12N50'],
 	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
 	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
 	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E10S43'],
@@ -363,7 +329,7 @@ export var sign: string = '黑暗森林';
 export var t3_store_room: {
     [key in GeneralMineralConstant] ? : string
 } = {
-    "XUH2O": "E15N58",
+    "XUH2O": "W31S39",
 	"XUHO2": "W9N1",
     "XLH2O": "E11S39",
     "XLHO2": "E9N54",
@@ -445,9 +411,10 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "power": {
-            price: 25,
-            interval: 3000,
-			always_increase: true,
+            price: 27.0,
+			lowest_price: 22.0,
+            interval: 500,
+			always_increase: false,
         },
         "ops": {
             price: 8.0,
@@ -527,7 +494,7 @@ type type_auto_sell_list = {
 }
 export var auto_sell_list: type_auto_sell_list = {
     "XUH2O": {
-        room: "E15N58",
+        room: "W31S39",
         price: 18,
         amount: 30000,
     },
@@ -670,7 +637,7 @@ export var final_product_request: type_final_product_requrest = {
     "XUH2O": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E15N58",
+        store_room: "W31S39",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },

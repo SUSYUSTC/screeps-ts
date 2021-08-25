@@ -537,6 +537,18 @@ export function creepjob(creep: Creep): number {
 				}
 				let container_pos = creep.room.getPositionAt(depo_status.container_xy[0], depo_status.container_xy[1]);
 				if (!creep.pos.isEqualTo(container_pos)) {
+					if (creep.pos.isNearTo(container_pos)) {
+						let container = <StructureContainer> container_pos.lookFor("structure").filter((e) => e.structureType == 'container')[0];
+						if (container == undefined) {
+							depo_status.status = 0;
+							creep.suicide();
+							creep.say("DHd");
+							break;
+						}
+						if (basic_job.discard_useless_from_container(creep, container, depo_status.deposit_type) == 0) {
+							break;
+						}
+					}
 					let creep_on_container = container_pos.lookFor("creep")[0];
 					let range = 0;
 					if (creep_on_container !== undefined) {
@@ -548,6 +560,8 @@ export function creepjob(creep: Creep): number {
 					creep.say("DHm");
 					break;
 				}
+				creep.memory.working_status = 'work';
+				break;
 			}
 			case 'work': {
 				let hostile = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2)[0];
@@ -641,7 +655,7 @@ export function creepjob(creep: Creep): number {
 				}
 				if (creep.store.getUsedCapacity("energy") > 0) {
 					let depo_harvester = container.pos.lookFor("creep")[0]
-					if (depo_harvester !== undefined) {
+					if (depo_harvester !== undefined && depo_harvester.my && depo_harvester.memory.role === 'depo_harvester') {
 						creep.transfer(depo_harvester, "energy");
 					}
 					break;

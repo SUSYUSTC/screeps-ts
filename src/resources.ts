@@ -31,7 +31,7 @@ function highway_resources_cost(room_name: string): CostMatrix {
 			}
 		}
 	}
-	if (!(is_highway || config.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name))) {
+	if (!(is_highway || Game.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name))) {
 		for (let i = 0; i < 50; i++) {
 			costMatrix.set(1, i, 255);
 			costMatrix.set(48, i, 255);

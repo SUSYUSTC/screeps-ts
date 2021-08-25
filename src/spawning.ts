@@ -59,7 +59,7 @@ function creep_statistics() {
     }
     let timer = new Timer("creep_statistics", false);
     Game.creep_statistics = {};
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
         let empty: {
             [key in type_creep_role] ? : Creep[]
         } = {};
@@ -659,6 +659,7 @@ export function spawn(room_name: string) {
 						...path_dict,
 					};
 					let options = {
+						"n_heal": conf_help.n_heals_of_energy_carrier,
 					};
 					let priority = 40;
 					let added_json = {

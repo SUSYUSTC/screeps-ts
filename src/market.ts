@@ -424,8 +424,9 @@ export function auto_buy_resources(room_name: string) {
     let room = Game.rooms[room_name];
 	let timer = new Timer("auto_supply_resources", false);
     if (Game.controlled_rooms_with_terminal.includes(room_name)) {
-		if (room_name == config.buy_power_room && Game.time % 50 == 49 && Game.market.credits >= config.credit_line) {
+		if (config.buy_power_rooms.includes(room_name) && Game.time % 20 == 0 && Game.market.credits >= config.credit_line) {
 			buy_from_market(room_name, "power", config.power_store_amount, config.power_buy_onetime_amount);
+			auto_supply_from_market(room_name, 'power', config.power_store_amount, config.power_buy_onetime_amount);
 		}
     }
 	timer.end();

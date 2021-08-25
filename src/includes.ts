@@ -584,6 +584,7 @@ type type_help_list = {
                 [key: string]: number;
             }
 			n_energy_carriers: number;
+			n_heals_of_energy_carrier: number;
 			guard ?: type_body_conf;
         }
     }
@@ -629,6 +630,7 @@ type type_mine_status = {
 
 type type_creep_jobtypes = "home" | "external" | "maincarrier" | "combat" | "resource";
 interface Game {
+	controlled_rooms: string[];
     costmatrices: type_costmatrices;
     costmatrices_safe: type_costmatrices;
     costmatrices_defense: type_costmatrices;

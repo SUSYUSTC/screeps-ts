@@ -86,6 +86,7 @@ function run_main() {
 	console.log("Beginning of tick", Game.time, 'at', Game.shard.name);
 	console.log("bucket", Game.cpu.bucket);
 	let timer;
+	Game.controlled_rooms = config.controlled_rooms.filter((e) => Game.rooms[e] !== undefined);
 	Game.tick_cpu_main = {};
 	Game.tick_cpu = {};
 	Game.function_actions_count = {};
@@ -96,7 +97,7 @@ function run_main() {
 	} catch (err) {
 		console.log("Captured error", err.stack);
 	}
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			let room = Game.rooms[room_name];
 			main_func.set_room_memory(room_name);
@@ -132,7 +133,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("towers", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			defense.defend_home(room_name);
 		} catch (err) {
@@ -142,7 +143,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("links", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			links.work(room_name)
 		} catch (err) {
@@ -183,7 +184,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("spawning", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			spawning.spawn(room_name);
 		} catch (err) {
@@ -201,7 +202,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("lab_reaction", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			labs.reaction(room_name);
 		} catch (err) {
@@ -216,7 +217,7 @@ function run_main() {
 	} catch (err) {
 		console.log("Captured error", err.stack);
 	}
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			terminal.process_resource_sending_request(room_name);
 		} catch (err) {
@@ -226,7 +227,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("factory", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			factory.produce(room_name);
 		} catch (err) {
@@ -236,7 +237,7 @@ function run_main() {
 	timer.end();
 
 	timer = new Timer("powerspawn", true);
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			powerspawn.process(room_name);
 		} catch (err) {
@@ -255,7 +256,7 @@ function run_main() {
 		console.log("Captured error", err.stack);
 	}
 
-    for (let room_name of config.controlled_rooms) {
+    for (let room_name of Game.controlled_rooms) {
 		try {
 			market.auto_supply_resources(room_name);
 			market.auto_buy_resources(room_name);

@@ -348,7 +348,7 @@ export function creepjob(creep: Creep): number {
 						creep.say("ECc");
 						break;
 					}
-					let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
+					let store_structure = creep.room.terminal !== undefined ? creep.room.terminal : creep.room.container.CT;
 					if (store_structure !== undefined) {
 						if (store_structure.store.getFreeCapacity() > 0) {
 							basic_job.transfer(creep, store_structure);
@@ -513,9 +513,9 @@ export function creepjob(creep: Creep): number {
 				if (!renewing && basic_job.charge_all(creep) == 0) {
 					break;
 				}
-				let store_structure: StructureContainer|StructureStorage;
-				if (creep.room.storage !== undefined) {
-					store_structure = creep.room.storage;
+				let store_structure: StructureContainer|StructureTerminal;
+				if (creep.room.terminal !== undefined) {
+					store_structure = creep.room.terminal;
 				} else if (creep.room.container.CT !== undefined) {
 					store_structure = creep.room.container.CT;
 				}
