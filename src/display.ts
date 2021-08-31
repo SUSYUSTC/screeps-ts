@@ -241,23 +241,23 @@ export function init() {
 		let lower_resources = Object.keys(summary).filter((e) => e[0] !== e[0].toUpperCase());
 		let substr1 = global.format_json(_.pick(summary, upper_resources), {sort: true, json: true});
 		let substr2 = global.format_json(_.pick(summary, lower_resources), {sort: true, json: true});
+		str1 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
+		str1 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s`;
+		str1 += '\ncredits: ' + Game.market.credits.toString();
+		str1 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
+		str1 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
+		str1 += '\npower processed: ' + Memory.power_processed_stat.toString();
+		str1 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 		str1 += '\nstore: ' + vertical_split_string(substr1, substr2, 0);
-		str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
-		str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
-		str2 += '\ncredits: ' + Game.market.credits.toString();
 		str2 += '\nselling stat' + global.format_json2(Memory.market_accumulation_stat.sell, {sort: true, json: true});
 		str2 += '\nbuying stat' + global.format_json2(Memory.market_accumulation_stat.buy, {sort: true, json: true});
 		str2 += '\nreaction stat' + global.format_json(Memory.reaction_log, {sort: true, json: true});
-		str2 += '\ntransaction cost: ' + Memory.tot_transaction_cost.toString();
-		str2 += '\nbattery processed: ' + Memory.produce_battery_stat.toString();
 		str3 += '\nroom summary: ' + global.format_json2(room_summary, {sort: false, json: true});
 		str3 += '\ntotal energy: ' + tot_energies;
 		str3 += '\npb stat' + global.format_objs(Memory.pb_log, true);
 		str3 += '\nongoing pb' + global.format_json2(ongoing_pb, {sort: false, json: true});
 		str3 += '\ndepo stat' + global.format_objs(Memory.depo_log, true);
 		str3 += '\nongoing depo' + global.format_json2(ongoing_depo, {sort: false, json: true});
-		str2 += '\npower processed: ' + Memory.power_processed_stat.toString();
-		str2 += '\nop power processed: ' + Memory.op_power_processed_stat.toString();
 		return vertical_split_string(vertical_split_string(str1, str2), str3);
 	}
 

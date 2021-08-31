@@ -301,6 +301,7 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 			commuting_distance: 800,
 		}
 	},
+	/*
 	"W9N1": {
 		"W41N9": {
 			path: {
@@ -320,6 +321,7 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 			commuting_distance: 400,
 		},
 	}
+	*/
 }
 export var help_list: type_help_list = {
 	/*

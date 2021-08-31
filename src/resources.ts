@@ -310,8 +310,8 @@ function update_pb(room_name: string, external_room_name: string) {
 				amount_received: pb_status.amount_received,
 			};
 			Memory.pb_log.push(pb_item);
-			if (Memory.pb_log.length > 10) {
-				Memory.pb_log = Memory.pb_log.slice(-10);
+			if (Memory.pb_log.length > 8) {
+				Memory.pb_log = Memory.pb_log.slice(-8);
 			}
 			if (pb_status.amount - pb_status.amount_received >= 100) {
 				console.log(`Warning: unexpected pb mining ${pb_status.name}`);
@@ -449,8 +449,8 @@ function update_depo(room_name: string, external_room_name: string) {
 					amount_received: depo_status.amount_received,
 				};
 				Memory.depo_log.push(depo_item);
-				if (Memory.depo_log.length > 10) {
-					Memory.depo_log = Memory.depo_log.slice(-10);
+				if (Memory.depo_log.length > 8) {
+					Memory.depo_log = Memory.depo_log.slice(-8);
 				}
 				delete room.memory.external_resources.depo[external_room_name];
 			}
