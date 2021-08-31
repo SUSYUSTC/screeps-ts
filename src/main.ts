@@ -118,7 +118,18 @@ function run_main() {
 	console.log("All creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].all_creeps))
 	console.log("Registered creeps:", Object.keys(Game.InterShardMemory[Game.shard.name].creeps))
 
-	timer = new Timer("invade_groups_x2", true);
+	timer = new Timer("invade_groups", true);
+	if (Memory.invade_groups_x1 == undefined) {
+		Memory.invade_groups_x1 = {};
+	}
+	for (let groupname in Memory.invade_groups_x1) {
+		try {
+			console.log(global.format_json(Memory.invade_groups_x1[groupname], {json: false, skipkeys: ['costmatrix', 'shard_path']}))
+			invade.run_invader_group_x1(groupname);
+		} catch (err) {
+			console.log("Captured error", groupname, err.stack);
+		}
+	}
 	if (Memory.invade_groups_x2 == undefined) {
 		Memory.invade_groups_x2 = {};
 	}

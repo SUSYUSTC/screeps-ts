@@ -290,6 +290,10 @@ export function creepjob(creep: Creep): number {
 			}
 			if (creep.pos.getRangeTo(creep.room.controller) > 1) {
 				creep.moveTo(creep.room.controller, {range: 1, costCallback: functions.avoid_exits});
+				let structures = creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 1).filter((e) => e.hits !== undefined);
+				if (structures.length > 0 && creep.getActiveBodyparts(ATTACK)) {
+					creep.attack(structures[0]);
+				}
 				creep.say("cm");
 				return 0;
 			}
@@ -379,15 +383,7 @@ export function creepjob(creep: Creep): number {
 		switch(creep.memory.working_status) {
 			case 'external_move': {
 				if (creep.room.name !== creep.memory.external_room_name) {
-					if (creep.memory.shard_move !== undefined) {
-						external_room.movethroughshards(creep);
-					} else {
-						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-						if (!external_room.is_moving_target_defined(creep, 'forward')) {
-							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
-						}
-						external_room.external_move(creep, 'forward');
-					}
+					external_room.general_external_move(creep);
 					creep.say("HHe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -449,15 +445,7 @@ export function creepjob(creep: Creep): number {
 		switch(creep.memory.working_status) {
 			case 'external_move': {
 				if (creep.room.name !== creep.memory.external_room_name) {
-					if (creep.memory.shard_move !== undefined) {
-						external_room.movethroughshards(creep);
-					} else {
-						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-						if (!external_room.is_moving_target_defined(creep, 'forward')) {
-							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
-						}
-						external_room.external_move(creep, 'forward');
-					}
+					external_room.general_external_move(creep);
 					creep.say("HCe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -578,15 +566,7 @@ export function creepjob(creep: Creep): number {
 			}
 			case 'external_move': {
 				if (creep.room.name !== creep.memory.external_room_name) {
-					if (creep.memory.shard_move !== undefined) {
-						external_room.movethroughshards(creep);
-					} else {
-						let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-						if (!external_room.is_moving_target_defined(creep, 'forward')) {
-							external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
-						}
-						external_room.external_move(creep, 'forward');
-					}
+					external_room.general_external_move(creep);
 					creep.say("HBe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -640,17 +620,8 @@ export function creepjob(creep: Creep): number {
 		creep.say("G");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		let conf_external = config.conf_rooms[creep.memory.external_room_name];
 		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				let conf_help = config.help_list[creep.memory.home_room_name][creep.memory.external_room_name];
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, conf_help.rooms_forwardpath, conf_help.poses_forwardpath, 'forward');
-				}
-				external_room.external_move(creep, 'forward');
-			}
+			external_room.general_external_move(creep);
 			creep.say("Ge");
 			return 0;
 		}
@@ -658,6 +629,12 @@ export function creepjob(creep: Creep): number {
 		if (invade.single_combat_ranged(creep, true) == 0) {
 			creep.say("Gra");
 		} else {
+			let hostile_sites = creep.room.find(FIND_HOSTILE_CONSTRUCTION_SITES);
+			if (hostile_sites.length > 0) {
+				let site = creep.pos.findClosestByRange(hostile_sites);
+				creep.moveTo(site);
+				return;
+			}
 			let injured_creep = creep.room.find(FIND_MY_CREEPS).filter((e)=> e.hits < e.hitsMax)[0];
 			if (injured_creep !== undefined) {
 				if (creep.pos.getRangeTo(injured_creep) > 1) {
@@ -667,8 +644,9 @@ export function creepjob(creep: Creep): number {
 				}
 				creep.say("Gh");
 			} else {
-				let safe_pos = creep.room.getPositionAt(conf_external.safe_pos[0], conf_external.safe_pos[1]);
-				basic_job.trymovetopos(creep, safe_pos);
+				if (creep.pos.getRangeTo(creep.room.controller) > 5) {
+					creep.moveTo(creep.room.controller, {range: 5});
+				}
 				creep.say("Gm");
 			}
 		}

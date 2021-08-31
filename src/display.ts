@@ -28,14 +28,14 @@ function obj2string(obj: any, json: boolean, use_float: boolean): string {
 }
 
 
-function vertical_split_string(str1: string, str2: string): string {
+function vertical_split_string(str1: string, str2: string, min_length: number = 40): string {
 	let part1 = str1.split('\n').slice(1)
 	let part2 = str2.split('\n').slice(1)
 	let n1 = part1.length
 	let n2 = part2.length
 	let nmax = Math.max(n1, n2)
 	let lens = part1.map((e) => e.length)
-	let maxlen = Math.max(mymath.max(lens) + 2, 40);
+	let maxlen = Math.max(mymath.max(lens) + 2, min_length);
 	let result = ''
 	for (let i of mymath.range(nmax)) {
 		if (part1[i] == undefined) {
@@ -236,7 +236,12 @@ export function init() {
 		let realtime = (new Date()).getTime() / 1000;
 		let realtimediff = realtime - Memory.stat_reset_realtime;
 		let timediff = Game.time - Memory.stat_reset_time;
-		str1 += '\nstore: ' + global.format_json(global.summarize_terminal(Game.controlled_rooms_with_terminal), {sort: true, json: true});
+		let summary = global.summarize_terminal(Game.controlled_rooms_with_terminal);
+		let upper_resources = Object.keys(summary).filter((e) => e[0] == e[0].toUpperCase());
+		let lower_resources = Object.keys(summary).filter((e) => e[0] !== e[0].toUpperCase());
+		let substr1 = global.format_json(_.pick(summary, upper_resources), {sort: true, json: true});
+		let substr2 = global.format_json(_.pick(summary, lower_resources), {sort: true, json: true});
+		str1 += '\nstore: ' + vertical_split_string(substr1, substr2, 0);
 		str2 += `\nstat from ${Memory.stat_reset_time} to ${Game.time}, ${timediff} in total, `
 		str2 += `\nrealtime ${Math.floor(realtimediff)} seconds, ${(realtimediff/3600).toFixed(2)} hours, tickrate ${(realtimediff/timediff).toFixed(2)}s \n`;
 		str2 += '\ncredits: ' + Game.market.credits.toString();

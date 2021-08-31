@@ -704,37 +704,65 @@ export function spawn(room_name: string) {
 			room.memory.next_preclaim_time = {};
 		}
         for (let external_room_name in config.preclaiming_rooms[room_name]) {
-			if (Game.time < room.memory.next_preclaim_time[external_room_name]) {
-				continue;
-			}
             let external_room = Game.rooms[external_room_name];
             if (external_room !== undefined && external_room.controller.my) {
                 break if_claimer;
             }
-            let claimers = room_statistics.preclaimer.filter((e) => e.memory.external_room_name == external_room_name).map((e) => e.name);
-            let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-            claimers = claimers.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'preclaimer' && shard_creeps[e].external_room_name == external_room_name));
-            claimers = Array.from(new Set(claimers));
-            //let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
-            if (claimers.length == 0) {
-                let conf_preclaim = config.preclaiming_rooms[room_name][external_room_name];
-                let added_memory: CreepMemory = {
-                    "external_room_name": external_room_name,
-                    "home_room_name": room_name,
-                };
-                added_memory = {
-                    ...added_memory,
-                    ...get_path_dict(conf_preclaim)
-                };
-                let options = {};
-                let priority = 5;
-                let added_json = {
-                    "priority": priority,
-                    "require_full": true && game_memory.lack_energy,
-                };
-                let json = spawning_func.prepare_role("preclaimer", room.energyAvailable, added_memory, options, added_json);
-                jsons.push(json);
-            }
+			let conf_preclaim = config.preclaiming_rooms[room_name][external_room_name];
+			let blocked = Game.time < room.memory.next_preclaim_time[external_room_name];
+			if (!blocked) {
+				let claimers = room_statistics.preclaimer.filter((e) => e.memory.external_room_name == external_room_name).map((e) => e.name);
+				let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
+				claimers = claimers.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'preclaimer' && shard_creeps[e].external_room_name == external_room_name));
+				claimers = Array.from(new Set(claimers));
+				//let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+				if (claimers.length == 0) {
+					let added_memory: CreepMemory = {
+						"external_room_name": external_room_name,
+						"home_room_name": room_name,
+					};
+					added_memory = {
+						...added_memory,
+						...get_path_dict(conf_preclaim.path)
+					};
+					let options = {};
+					let priority = 5;
+					let added_json = {
+						"priority": priority,
+						"require_full": true && game_memory.lack_energy,
+					};
+					let json = spawning_func.prepare_role("preclaimer", room.energyAvailable, added_memory, options, added_json);
+					jsons.push(json);
+				}
+			}
+			if (conf_preclaim.guard !== undefined && conf_preclaim.commuting_distance !== undefined) {
+				let time_guard = mymath.array_sum(Object.values(conf_preclaim.guard).map((e) => e.number)) * 3 + conf_preclaim.commuting_distance;
+				let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, time_guard)).map((e) => e.name);
+				let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
+				guards = guards.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].ticksToLive >= time_guard));
+				guards = Array.from(new Set(guards));
+				//let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+				if (guards.length == 0) {
+					let added_memory: CreepMemory = {
+						"external_room_name": external_room_name,
+						"home_room_name": room_name,
+					};
+					added_memory = {
+						...added_memory,
+						...get_path_dict(conf_preclaim.path)
+					};
+					let options = {
+						bodyinfo: functions.conf_body_to_body_components(conf_preclaim.guard),
+					};
+					let priority = 5;
+					let added_json = {
+						"priority": priority,
+						"require_full": true && game_memory.lack_energy,
+					};
+					let json = spawning_func.prepare_role("guard", room.energyAvailable, added_memory, options, added_json);
+					jsons.push(json);
+				}
+			}
         }
     }
 

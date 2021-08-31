@@ -111,10 +111,12 @@ export function external_move(creep: Creep | PowerCreep, password: string, add_o
 						costMatrix.set(xy[0], xy[1], 0);
 					}
 					costMatrix.set(exit_pos.x, exit_pos.y, 0);
+					return costMatrix;
 				}
 		}});
 	}
 	timer.end();
+	return 0;
 }
 
 export function external_flee(creep: Creep | PowerCreep, safe_pos: number[], password: string, moveoptions: type_movetopos_options = {}) {
@@ -307,3 +309,13 @@ export function movethroughshards(creep: Creep) {
 	return 0;
 }
 
+export function general_external_move(creep: Creep) {
+	if (creep.memory.shard_move !== undefined) {
+		movethroughshards(creep);
+	} else {
+		if (!is_moving_target_defined(creep, 'forward')) {
+			save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
+		}
+		external_move(creep, 'forward');
+	}
+}

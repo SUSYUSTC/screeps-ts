@@ -423,17 +423,17 @@ type type_invade_assign = {
 	ranged_attack ?: number;
 	work ?: number;
 }
-interface type_invade_group_x2 {
-    healer_name: string;
+interface type_general_invade_group {
 	invader_name: string;
 	protection_level: number;
-	assign: type_invade_assign;
 	home_room_name: string;
 	time: number;
 	target_room_name ?: string;
+	cache_room_name ?: string;
 	shard_path: type_shard_exit_point[];
 	working_status ?: string;
 	target_structure_id ?: Id<Structure>;
+	target_xy ?: [number, number];
 	costmatrix ?: number[];
 	ref_hits ?: number;
 	visual_costs ?: {
@@ -444,6 +444,17 @@ interface type_invade_group_x2 {
 		}
 	}
 	visual_path ?: [number, number][];
+}
+interface type_invade_group_x1 extends type_general_invade_group {
+	invader_name: string;
+	protection_level: number;
+	n_rangedattack: number;
+}
+interface type_invade_group_x2 extends type_general_invade_group {
+    healer_name: string;
+	invader_name: string;
+	protection_level: number;
+	assign: type_invade_assign;
 }
 
 type type_order_total_amount = {
@@ -495,6 +506,9 @@ interface Memory {
 	}
 	pb_log ? : type_pb_log[];
 	depo_log ? : type_depo_log[];
+	invade_groups_x1 ?: {
+		[key: string]: type_invade_group_x1;
+	};
 	invade_groups_x2 ?: {
 		[key: string]: type_invade_group_x2;
 	};
@@ -817,6 +831,7 @@ declare module NodeJS {
 		remove_unregistered_structures(room_name: string): number;
 		get_body(components: type_body_components): BodyPartConstant[];
 		spawn_invader_group_x2(home_room_name: string, groupname: string, protection_level: number, assign: type_invade_assign, shard_path: type_shard_exit_point[]): number;
+		spawn_invader_group_x1(home_room_name: string, groupname: string, protection_level: number, n_rangedattack: number, shard_path: type_shard_exit_point[]): number;
 		get_market_stat(): type_order_total_amount;
 		init_stat(): number;
 		display_stat(): string;
