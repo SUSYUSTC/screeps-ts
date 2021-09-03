@@ -328,7 +328,7 @@ export function spawn(room_name: string) {
         if (n_builds < n_builds_needed && room.memory.ticks_to_spawn_builder == 0) {
 			let n_parts = Math.min(max_build, n_builds_needed);
             let added_memory: CreepMemory = {
-				request_boost: (room.memory.sites_total_progressleft >= n_parts * 1800),
+				request_boost: (room.memory.sites_total_progressleft >= n_parts * 1800 && room.lab.B1 !== undefined && room.link.MAIN !== undefined && room.terminal !== undefined),
 			};
             let options = {
                 "max_energy": room.energyCapacityAvailable,
@@ -489,7 +489,7 @@ export function spawn(room_name: string) {
 		} else {
 			maincarrier_ncarry = config.maincarrier_ncarry_no_power;
 		}
-		let maincarriers = room_statistics.maincarrier.filter((e) => is_valid_creep(e, maincarrier_ncarry * 3 + 30));
+		let maincarriers = room_statistics.maincarrier.filter((e) => is_valid_creep(e, Math.ceil(maincarrier_ncarry * 4.5) + 30));
 		let n_maincarriers = maincarriers.length;
 		let n_maincarriers_needed = 0;
 		if (link_modes.includes('CT') && link_modes.includes('MAIN') && room.storage !== undefined) {
@@ -765,6 +765,35 @@ export function spawn(room_name: string) {
 			}
         }
     }
+    if_claimer: if (config.guard_rooms[room_name] !== undefined && !game_memory.danger_mode) {
+        for (let external_room_name in config.guard_rooms[room_name]) {
+			let conf_guard = config.guard_rooms[room_name][external_room_name];
+			let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name).map((e) => e.name);
+			let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
+			guards = guards.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name));
+			guards = Array.from(new Set(guards));
+			if (guards.length == 0) {
+				let added_memory: CreepMemory = {
+					"external_room_name": external_room_name,
+					"home_room_name": room_name,
+				};
+				added_memory = {
+					...added_memory,
+					...get_path_dict(conf_guard.path)
+				};
+				let options = {
+					bodyinfo: functions.conf_body_to_body_components(conf_guard.guard),
+				};
+				let priority = 5;
+				let added_json = {
+					"priority": priority,
+					"require_full": true && game_memory.lack_energy,
+				};
+				let json = spawning_func.prepare_role("guard", room.energyAvailable, added_memory, options, added_json);
+				jsons.push(json);
+			}
+		}
+	}
 
     // externalbuilder
     if (room.memory.external_sites_total_progressleft == undefined) {

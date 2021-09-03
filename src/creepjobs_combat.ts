@@ -127,6 +127,9 @@ export function creepjob(creep: Creep): number {
 		creep.say("HD");
         creep.memory.movable = false;
         creep.memory.crossable = false;
+		if (creep.room.find(FIND_HOSTILE_CREEPS).length == 0) {
+			basic_job.ask_for_recycle(creep);
+		}
 		return 0;
 	} else if (creep.memory.role == 'enemy') {
 		creep.say("E");

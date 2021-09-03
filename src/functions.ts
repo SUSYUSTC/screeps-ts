@@ -586,3 +586,6 @@ export function get_room_invading_ability(room_name: string): type_body_componen
     return result;
 }
 
+export function get_first_resource_type(store: GeneralStore): ResourceConstant {
+	return <ResourceConstant> Object.keys(store)[0]
+}

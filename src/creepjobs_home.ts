@@ -87,15 +87,30 @@ export function creepjob(creep: Creep): number {
 			creep.say("Td");
 			return 0;
 		}
+		if (creep.memory.working_status == 'RC') {
+			let RC = creep.room.container.RC;
+			if (creep.store.getUsedCapacity() > 0) {
+				basic_job.transfer(creep, creep.room.terminal, functions.get_first_resource_type(creep.store));
+			} else {
+				if (RC.store.getUsedCapacity() == 0) {
+					creep.memory.working_status = 'normal';
+					return 0;
+				}
+				basic_job.withdraw(creep, RC, functions.get_first_resource_type(RC.store));
+			}
+			return 0;
+		}
         if (creep.store.getUsedCapacity("energy") < min_fill_energy) {
 			basic_job.get_energy(creep, {min_energy: Math.ceil(creep.store.getCapacity() / 2), moveoptions: moveoptions_safe, require_safe: true});
 			delete creep.memory.current_filling_target;
 			creep.say("Tg");
 			return 0;
-		} else {
-			basic_job.charge_all(creep, moveoptions_safe);
+		} else if (basic_job.charge_all(creep, moveoptions_safe) == 0) {
 			creep.say("Tc");
 			return 0;
+		}
+		if (Game.time % 50 == 0 && creep.room.container.RC !== undefined && creep.room.container.RC.store.getUsedCapacity() > 0 && creep.ticksToLive >= 50) {
+			creep.memory.working_status = 'RC';
 		}
         return 0;
     } else if (creep.memory.role == 'upgrader') {
@@ -144,9 +159,9 @@ export function creepjob(creep: Creep): number {
 					let use_link = (container == undefined) || (link !== undefined && link.store.getUsedCapacity("energy") > container.store.getUsedCapacity("energy"));
 					var lower_limit = (link !== undefined ? 0 : 800);
 					if (use_link) {
-						basic_job.withdraw(creep, link, {left: lower_limit});
+						basic_job.withdraw(creep, link, "energy", {left: lower_limit});
 					} else {
-						basic_job.withdraw(creep, container, {left: lower_limit});
+						basic_job.withdraw(creep, container, "energy", {left: lower_limit});
 					}
 					creep.say("Uw");
 				}
@@ -181,12 +196,12 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
 		if (creep.store.getUsedCapacity("energy") == 0) {
-			basic_job.withdraw(creep, container_source, {exact: true});
+			basic_job.withdraw(creep, container_source, "energy", {exact: true});
 			creep.say("Cw")
 		} else {
             let prefered_container = basic_job.preferred_container(creep, conf.carriers[source_name].preferences);
             if (prefered_container !== null) {
-                basic_job.transfer(creep, prefered_container);
+                basic_job.transfer(creep, prefered_container, "energy");
 				creep.say("Ct")
 			}
 			creep.say("Cn")
@@ -272,7 +287,7 @@ export function creepjob(creep: Creep): number {
             } else {
 				let target = (creep.room.terminal ? creep.room.terminal : creep.room.storage);
 				if (target !== undefined) {
-					basic_job.transfer(creep, target, {sourcetype: mineral_type})
+					basic_job.transfer(creep, target, mineral_type)
 					creep.say("mCt")
 				}
             }
@@ -285,7 +300,7 @@ export function creepjob(creep: Creep): number {
         creep.say("B")
         creep.memory.movable = false;
         creep.memory.crossable = true;
-		if (creep.memory.request_boost) {
+		if (creep.memory.request_boost && creep.room.link.MAIN !== undefined) {
 			if (basic_job.boost_request(creep, {"work": "LH2O"}, false) == 1) {
 				creep.say("Bbo");
 				return 0;
@@ -302,7 +317,7 @@ export function creepjob(creep: Creep): number {
 			creep.say("Bg");
 			return 0;
 		} else {
-			basic_job.build_structure(creep);
+			basic_job.build_structure(creep, {}, {priority_list: ['link', 'terminal', 'storage']});
 			creep.say("Bb");
 		}
         return 0;

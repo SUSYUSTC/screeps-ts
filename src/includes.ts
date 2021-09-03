@@ -210,17 +210,17 @@ interface type_unique_structures_status < T > {
 }
 interface conf_named_structures {
     [key: string]: {
-        pos: number[];
+        pos: type_xy;
         RCL: number;
 		RCL_to_remove ?: number;
     }
 }
 interface conf_unique_structures {
-    pos: number[];
+    pos: type_xy;
     RCL: number;
 }
 interface conf_multiple_structures {
-    [key: string]: number[][];
+    [key: string]: type_xy[];
 }
 interface conf_preference {
     [key: string]: number;
@@ -241,9 +241,9 @@ interface conf_harvesters {
     }
 }
 interface conf_maincarrier {
-    main_pos: number[];
+    main_pos: type_xy;
     working_zone: type_xy[];
-    waiting_pos: number[];
+    waiting_pos: type_xy;
 }
 interface type_external_half_map {
     rooms_forwardpath: string[];
@@ -270,7 +270,7 @@ interface type_external_controller extends type_external_map {
 }
 interface type_external_source extends type_external_map {
     id: Id < Source > ;
-    harvester_pos: number[];
+    harvester_pos: type_xy;
     single_distance: number;
     carrier_distance: number;
     n_carry_tot: number;
@@ -290,9 +290,9 @@ interface type_external_powered_source extends type_external_map {
         type: string;
         name: string;
     };
-    roads: number[][];
+    roads: type_xy[];
     id: Id < Source > ;
-    harvester_pos: number[];
+    harvester_pos: type_xy;
     single_distance: number;
     rooms_forwardpath: string[];
     rooms_backwardpath: string[];
@@ -327,7 +327,7 @@ interface type_depo_log {
 interface type_pb_status {
     name: string;
     id: Id < StructurePowerBank > ;
-    xy: number[];
+    xy: type_xy;
     status: number;
 	hits: number;
     time_last: number;
@@ -396,9 +396,9 @@ interface type_conf_room {
     readonly upgraders: conf_upgraders;
     readonly harvesters: conf_harvesters;
     readonly maincarrier: conf_maincarrier;
-    readonly transferer_stay_pos: number[];
-    readonly mineral_stay_pos: number[];
-    readonly safe_pos: number[];
+    readonly transferer_stay_pos: type_xy;
+    readonly mineral_stay_pos: type_xy;
+    readonly safe_pos: type_xy;
     readonly external_rooms: conf_external_rooms;
     readonly walls: type_xy[];
     readonly main_ramparts: type_xy[];
@@ -705,16 +705,11 @@ interface Game {
 		},
 	}
 	my_orders: {
-		sell : {
+		[key in "sell" | "buy"] : {
 			[key: string]: {
 				[key in MarketResourceConstant] ?: Order[];
 			}
-		},
-		buy : {
-			[key: string]: {
-				[key in MarketResourceConstant] ?: Order[];
-			}
-		},
+		};
 	}
 	commodity_orders ?: {
 		[key in MarketResourceConstant] ?: Order;

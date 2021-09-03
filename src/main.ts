@@ -80,6 +80,9 @@ function run_sub() {
 		console.log("Captured error:", err.stack);
 	}
 	console.log("Final Real CPU:", Game.cpu.getUsed());
+	if (Game.cpu.bucket == 10000) {
+		Game.cpu.generatePixel();
+	}
 }
 function run_main() {
 	console.log()

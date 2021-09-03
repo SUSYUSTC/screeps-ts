@@ -312,7 +312,7 @@ export function defend_home(room_name: string) {
 	mymath.range(enemies.length).forEach((i) => room.visual.text(Math.floor(pure_damages[i]).toString(), enemies[i].pos));
     let priorities = [];
     for (let i = 0; i < enemies.length; i++) {
-        if (pure_damages[i] > 0) {
+        if (pure_damages[i] > 0 && enemies[i].pos.x > 3 && enemies[i].pos.x < 46 && enemies[i].pos.y > 3 && enemies[i].pos.y < 46) {
             priorities.push(pure_damages[i] + enemies[i].hitsMax - enemies[i].hits);
         } else {
             priorities.push(0);
@@ -341,12 +341,9 @@ export function defend_home(room_name: string) {
             random_attack(defender, enemies);
         }
     }
-	if (boosted_defenders.length == 0) {
-		return;
-	}
 	let group_indices = group_enemies(enemies.length, distance_matrix);
-	let main_ramparts = global.memory[room_name].main_ramparts_id.map((e) => Game.getObjectById(e));
 	Game.memory[room_name].n_defenders_needed = group_indices.length;
+	let main_ramparts = global.memory[room_name].main_ramparts_id.map((e) => Game.getObjectById(e));
 	let defense_poses: RoomPosition[] = [];
 	for (let i = 0; i < group_indices.length; i++) {
 		group_indices[i].forEach((j) => room.visual.text(i.toString(), enemies[j].pos.x, enemies[j].pos.y + 1));
@@ -357,7 +354,9 @@ export function defend_home(room_name: string) {
 		defense_poses.push(defense_rampart.pos);
 		room.visual.text("d"+i.toString(), defense_rampart.pos);
 	}
-
+	if (boosted_defenders.length == 0) {
+		return;
+	}
 	let assigned_indices = assign_creeps(boosted_defenders.map((e) => e.pos), defense_poses);
 	for (let i = 0; i < boosted_defenders.length; i++) {
 		if (assigned_indices[i] !== undefined) {

@@ -402,6 +402,9 @@ function get_power_effects(room_name: string) {
     let room = Game.rooms[room_name];
 	for (let lab_name of ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'B1']) {
 		let lab = room.lab[lab_name];
+		if (lab == undefined) {
+			return;
+		}
 		let effect: RoomObjectEffect = undefined;
 		if (lab.effects !== undefined) {
 			effect = lab.effects.filter((e) => e.effect == PWR_OPERATE_LAB)[0];

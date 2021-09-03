@@ -121,6 +121,9 @@ function is_time_for_source(pc: PowerCreep) {
 }
 
 function get_next_source_target(pc: PowerCreep): string {
+	if (Game.memory[pc.memory.home_room_name].danger_mode) {
+		return undefined;
+	}
 	let conf = config.pc_conf[pc.name];
 	let dict_next: {[key: string]: string};
 	let source_first: string;
@@ -156,6 +159,9 @@ function operate_source(pc: PowerCreep) {
 		return -1;
 	}
 	let next_target = get_next_source_target(pc);
+	if (next_target == undefined) {
+		return -1;
+	}
 	if (!is_time_for_source(pc)) {
 		return -1;
 	}
@@ -309,6 +315,9 @@ function operate_lab(pc: PowerCreep) {
 
 function operate_factory(pc: PowerCreep) {
 	// -1: not ready, 0: operate, 1: moving
+	if (pc.room.factory == undefined) {
+		return -1;
+	}
 	if (pc.powers[PWR_OPERATE_FACTORY] == undefined) {
 		return -1;
 	}
@@ -363,6 +372,16 @@ export function work(pc: PowerCreep) {
 	pc.memory.crossable = true;
 	if (pc.memory.next_time == undefined) {
 		pc.memory.next_time = {};
+	}
+	if (Game.memory[pc.memory.home_room_name].danger_mode) {
+		let check = pc.memory.next_time.check_safety == undefined || Game.time >= pc.memory.next_time.check_safety;
+		if (check) {
+			if (pc.pos.isNearTo(pc.room.terminal)) {
+				pc.memory.next_time.check_safety = Game.time + 200;
+			} else {
+				basic_job.movetopos(pc, pc.room.terminal.pos, 2);
+			}
+		}
 	}
 	for (let func of [generate_ops, check_status, enable, renew]) {
 		if (func(pc) >= 0) {

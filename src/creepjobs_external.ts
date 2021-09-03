@@ -109,7 +109,7 @@ export function creepjob(creep: Creep): number {
 			} else {
 				let structure = basic_job.get_structure_from_carry_end(creep, conf_external.carry_end);
 				if (structure != undefined) {
-					basic_job.transfer(creep, structure);
+					basic_job.transfer(creep, structure, "energy");
 					creep.say("ECt");
 				} else {
 					creep.say("ECn");
@@ -181,7 +181,7 @@ export function creepjob(creep: Creep): number {
 					let distances = containers.map((e) => creep.pos.getRangeTo(e));
 					let argmin = mymath.argmin(distances);
 					let container = containers[argmin];
-					basic_job.withdraw(creep, container);
+					basic_job.withdraw(creep, container, "energy");
 					creep.say("EBw");
 					return 0;
 				}
@@ -355,7 +355,7 @@ export function creepjob(creep: Creep): number {
 					let store_structure = creep.room.terminal !== undefined ? creep.room.terminal : creep.room.container.CT;
 					if (store_structure !== undefined) {
 						if (store_structure.store.getFreeCapacity() > 0) {
-							basic_job.transfer(creep, store_structure);
+							basic_job.transfer(creep, store_structure, "energy");
 						}
 					}
 					break;
@@ -363,7 +363,7 @@ export function creepjob(creep: Creep): number {
 				let container = creep.room.container.RC;
 				if (container != undefined) {
 					if (container.store.getUsedCapacity("energy") > 0) {
-						basic_job.withdraw(creep, container);
+						basic_job.withdraw(creep, container, "energy");
 						creep.say("ECw");
 					} else {
 						basic_job.ask_for_recycle(creep);
@@ -488,7 +488,7 @@ export function creepjob(creep: Creep): number {
 							basic_job.movetopos(creep, dropped_resource.pos, 1);
 						}
 					} else {
-						basic_job.withdraw(creep, container_source, {exact: true});
+						basic_job.withdraw(creep, container_source, "energy", {exact: true});
 					}
 					creep.say("HCw");
 					break;
@@ -518,7 +518,7 @@ export function creepjob(creep: Creep): number {
 					} else {
 						let help_builder = help_builders[0];
 						if (help_builder.store.getFreeCapacity() > 0) {
-							basic_job.transfer(creep, help_builder);
+							basic_job.transfer(creep, help_builder, "energy");
 							creep.say("HCt2");
 						}
 					}
@@ -526,7 +526,7 @@ export function creepjob(creep: Creep): number {
 					let in_range = creep.pos.getRangeTo(store_structure) <= 3;
 					let energy_carriers_in_range = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'energy_carrier' && e.pos.getRangeTo(store_structure) <= 3).length > 0;
 					if (!((in_range && energy_carriers_in_range) || store_structure.store.getFreeCapacity("energy") == 0 )) {
-						basic_job.transfer(creep, store_structure);
+						basic_job.transfer(creep, store_structure, "energy");
 					}
 					creep.say("HCt1");
 				}
@@ -596,7 +596,7 @@ export function creepjob(creep: Creep): number {
 					store_structure = creep.room.container.CT;
 				}
 				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") == 0) {
-					basic_job.withdraw(creep, store_structure);
+					basic_job.withdraw(creep, store_structure, "energy");
 					creep.say("HBw");
 					return 0;
 				}
@@ -609,7 +609,7 @@ export function creepjob(creep: Creep): number {
 				basic_job.movetoposexceptoccupied(creep, locations);
 				creep.upgradeController(creep.room.controller);
 				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") <= creep.getActiveBodyparts(WORK)) {
-					basic_job.withdraw(creep, store_structure);
+					basic_job.withdraw(creep, store_structure, "energy");
 				}
 				creep.memory.crossable = false;
 				creep.say("HBu");
@@ -644,8 +644,14 @@ export function creepjob(creep: Creep): number {
 				}
 				creep.say("Gh");
 			} else {
-				if (creep.pos.getRangeTo(creep.room.controller) > 5) {
-					creep.moveTo(creep.room.controller, {range: 5});
+				if (creep.room.controller !== undefined) {
+					if (creep.pos.getRangeTo(creep.room.controller) > 5) {
+						creep.moveTo(creep.room.controller, {range: 5});
+					}
+				} else {
+					if (creep.pos.getRangeTo(25, 25) > 15) {
+						creep.moveTo(25, 25, {range: 15});
+					}
 				}
 				creep.say("Gm");
 			}

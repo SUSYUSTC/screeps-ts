@@ -30,10 +30,51 @@ import {
 import {
     conf_W41S41
 } from "./config_W41S41"
+import {
+    conf_E21S31
+} from "./config_E21S31"
 import * as _ from "lodash"
 import * as constants from "./constants"
 
-//conf_E14N59.external_rooms.E15N59.active = true;
+type type_conf_rooms = {
+    [key: string]: type_conf_room;
+}
+interface type_pc_conf {
+    [key: string]: {
+        room_name: string;
+        normal_ordered: boolean;
+        external_room ? : string;
+    }
+}
+export var conf_rooms: type_conf_rooms = {
+    "E19N53": conf_E19N53,
+    "E21N49": conf_E21N49,
+    "E19N55": conf_E19N55,
+    "E14N59": conf_E14N59,
+    "E9N54": conf_E9N54,
+    "W9N39": conf_W9N39,
+    "W9N1": conf_W9N1,
+    "E11S39": conf_E11S39,
+	"W31S39": conf_W31S39,
+	"W41S41": conf_W41S41,
+	"E21S31": conf_E21S31
+}
+export var controlled_rooms: string[] = ["E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41", "E21S31"];
+export var obselete_rooms: string[] = [];
+global.controlled_rooms = controlled_rooms;
+export var occupied_rooms: string[] = _.clone(controlled_rooms);
+for (let room_name of controlled_rooms) {
+    let conf_external = conf_rooms[room_name].external_rooms;
+    for (let external_room_name in conf_external) {
+        if (conf_external[external_room_name].active) {
+            for (let added_room_name of conf_external[external_room_name].controller.rooms_forwardpath) {
+                if (!occupied_rooms.includes(added_room_name)) {
+                    occupied_rooms.push(added_room_name);
+                }
+            }
+        }
+    }
+}
 
 var path_E29S21: type_shard_exit_point[] = [
 	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
@@ -64,24 +105,6 @@ var path_W41S41: type_shard_exit_point[] = [
 	{ shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
 ];
  
-var path_W31S39: type_shard_exit_point[] = [
-	{ shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
-	{ shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
-	{ shard: 'shard1', roomName: 'W10S0', x: 9, y: 20 },
-	{ shard: 'shard0', roomName: 'W20S1', x: 6, y: 1 },
-	{ shard: 'shard0', roomName: 'W29S0', x: 1, y: 38 },
-	{ shard: 'shard0', roomName: 'W30S30', x: 21, y: 17 },
-	{ shard: 'shard1', roomName: 'W20S20', x: 24, y: 36 },
-	{ shard: 'shard0', roomName: 'W30S39', x: 2, y: 48 },
-	{ shard: 'shard0', roomName: 'W50S40', x: 34, y: 8 },
-	{ shard: 'shard1', roomName: 'W30S20', x: 34, y: 25 },
-	{ shard: 'shard0', roomName: 'W61S30', x: 48, y: 46 },
-	{ shard: 'shard0', roomName: 'W61S60', x: 48, y: 33 },
-	{ shard: 'shard0', roomName: 'W60S70', x: 25, y: 16 },
-	{ shard: 'shard1', roomName: 'W30S40', x: 22, y: 24 },
-	{ shard: 'shard2', roomName: 'W30S40', x: 38, y: 14 }
-];
-
 var path_W41N9: type_shard_exit_point[] = [
 	{ shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
 	{ shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
@@ -96,51 +119,22 @@ var path_W41N9: type_shard_exit_point[] = [
 	{ shard: 'shard2', roomName: 'W40N10', x: 15, y: 13 },
 ]
 
+var path_E21S31: type_shard_exit_point[] = [
+	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
+	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
+	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
+	{ shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
+	{ shard: 'shard0', roomName: 'E39S70', x: 48, y: 6 },
+	{ shard: 'shard0', roomName: 'E40S50', x: 42, y: 31 },
+	{ shard: 'shard1', roomName: 'E20S30', x: 42, y: 29 },
+	{ shard: 'shard2', roomName: 'E20S30', x: 15, y: 32 },
+]
 
 global.my_shard_paths = {
 	"E29S21": path_E29S21,
-	"W31S39": path_W31S39,
 	"W41S41": path_W41S41,
 	"W41N9": path_W41N9,
-}
-
-type type_conf_rooms = {
-    [key: string]: type_conf_room;
-}
-interface type_pc_conf {
-    [key: string]: {
-        room_name: string;
-        normal_ordered: boolean;
-        external_room ? : string;
-    }
-}
-export var conf_rooms: type_conf_rooms = {
-    "E19N53": conf_E19N53,
-    "E21N49": conf_E21N49,
-    "E19N55": conf_E19N55,
-    "E14N59": conf_E14N59,
-    "E9N54": conf_E9N54,
-    "W9N39": conf_W9N39,
-    "W9N1": conf_W9N1,
-    "E11S39": conf_E11S39,
-	"W31S39": conf_W31S39,
-	"W41S41": conf_W41S41,
-}
-export var controlled_rooms: string[] = ["E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41"];
-export var obselete_rooms: string[] = [];
-global.controlled_rooms = controlled_rooms;
-export var occupied_rooms: string[] = _.clone(controlled_rooms);
-for (let room_name of controlled_rooms) {
-    let conf_external = conf_rooms[room_name].external_rooms;
-    for (let external_room_name in conf_external) {
-        if (conf_external[external_room_name].active) {
-            for (let added_room_name of conf_external[external_room_name].controller.rooms_forwardpath) {
-                if (!occupied_rooms.includes(added_room_name)) {
-                    occupied_rooms.push(added_room_name);
-                }
-            }
-        }
-    }
+	"E21S31": path_E21S31,
 }
 
 export var pc_conf: type_pc_conf = {
@@ -274,31 +268,19 @@ interface type_preclaiming_rooms {
     }
 }
 export var preclaiming_rooms: type_preclaiming_rooms = {
-	/*
     "W31S39": {
         "W31S38": {
-			rooms_forwardpath: ['W31S39', 'W31S38'],
-			poses_forwardpath: [28],
-		}
-	}
-	*/
-	"E11S39": {
-		"E29S21": {
 			path: {
-				shard_path: path_E29S21.concat([{ shard: 'shard3', roomName: 'E29S21', x: 18, y: 1 }])
+				rooms_forwardpath: ['W31S39', 'W31S38'],
+				poses_forwardpath: [28],
+			}
+		}
+	},
+	"E11S39": {
+		"E21S31": {
+			path: {
+				shard_path: path_E21S31.concat([{ shard: 'shard3', roomName: 'E21S31', x: 3, y: 20 }])
 			},
-			guard: {
-				ranged_attack: {
-					number: 18,
-				},
-				heal: {
-					number: 2,
-				},
-				move: {
-					number: 20,
-				},
-			},
-			commuting_distance: 800,
 		}
 	},
 	/*
@@ -323,6 +305,42 @@ export var preclaiming_rooms: type_preclaiming_rooms = {
 	}
 	*/
 }
+
+interface type_guard_rooms {
+    [key: string]: {
+        [key: string]: {
+			path: type_external_shard_map;
+			guard : type_body_conf;
+            commuting_distance : number,
+		}
+    }
+}
+
+export var guard_rooms: type_guard_rooms = {
+	/*
+    "W31S39": {
+        "W31S40": {
+			path: {
+				rooms_forwardpath: ['W31S39', 'W31S40'],
+				poses_forwardpath: [25],
+			},
+			guard: {
+				ranged_attack: {
+					number: 20,
+				},
+				heal: {
+					number: 5,
+				},
+				move: {
+					number: 25,
+				},
+			},
+			commuting_distance: 20,
+		}
+	},
+	*/
+}
+
 export var help_list: type_help_list = {
 	/*
     "W31S39": {
@@ -372,8 +390,8 @@ export var highway_resources: {
 	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
 	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
 	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E10S43'],
-	"W31S39": ['W35S40', 'W34S40', 'W33S40', 'W32S40', 'W31S40', 'W30S40', 'W29S40', 'W28S40', 'W27S40', 'W26S40', 'W25S40', 'W30S35', 'W30S34', 'W30S36', 'W30S37', 'W30S38', 'W30S39', 'W30S41', 'W30S42', 'W30S43', 'W30S44', 'W30S45'],
-	"W41S41": ['W36S40', 'W37S40', 'W38S40', 'W39S40', 'W40S40', 'W41S40', 'W42S40', 'W43S40', 'W44S40', 'W45S40', 'W46S40', 'W47S40', 'W40S45', 'W40S44', 'W40S43', 'W40S42', 'W40S41', 'W40S39', 'W40S38', 'W40S37', 'W40S36']
+	"W31S39": ['W31S40', 'W30S40', 'W29S40', 'W28S40', 'W27S40', 'W26S40', 'W25S40', 'W30S35', 'W30S34', 'W30S36', 'W30S37', 'W30S38', 'W30S39', 'W30S41', 'W30S42', 'W30S43', 'W30S44', 'W30S45'],
+	"W41S41": ['W40S40', 'W41S40', 'W42S40', 'W43S40', 'W44S40', 'W45S40', 'W46S40', 'W47S40', 'W40S45', 'W40S44', 'W40S43', 'W40S42', 'W40S41', 'W40S39', 'W40S38', 'W40S37', 'W40S36']
 }
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
@@ -397,17 +415,20 @@ export var sign: string = '黑暗森林';
 // Start of reaction, terminal and market session
 export var t3_store_room: {
     [key in GeneralMineralConstant] ? : string
-} = {
-    "XUH2O": "W31S39",
-	"XUHO2": "W9N1",
-    "XLH2O": "W41S41",
-    "XLHO2": "E9N54",
-    "XZH2O": "E11S39",
-    "XZHO2": "E14N59",
-    "XKH2O": "W9N39",
-    "XKHO2": "E21N49",
-    "XGH2O": "E19N53",
-    "XGHO2": "E19N55",
+} =  {};
+if (Game.shard.name == 'shard3'){
+	t3_store_room = {
+		"XUH2O": "W31S39",
+		"XUHO2": "W9N1",
+		"XLH2O": "W41S41",
+		"XLHO2": "E9N54",
+		"XZH2O": "E11S39",
+		"XZHO2": "E14N59",
+		"XKH2O": "W9N39",
+		"XKHO2": "E21N49",
+		"XGH2O": "E19N53",
+		"XGHO2": "E19N55",
+	}
 }
 export var t3_room_store: {[key: string]: GeneralMineralConstant} = {};
 for (let resource of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
@@ -468,8 +489,8 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "energy": {
-            price: 0.8,
-			lowest_price: 0.5,
+            price: 0.84,
+			lowest_price: 0.6,
             interval: 1000,
 			always_increase: true,
         },
@@ -480,7 +501,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "power": {
-            price: 27.0,
+            price: 25.0,
 			lowest_price: 22.0,
             interval: 500,
 			always_increase: false,
@@ -556,67 +577,60 @@ export var acceptable_prices: type_acceptable_prices = {
 }
 type type_auto_sell_list = {
     [key in MarketResourceConstant] ? : {
-        room: string;
+        room ?: string;
         price: number;
         amount: number;
     }
 }
-export var auto_sell_list: type_auto_sell_list = {
-    "XUH2O": {
-        room: "W31S39",
-        price: 18,
-        amount: 30000,
-    },
-    "XUHO2": {
-        room: "W9N1",
-        price: 17,
-        amount: 30000,
-    },
-    "XLH2O": {
-        room: "W41S41",
-        price: 16,
-        amount: 30000,
-    },
-    "XLHO2": {
-        room: "E9N54",
-        price: 15,
-        amount: 30000,
-    },
-    "XZH2O": {
-        room: "E11S39",
-        price: 20,
-        amount: 30000,
-    },
-    "XZHO2": {
-        room: "E14N59",
-        price: 15,
-        amount: 30000,
-    },
-    "XKH2O": {
-        room: "W9N39",
-        price: 16,
-        amount: 30000,
-    },
-    "XKHO2": {
-        room: "E21N49",
-        price: 15,
-        amount: 30000,
-    },
-    "XGH2O": {
-        room: "E19N53",
-        price: 22,
-        amount: 30000,
-    },
-    "XGHO2": {
-        room: "E19N55",
-        price: 25,
-        amount: 30000,
-    },
+export var auto_sell_list: type_auto_sell_list = {};
+if (Game.shard.name == 'shard3') {
+	auto_sell_list = {
+		"XUH2O": {
+			price: 18,
+			amount: 30000,
+		},
+		"XUHO2": {
+			price: 17,
+			amount: 30000,
+		},
+		"XLH2O": {
+			price: 16,
+			amount: 30000,
+		},
+		"XLHO2": {
+			price: 15,
+			amount: 30000,
+		},
+		"XZH2O": {
+			price: 20,
+			amount: 30000,
+		},
+		"XZHO2": {
+			price: 15,
+			amount: 30000,
+		},
+		"XKH2O": {
+			price: 16,
+			amount: 30000,
+		},
+		"XKHO2": {
+			price: 15,
+			amount: 30000,
+		},
+		"XGH2O": {
+			price: 22,
+			amount: 30000,
+		},
+		"XGHO2": {
+			price: 25,
+			amount: 30000,
+		},
+	}
 }
 for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
-    if (t3_store_room[key] !== auto_sell_list[key].room) {
-        throw Error("t3 room does not match for " + key);
-    }
+	if (auto_sell_list[key] !== undefined) {
+		auto_sell_list[key].room = t3_store_room[key];
+	}
 }
 export var resources_balance: {
     [key in ResourceConstant] ? : type_resource_balance
@@ -706,78 +720,66 @@ export var final_product_request: type_final_product_requrest = {
     "XUH2O": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "W31S39",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XUHO2": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "W9N1",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XLH2O": {
         min_amount: 0,
         expect_amount: 1200,
-        store_room: "W41S41",
         store_good_amount: 600,
         store_expect_amount: 30000,
     },
     "XLHO2": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E9N54",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XZH2O": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E11S39",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XZHO2": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E14N59",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XKH2O": {
         min_amount: 0,
         expect_amount: 1200,
-        store_room: "W9N39",
         store_good_amount: 600,
         store_expect_amount: 30000,
     },
     "XKHO2": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E21N49",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
     "XGH2O": {
         min_amount: 0,
         expect_amount: 1200,
-        store_room: "E19N53",
         store_good_amount: 600,
         store_expect_amount: 30000,
     },
     "XGHO2": {
         min_amount: 1200,
         expect_amount: 2400,
-        store_room: "E19N55",
         store_good_amount: 1800,
         store_expect_amount: 30000,
     },
 };
 for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
-    if (t3_store_room[key] !== final_product_request[key].store_room) {
-        throw Error("t3 room does not match for " + key);
-    }
+	final_product_request[key].store_room = t3_store_room[key];
 }
 type type_mineral_store_amount = {
     [key in GeneralMineralConstant] ? : {

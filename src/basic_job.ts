@@ -192,10 +192,9 @@ export function harvest_source(creep: Creep, source: Source | Mineral, moveoptio
     return 0;
 }
 
-export function withdraw(creep: Creep, structure: AnyStoreStructure, options: {
+export function withdraw(creep: Creep, structure: AnyStoreStructure, resourceType: ResourceConstant, options: {
     left ? : number,
 	exact ? : boolean,
-    sourcetype ? : ResourceConstant,
     moveoptions ? : type_movetopos_options,
 	max_amount ?: number,
 	pickup ?: boolean,
@@ -211,38 +210,31 @@ export function withdraw(creep: Creep, structure: AnyStoreStructure, options: {
 		if (options.left == undefined) {
 			options.left = 0;
 		}
-		if (options.sourcetype == undefined) {
-			options.sourcetype = "energy";
-		}
 		if (options.exact == undefined) {
 			options.exact = false;
 		}
 		if (options.max_amount == undefined) {
-			options.max_amount = creep.store.getFreeCapacity(options.sourcetype);
+			options.max_amount = creep.store.getFreeCapacity(resourceType);
 		}
-		let amount = ( < GeneralStore > structure.store).getUsedCapacity(options.sourcetype);
+		let amount = ( < GeneralStore > structure.store).getUsedCapacity(resourceType);
 		if (amount < options.left) {
 			return -1;
 		}
-		if (options.exact && amount - options.left < creep.store.getFreeCapacity(options.sourcetype)) {
+		if (options.exact && amount - options.left < creep.store.getFreeCapacity(resourceType)) {
 			return -1;
 		}
-		creep.withdraw(structure, options.sourcetype, Math.min(amount - options.left, options.max_amount));
+		creep.withdraw(structure, resourceType, Math.min(amount - options.left, options.max_amount));
 	}
 }
 
-export function transfer(creep: Creep, structure: AnyStoreStructure | Creep, options: {
-    sourcetype ? : ResourceConstant,
+export function transfer(creep: Creep, structure: AnyStoreStructure | Creep, resourceType: ResourceConstant, options: {
     moveoptions ? : type_movetopos_options
 } = {}) {
     // 0: transfer, 1: move
-    if (options.sourcetype == undefined) {
-        options.sourcetype = "energy";
-    }
     if (options.moveoptions == undefined) {
         options.moveoptions = {};
     }
-    let output = creep.transfer(structure, options.sourcetype);
+    let output = creep.transfer(structure, resourceType);
     if (output == ERR_NOT_IN_RANGE) {
         movetopos(creep, structure.pos, 1, options.moveoptions);
         return 1;
@@ -355,7 +347,7 @@ export function get_energy(creep: Creep, options: {
         store_structure = Game.getObjectById(creep.memory.withdraw_target);
     }
     if (store_structure !== null) {
-		withdraw(creep, store_structure, {
+		withdraw(creep, store_structure, "energy", {
 			left: options.left,
 			moveoptions: options.moveoptions,
 			max_amount: options.max_amount
@@ -381,14 +373,14 @@ export function return_energy_before_die(creep: Creep, moveoptions: type_movetop
         return 0;
     } else {
 		if (creep.room.storage !== undefined) {
-            transfer(creep, creep.room.storage, {
+            transfer(creep, creep.room.storage, "energy", {
                 moveoptions: moveoptions
             });
 			return 0;
 		}
         let linkcontainer = select_linkcontainer(creep, {min_energy: 0});
         if (linkcontainer !== null && ( < GeneralStore > linkcontainer.store).getFreeCapacity("energy") > 0) {
-            transfer(creep, linkcontainer, {
+            transfer(creep, linkcontainer, "energy", {
                 moveoptions: moveoptions
             });
             return 0;
@@ -581,19 +573,21 @@ export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_option
 	return 0;
 }
 export function ask_for_recycle_full(creep: Creep, moveoptions: type_movetopos_options = {}) {
-	if (creep.store.getUsedCapacity("energy") > 0) {
+	if (creep.store.getUsedCapacity() > 0) {
+		let resource = functions.get_first_resource_type(creep.store);
 		let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
 		if (store_structure !== undefined) {
 			if (store_structure.store.getFreeCapacity() > 0) {
-				transfer(creep, store_structure);
+				transfer(creep, store_structure, resource);
 			}
 		}
 		return 0;
 	}
 	let container = creep.room.container.RC;
 	if (container != undefined) {
-		if (container.store.getUsedCapacity("energy") > 0) {
-			withdraw(creep, container);
+		let resource = functions.get_first_resource_type(container.store);
+		if (container.store.getUsedCapacity() > 0) {
+			withdraw(creep, container, resource);
 		} else {
 			ask_for_recycle(creep);
 		}

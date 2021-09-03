@@ -233,7 +233,7 @@ function classify_my_orders() {
 
 global.regulate_order_price = function(id: Id < Order > ): number {
     let order = Game.market.getOrderById(id);
-	if (order.remainingAmount < order.totalAmount / 10) {
+	if (order.remainingAmount == 0) {
 		Game.market.cancelOrder(order.id);
 		return 0;
 	}
@@ -385,13 +385,13 @@ function auto_supply_from_market(room_name: string, resource: ResourceConstant, 
 		if (config.acceptable_prices.buy[resource] !== undefined) {
 			price = config.acceptable_prices.buy[resource].price / 2;
 		}
-        Game.market.createOrder({
-            "type": "buy",
-            "resourceType": resource,
-            "price": price,
-            "totalAmount": order_amount,
-            "roomName": room_name,
-        });
+		create_or_extend_order({
+			"type": "buy",
+			"resourceType": resource,
+			"price": price,
+			"totalAmount": order_amount,
+			"roomName": room_name,
+		});
     }
     return 0;
 }
@@ -432,9 +432,33 @@ export function auto_buy_resources(room_name: string) {
 	timer.end();
 }
 
+function create_or_extend_order(params: {type: "sell" | "buy", resourceType: MarketResourceConstant, price: number, totalAmount: number, roomName: string}) {
+	if (Game.my_orders == undefined) {
+		classify_my_orders();
+	}
+	let room_orders = Game.my_orders[params.type][params.roomName];
+	if (room_orders !== undefined && room_orders[params.resourceType] !== undefined && room_orders[params.resourceType].length > 0) {
+		let order_to_extend = room_orders[params.resourceType][0];
+		if (order_to_extend.type == 'buy' && order_to_extend.remainingAmount < params.totalAmount / 2 && config.acceptable_prices.buy[order_to_extend.resourceType].interval !== -1) {
+			Game.market.changeOrderPrice(order_to_extend.id, order_to_extend.price * 0.9);
+		}
+		Game.market.extendOrder(order_to_extend.id, params.totalAmount);
+	} else {
+		Game.market.createOrder({
+			type: params.type,
+			resourceType: params.resourceType,
+			price: params.price,
+			totalAmount: params.totalAmount,
+			roomName: params.roomName,
+		});
+	}
+}
 export function auto_sell() {
 	if (Game.time % 200 !== 0) {
 		return 1;
+	}
+	if (Game.my_orders == undefined) {
+		classify_my_orders();
 	}
 	for (let resource of <Array<MarketResourceConstant>> Object.keys(config.auto_sell_list)) {
 		let sell_conf = config.auto_sell_list[resource];
@@ -445,7 +469,7 @@ export function auto_sell() {
 		let total_amount = mymath.array_sum(orders_amount);
 		if (total_amount < sell_conf.amount / 2) {
 			console.log("create sell order", resource, "at", sell_conf.room);
-			Game.market.createOrder({
+			create_or_extend_order({
 				"type": "sell",
 				"resourceType": resource,
 				"price": sell_conf.price,

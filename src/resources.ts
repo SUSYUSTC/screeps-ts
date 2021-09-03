@@ -423,6 +423,7 @@ function update_depo(room_name: string, external_room_name: string) {
 		}
 		case 2: {
 			let n_existing_depo_carriers = depo_status.depo_carrier_names.filter((e) => functions.creep_exists(e, room_name, {filter: (e) => !e.memory.ready})).length;
+			depo_status.depo_harvester_names = depo_status.depo_harvester_names.filter((e) => functions.creep_exists(e, room_name));
 			if (container !== undefined && container.store.getUsedCapacity() + depo_status.expected_additional_amount >= config.depo_carrier_body.carry.number * 50 * (1+n_existing_depo_carriers)) {
 				let depo_carrier_body = global.get_body(functions.conf_body_to_body_components(config.depo_carrier_body));
 				let depo_carrier_memory: CreepMemory = {
