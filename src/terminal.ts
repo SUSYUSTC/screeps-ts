@@ -54,6 +54,7 @@ global.summarize_terminal = function(rooms: string[]): type_resource_number {
     return result;
 }
 
+/*
 global.send_gift_pack = function(room_name: string): number {
 	let enough = true;
 	for (let t3 of constants.combating_t3) {
@@ -69,6 +70,7 @@ global.send_gift_pack = function(room_name: string): number {
 	}
 	return 0;
 }
+*/
 
 export function process_resource_sending_request(room_name: string) {
 	let room = Game.rooms[room_name];

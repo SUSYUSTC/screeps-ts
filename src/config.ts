@@ -36,6 +36,8 @@ import {
 import * as _ from "lodash"
 import * as constants from "./constants"
 
+type type_main_shards = 'shard0' | 'shard1' | 'shard2' | 'shard3';
+
 type type_conf_rooms = {
     [key: string]: type_conf_room;
 }
@@ -59,7 +61,12 @@ export var conf_rooms: type_conf_rooms = {
 	"W41S41": conf_W41S41,
 	"E21S31": conf_E21S31
 }
-export var controlled_rooms: string[] = ["E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41", "E21S31"];
+export var controlled_rooms = <string[]> {
+	shard3: ["E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41", "E21S31"],
+	shard2: [],
+	shard1: [],
+	shard0: [],
+}[<type_main_shards>Game.shard.name];
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -137,48 +144,53 @@ global.my_shard_paths = {
 	"E21S31": path_E21S31,
 }
 
-export var pc_conf: type_pc_conf = {
-    "PC_A": {
-        "room_name": "E14N59",
-        "normal_ordered": true,
-    },
-    "PC_B": {
-        "room_name": "E19N55",
-        "normal_ordered": true,
-    },
-    "PC_C": {
-        "room_name": "E11S39",
-        "normal_ordered": false,
-    },
-    "PC_D": {
-        "room_name": "E9N54",
-        "normal_ordered": false,
-    },
-    "PC_E": {
-        "room_name": "W9N1",
-        "normal_ordered": false,
-    },
-    "PC_F": {
-        "room_name": "E21N49",
-        "normal_ordered": false,
-    },
-    "PC_G": {
-        "room_name": "W31S39",
-        "normal_ordered": false,
-    },
-    "PC_H": {
-        "room_name": "W9N39",
-        "normal_ordered": true,
-    },
-    "PC_I": {
-        "room_name": "E19N53",
-        "normal_ordered": true,
-    },
-    "PC_J": {
-        "room_name": "W41S41",
-        "normal_ordered": true,
-    },
-}
+export var pc_conf = <type_pc_conf> {
+	shard3: {
+		"PC_A": {
+			"room_name": "E14N59",
+			"normal_ordered": true,
+		},
+		"PC_B": {
+			"room_name": "E19N55",
+			"normal_ordered": true,
+		},
+		"PC_C": {
+			"room_name": "E11S39",
+			"normal_ordered": false,
+		},
+		"PC_D": {
+			"room_name": "E9N54",
+			"normal_ordered": false,
+		},
+		"PC_E": {
+			"room_name": "W9N1",
+			"normal_ordered": false,
+		},
+		"PC_F": {
+			"room_name": "E21N49",
+			"normal_ordered": false,
+		},
+		"PC_G": {
+			"room_name": "W31S39",
+			"normal_ordered": false,
+		},
+		"PC_H": {
+			"room_name": "W9N39",
+			"normal_ordered": true,
+		},
+		"PC_I": {
+			"room_name": "E19N53",
+			"normal_ordered": true,
+		},
+		"PC_J": {
+			"room_name": "W41S41",
+			"normal_ordered": true,
+		},
+	},
+	shard2: {},
+	shard1: {},
+	shard0: {},
+}[<type_main_shards>Game.shard.name];
 
 export var obselete_rooms_resources: ResourceConstant[] = (<ResourceConstant[]>constants.t3_minerals).concat(['power', 'battery', 'ops']).concat(constants.t2_minerals).concat(constants.t1_minerals).concat(constants.basic_minerals).concat("energy");
 export var double_powered_harvester = true;
@@ -199,15 +211,16 @@ export var newroom_energy_buying_price = {
     interval: 200,
 	always_increase: true,
 }
+export var boost_pb_carrier = true;
 export var pb_power_min = 3000;
 export var tower_filling_energy = 600;
 
 export var storage_gap = 30000;
 export var storage_bars: number[] = [1, 2, 3, 4, 5].map((e) => e * storage_gap);
-export var energy_bar_to_process_operated_power: number = 0.6e6;
 export var energy_bar_of_market_supply: number = 0.8e6;
-export var energy_bar_to_process_not_operated_power: number = 1.0e6;
-export var energy_bar_to_spawn_upgrader: number = 1.2e6;
+export var energy_bar_to_process_operated_power: number = Game.shard.name == 'shard3' ? 0.6e6 : 0.6e6;
+export var energy_bar_to_process_not_operated_power: number = Game.shard.name == 'shard3' ? 1.0e6 : 0.8e6;
+export var energy_bar_to_spawn_upgrader: number = Game.shard.name == 'shard3' ? 1.0e6 : 0.6e6;
 export var min_power_with_op = 3000;
 export var min_power_without_op = 5000;
 export var max_power = 10000;
@@ -243,7 +256,13 @@ export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
 export var bar_store_amount = 6000;
 export var bar_buy_onetime_amount = 3000;
-export var buy_power_rooms = ["E19N53", "W9N1", "W31S39"];
+export var buy_power_rooms = <string[]> {
+	shard3: ["E19N53", "W9N1", "W31S39"],
+	shard2: [],
+	shard1: [],
+	shard0: [],
+}[<type_main_shards>Game.shard.name];
+
 export var power_store_amount = 20000;
 export var power_buy_onetime_amount = 10000;
 export var onetime_min_commodity_amount_to_transfer: number[] = [100, 20];
@@ -267,44 +286,49 @@ interface type_preclaiming_rooms {
 		}
     }
 }
-export var preclaiming_rooms: type_preclaiming_rooms = {
-    "W31S39": {
-        "W31S38": {
-			path: {
-				rooms_forwardpath: ['W31S39', 'W31S38'],
-				poses_forwardpath: [28],
+export var preclaiming_rooms = <type_preclaiming_rooms> {
+	shard3: {
+		"W31S39": {
+			"W31S38": {
+				path: {
+					rooms_forwardpath: ['W31S39', 'W31S38'],
+					poses_forwardpath: [28],
+				}
 			}
-		}
-	},
-	"E11S39": {
-		"E21S31": {
-			path: {
-				shard_path: path_E21S31.concat([{ shard: 'shard3', roomName: 'E21S31', x: 3, y: 20 }])
-			},
-		}
-	},
-	/*
-	"W9N1": {
-		"W41N9": {
-			path: {
-				shard_path: path_W41N9.concat([{ shard: 'shard3', roomName: 'W41N9', x: 45, y: 18 }])
-			},
-			guard: {
-				ranged_attack: {
-					number: 8,
-				},
-				heal: {
-					number: 2,
-				},
-				move: {
-					number: 10,
-				},
-			},
-			commuting_distance: 400,
 		},
-	}
-	*/
-}
+		"E11S39": {
+			"E21S31": {
+				path: {
+					shard_path: path_E21S31.concat([{ shard: 'shard3', roomName: 'E21S31', x: 3, y: 20 }])
+				},
+			}
+		},
+		/*
+		"W9N1": {
+			"W41N9": {
+				path: {
+					shard_path: path_W41N9.concat([{ shard: 'shard3', roomName: 'W41N9', x: 45, y: 18 }])
+				},
+				guard: {
+					ranged_attack: {
+						number: 8,
+					},
+					heal: {
+						number: 2,
+					},
+					move: {
+						number: 10,
+					},
+				},
+				commuting_distance: 400,
+			},
+		}
+		*/
+	},
+	shard2: {},
+	shard1: {},
+	shard0: {},
+}[<type_main_shards>Game.shard.name];
 
 interface type_guard_rooms {
     [key: string]: {
@@ -343,8 +367,8 @@ export var guard_rooms: type_guard_rooms = {
 
 export var help_list: type_help_list = {
 	/*
-    "W31S39": {
-        "W41S41": {
+    "E11S39": {
+        "E21S31": {
             shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 22, y: 3 }]),
             commuting_distance: 300,
             commuting_time: 400,
@@ -365,45 +389,60 @@ export var help_list: type_help_list = {
     }
 	*/
 };
+
 export var protected_sources: {
     [key: string]: string[]
 } = {
-    "E19N53": ['S1', 'S2'],
-    "E21N49": [],
-    "E19N55": ['S1'],
-    "E14N59": ['S1', 'S2'],
-    "E9N54": ['S2'],
-	"W9N1": ["S1"],
-	"W9N39": ["S1"],
-	"E11S39": ["S1"],
-	"W31S39": ["S1"],
-	"W41S41": ["S1", "S2"],
+	shard3: {
+		"E19N53": ['S1', 'S2'],
+		"E21N49": [],
+		"E19N55": ['S1'],
+		"E14N59": ['S1', 'S2'],
+		"E9N54": ['S2'],
+		"W9N1": ["S1"],
+		"W9N39": ["S1"],
+		"E11S39": ["S1"],
+		"W31S39": ["S1"],
+		"W41S41": ["S1", "S2"],
+	},
+	shard2: {},
+	shard1: {},
+	shard0: {},
+}[<type_main_shards>Game.shard.name];
 
-}
-export var highway_resources: {
-    [key: string]: string[]
-} = {
-    "E19N55": ['E20N51', 'E20N52', 'E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
-    "E21N49": ['E20N47', 'E20N48', 'E20N49', 'E16N50', 'E17N50', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
-    "E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
-    "E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58', 'E11N50', 'E12N50'],
-	"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
-	"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
-	"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E10S43'],
-	"W31S39": ['W31S40', 'W30S40', 'W29S40', 'W28S40', 'W27S40', 'W26S40', 'W25S40', 'W30S35', 'W30S34', 'W30S36', 'W30S37', 'W30S38', 'W30S39', 'W30S41', 'W30S42', 'W30S43', 'W30S44', 'W30S45'],
-	"W41S41": ['W40S40', 'W41S40', 'W42S40', 'W43S40', 'W44S40', 'W45S40', 'W46S40', 'W47S40', 'W40S45', 'W40S44', 'W40S43', 'W40S42', 'W40S41', 'W40S39', 'W40S38', 'W40S37', 'W40S36']
-}
+export var highway_resources = <{ [key: string]: string[] }> {
+	shard3: {
+		"E19N55": ['E20N51', 'E20N52', 'E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
+		"E21N49": ['E20N47', 'E20N48', 'E20N49', 'E16N50', 'E17N50', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
+		"E14N59": ['E9N60', 'E10N60', 'E11N60', 'E12N60', 'E13N60', 'E14N60', 'E15N60', 'E16N60', 'E17N60', 'E18N60', 'E19N60'],
+		"E9N54": ['E8N50', 'E9N50', 'E10N51', 'E10N52', 'E10N53', 'E10N54', 'E10N55', 'E10N56', 'E10N57', 'E10N58', 'E11N50', 'E12N50'],
+		"W9N39": ['W14N40', 'W13N40', 'W12N40', 'W11N40', 'W10N40', 'W9N40', 'W8N40', 'W7N40', 'W6N40', 'W5N40', 'W10N33', 'W10N34', 'W10N35', 'W10N36', 'W10N37', 'W10N38', 'W10N39', 'W10N41', 'W10N42', 'W10N43', 'W10N44'],
+		"W9N1": ['W10N6', 'W10N5', 'W10N4', 'W10N3', 'W10N2', 'W10N1', 'W10N0', 'W10S0', 'W10S1', 'W10S2', 'W10S3', 'W10S4', 'W7N0', 'W7S0', 'W8N0', 'W8S0', 'W9N0', 'W9S0', 'W11N0', 'W11S0', 'W12N0', 'W12S0', 'W13N0', 'W13S0', 'W14N0', 'W14S0', 'W15N0', 'W15S0'],
+		"E11S39": ['E10S40', 'E10S39', 'E10S38', 'E10S37', 'E10S36', 'E10S35', 'E10S34', 'E11S40', 'E12S40', 'E13S40', 'E14S40', 'E15S40', 'E16S40', 'E9S40', 'E8S40', 'E7S40', 'E6S40', 'E5S40', 'E10S41', 'E10S42', 'E10S43'],
+		"W31S39": ['W31S40', 'W30S40', 'W29S40', 'W28S40', 'W27S40', 'W26S40', 'W25S40', 'W30S35', 'W30S34', 'W30S36', 'W30S37', 'W30S38', 'W30S39', 'W30S41', 'W30S42', 'W30S43', 'W30S44', 'W30S45'],
+		"W41S41": ['W40S40', 'W41S40', 'W42S40', 'W43S40', 'W44S40', 'W45S40', 'W46S40', 'W47S40', 'W40S45', 'W40S44', 'W40S43', 'W40S42', 'W40S41', 'W40S39', 'W40S38', 'W40S37', 'W40S36']
+	},
+	shard2: {},
+	shard1: {},
+	shard0: {},
+}[<type_main_shards>Game.shard.name];
+
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
 }
-export var commodity_room_conf: {[key: string]: type_zone[]} = {
-	"W9N39": ["U"],
-	"W9N1": ["U", "Z"],
-	"E11S39": ["L"],
-	"E21N49": ["L"],
-	"W31S39": ["Z"],
-	"W41S41": ["Z"],
-}
+export var commodity_room_conf = <{ [key: string]: type_zone[] }> {
+	shard3: {
+		"W9N39": ["U"],
+		"W9N1": ["U", "Z"],
+		"E11S39": ["L"],
+		"E21N49": ["L"],
+		"W31S39": ["Z"],
+		"W41S41": ["Z"],
+	},
+	shard2: {},
+	shard1: {},
+	shard0: {},
+}[<type_main_shards>Game.shard.name];
 export var all_zones = Array.from(new Set((<type_zone[][]> Object.values(commodity_room_conf)).reduce((a, b) => a.concat(b), [])));
 export var commodity_selling_rooms: string[] = Object.keys(commodity_room_conf);
 export var depo_stop_min_cd = 150;
@@ -413,28 +452,6 @@ export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
 
 // Start of reaction, terminal and market session
-export var t3_store_room: {
-    [key in GeneralMineralConstant] ? : string
-} =  {};
-if (Game.shard.name == 'shard3'){
-	t3_store_room = {
-		"XUH2O": "W31S39",
-		"XUHO2": "W9N1",
-		"XLH2O": "W41S41",
-		"XLHO2": "E9N54",
-		"XZH2O": "E11S39",
-		"XZHO2": "E14N59",
-		"XKH2O": "W9N39",
-		"XKHO2": "E21N49",
-		"XGH2O": "E19N53",
-		"XGHO2": "E19N55",
-	}
-}
-export var t3_room_store: {[key: string]: GeneralMineralConstant} = {};
-for (let resource of <Array<GeneralMineralConstant>> Object.keys(t3_store_room)) {
-	let room_name = t3_store_room[resource];
-	t3_room_store[room_name] = resource;
-}
 type type_acceptable_prices = {
     buy: {
         [key in MarketResourceConstant] ? : {
@@ -454,123 +471,117 @@ type type_acceptable_prices = {
 export var acceptable_prices: type_acceptable_prices = {
     "buy": {
         "U": {
-            price: 1.2,
+			price: {shard3: 1.2, shard2: 1.8, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "L": {
-            price: 0.6,
+            price: {shard3: 0.6, shard2: 1.2, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "Z": {
-            price: 0.6,
+            price: {shard3: 0.6, shard2: 0.6, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "K": {
-            price: 0.6,
+            price: {shard3: 0.6, shard2: 0.8, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "X": {
-            price: 1.0,
+            price: {shard3: 1.0, shard2: 5.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "H": {
-            price: 1.0,
+            price: {shard3: 1.0, shard2: 1.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "O": {
-            price: 0.6,
+            price: {shard3: 0.6, shard2: 2.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "energy": {
-            price: 0.84,
-			lowest_price: 0.6,
+            price: {shard3: 0.84, shard2: 1.2, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
+			lowest_price: {shard3: 0.6, shard2: 0.9, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "battery": {
-            price: 6.0,
-			lowest_price: 4.0,
+            price: {shard3: 6.0, shard2: 10.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
+			lowest_price: {shard3: 4.0, shard2: 8.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 1000,
 			always_increase: true,
         },
         "power": {
-            price: 25.0,
-			lowest_price: 22.0,
+            price: {shard3: 27.0, shard2: 20.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
+			lowest_price: {shard3: 22.0, shard2: 16.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 500,
 			always_increase: false,
         },
         "ops": {
-            price: 5.0,
+            price: {shard3: 6.0, shard2: 6.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 2000,
 			always_increase: true,
         },
 		'utrium_bar': {
-			price: 5.0,
-			lowest_price: 3.0,
+			price: {shard3: 5.0, shard2: 10.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: 500,
 			always_increase: true,
 		},
 		'lemergium_bar': {
-			price: 3.0,
-			lowest_price: 1.5,
+			price: {shard3: 3.0, shard2: 6.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: 500,
 			always_increase: true,
 		},
 		'zynthium_bar': {
-			price: 3.0,
-			lowest_price: 1.5,
+			price: {shard3: 3.0, shard2: 4.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: 500,
 			always_increase: true,
 		},
 		'keanium_bar': {
-			price: 3.0,
-			lowest_price: 1.5,
+			price: {shard3: 3.0, shard2: 6.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			always_increase: true,
 			interval: 500,
 		},
 		'oxidant': {
-			price: 5.0,
-			lowest_price: 3.0,
+			price: {shard3: 5.0, shard2: 10.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			always_increase: true,
 			interval: 500,
 		},
 		'reductant': {
-			price: 5.0,
-			lowest_price: 3.0,
+			price: {shard3: 5.0, shard2: 10.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			always_increase: true,
 			interval: 500,
 		},
     },
     "sell": {
         "wire": {
-            price: 500,
+            price: {shard3: 500, shard2: 400, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
         },
 		"switch": {
-			price: 5200,
+			price: {shard3: 5200, shard2: 5000, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
 		},
         "alloy": {
-            price: 750,
+            price: {shard3: 750, shard2: 600, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
         },
 		"tube": {
-			price: 16000,
+			price: {shard3: 16000, shard2: 16000, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
 		},
         "cell": {
-            price: 600,
+            price: {shard3: 600, shard2: 640, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
         },
 		"phlegm": {
-			price: 8600,
+			price: {shard3: 8600, shard2: 9000, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			interval: -1,
 		}
 	}
@@ -583,55 +594,7 @@ type type_auto_sell_list = {
     }
 }
 export var auto_sell_list: type_auto_sell_list = {};
-if (Game.shard.name == 'shard3') {
-	auto_sell_list = {
-		"XUH2O": {
-			price: 18,
-			amount: 30000,
-		},
-		"XUHO2": {
-			price: 17,
-			amount: 30000,
-		},
-		"XLH2O": {
-			price: 16,
-			amount: 30000,
-		},
-		"XLHO2": {
-			price: 15,
-			amount: 30000,
-		},
-		"XZH2O": {
-			price: 20,
-			amount: 30000,
-		},
-		"XZHO2": {
-			price: 15,
-			amount: 30000,
-		},
-		"XKH2O": {
-			price: 16,
-			amount: 30000,
-		},
-		"XKHO2": {
-			price: 15,
-			amount: 30000,
-		},
-		"XGH2O": {
-			price: 22,
-			amount: 30000,
-		},
-		"XGHO2": {
-			price: 25,
-			amount: 30000,
-		},
-	}
-}
-for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
-	if (auto_sell_list[key] !== undefined) {
-		auto_sell_list[key].room = t3_store_room[key];
-	}
-}
+
 export var resources_balance: {
     [key in ResourceConstant] ? : type_resource_balance
 } = {
@@ -687,100 +650,65 @@ type type_final_product_requrest = {
 export var final_product_request: type_final_product_requrest = {
     "UH2O": {
         min_amount: 1200,
-        expect_amount: 4000,
+        expect_amount: 6000,
     },
     "GH2O": {
         min_amount: 1200,
-        expect_amount: 6000,
+        expect_amount: 8000,
     },
     "GHO2": {
         min_amount: 600,
-        expect_amount: 2000,
+        expect_amount: 3000,
     },
     "UHO2": {
         min_amount: 1200,
-        expect_amount: 4000,
+        expect_amount: 6000,
     },
     "LH2O": {
         min_amount: 1200,
-        expect_amount: 4000,
+        expect_amount: 6000,
     },
     "LHO2": {
         min_amount: 1200,
-        expect_amount: 4000,
+        expect_amount: 6000,
     },
     "KH": {
-        min_amount: 1200,
-        expect_amount: 4000,
+        min_amount: 3000,
+        expect_amount: 6000,
     },
     "ZO": {
         min_amount: 1200,
-        expect_amount: 4000,
+        expect_amount: 6000,
     },
     "XUH2O": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
-    },
-    "XUHO2": {
-        min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
-    },
-    "XLH2O": {
-        min_amount: 0,
-        expect_amount: 1200,
-        store_good_amount: 600,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
     },
     "XLHO2": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
     },
     "XZH2O": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
     },
     "XZHO2": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
-    },
-    "XKH2O": {
-        min_amount: 0,
-        expect_amount: 1200,
-        store_good_amount: 600,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
     },
     "XKHO2": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
-    },
-    "XGH2O": {
-        min_amount: 0,
-        expect_amount: 1200,
-        store_good_amount: 600,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
     },
     "XGHO2": {
         min_amount: 1200,
-        expect_amount: 2400,
-        store_good_amount: 1800,
-        store_expect_amount: 30000,
+        expect_amount: 8000,
+    },
+    "XGH2O": {
+        min_amount: 1200,
+        expect_amount: 10000,
     },
 };
-for (let key of < Array < GeneralMineralConstant >> Object.keys(t3_store_room)) {
-	final_product_request[key].store_room = t3_store_room[key];
-}
 type type_mineral_store_amount = {
     [key in GeneralMineralConstant] ? : {
         min_amount: number;

@@ -179,9 +179,8 @@ function remove_unregistered_named_structures(room_name: string, structuretype: 
 	for (let structure of structures) {
 		if (action) {
 			structure.destroy();
-		} else {
-			room.visual.circle(structure.pos, show_options);
 		}
+		room.visual.circle(structure.pos, show_options);
 	}
 	return structures.length;
 }
@@ -197,9 +196,8 @@ function remove_unregistered_multiple_structures(room_name: string, structuretyp
 	for (let structure of structures) {
 		if (action) {
 			structure.destroy();
-		} else {
-			room.visual.circle(structure.pos, show_options);
 		}
+		room.visual.circle(structure.pos, show_options);
 	}
 	return structures.length;
 }

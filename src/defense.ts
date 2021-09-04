@@ -312,7 +312,7 @@ export function defend_home(room_name: string) {
 	mymath.range(enemies.length).forEach((i) => room.visual.text(Math.floor(pure_damages[i]).toString(), enemies[i].pos));
     let priorities = [];
     for (let i = 0; i < enemies.length; i++) {
-        if (pure_damages[i] > 0 && enemies[i].pos.x > 3 && enemies[i].pos.x < 46 && enemies[i].pos.y > 3 && enemies[i].pos.y < 46) {
+        if (pure_damages[i] > 0 && (enemies[i].owner.username == 'Invader' || (enemies[i].pos.x > 3 && enemies[i].pos.x < 46 && enemies[i].pos.y > 3 && enemies[i].pos.y < 46))) {
             priorities.push(pure_damages[i] + enemies[i].hitsMax - enemies[i].hits);
         } else {
             priorities.push(0);

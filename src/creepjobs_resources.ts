@@ -38,7 +38,6 @@ export function creepjob(creep: Creep): number {
     var conf = config.conf_rooms[creep.memory.home_room_name];
     var game_memory = Game.memory[creep.memory.home_room_name];
     if (creep.memory.role == 'pb_carrier') {
-        // 40 carry, 10 move
         creep.say("PC");
         creep.memory.movable = false;
         creep.memory.crossable = true;
@@ -46,10 +45,21 @@ export function creepjob(creep: Creep): number {
 			return 0;
 		}
         let pb_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.pb[creep.memory.external_room_name];
+		if (pb_status !== undefined && !pb_status.pb_carriers_spawned) {
+			return 0;
+		}
 		if (creep.memory.working_status == undefined) {
-			creep.memory.working_status = 'move_forward';
+			creep.memory.working_status = 'boost';
 		}
 		switch(creep.memory.working_status) {
+			case 'boost': {
+				if (pb_status.boost_pb_carrier && basic_job.boost_request(creep, {"move": "ZO", "carry": "KH"}, true) == 1) {
+					creep.say("PCb");
+					break;
+				}
+				creep.memory.working_status = 'move_forward';
+				break;
+			}
 			case 'move_forward': {
 				let rooms_path = pb_status.rooms_path;
 				let poses_path = pb_status.poses_path;

@@ -338,6 +338,8 @@ interface type_pb_status {
     pb_healer_name: string;
     pb_carrier_names: string[];
     pb_carrier_sizes: number[];
+	boost_pb_carrier: boolean;
+	pb_carriers_spawned: boolean;
     n_pb_carrier_finished: number;
     amount: number;
 	amount_received: number;
@@ -516,6 +518,9 @@ interface Memory {
 	stat_reset_time: number;
 	stat_reset_realtime: number;
 	tot_transaction_cost: number;
+	transaction_cost_details: {
+		[key in MarketResourceConstant] ?: number;
+	}
 	power_processed_stat: number;
 	op_power_processed_stat: number;
 	produce_battery_stat: number;

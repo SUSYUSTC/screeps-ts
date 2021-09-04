@@ -16,7 +16,10 @@ function is_pos_accessable(pos: RoomPosition): boolean {
 }
 var detection_period = global.is_main_server ? 300 : 200;
 
-function highway_resources_cost(room_name: string): CostMatrix {
+function highway_resources_cost(room_name: string): CostMatrix | boolean {
+	if (Game.controlled_rooms.includes(room_name)) {
+		return functions.get_costmatrix_road(room_name, 0);
+	}
 	let costMatrix = new PathFinder.CostMatrix;
 	let coor = functions.room2coor(room_name);
 	let is_highway = false;
@@ -32,12 +35,7 @@ function highway_resources_cost(room_name: string): CostMatrix {
 		}
 	}
 	if (!(is_highway || Game.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name))) {
-		for (let i = 0; i < 50; i++) {
-			costMatrix.set(1, i, 255);
-			costMatrix.set(48, i, 255);
-			costMatrix.set(i, 48, 255);
-			costMatrix.set(i, 1, 255);
-		}
+		return false;
 	}
 	if (Memory.external_room_walls[room_name] !== undefined) {
 		for (let xy of Memory.external_room_walls[room_name]) {
@@ -93,8 +91,8 @@ function detect_pb(room_name: string, external_room_name: string) {
 	let pb_carrier_names: string[] = [];
 	let pb_carrier_sizes: number[] = [];
 	let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
-		"pos": pb.pos,
-		"range": 1
+		pos: pb.pos,
+		range: 1,
 	}, {
 		maxOps: 6000,
 		roomCallback: highway_resources_cost,
@@ -106,8 +104,15 @@ function detect_pb(room_name: string, external_room_name: string) {
 	if (path.path.length > 320) {
 		return -2;
 	}
+	let carry_amount = config.boost_pb_carrier ? 3200 : 1600;
+	let commuting_cost = (pb.power/carry_amount * 2 + 2) * path.path.length * 1.2;
+	let attacking_cost = 2200;
+	if (pb.power < (attacking_cost + commuting_cost) * 1.5) {
+		return -2;
+	}
 	let exits_path = functions.get_exits_from_path(path.path);
-	let n_moves = Math.ceil(pb.power / 100);
+	let power_per_move = config.boost_pb_carrier ? 200 : 100;
+	let n_moves = Math.ceil(pb.power / power_per_move);
 	while (true) {
 		if (n_moves > 16) {
 			n_moves -= 16;
@@ -122,22 +127,24 @@ function detect_pb(room_name: string, external_room_name: string) {
 		pb_carrier_names.push(pb_carrier_name);
 	}
 	room.memory.external_resources.pb[external_room_name] = {
-		"name": name,
-		"xy": [pb.pos.x, pb.pos.y],
-		"id": pb.id,
-		"hits": undefined,
-		"status": 0,
-		"time_last": 0,
-		"rooms_path": exits_path.rooms_path,
-		"poses_path": exits_path.poses_path,
-		"distance": path.cost,
-		"amount": pb.power,
-		"amount_received": 0,
-		"pb_attacker_name": pb_attacker_name,
-		"pb_healer_name": pb_healer_name,
-		"pb_carrier_names": pb_carrier_names,
-		"pb_carrier_sizes": pb_carrier_sizes,
-		"n_pb_carrier_finished": 0,
+		name: name,
+		xy: [pb.pos.x, pb.pos.y],
+		id: pb.id,
+		hits: undefined,
+		status: 0,
+		time_last: 0,
+		rooms_path: exits_path.rooms_path,
+		poses_path: exits_path.poses_path,
+		distance: path.cost,
+		amount: pb.power,
+		amount_received: 0,
+		pb_attacker_name: pb_attacker_name,
+		pb_healer_name: pb_healer_name,
+		pb_carrier_names: pb_carrier_names,
+		pb_carrier_sizes: pb_carrier_sizes,
+		boost_pb_carrier: config.boost_pb_carrier,
+		pb_carriers_spawned: false,
+		n_pb_carrier_finished: 0,
 	}
 	return 0;
 }
@@ -278,7 +285,8 @@ function update_pb(room_name: string, external_room_name: string) {
 	} else if (pb_status.status == 1) {
 		// attacker and healer spawned
 		pb_status.time_last += 1;
-		if (pb_status.time_last >= 800) {
+		let estimated_time = pb_status.boost_pb_carrier ? 900 : 800;
+		if (pb_status.time_last >= estimated_time) {
 			let pb_carrier_memory = {
 				"home_room_name": room_name,
 				"role": "pb_carrier",
@@ -514,6 +522,11 @@ function pb_group_combat(attacker: Creep, healer: Creep, range: number = undefin
 export function run_pb_miner_group(pb_status: type_pb_status) {
 	if (pb_status.working_status == undefined) {
 		pb_status.working_status = 'spawning';
+	}
+	if (!pb_status.pb_carriers_spawned) {
+		if (basic_job.waiting_for_spawn(pb_status.pb_carrier_names) == 1) {
+			pb_status.pb_carriers_spawned = true;
+		}
 	}
 	let attacker = Game.creeps[pb_status.pb_attacker_name];
 	let healer = Game.creeps[pb_status.pb_healer_name];

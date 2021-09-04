@@ -606,6 +606,10 @@ export function market_stat() {
 		}
 		if (transaction.order == undefined) {
 			Memory.tot_transaction_cost += Game.market.calcTransactionCost(transaction.amount, transaction.from, transaction.to);
+			if (Memory.transaction_cost_details[transaction.resourceType] == undefined) {
+				Memory.transaction_cost_details[transaction.resourceType] = 0;
+			}
+			Memory.transaction_cost_details[transaction.resourceType] += Game.market.calcTransactionCost(transaction.amount, transaction.from, transaction.to);
 		} else {
 			let order = transaction.order;
 			if (Memory.market_accumulation_stat.sell[transaction.resourceType] == undefined) {

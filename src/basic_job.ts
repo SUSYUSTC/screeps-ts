@@ -192,7 +192,7 @@ export function harvest_source(creep: Creep, source: Source | Mineral, moveoptio
     return 0;
 }
 
-export function withdraw(creep: Creep, structure: AnyStoreStructure, resourceType: ResourceConstant, options: {
+export function withdraw(creep: Creep, structure: AnyStoreStructure | Tombstone, resourceType: ResourceConstant, options: {
     left ? : number,
 	exact ? : boolean,
     moveoptions ? : type_movetopos_options,
@@ -575,7 +575,7 @@ export function ask_for_recycle(creep: Creep, moveoptions: type_movetopos_option
 export function ask_for_recycle_full(creep: Creep, moveoptions: type_movetopos_options = {}) {
 	if (creep.store.getUsedCapacity() > 0) {
 		let resource = functions.get_first_resource_type(creep.store);
-		let store_structure = creep.room.storage !== undefined ? creep.room.storage : creep.room.container.CT;
+		let store_structure = creep.room.terminal !== undefined ? creep.room.terminal : creep.room.container.CT;
 		if (store_structure !== undefined) {
 			if (store_structure.store.getFreeCapacity() > 0) {
 				transfer(creep, store_structure, resource);
@@ -585,12 +585,18 @@ export function ask_for_recycle_full(creep: Creep, moveoptions: type_movetopos_o
 	}
 	let container = creep.room.container.RC;
 	if (container != undefined) {
-		let resource = functions.get_first_resource_type(container.store);
 		if (container.store.getUsedCapacity() > 0) {
+			let resource = functions.get_first_resource_type(container.store);
 			withdraw(creep, container, resource);
-		} else {
-			ask_for_recycle(creep);
+			return 0;
 		}
+		let tomb = container.pos.lookFor("tombstone").filter((e) => e.store.getUsedCapacity() > 0)[0];
+		if (tomb !== undefined) {
+			let resource = functions.get_first_resource_type(tomb.store);
+			withdraw(creep, tomb, resource);
+			return 0;
+		}
+		ask_for_recycle(creep);
 		return 0;
 	}
 	return -1;

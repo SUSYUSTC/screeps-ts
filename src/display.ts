@@ -136,6 +136,7 @@ export function init() {
 		Memory.stat_reset_time = Game.time;
 		Memory.stat_reset_realtime = (new Date()).getTime() / 1000;
 		Memory.tot_transaction_cost = 0;
+		Memory.transaction_cost_details = {};
 		Memory.power_processed_stat = 0;
 		Memory.op_power_processed_stat = 0;
 		Memory.produce_battery_stat = 0;

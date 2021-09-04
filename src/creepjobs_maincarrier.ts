@@ -643,19 +643,7 @@ function get_all_jobs(creep: Creep, level: number): type_transport_job[] {
         jobs = jobs.concat(get_energy_transport_jobs(creep, false));
     } else {
         jobs = jobs.concat(get_required_jobs(creep, terminal_battery_requirement));
-
-        let store_mineral = config.t3_room_store[creep.room.name];
-        if (store_mineral !== undefined) {
-            let this_mineral_requirement = _.clone(mineral_requirement);
-            this_mineral_requirement.resource_type = this_mineral_requirement.resource_type.filter((e) => e !== store_mineral);
-            let this_store_mineral_requirement = _.clone(store_mineral_requirement);
-            this_store_mineral_requirement.resource_type = [store_mineral];
-            jobs = jobs.concat(get_required_jobs(creep, this_mineral_requirement));
-            jobs = jobs.concat(get_required_jobs(creep, this_store_mineral_requirement));
-        } else {
-            jobs = jobs.concat(get_required_jobs(creep, mineral_requirement));
-        }
-
+		jobs = jobs.concat(get_required_jobs(creep, mineral_requirement));
         jobs = jobs.concat(get_required_jobs(creep, nuker_G_requirement));
         let commodity_requirements = room_commodity_requirements[creep.room.name];
         if (commodity_requirements !== undefined) {
