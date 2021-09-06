@@ -262,15 +262,8 @@ export function creepjob(creep: Creep): number {
 			creep.suicide();
 			return 0;
 		}
-		if (creep.room.name !== creep.memory.external_room_name) {
-			if (creep.memory.shard_move !== undefined) {
-				external_room.movethroughshards(creep);
-			} else {
-				if (!external_room.is_moving_target_defined(creep, 'forward')) {
-					external_room.save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
-				}
-				external_room.external_move(creep, 'forward');
-			}
+		if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+			external_room.general_external_move(creep, 'forward');
 			creep.say("ce");
 		} else {
 			cross_shard.delete_creep_from_shardmemory(creep.name);
@@ -327,15 +320,8 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'external_move': {
-				if (creep.room.name !== creep.memory.external_room_name) {
-					if (creep.memory.shard_move !== undefined) {
-						external_room.movethroughshards(creep);
-					} else {
-						if (!external_room.is_moving_target_defined(creep, 'forward')) {
-							external_room.save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
-						}
-						external_room.external_move(creep, 'forward');
-					}
+				if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+					external_room.general_external_move(creep, 'forward');
 					creep.say("ECm");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -365,10 +351,15 @@ export function creepjob(creep: Creep): number {
 					if (container.store.getUsedCapacity("energy") > 0) {
 						basic_job.withdraw(creep, container, "energy");
 						creep.say("ECw");
-					} else {
-						basic_job.ask_for_recycle(creep);
-						creep.say("ECr");
+						break;
+					} 
+					let tomb = container.pos.lookFor("tombstone").filter((e) => e.store.getUsedCapacity("energy") > 0)[0];
+					if (tomb !== undefined) {
+						basic_job.withdraw(creep, tomb, "energy");
+						break;
 					}
+					basic_job.ask_for_recycle(creep);
+					creep.say("ECr");
 					break;
 				}
 			}
@@ -382,8 +373,8 @@ export function creepjob(creep: Creep): number {
 		}
 		switch(creep.memory.working_status) {
 			case 'external_move': {
-				if (creep.room.name !== creep.memory.external_room_name) {
-					external_room.general_external_move(creep);
+				if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+					external_room.general_external_move(creep, 'forward');
 					creep.say("HHe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -444,8 +435,8 @@ export function creepjob(creep: Creep): number {
 		}
 		switch(creep.memory.working_status) {
 			case 'external_move': {
-				if (creep.room.name !== creep.memory.external_room_name) {
-					external_room.general_external_move(creep);
+				if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+					external_room.general_external_move(creep, 'forward');
 					creep.say("HCe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -493,19 +484,21 @@ export function creepjob(creep: Creep): number {
 					creep.say("HCw");
 					break;
 				}
-				if (creep.ticksToLive < 500 && creep.store.getFreeCapacity() == 0 && Object.keys(creep.room.spawn).length > 0) {
-					creep.memory.working_status = 'renew';
-					break;
-				}
-				let renewing = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.working_status == 'renew').length > 0;
-				if (!renewing && basic_job.charge_all(creep) == 0) {
-					break;
-				}
 				let store_structure: StructureContainer|StructureTerminal;
 				if (creep.room.terminal !== undefined) {
 					store_structure = creep.room.terminal;
 				} else if (creep.room.container.CT !== undefined) {
 					store_structure = creep.room.container.CT;
+				}
+				if (creep.ticksToLive < 500 && Object.keys(creep.room.spawn).length > 0) {
+					if (creep.store.getFreeCapacity() == 0 || (creep.store.getUsedCapacity() > 0 && (store_structure == undefined || store_structure.store.getFreeCapacity() == 0))) {
+						creep.memory.working_status = 'renew';
+						break;
+					}
+				}
+				let renewing = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.working_status == 'renew').length > 0;
+				if (!renewing && basic_job.charge_all(creep) == 0) {
+					break;
 				}
 				if (store_structure == undefined) {
 					let help_builders = creep.room.find(FIND_MY_CREEPS).filter((e) => e.memory.role == 'help_builder');
@@ -565,8 +558,8 @@ export function creepjob(creep: Creep): number {
 				break;
 			}
 			case 'external_move': {
-				if (creep.room.name !== creep.memory.external_room_name) {
-					external_room.general_external_move(creep);
+				if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+					external_room.general_external_move(creep, 'forward');
 					creep.say("HBe");
 					break;
 				} else if (external_room.moveawayexit(creep) == 0) {
@@ -595,7 +588,7 @@ export function creepjob(creep: Creep): number {
 				} else if (creep.room.container.CT !== undefined) {
 					store_structure = creep.room.container.CT;
 				}
-				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") == 0) {
+				if (store_structure !== undefined && creep.store.getUsedCapacity("energy") == 0 && (<GeneralStore>store_structure.store).getUsedCapacity("energy") > 0) {
 					basic_job.withdraw(creep, store_structure, "energy");
 					creep.say("HBw");
 					return 0;
@@ -620,8 +613,8 @@ export function creepjob(creep: Creep): number {
 		creep.say("G");
 		creep.memory.movable = false;
 		creep.memory.crossable = true;
-		if (creep.room.name !== creep.memory.external_room_name) {
-			external_room.general_external_move(creep);
+		if (Game.shard.name !== creep.memory.external_shard || creep.room.name !== creep.memory.external_room_name) {
+			external_room.general_external_move(creep, 'forward');
 			creep.say("Ge");
 			return 0;
 		}

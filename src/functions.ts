@@ -5,6 +5,22 @@ import {
     Timer
 } from "./timer"
 
+export function sort_str(s1: string, s2: string): number {
+       let s1_upper = (s1[0] == s1[0].toUpperCase());
+       let s2_upper = (s2[0] == s2[0].toUpperCase());
+       if (s1_upper !== s2_upper) {
+               return s1_upper ? -1 : 1;
+       }
+    if (s1.length !== s2.length) {
+        return s1.length - s2.length;
+    }
+    if (s1 > s2) {
+        return 1;
+    } else {
+        return -1;
+    }
+}
+
 export function signed_number(num: number, sign: number): number {
     if (sign == 1) {
         return num + 1;
@@ -90,34 +106,6 @@ export function ignore_objects(costMatrix: CostMatrix, poses: RoomPosition[]) {
 	}
 }
 
-export function restrict_passing_rooms(room_name: string): CostMatrix {
-    let costMatrix = new PathFinder.CostMatrix;
-    let coor = room2coor(room_name);
-    let is_highway = false;
-    for (let value of coor) {
-        if (value > 0) {
-            if (value % 10 == 1) {
-                is_highway = true;
-            }
-        } else {
-            if (-value % 10 == 0) {
-                is_highway = true;
-            }
-        }
-    }
-    if (is_highway || Game.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
-        return costMatrix;
-    } else {
-        for (let i = 0; i < 50; i++) {
-            costMatrix.set(1, i, 255);
-            costMatrix.set(48, i, 255);
-            costMatrix.set(i, 48, 255);
-            costMatrix.set(i, 1, 255);
-        }
-        return costMatrix;
-    }
-}
-
 export function tower_damage(dis: number): number {
     if (dis < 5) {
         return 600;
@@ -134,127 +122,6 @@ export function find_hostile(room: Room): Creep[] {
     } else {
         return room.find(FIND_HOSTILE_CREEPS);
     }
-}
-
-export function get_invader_costmatrix(room_name: string, damage_threshold: number): CostMatrix {
-    let timer = new Timer("get_invader_costmatrix", false);
-    let room = Game.rooms[room_name];
-    let costmatrix = new PathFinder.CostMatrix;
-    let terrain = new Room.Terrain(room_name);
-    let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
-    let n_towers = towers.length;
-    for (let i = 0; i < 50; i++) {
-        for (let j = 0; j < 50; j++) {
-            if (mymath.array_sum(towers.map((e) => tower_damage(e.pos.getRangeTo(i, j)))) > damage_threshold) {
-                costmatrix.set(i, j, 255);
-            }
-        }
-    }
-    let structures = room.find(FIND_STRUCTURES);
-    //structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
-    structures.filter((e) => !(['road', 'container'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-    timer.end();
-    return costmatrix;
-}
-
-export function construct_elementary_costmatrix(room_name: string, costmatrix: CostMatrix = undefined) {
-    let timer = new Timer("construct_elementary_costmatrix", false);
-	if (costmatrix == undefined) {
-		costmatrix = new PathFinder.CostMatrix;
-	}
-	let terrain = new Room.Terrain(room_name);
-	let room = Game.rooms[room_name];
-	let structures = room.find(FIND_STRUCTURES);
-	let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-	structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
-	structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-	sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-	structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-	for (let i=0; i<50; i++) {
-		costmatrix.set(i, 0, 255);
-		costmatrix.set(i, 49, 255);
-		costmatrix.set(0, i, 255);
-		costmatrix.set(49, i, 255);
-	}
-	timer.end()
-	return costmatrix;
-}
-
-export function update_basic_costmatrices() {
-    if (global.basic_costmatrices == undefined) {
-        global.basic_costmatrices = {};
-        global.basic_costmatrices_safe = {};
-        global.basic_costmatrices_defense = {};
-    }
-    for (let room_name of config.occupied_rooms) {
-        if (Game.rooms[room_name] == undefined) {
-            continue;
-        }
-        if (global.basic_costmatrices[room_name] == undefined || Game.time % 200 == 0) {
-			let costmatrix = construct_elementary_costmatrix(room_name);
-            global.basic_costmatrices[room_name] = costmatrix.clone();
-            if (Game.controlled_rooms.includes(room_name)) {
-                global.basic_costmatrices_safe[room_name] = costmatrix.clone();
-                global.basic_costmatrices_defense[room_name] = costmatrix.clone();
-                config.conf_rooms[room_name].safe_boundary.forEach((e) => global.basic_costmatrices_safe[room_name].set(e[0], e[1], 255));
-                config.conf_rooms[room_name].defense_boundary.forEach((e) => global.basic_costmatrices_defense[room_name].set(e[0], e[1], 255));
-            }
-        }
-    }
-}
-export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2): CostMatrix {
-    let basic_costmatrices: type_costmatrices;
-    if (safe_level == 0) {
-        basic_costmatrices = global.basic_costmatrices;
-    } else if (safe_level == 1) {
-        basic_costmatrices = global.basic_costmatrices_safe;
-    } else if (safe_level == 2) {
-        basic_costmatrices = global.basic_costmatrices_defense;
-    }
-    return basic_costmatrices[room_name].clone()
-}
-export function get_costmatrix_road(room_name: string, safe_level: 0 | 1 | 2 = 0): CostMatrix {
-    let timer = new Timer("get_costmatrix_road", false);
-
-    if (Game.costmatrices == undefined) {
-        Game.costmatrices = {};
-    }
-    if (Game.costmatrices_safe == undefined) {
-        Game.costmatrices_safe = {};
-    }
-    if (Game.costmatrices_defense == undefined) {
-        Game.costmatrices_defense = {};
-    }
-    let costmatrices: type_costmatrices;
-    if (safe_level == 0) {
-        costmatrices = Game.costmatrices;
-    } else if (safe_level == 1) {
-        costmatrices = Game.costmatrices_safe;
-    } else if (safe_level == 2) {
-        costmatrices = Game.costmatrices_defense;
-    }
-    if (costmatrices[room_name] == undefined) {
-        let costmatrix = get_basic_costmatrices(room_name, safe_level);
-        if (Game.rooms[room_name] !== undefined) {
-            let room = Game.rooms[room_name];
-            let mycreeps = room.find(FIND_MY_CREEPS);
-            let mypcs = room.find(FIND_MY_POWER_CREEPS);
-            mycreeps.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            mypcs.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            let hostilecreeps = find_hostile(room);
-            hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
-            if (config.conf_rooms[room_name] !== undefined) {
-                for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
-                    costmatrix.set(xy[0], xy[1], 255);
-                }
-            }
-            costmatrices[room_name] = costmatrix.clone();
-        } else {
-            costmatrices[room_name] = costmatrix.clone();
-        }
-    }
-    timer.end();
-    return costmatrices[room_name];
 }
 
 export function analyze_component(creep: Creep): type_creep_components {
@@ -282,22 +149,6 @@ export function is_single_boost_resource_enough(room_name: string, resource: Res
 export function is_boost_resource_enough(room_name: string, request: type_body_conf): boolean {
     let parts = < Array < BodyPartConstant >> Object.keys(request);
     return mymath.all(parts.filter((e) => request[e].boost !== undefined).map((e) => is_single_boost_resource_enough(room_name, request[e].boost, request[e].number)));
-}
-
-export function sort_str(s1: string, s2: string): number {
-	let s1_upper = (s1[0] == s1[0].toUpperCase());
-	let s2_upper = (s2[0] == s2[0].toUpperCase());
-	if (s1_upper !== s2_upper) {
-		return s1_upper ? -1 : 1;
-	}
-    if (s1.length !== s2.length) {
-        return s1.length - s2.length;
-    }
-    if (s1 > s2) {
-        return 1;
-    } else {
-        return -1;
-    }
 }
 
 export function send_resource(room_from: string, room_to: string, resource: ResourceConstant, amount: number) {
@@ -384,21 +235,8 @@ export function is_pathfinding_complete(creep: Creep | PowerCreep, range: number
     return dest_pos.getRangeTo(last_pos) <= range;
 }
 
-global.spawn_PC = function(name: string): number {
-    let pc = Game.powerCreeps[name];
-    let pc_conf = config.pc_conf[name]
-    if (pc_conf == undefined || pc == undefined) {
-        return 1;
-    }
-    let room = Game.rooms[pc_conf.room_name];
-    if (room.powerSpawn == undefined) {
-        return 2;
-    }
-    return pc.spawn(room.powerSpawn);
-}
-
-export function get_exits_from_path(path: RoomPosition[]) {
-    let rooms_path: string[] = [path[0].roomName];
+export function get_exits_from_path(path: RoomPosition[], start_room: string) {
+    let rooms_path: string[] = [start_room];
     let poses_path: number[] = [];
     for (let pos of path) {
         if (pos.roomName != rooms_path[rooms_path.length - 1]) {
@@ -589,3 +427,178 @@ export function get_room_invading_ability(room_name: string): type_body_componen
 export function get_first_resource_type(store: GeneralStore): ResourceConstant {
 	return <ResourceConstant> Object.keys(store)[0]
 }
+
+export function get_shard_room(shard: type_main_shards, room_name: string): type_shard_room {
+	return <type_shard_room>(shard + '_' + room_name);
+}
+
+export function split_shard_room(shard_room: type_shard_room): {shard: type_main_shards, room_name: string} {
+	let splits = shard_room.split('_');
+	return {
+		shard: <type_main_shards> splits[0],
+		room_name: splits[1],
+	}
+}
+
+global.spawn_PC = function(name: string): number {
+    let pc = Game.powerCreeps[name];
+    let pc_conf = config.pc_conf[name]
+    if (pc_conf == undefined || pc == undefined) {
+        return 1;
+    }
+    let room = Game.rooms[pc_conf.room_name];
+    if (room.powerSpawn == undefined) {
+        return 2;
+    }
+    return pc.spawn(room.powerSpawn);
+}
+
+export function restrict_passing_rooms(room_name: string): CostMatrix {
+    let costMatrix = new PathFinder.CostMatrix;
+    let coor = room2coor(room_name);
+    let is_highway = false;
+    for (let value of coor) {
+        if (value > 0) {
+            if (value % 10 == 1) {
+                is_highway = true;
+            }
+        } else {
+            if (-value % 10 == 0) {
+                is_highway = true;
+            }
+        }
+    }
+    if (is_highway || Game.controlled_rooms.includes(room_name) || config.allowed_passing_rooms.includes(room_name)) {
+        return costMatrix;
+    } else {
+        for (let i = 0; i < 50; i++) {
+            costMatrix.set(1, i, 255);
+            costMatrix.set(48, i, 255);
+            costMatrix.set(i, 48, 255);
+            costMatrix.set(i, 1, 255);
+        }
+        return costMatrix;
+    }
+}
+
+export function get_invader_costmatrix(room_name: string, damage_threshold: number): CostMatrix {
+    let timer = new Timer("get_invader_costmatrix", false);
+    let room = Game.rooms[room_name];
+    let costmatrix = new PathFinder.CostMatrix;
+    let terrain = new Room.Terrain(room_name);
+    let towers = < Array < StructureTower >> room.find(FIND_STRUCTURES).filter((e) => e.structureType == 'tower');
+    let n_towers = towers.length;
+    for (let i = 0; i < 50; i++) {
+        for (let j = 0; j < 50; j++) {
+            if (mymath.array_sum(towers.map((e) => tower_damage(e.pos.getRangeTo(i, j)))) > damage_threshold) {
+                costmatrix.set(i, j, 255);
+            }
+        }
+    }
+    let structures = room.find(FIND_STRUCTURES);
+    //structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
+    structures.filter((e) => !(['road', 'container'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+    timer.end();
+    return costmatrix;
+}
+
+export function construct_elementary_costmatrix(room_name: string, costmatrix: CostMatrix = undefined) {
+    let timer = new Timer("construct_elementary_costmatrix", false);
+	if (costmatrix == undefined) {
+		costmatrix = new PathFinder.CostMatrix;
+	}
+	let terrain = new Room.Terrain(room_name);
+	let room = Game.rooms[room_name];
+	let structures = room.find(FIND_STRUCTURES);
+	let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+	structures.filter((e) => e.structureType == 'road').forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 1));
+	structures.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	sites.filter((e) => !(['road', 'container', 'rampart'].includes(e.structureType))).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	structures.filter((e) => e.structureType == 'rampart' && e.owner.username !== config.username).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+	for (let i=0; i<50; i++) {
+		costmatrix.set(i, 0, 255);
+		costmatrix.set(i, 49, 255);
+		costmatrix.set(0, i, 255);
+		costmatrix.set(49, i, 255);
+	}
+	timer.end()
+	return costmatrix;
+}
+
+export function update_basic_costmatrices() {
+    if (global.basic_costmatrices == undefined) {
+        global.basic_costmatrices = {};
+        global.basic_costmatrices_safe = {};
+        global.basic_costmatrices_defense = {};
+    }
+    for (let room_name of config.occupied_rooms) {
+        if (Game.rooms[room_name] == undefined) {
+            continue;
+        }
+        if (global.basic_costmatrices[room_name] == undefined || Game.time % 200 == 0) {
+			let costmatrix = construct_elementary_costmatrix(room_name);
+            global.basic_costmatrices[room_name] = costmatrix.clone();
+            if (Game.controlled_rooms.includes(room_name)) {
+                global.basic_costmatrices_safe[room_name] = costmatrix.clone();
+                global.basic_costmatrices_defense[room_name] = costmatrix.clone();
+                config.conf_rooms[room_name].safe_boundary.forEach((e) => global.basic_costmatrices_safe[room_name].set(e[0], e[1], 255));
+                config.conf_rooms[room_name].defense_boundary.forEach((e) => global.basic_costmatrices_defense[room_name].set(e[0], e[1], 255));
+            }
+        }
+    }
+}
+export function get_basic_costmatrices(room_name: string, safe_level: 0 | 1 | 2): CostMatrix {
+    let basic_costmatrices: type_costmatrices;
+    if (safe_level == 0) {
+        basic_costmatrices = global.basic_costmatrices;
+    } else if (safe_level == 1) {
+        basic_costmatrices = global.basic_costmatrices_safe;
+    } else if (safe_level == 2) {
+        basic_costmatrices = global.basic_costmatrices_defense;
+    }
+    return basic_costmatrices[room_name].clone()
+}
+export function get_costmatrix_road(room_name: string, safe_level: 0 | 1 | 2 = 0): CostMatrix {
+    let timer = new Timer("get_costmatrix_road", false);
+
+    if (Game.costmatrices == undefined) {
+        Game.costmatrices = {};
+    }
+    if (Game.costmatrices_safe == undefined) {
+        Game.costmatrices_safe = {};
+    }
+    if (Game.costmatrices_defense == undefined) {
+        Game.costmatrices_defense = {};
+    }
+    let costmatrices: type_costmatrices;
+    if (safe_level == 0) {
+        costmatrices = Game.costmatrices;
+    } else if (safe_level == 1) {
+        costmatrices = Game.costmatrices_safe;
+    } else if (safe_level == 2) {
+        costmatrices = Game.costmatrices_defense;
+    }
+    if (costmatrices[room_name] == undefined) {
+        let costmatrix = get_basic_costmatrices(room_name, safe_level);
+        if (Game.rooms[room_name] !== undefined) {
+            let room = Game.rooms[room_name];
+            let mycreeps = room.find(FIND_MY_CREEPS);
+            let mypcs = room.find(FIND_MY_POWER_CREEPS);
+            mycreeps.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            mypcs.filter((e) => !e.memory.movable && !e.memory.crossable).forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            let hostilecreeps = find_hostile(room);
+            hostilecreeps.forEach((e) => costmatrix.set(e.pos.x, e.pos.y, 255));
+            if (config.conf_rooms[room_name] !== undefined) {
+                for (let xy of config.conf_rooms[room_name].maincarrier.working_zone) {
+                    costmatrix.set(xy[0], xy[1], 255);
+                }
+            }
+            costmatrices[room_name] = costmatrix.clone();
+        } else {
+            costmatrices[room_name] = costmatrix.clone();
+        }
+    }
+    timer.end();
+    return costmatrices[room_name];
+}
+

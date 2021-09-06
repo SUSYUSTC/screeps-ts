@@ -31,14 +31,19 @@ function is_safely_connected(pos1: RoomPosition, pos2: RoomPosition): boolean {
     }).incomplete);
 }
 
-export function clear_creep() {
-    let timer = new Timer("clear_creep", true);
+export function clear_memory() {
+    let timer = new Timer("clear_memory", true);
     if (Game.time % 50 == 0) {
         for (let name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 delete Memory.creeps[name];
             }
         }
+		for (let name in Memory.rooms) {
+            if (!config.controlled_rooms.includes(name)) {
+                delete Memory.rooms[name];
+            }
+		}
     }
     timer.end();
 }

@@ -215,7 +215,48 @@ export function sync_shard_memory() {
 			}
 		}
 	}
+
+	if (Game.InterShardMemory[Game.shard.name].tick_info == undefined) {
+		Game.InterShardMemory[Game.shard.name].tick_info = {};
+	}
+	if (Game.time % 200 == 0) {
+		let this_tick = Game.InterShardMemory[Game.shard.name].tick_info;
+		let current_time = (new Date()).getTime() / 1000;
+		if (this_tick.last_update_time !== undefined && this_tick.last_update_tick !== undefined) {
+			this_tick.tick_rate = (current_time - this_tick.last_update_time) / (Game.time - this_tick.last_update_tick);
+		}
+		this_tick.last_update_time = current_time;
+		this_tick.last_update_tick = Game.time;
+		Game.require_update_intershardmemory = true;
+	}
 	timer.end()
+}
+
+export function sync_shard_room_info(room_names: string[]) {
+	if (Game.InterShardMemory[Game.shard.name].room_info == undefined) {
+		Game.InterShardMemory[Game.shard.name].room_info = {};
+	}
+	if (Game.time % 20 == 0) {
+		let room_info = Game.InterShardMemory[Game.shard.name].room_info;
+		for (let room_name of room_names) {
+			let room = Game.rooms[room_name];
+			if (room == undefined) {
+				continue;
+			}
+			room_info[room_name] = {
+				my: room.controller.my,
+				rcl: room.controller.level,
+				container: Object.keys(room.container),
+				link: Object.keys(room.container),
+				spawn: Object.keys(room.spawn),
+				energyCapacity: room.energyCapacityAvailable,
+				storage: room.storage !== undefined,
+				terminal: room.terminal !== undefined,
+				independent: Game.independent_rooms.includes(room_name),
+			}
+		}
+		Game.require_update_intershardmemory = true;
+	}
 }
 
 export function update_shard_memory() {

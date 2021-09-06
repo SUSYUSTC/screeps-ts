@@ -6,13 +6,10 @@ if (Memory.output_mode == undefined) {
 }
 global.is_main_server = ['shard0', 'shard1', 'shard2', 'shard3'].includes(Game.shard.name);
 if (global.is_main_server) {
-	global.main_shards = ['shard3']; 
-	global.sub_shards = ['shard0', 'shard1', 'shard2'];
+	global.all_shards = ['shard0', 'shard1', 'shard2', 'shard3']; 
 } else {
-	global.main_shards = [Game.shard.name];
-	global.sub_shards = [];
+	global.all_shards = [Game.shard.name];
 }
-global.all_shards = global.main_shards.concat(global.sub_shards);
 import * as action_counter from "./action_counter";
 import * as config from "./config";
 import * as _ from "lodash";
@@ -53,6 +50,7 @@ function run_sub() {
 
 	try {
 		cross_shard.sync_shard_memory();
+		cross_shard.sync_shard_room_info(config.controlled_rooms);
 	} catch (err) {
 		console.log("Captured error:", err.stack);
 	}
@@ -61,9 +59,6 @@ function run_sub() {
 	for (let creepname in Game.creeps) {
 		try {
 			let creep = Game.creeps[creepname];
-			if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
-				creep.heal(creep);
-			}
 			external_room.movethroughshards(creep);
 		} catch (err) {
 			console.log("Captured error:", Game.creeps[creepname].room.name, creepname, err.stack);
@@ -94,7 +89,7 @@ function run_main() {
 	Game.tick_cpu = {};
 	Game.function_actions_count = {};
 
-    main_func.clear_creep();
+    main_func.clear_memory();
 	try {
 		main_func.set_global_memory()
 	} catch (err) {
@@ -113,6 +108,7 @@ function run_main() {
 	timer = new Timer("sync_shard_memory", true);
 	try {
 		cross_shard.sync_shard_memory();
+		cross_shard.sync_shard_room_info(config.controlled_rooms);
 	} catch (err) {
 		console.log("Captured error", err.stack);
 	}
@@ -298,26 +294,7 @@ function run_main() {
 	}
 	timer.end();
 
-	try {
-		final_command.log();
-		output.log();
-	} catch (err) {
-		console.log("Captured error", err.stack);
-	}
-	global.test_var = true;
-	console.log("Final Real CPU:", Game.cpu.getUsed());
-}
-
-
-module.exports.loop = function() {
-	if (Memory.stop_running) {
-		return;
-	}
-	if (global.main_shards.includes(Game.shard.name)) {
-		run_main();
-	} else {
-		run_sub();
-	}
+	timer = new Timer("show_direction", true);
 	if (Memory.showdirection) {
 		for (let creepname in Game.creeps) {
 			let creep = Game.creeps[creepname];
@@ -326,4 +303,26 @@ module.exports.loop = function() {
 			}
 		}
 	}
+	timer.end();
+
+	try {
+		final_command.log();
+		output.log();
+	} catch (err) {
+		console.log("Captured error", err.stack);
+	}
+	global.test_var = true;
+	console.log("Final Real CPU:", Game.cpu.getUsed());
+
+	if (Game.cpu.bucket == 10000) {
+		Game.cpu.generatePixel();
+	}
+}
+
+
+module.exports.loop = function() {
+	if (Memory.stop_running) {
+		return;
+	}
+	run_main();
 }

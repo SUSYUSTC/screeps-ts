@@ -18,7 +18,13 @@ var detection_period = global.is_main_server ? 300 : 200;
 
 function highway_resources_cost(room_name: string): CostMatrix | boolean {
 	if (Game.controlled_rooms.includes(room_name)) {
-		return functions.get_costmatrix_road(room_name, 0);
+		let costMatrix = functions.get_costmatrix_road(room_name, 0);
+		for (let i=0; i<50; i++) {
+			costMatrix.set(i, 0, 0);
+			costMatrix.set(i, 49, 0);
+			costMatrix.set(0, i, 0);
+			costMatrix.set(49, i, 0);
+		}
 	}
 	let costMatrix = new PathFinder.CostMatrix;
 	let coor = functions.room2coor(room_name);
@@ -44,7 +50,6 @@ function highway_resources_cost(room_name: string): CostMatrix | boolean {
 	}
 	return costMatrix;
 }
-
 
 function update_rooms_walls(external_room_name: string) {
 	let external_room = Game.rooms[external_room_name];
@@ -90,7 +95,7 @@ function detect_pb(room_name: string, external_room_name: string) {
 	let pb_healer_name = "pb_healer" + external_room_name + '_' + Game.time.toString()
 	let pb_carrier_names: string[] = [];
 	let pb_carrier_sizes: number[] = [];
-	let path = PathFinder.search(Game.getObjectById(global.memory[room_name].spawn_list[0]).pos, {
+	let path = PathFinder.search(room.terminal.pos, {
 		pos: pb.pos,
 		range: 1,
 	}, {
@@ -107,10 +112,10 @@ function detect_pb(room_name: string, external_room_name: string) {
 	let carry_amount = config.boost_pb_carrier ? 3200 : 1600;
 	let commuting_cost = (pb.power/carry_amount * 2 + 2) * path.path.length * 1.2;
 	let attacking_cost = 2200;
-	if (pb.power < (attacking_cost + commuting_cost) * 1.5) {
+	if (pb.power < (attacking_cost + commuting_cost) * 1.2) {
 		return -2;
 	}
-	let exits_path = functions.get_exits_from_path(path.path);
+	let exits_path = functions.get_exits_from_path(path.path, room_name);
 	let power_per_move = config.boost_pb_carrier ? 200 : 100;
 	let n_moves = Math.ceil(pb.power / power_per_move);
 	while (true) {
@@ -188,7 +193,7 @@ function detect_depo(room_name: string, external_room_name: string) {
 	let depo_energy_carrier_name = "depo_energy_carrier" + external_room_name + '_' + Game.time.toString()
 	let depo_harvester_name = "depo_harvester" + external_room_name + '_' + Game.time.toString()
 	let depo_carrier_name = "depo_carrier" + external_room_name + '_' + Game.time.toString()
-	let exits_path = functions.get_exits_from_path(path.path);
+	let exits_path = functions.get_exits_from_path(path.path, room_name);
 	room.memory.external_resources.depo[external_room_name] = {
 		"name": name,
 		"xy": [depo.pos.x, depo.pos.y],

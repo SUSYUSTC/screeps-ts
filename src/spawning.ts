@@ -4,6 +4,7 @@ import * as spawning_func from "./spawning_func";
 import * as spawning_init from "./spawning_init";
 import * as defense from "./defense";
 import * as config from "./config";
+import * as prefunctions from "./prefunctions";
 import * as functions from "./functions";
 import {
     Timer
@@ -13,6 +14,41 @@ function is_valid_creep(creep: Creep, livetime: number): boolean {
     return (creep.ticksToLive == undefined || creep.ticksToLive >= livetime);
 }
 
+function match_shard_creep(obj1: type_general_shard_object, obj2: type_general_shard_object) {
+	return obj1.external_shard == obj2.external_shard && obj1.external_room_name == obj2.external_room_name;
+}
+
+function get_shard_memory(obj: type_general_shard_object) {
+	return {
+		home_shard: obj.home_shard,
+		home_room_name: obj.home_room_name,
+		external_shard: obj.external_shard,
+		external_room_name: obj.external_room_name,
+	}
+}
+
+function find_all_shard_creep(room_name: string, role: type_creep_role, shard_object: type_general_shard_object, options: {time ?: number, added_key ?: {[key: string]: string}} = {}) {
+	if (options.time == undefined) {
+		options.time = 0;
+	}
+	if (options.added_key == undefined) {
+		options.added_key = {};
+	}
+	let filter_creeps = (creep: Creep) => {
+		let keys = Object.keys(options.added_key);
+		return keys.filter((key) => creep.memory[<keyof CreepMemory>key] !== options.added_key[key]).length == 0;
+	}
+	let filter_shardcreeps = (creep: type_intershard_all_creeps) => {
+		let keys = Object.keys(options.added_key);
+		return keys.filter((key) => creep[<keyof type_intershard_all_creeps>key] !== options.added_key[key]).length == 0;
+	}
+    let room_statistics = Game.creep_statistics[room_name];
+	let creeps = room_statistics[role].filter((e) => match_shard_creep(e.memory, shard_object) && is_valid_creep(e, options.time) && filter_creeps(e)).map((e) => e.name);
+	let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
+	creeps = creeps.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == role && match_shard_creep(shard_creeps[e], shard_object) && shard_creeps[e].ticksToLive >= options.time && filter_shardcreeps(shard_creeps[e])));
+	creeps = Array.from(new Set(creeps));
+	return creeps;
+}
 type type_general_path_obj = {
     rooms_forwardpath ? : string[];
     poses_forwardpath ? : number[];
@@ -526,42 +562,57 @@ export function spawn(room_name: string) {
         let json = spawning_func.prepare_role("wall_repairer", room.energyAvailable, added_memory, options, added_json);
         jsons.push(json);
     }
-    if (config.help_list[room_name] !== undefined && !game_memory.danger_mode) {
-        for (let external_room_name in config.help_list[room_name]) {
-            let external_room = Game.rooms[external_room_name];
-            if (external_room == undefined || external_room.controller.owner == undefined || external_room.controller.owner.username !== config.username) {
-                continue;
-            }
-            if (Game.independent_rooms.includes(external_room_name)) {
-                continue;
-            }
-			let n_spawning = room_statistics.help_harvester.concat(room_statistics.help_carrier).concat(room_statistics.help_builder).filter((e) => e.spawning).length;
 
-            let conf_help = config.help_list[room_name][external_room_name];
+	let this_help_list = config.help_list.filter((e) => e.home_shard == Game.shard.name && e.home_room_name == room_name);
+    if (this_help_list.length > 0 && !game_memory.danger_mode) {
+        for (let conf_help of this_help_list) {
+            let external_room = Game.InterShardMemory[conf_help.external_shard].room_info[conf_help.external_room_name];
+			let need_build = external_room !== undefined && external_room.my && !external_room.independent;
+			if (!need_build) {
+				continue;
+			}
+
+			let n_spawning = room_statistics.help_harvester.concat(room_statistics.help_carrier).concat(room_statistics.help_builder).filter((e) => e.spawning).length;
             let path_dict = get_path_dict(conf_help);
-            let conf_external = config.conf_rooms[external_room_name];
-            let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-			let recyclable = Object.keys(external_room.spawn).length > 0 && external_room.container.RC !== undefined;
-			let level1 = external_room.energyCapacityAvailable < 550;
-			let level6 = external_room.controller.level == 6;
+            let conf_external = config.shard_conf_rooms[conf_help.external_shard][conf_help.external_room_name];
+			let recyclable = external_room.spawn.length > 0 && external_room.container.includes('RC');
+			let level1 = external_room.energyCapacity < 550;
+			let level6 = external_room.rcl == 6;
+			let shared_added_memory: CreepMemory = {
+				...get_shard_memory(conf_help),
+				...path_dict,
+			}
+			let commuting_time: number;
+			if (conf_help.shard_path !== undefined) {
+				let shard_distances = ['shard0', 'shard1', 'shard2', 'shard3'].map((shard) => mymath.array_sum(conf_help.shard_path.filter((e) => e.shard == shard).map((e) => e.dis)));
+				let shard_ticks = ['shard0', 'shard1', 'shard2', 'shard3'].map((shard) => Game.InterShardMemory[shard].tick_info.tick_rate);
+				let realtime = mymath.array_sum(mymath.range(4).map((i) => shard_distances[i] * shard_ticks[i]));
+				commuting_time = realtime / Game.InterShardMemory[Game.shard.name].tick_info.tick_rate + 20;
+			} else {
+				commuting_time = conf_help.commuting_distance;
+			}
+			console.log('commuting_time:', commuting_time)
+			if (commuting_time == NaN) {
+				continue;
+			}
 			if (n_spawning == 0) {
-				for (let source_name in config.conf_rooms[external_room_name].sources) {
-					let help_harvester_time = conf_help.commuting_time + 75;
-					let help_harvesters = room_statistics.help_harvester.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_harvester_time)).map((e) => e.name);
-					help_harvesters = help_harvesters.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_harvester' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_harvester_time));
-					let help_carrier_time = level1 ? conf_help.commuting_time + conf_external.carriers[source_name].number * 6 : 0;
-					let help_carriers = room_statistics.help_carrier.filter((e) => e.memory.external_room_name == external_room_name && e.memory.source_name == source_name && is_valid_creep(e, help_carrier_time)).map((e) => e.name);
-					help_carriers = help_carriers.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_carrier' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].source_name == source_name && shard_creeps[e].ticksToLive >= help_carrier_time));
+				for (let source_name in conf_external.sources) {
+					let help_harvester_time = commuting_time + 75;
+					let help_harvesters = find_all_shard_creep(room_name, 'help_harvester', conf_help, {
+						time: help_harvester_time, 
+						added_key: {'source_name': source_name},
+					});
+					let help_carrier_time = level1 ? commuting_time + conf_external.carriers[source_name].number * 6 : 0;
+					let help_carriers = find_all_shard_creep(room_name, 'help_carrier', conf_help, {
+						time: help_carrier_time, 
+						added_key: {'source_name': source_name},
+					});
 					if (help_harvesters.length == 0 && level1) {
-						let added_memory = {
+						let added_memory: CreepMemory = {
 							"source_name": source_name,
-							"external_room_name": external_room_name,
-							"home_room_name": room_name,
+							...shared_added_memory,
 						};
-						added_memory = {
-							...added_memory,
-							...path_dict,
-						};
+						;
 						let options = {};
 						let priority = 42;
 						let added_json = {
@@ -571,19 +622,14 @@ export function spawn(room_name: string) {
 						let json = spawning_func.prepare_role("help_harvester", room.energyAvailable, added_memory, options, added_json);
 						jsons.push(json);
 					}
-					if (help_carriers.length == 0 && (external_room.link.CT == undefined || external_room.link[source_name] == undefined)) {
+					if (help_carriers.length == 0 && (external_room.link.includes('CT') || external_room.link.includes(source_name) == undefined)) {
 						let n_carry = conf_help.n_carrys !== undefined ? conf_help.n_carrys[source_name] : conf_external.carriers[source_name].number;
 						let added_memory = {
 							"source_name": source_name,
-							"external_room_name": external_room_name,
-							"home_room_name": room_name,
-						};
-						added_memory = {
-							...added_memory,
-							...path_dict,
+							...shared_added_memory,
 						};
 						let options = {
-							"max_parts": n_carry,
+							"max_parts": Math.min(n_carry, 25),
 						};
 						let priority = 41;
 						let added_json = {
@@ -598,8 +644,7 @@ export function spawn(room_name: string) {
 				if (recyclable && !level6) {
 					n_builder_needed += conf_help.n_energy_carriers;
 				}
-				let help_builders = room_statistics.help_builder.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_help.commuting_time + 150)).map((e) => e.name);
-				help_builders = help_builders.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'help_builder' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].ticksToLive >= conf_help.commuting_time + 150));
+				let help_builders = find_all_shard_creep(room_name, 'help_builder', conf_help, {time: commuting_time + 150});
 				if (help_builders.length < n_builder_needed) {
 					let request_boost = true;
 					let subrole;
@@ -623,14 +668,9 @@ export function spawn(room_name: string) {
 						n_move = 20;
 					}
 					let added_memory: CreepMemory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room_name,
 						"request_boost": request_boost,
 						"subrole": subrole,
-					};
-					added_memory = {
-						...added_memory,
-						...path_dict,
+						...shared_added_memory,
 					};
 					let options = {
 						"work": n_work,
@@ -650,13 +690,8 @@ export function spawn(room_name: string) {
 				let spawning_energy_carriers = room_statistics.energy_carrier.filter((e) => e.spawning).map((e) => e.name);
 				let spawning_spawns = global.memory[room_name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => e.spawning != undefined && spawning_energy_carriers.includes(e.spawning.name) && e.spawning.remainingTime > e.spawning.needTime - e.spawning.needTime / conf_help.n_energy_carriers);
 				if (spawning_spawns.length == 0 && recyclable) {
-					let added_memory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room_name,
-					};
-					added_memory = {
-						...added_memory,
-						...path_dict,
+					let added_memory: CreepMemory = {
+						...shared_added_memory,
 					};
 					let options = {
 						"n_heal": conf_help.n_heals_of_energy_carrier,
@@ -670,18 +705,14 @@ export function spawn(room_name: string) {
 					jsons.push(json);
 				}
 			}
-			if (conf_help.guard !== undefined && external_room.controller.level <= 2) {
-				let guard_time = conf_help.commuting_time + (conf_help.guard.ranged_attack.number + conf_help.guard.heal.number + conf_help.guard.move.number) * 3;
-				let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, guard_time)).map((e) => e.name);
-				guards = guards.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].ticksToLive >= guard_time));
+			if (conf_help.guard !== undefined && external_room.rcl <= 2) {
+				let guard_time = commuting_time + (conf_help.guard.ranged_attack.number + conf_help.guard.heal.number + conf_help.guard.move.number) * 3;
+				let guards = find_all_shard_creep(room_name, 'guard', conf_help, {time: guard_time});
+				//let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, guard_time)).map((e) => e.name);
+				//guards = guards.concat(Object.keys(shard_creeps).filter((e) => Game.creeps[e] == undefined && shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].ticksToLive >= guard_time));
 				if (guards.length == 0) {
-					let added_memory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room_name,
-					};
-					added_memory = {
-						...added_memory,
-						...path_dict,
+					let added_memory: CreepMemory = {
+						...shared_added_memory,
 					};
 					let options = {
 						bodyinfo: functions.conf_body_to_body_components(conf_help.guard),
@@ -699,30 +730,22 @@ export function spawn(room_name: string) {
     }
 
     // preclaimers
-    if_claimer: if (config.preclaiming_rooms[room_name] !== undefined && !game_memory.danger_mode) {
+	let this_conf_preclaiming_rooms = config.preclaiming_rooms.filter((e) => e.home_shard == Game.shard.name && e.home_room_name == room_name);
+    if_claimer: if (this_conf_preclaiming_rooms.length > 0 && !game_memory.danger_mode) {
 		if (room.memory.next_preclaim_time == undefined) {
 			room.memory.next_preclaim_time = {};
 		}
-        for (let external_room_name in config.preclaiming_rooms[room_name]) {
-            let external_room = Game.rooms[external_room_name];
-            if (external_room !== undefined && external_room.controller.my) {
+		for (let conf_preclaim of this_conf_preclaiming_rooms) {
+			let shard_external_room = Game.InterShardMemory[conf_preclaim.external_shard].room_info[conf_preclaim.external_room_name];
+            if (shard_external_room !== undefined && shard_external_room.my) {
                 break if_claimer;
             }
-			let conf_preclaim = config.preclaiming_rooms[room_name][external_room_name];
-			let blocked = Game.time < room.memory.next_preclaim_time[external_room_name];
+			let blocked = Game.time < room.memory.next_preclaim_time[prefunctions.get_shard_room(conf_preclaim.external_shard, conf_preclaim.external_room_name)];
 			if (!blocked) {
-				let claimers = room_statistics.preclaimer.filter((e) => e.memory.external_room_name == external_room_name).map((e) => e.name);
-				let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-				claimers = claimers.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'preclaimer' && shard_creeps[e].external_room_name == external_room_name));
-				claimers = Array.from(new Set(claimers));
-				//let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+				let claimers = find_all_shard_creep(room_name, 'preclaimer', conf_preclaim);
 				if (claimers.length == 0) {
 					let added_memory: CreepMemory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room_name,
-					};
-					added_memory = {
-						...added_memory,
+						...get_shard_memory(conf_preclaim),
 						...get_path_dict(conf_preclaim.path)
 					};
 					let options = {};
@@ -737,18 +760,10 @@ export function spawn(room_name: string) {
 			}
 			if (conf_preclaim.guard !== undefined && conf_preclaim.commuting_distance !== undefined) {
 				let time_guard = mymath.array_sum(Object.values(conf_preclaim.guard).map((e) => e.number)) * 3 + conf_preclaim.commuting_distance;
-				let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, time_guard)).map((e) => e.name);
-				let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-				guards = guards.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name && shard_creeps[e].ticksToLive >= time_guard));
-				guards = Array.from(new Set(guards));
-				//let claimers = _.filter(Game.creeps, (e) => is_valid_creep(e, 'preclaimer', 0) && e.memory.external_room_name == external_room_name && e.memory.home_room_name == room_name);
+				let guards = find_all_shard_creep(room_name, 'guard', conf_preclaim, {time: time_guard});
 				if (guards.length == 0) {
 					let added_memory: CreepMemory = {
-						"external_room_name": external_room_name,
-						"home_room_name": room_name,
-					};
-					added_memory = {
-						...added_memory,
+						...get_shard_memory(conf_preclaim),
 						...get_path_dict(conf_preclaim.path)
 					};
 					let options = {
@@ -765,20 +780,13 @@ export function spawn(room_name: string) {
 			}
         }
     }
-    if_claimer: if (config.guard_rooms[room_name] !== undefined && !game_memory.danger_mode) {
-        for (let external_room_name in config.guard_rooms[room_name]) {
-			let conf_guard = config.guard_rooms[room_name][external_room_name];
-			let guards = room_statistics.guard.filter((e) => e.memory.external_room_name == external_room_name).map((e) => e.name);
-			let shard_creeps = Game.InterShardMemory[Game.shard.name].all_creeps;
-			guards = guards.concat(Object.keys(shard_creeps).filter((e) => shard_creeps[e].role == 'guard' && shard_creeps[e].external_room_name == external_room_name));
-			guards = Array.from(new Set(guards));
+	let this_conf_guard_rooms = config.guard_rooms.filter((e) => e.home_shard == Game.shard.name && e.home_room_name == room_name);
+    if (this_conf_guard_rooms.length > 0 && !game_memory.danger_mode) {
+        for (let conf_guard of this_conf_guard_rooms) {
+			let guards = find_all_shard_creep(room_name, 'guard', conf_guard);
 			if (guards.length == 0) {
 				let added_memory: CreepMemory = {
-					"external_room_name": external_room_name,
-					"home_room_name": room_name,
-				};
-				added_memory = {
-					...added_memory,
+					...get_shard_memory(conf_guard),
 					...get_path_dict(conf_guard.path)
 				};
 				let options = {
@@ -853,7 +861,7 @@ export function spawn(room_name: string) {
         // reserver
         let reserve = conf_controller.reserve;
         let need_reserve = true;
-        if (reserve && (config.preclaiming_rooms[room_name] == undefined || config.preclaiming_rooms[room_name][external_room_name] == undefined)) {
+        if (reserve && this_conf_preclaiming_rooms.filter((e) => e.external_room_name == external_room_name).length == 0) {
             if (Game.rooms[external_room_name] !== undefined) {
                 if (Game.rooms[external_room_name].controller.my) {
                     need_reserve = false;
@@ -872,8 +880,8 @@ export function spawn(room_name: string) {
             let reservers = room_statistics.reserver.filter((e) => e.memory.external_room_name == external_room_name && is_valid_creep(e, conf_controller.path_time));
             if (reservers.length == 0 && !game_memory.danger_mode) {
                 let added_memory = {
-                    "external_room_name": external_room_name,
-                    "home_room_name": room.name,
+                    external_room_name: external_room_name,
+                    home_room_name: room.name,
                 };
                 let options = {
                     "max_parts": 8,

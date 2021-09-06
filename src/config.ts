@@ -1,42 +1,7 @@
 //screeps
-
-import {
-    conf_E19N53
-} from "./config_E19N53"
-import {
-    conf_E21N49
-} from "./config_E21N49"
-import {
-    conf_E19N55
-} from "./config_E19N55"
-import {
-    conf_E14N59
-} from "./config_E14N59"
-import {
-    conf_E9N54
-} from "./config_E9N54"
-import {
-    conf_W9N39
-} from "./config_W9N39"
-import {
-    conf_W9N1
-} from "./config_W9N1"
-import {
-    conf_E11S39
-} from "./config_E11S39"
-import {
-    conf_W31S39
-} from "./config_W31S39"
-import {
-    conf_W41S41
-} from "./config_W41S41"
-import {
-    conf_E21S31
-} from "./config_E21S31"
-import * as _ from "lodash"
-import * as constants from "./constants"
-
-type type_main_shards = 'shard0' | 'shard1' | 'shard2' | 'shard3';
+import * as _ from "lodash";
+import * as prefunctions from "./prefunctions";
+import * as constants from "./constants";
 
 type type_conf_rooms = {
     [key: string]: type_conf_room;
@@ -48,25 +13,35 @@ interface type_pc_conf {
         external_room ? : string;
     }
 }
-export var conf_rooms: type_conf_rooms = {
-    "E19N53": conf_E19N53,
-    "E21N49": conf_E21N49,
-    "E19N55": conf_E19N55,
-    "E14N59": conf_E14N59,
-    "E9N54": conf_E9N54,
-    "W9N39": conf_W9N39,
-    "W9N1": conf_W9N1,
-    "E11S39": conf_E11S39,
-	"W31S39": conf_W31S39,
-	"W41S41": conf_W41S41,
-	"E21S31": conf_E21S31
-}
-export var controlled_rooms = <string[]> {
+
+// distance to portal
+// E21S31: 120, reduced to ~ 80
+// E21N49: 58,
+// E11S39: 76,
+// W9N1: 45, (W10N0)
+// W9N1: 85, (W10S0)
+// W9N39: 89,
+// W41S41: 92,
+// W30S40: 77,
+// W41N9: 68,
+
+export var shard_conf_rooms: {[key: string]: type_conf_rooms} = { }
+
+export var shard_controlled_rooms: {[key: string]: string[]} = {
 	shard3: ["E19N53", "E21N49", "E19N55", "E14N59", "E9N54", "W9N39", "W9N1", "E11S39", "W31S39", "W41S41", "E21S31"],
 	shard2: [],
 	shard1: [],
 	shard0: [],
-}[<type_main_shards>Game.shard.name];
+}
+export var controlled_rooms = shard_controlled_rooms[Game.shard.name];
+for (let shard of ['shard0', 'shard1', 'shard2', 'shard3']) {
+	shard_conf_rooms[shard] = {};
+	for (let room_name of shard_controlled_rooms[shard]) {
+		shard_conf_rooms[shard][room_name] = require(`./config_${shard}_${room_name}`)['conf_'+room_name];
+	}
+}
+export var conf_rooms = shard_conf_rooms[Game.shard.name];
+
 export var obselete_rooms: string[] = [];
 global.controlled_rooms = controlled_rooms;
 export var occupied_rooms: string[] = _.clone(controlled_rooms);
@@ -83,108 +58,82 @@ for (let room_name of controlled_rooms) {
     }
 }
 
-var path_E29S21: type_shard_exit_point[] = [
-	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
-	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
-	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
-	{ shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
-	{ shard: 'shard0', roomName: 'E40S70', x: 18, y: 13 },
-	{ shard: 'shard1', roomName: 'E20S40', x: 9, y: 21 },
-	{ shard: 'shard0', roomName: 'E31S70', x: 1, y: 2 },
-	{ shard: 'shard0', roomName: 'E31S50', x: 1, y: 5 },
-	{ shard: 'shard0', roomName: 'E30S40', x: 26, y: 23 },
-	{ shard: 'shard1', roomName: 'E20S20', x: 39, y: 9 },
-	{ shard: 'shard0', roomName: 'E39S30', x: 48, y: 3 },
-	{ shard: 'shard0', roomName: 'E40S19', x: 29, y: 48 },
-	{ shard: 'shard0', roomName: 'E61S20', x: 1, y: 31 },
-	{ shard: 'shard0', roomName: 'E60S30', x: 15, y: 43 },
-	{ shard: 'shard1', roomName: 'E30S20', x: 20, y: 31 },
-	{ shard: 'shard2', roomName: 'E30S20', x: 23, y: 5 } 
-];
-
-var path_W41S41: type_shard_exit_point[] = [
-	{ shard: 'shard3', roomName: 'W30S40', x: 31, y: 23 },
-	{ shard: 'shard2', roomName: 'W30S40', x: 14, y: 39 },
-	{ shard: 'shard1', roomName: 'W30S40', x: 34, y: 25 },
-	{ shard: 'shard0', roomName: 'W50S69', x: 7, y: 48 },
-	{ shard: 'shard0', roomName: 'W70S70', x: 41, y: 14 },
-	{ shard: 'shard1', roomName: 'W40S40', x: 26, y: 6 },
-	{ shard: 'shard2', roomName: 'W40S40', x: 9, y: 40 } 
-];
- 
-var path_W41N9: type_shard_exit_point[] = [
-	{ shard: 'shard3', roomName: 'W10N0', x: 35, y: 15 },
-	{ shard: 'shard2', roomName: 'W10S0', x: 10, y: 8 },
-	{ shard: 'shard1', roomName: 'W10S0', x: 9, y: 20 },
-	{ shard: 'shard0', roomName: 'W20S1', x: 6, y: 1 },
-	{ shard: 'shard0', roomName: 'W30S0', x: 43, y: 23 },
-	{ shard: 'shard1', roomName: 'W20N0', x: 5, y: 38 },
-	{ shard: 'shard0', roomName: 'W30N1', x: 15, y: 48 },
-	{ shard: 'shard0', roomName: 'W71N0', x: 48, y: 14 },
-	{ shard: 'shard0', roomName: 'W70N10', x: 35, y: 21 },
-	{ shard: 'shard1', roomName: 'W40N10', x: 21, y: 23 },
-	{ shard: 'shard2', roomName: 'W40N10', x: 15, y: 13 },
+var path_W40N10: type_shard_exit_point[] = [
+	{ shard: 'shard3', roomName: 'W10N0', x: 35, y: 15, dis: 45 },
+	{ shard: 'shard2', roomName: 'W10S0', x: 10, y: 8, dis: 34 },
+	{ shard: 'shard1', roomName: 'W10S0', x: 9, y: 20, dis: 10 },
+	{ shard: 'shard0', roomName: 'W20S1', x: 6, y: 1, dis: 24 },
+	{ shard: 'shard0', roomName: 'W30S0', x: 43, y: 23, dis: 27 },
+	{ shard: 'shard1', roomName: 'W20N0', x: 5, y: 38, dis: 53 },
+	{ shard: 'shard0', roomName: 'W30N1', x: 15, y: 48, dis: 19 },
+	{ shard: 'shard0', roomName: 'W71N0', x: 48, y: 14, dis: 29 },
+	{ shard: 'shard0', roomName: 'W70N10', x: 35, y: 21, dis: 36 },
+	{ shard: 'shard1', roomName: 'W40N10', x: 21, y: 23, dis: 19 },
+	{ shard: 'shard2', roomName: 'W40N10', x: 15, y: 13, dis: 26 },
 ]
 
-var path_E21S31: type_shard_exit_point[] = [
-	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17 },
-	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45 },
-	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35 },
-	{ shard: 'shard0', roomName: 'E20S69', x: 46, y: 48 },
-	{ shard: 'shard0', roomName: 'E39S70', x: 48, y: 6 },
-	{ shard: 'shard0', roomName: 'E40S50', x: 42, y: 31 },
-	{ shard: 'shard1', roomName: 'E20S30', x: 42, y: 29 },
-	{ shard: 'shard2', roomName: 'E20S30', x: 15, y: 32 },
+var path_E20S30: type_shard_exit_point[] = [
+	{ shard: 'shard3', roomName: 'E10S40', x: 12, y: 17, dis: 76 },
+	{ shard: 'shard2', roomName: 'E10S40', x: 21, y: 45, dis: 21 },
+	{ shard: 'shard1', roomName: 'E10S40', x: 9, y: 35, dis: 5 },
+	{ shard: 'shard0', roomName: 'E20S69', x: 46, y: 48, dis: 27 },
+	{ shard: 'shard0', roomName: 'E39S70', x: 48, y: 6, dis: 13 },
+	{ shard: 'shard0', roomName: 'E40S50', x: 42, y: 31, dis: 43 },
+	{ shard: 'shard1', roomName: 'E20S30', x: 42, y: 29, dis: 11 },
+	{ shard: 'shard2', roomName: 'E20S30', x: 15, y: 32, dis: 22 },
 ]
 
 global.my_shard_paths = {
-	"E29S21": path_E29S21,
-	"W41S41": path_W41S41,
-	"W41N9": path_W41N9,
-	"E21S31": path_E21S31,
+	"W40N10": path_W40N10,
+	"E20S30": path_E20S30,
 }
 
-export var pc_conf = <type_pc_conf> {
+global.my_shard_paths_full = {
+	"W41N9": path_W40N10.concat([{ shard: 'shard3', roomName: 'W41N9', x: 18, y: 15, dis: 68}]),
+	"E21S31": path_E20S30.concat([{ shard: 'shard3', roomName: 'E21S31', x: 21, y: 33, dis: 80}]),
+}
+
+export var pc_conf: type_pc_conf = {
 	shard3: {
 		"PC_A": {
-			"room_name": "E14N59",
-			"normal_ordered": true,
+			room_name: "E14N59",
+			normal_ordered: true,
 		},
 		"PC_B": {
-			"room_name": "E19N55",
-			"normal_ordered": true,
+			room_name: "E19N55",
+			normal_ordered: true,
 		},
 		"PC_C": {
-			"room_name": "E11S39",
-			"normal_ordered": false,
+			room_name: "E11S39",
+			normal_ordered: false,
 		},
 		"PC_D": {
-			"room_name": "E9N54",
-			"normal_ordered": false,
+			room_name: "E9N54",
+			normal_ordered: false,
 		},
 		"PC_E": {
-			"room_name": "W9N1",
-			"normal_ordered": false,
+			room_name: "W9N1",
+			normal_ordered: false,
 		},
 		"PC_F": {
-			"room_name": "E21N49",
-			"normal_ordered": false,
+			room_name: "E21N49",
+			normal_ordered: false,
 		},
 		"PC_G": {
-			"room_name": "W31S39",
-			"normal_ordered": false,
+			room_name: "W31S39",
+			normal_ordered: false,
 		},
 		"PC_H": {
-			"room_name": "W9N39",
-			"normal_ordered": true,
+			room_name: "W9N39",
+			normal_ordered: true,
 		},
 		"PC_I": {
-			"room_name": "E19N53",
-			"normal_ordered": true,
+			room_name: "E19N53",
+			normal_ordered: true,
 		},
 		"PC_J": {
-			"room_name": "W41S41",
-			"normal_ordered": true,
+			room_name: "W41S41",
+			normal_ordered: true,
 		},
 	},
 	shard2: {},
@@ -206,11 +155,6 @@ export var secondary_rampart_factor = 4.0;
 export var maincarrier_ncarry_no_power: number = 16;
 export var maincarrier_ncarry_powered: number = 32;
 export var allowed_passing_rooms: string[] = [];
-export var newroom_energy_buying_price = {
-    price: 0.8,
-    interval: 200,
-	always_increase: true,
-}
 export var boost_pb_carrier = true;
 export var pb_power_min = 3000;
 export var tower_filling_energy = 600;
@@ -256,11 +200,11 @@ export var energy_buy_onetime_amount = 60000;
 export var battery_buy_onetime_amount = 15000;
 export var bar_store_amount = 6000;
 export var bar_buy_onetime_amount = 3000;
-export var buy_power_rooms = <string[]> {
-	shard3: ["E19N53", "W9N1", "W31S39"],
-	shard2: [],
-	shard1: [],
-	shard0: [],
+export var buy_power_rooms: string[] = {
+	shard3: <string[]>["E19N53", "W9N1", "W31S39"],
+	shard2: <string[]>[],
+	shard1: <string[]>[],
+	shard0: <string[]>[],
 }[<type_main_shards>Game.shard.name];
 
 export var power_store_amount = 20000;
@@ -277,37 +221,38 @@ export var commodity_sending_amount: number[] = [2000, 50];
 export var max_commodity_level = 1;
 export var credit_line = 2.5e7;
 
-interface type_preclaiming_rooms {
-    [key: string]: {
-        [key: string]: {
-			path: type_external_shard_map;
-			guard ?: type_body_conf;
-            commuting_distance ?: number,
-		}
-    }
+
+interface type_preclaiming_room extends type_general_shard_object {
+	path: type_external_shard_map;
+	guard ?: type_body_conf;
+	commuting_distance ?: number,
 }
-export var preclaiming_rooms = <type_preclaiming_rooms> {
-	shard3: {
-		"W31S39": {
-			"W31S38": {
-				path: {
-					rooms_forwardpath: ['W31S39', 'W31S38'],
-					poses_forwardpath: [28],
-				}
-			}
+
+export var preclaiming_rooms: type_preclaiming_room[] = [
+	{
+		home_shard: 'shard3',
+		home_room_name: 'W31S39',
+		external_shard: 'shard3',
+		external_room_name: 'W31S38',
+		path: {
+			rooms_forwardpath: ['W31S39', 'W31S38'],
+			poses_forwardpath: [28],
 		},
-		"E11S39": {
-			"E21S31": {
-				path: {
-					shard_path: path_E21S31.concat([{ shard: 'shard3', roomName: 'E21S31', x: 3, y: 20 }])
-				},
-			}
+	},
+	{
+		home_shard: 'shard3',
+		home_room_name: 'E11S39',
+		external_shard: 'shard3',
+		external_room_name: 'E21S31',
+		path: {
+			shard_path: global.my_shard_paths_full.E21S31,
 		},
-		/*
+	},
+	/*
 		"W9N1": {
 			"W41N9": {
 				path: {
-					shard_path: path_W41N9.concat([{ shard: 'shard3', roomName: 'W41N9', x: 45, y: 18 }])
+					shard_path: global.my_shard_paths_full.W41N9
 				},
 				guard: {
 					ranged_attack: {
@@ -323,24 +268,16 @@ export var preclaiming_rooms = <type_preclaiming_rooms> {
 				commuting_distance: 400,
 			},
 		}
-		*/
-	},
-	shard2: {},
-	shard1: {},
-	shard0: {},
-}[<type_main_shards>Game.shard.name];
+	 */
+];
 
-interface type_guard_rooms {
-    [key: string]: {
-        [key: string]: {
-			path: type_external_shard_map;
-			guard : type_body_conf;
-            commuting_distance : number,
-		}
-    }
+interface type_guard_rooms extends type_general_shard_object {
+	path: type_external_shard_map;
+	guard : type_body_conf;
+	commuting_distance : number,
 }
 
-export var guard_rooms: type_guard_rooms = {
+export var guard_rooms: type_guard_rooms[] = [
 	/*
     "W31S39": {
         "W31S40": {
@@ -363,32 +300,43 @@ export var guard_rooms: type_guard_rooms = {
 		}
 	},
 	*/
-}
+]
 
-export var help_list: type_help_list = {
-	/*
-    "E11S39": {
-        "E21S31": {
-            shard_path: path_W41S41.concat([{ shard: 'shard3', roomName: 'W41S41', x: 22, y: 3 }]),
-            commuting_distance: 300,
-            commuting_time: 400,
-            n_energy_carriers: 1,
-			n_heals_of_energy_carrier: 0,
-            guard: {
-				ranged_attack: {
-					number: 8,
-				},
-				heal: {
-					number: 2,
-				},
-				move: {
-					number: 10,
-				},
+interface type_conf_help extends type_general_shard_object {
+	rooms_forwardpath ?: string[];
+	poses_forwardpath ?: number[];
+	shard_path ?: type_shard_exit_point[];
+	commuting_distance: number;
+	n_carrys ?: {
+		[key: string]: number;
+	}
+	n_energy_carriers: number;
+	n_heals_of_energy_carrier: number;
+	guard ?: type_body_conf;
+}
+export var help_list: type_conf_help[] = [
+	{
+		home_shard: 'shard3',
+		home_room_name: 'E11S39',
+		external_shard: 'shard3',
+		external_room_name: 'E21S31',
+		shard_path: global.my_shard_paths_full.E21S31,
+		commuting_distance: global.my_shard_paths_full.E21S31.map((e) => e.dis).reduce((a, b) => a+b, 0),
+		n_energy_carriers: 0,
+		n_heals_of_energy_carrier: 2,
+		guard: {
+			ranged_attack: {
+				number: 8,
 			},
-        }
-    }
-	*/
-};
+			heal: {
+				number: 2,
+			},
+			move: {
+				number: 10,
+			},
+		},
+	}
+];
 
 export var protected_sources: {
     [key: string]: string[]
@@ -410,7 +358,7 @@ export var protected_sources: {
 	shard0: {},
 }[<type_main_shards>Game.shard.name];
 
-export var highway_resources = <{ [key: string]: string[] }> {
+export var highway_resources: { [key: string]: string[] } = {
 	shard3: {
 		"E19N55": ['E20N51', 'E20N52', 'E20N53', 'E20N54', 'E20N55', 'E20N56', 'E20N57', 'E20N58', 'E20N59', 'E20N60'],
 		"E21N49": ['E20N47', 'E20N48', 'E20N49', 'E16N50', 'E17N50', 'E18N50', 'E19N50', 'E20N50', 'E21N50', 'E22N50', 'E23N50', 'E24N50', 'E25N50', 'E26N50', 'E27N50'],
@@ -430,8 +378,9 @@ export var highway_resources = <{ [key: string]: string[] }> {
 for (let room_name in highway_resources) {
 	highway_resources[room_name] = highway_resources[room_name].sort((a, b) => Game.map.getRoomLinearDistance(room_name, a) - Game.map.getRoomLinearDistance(room_name, b));
 }
-export var commodity_room_conf = <{ [key: string]: type_zone[] }> {
-	shard3: {
+type type_commodity_room_conf = { [key: string]: type_zone[] };
+export var commodity_room_conf: type_commodity_room_conf = {
+	shard3: <type_commodity_room_conf>{
 		"W9N39": ["U"],
 		"W9N1": ["U", "Z"],
 		"E11S39": ["L"],
@@ -447,7 +396,7 @@ export var all_zones = Array.from(new Set((<type_zone[][]> Object.values(commodi
 export var commodity_selling_rooms: string[] = Object.keys(commodity_room_conf);
 export var depo_stop_min_cd = 150;
 export var depo_start_max_cd = 60;
-export var depo_cd_to_boost = 15;
+export var depo_cd_to_boost = 12;
 export var username: string = 'SUSYUSTC';
 export var sign: string = '黑暗森林';
 
@@ -518,7 +467,7 @@ export var acceptable_prices: type_acceptable_prices = {
 			always_increase: true,
         },
         "power": {
-            price: {shard3: 27.0, shard2: 20.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
+            price: {shard3: 28.0, shard2: 20.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
 			lowest_price: {shard3: 22.0, shard2: 16.0, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
             interval: 500,
 			always_increase: false,
@@ -586,6 +535,11 @@ export var acceptable_prices: type_acceptable_prices = {
 		}
 	}
 }
+export var newroom_energy_buying_price = {
+    price: {shard3: 1.0, shard2: 1.35, shard1: undefined, shard0: undefined}[<type_main_shards>Game.shard.name],
+    interval: 200,
+	always_increase: true,
+}
 type type_auto_sell_list = {
     [key in MarketResourceConstant] ? : {
         room ?: string;
@@ -624,7 +578,7 @@ export var resources_balance: {
 		}
 		for (let i=0;i<=max_commodity_level;i++) {
 			resources_balance[production.products[i]] = {
-				gap: commodity_sending_amount[i],
+				gap: commodity_sending_amount[i] * 2,
 				amount: commodity_sending_amount[i],
 				rooms: commodity_selling_rooms,
 				min: commodity_sending_amount[i],
@@ -636,6 +590,12 @@ export var resources_balance: {
 		amount: bar_sending_amount,
 		rooms: commodity_selling_rooms,
 		min: bar_sending_amount,
+	}
+}
+for (let key of <ResourceConstant[]>(Object.keys(resources_balance))) {
+	let balance = resources_balance[key];
+	if (balance.amount > balance.gap / 2) {
+		throw Error("Problematic balance for " + key);
 	}
 }
 type type_final_product_requrest = {

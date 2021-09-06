@@ -651,7 +651,7 @@ export function automove_group_x1(groupname: string): number {
 	if (invader.room.name !== flag.pos.roomName) {
 		if (!external_room.is_moving_target_defined(invader, 'forward') || flag.pos.roomName !== group.target_room_name) {
 			let path = PathFinder.search(invader.pos, flag.pos);
-			let exits = functions.get_exits_from_path(path.path);
+			let exits = functions.get_exits_from_path(path.path, invader.room.name);
 			group.target_room_name = flag.pos.roomName;
 			external_room.save_external_moving_targets(invader, exits.rooms_path, exits.poses_path, 'forward');
 		}
@@ -797,7 +797,7 @@ export function automove_group_x2(groupname: string): number {
 	if (invader.room.name !== flag.pos.roomName) {
 		if (!external_room.is_moving_target_defined(invader, 'forward') || flag.pos.roomName !== group.target_room_name) {
 			let path = PathFinder.search(invader.pos, flag.pos);
-			let exits = functions.get_exits_from_path(path.path);
+			let exits = functions.get_exits_from_path(path.path, invader.room.name);
 			group.target_room_name = flag.pos.roomName;
 			external_room.save_external_moving_targets(invader, exits.rooms_path, exits.poses_path, 'forward');
 		}

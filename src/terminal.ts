@@ -153,6 +153,9 @@ function balance_commodity(zone: "U" | "L" | "Z" | "K") {
 
 function get_terminal_space() {
 	let valid_rooms = Game.controlled_rooms_with_terminal;
+	if (valid_rooms.length == 0) {
+		return;
+	}
 	let free_amounts = valid_rooms.map((e) => Game.rooms[e].terminal.store.getFreeCapacity());
 	let argmin = mymath.argmin(free_amounts);
 	if (free_amounts[argmin] < 5000 && Game.rooms[valid_rooms[argmin]].terminal.store.getUsedCapacity("energy") >= config.terminal_min_energy + 5000) {
@@ -171,6 +174,9 @@ type type_resource_limits = {
 }
 function limit_resources(resource: ResourceConstant, limit: type_resource_limits) {
 	let rooms = Object.keys(limit);
+	if (rooms.length == 0) {
+		return;
+	}
 	let total_amounts = rooms.map((e) => functions.get_total_resource_amount(e, resource));
 	let overflow_amounts = mymath.array_ele_minus(total_amounts, rooms.map((e) => limit[e].max));
 	let argmax_overflow = mymath.argmax(overflow_amounts);
@@ -249,6 +255,9 @@ function send_compounds() {
 
 function process_obselete_rooms(room_name: string) {
 	let room = Game.rooms[room_name];
+	if (Game.controlled_rooms.length == 0) {
+		return;
+	}
 	for (let resource of config.obselete_rooms_resources) {
 		let this_total_amount = functions.get_total_resource_amount(room_name, resource);
 		let this_amount = room.terminal.store.getUsedCapacity(resource);

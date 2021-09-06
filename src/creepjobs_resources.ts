@@ -487,8 +487,9 @@ export function creepjob(creep: Creep): number {
         let depo_status = Game.rooms[creep.memory.home_room_name].memory.external_resources.depo[creep.memory.external_room_name];
 		switch(creep.memory.working_status) {
 			case 'get': {
-				if (depo_status.container_hits <= 170000 && depo_status.depo_carrier_names.length == 1 && creep.store.getUsedCapacity("energy") < 800 && creep.room.name == creep.memory.home_room_name) {
-					basic_job.get_energy(creep, {max_amount: 800 - creep.store.getUsedCapacity("energy")});
+				let needed_energy = Math.min(Math.floor((250000 - depo_status.container_hits) / 10000) * 100, 800);
+				if (depo_status.depo_carrier_names.length == 1 && creep.store.getUsedCapacity("energy") < needed_energy && creep.room.name == creep.memory.home_room_name) {
+					basic_job.get_energy(creep, {max_amount: needed_energy - creep.store.getUsedCapacity("energy")});
 					creep.say("DCg");
 					break;
 				}

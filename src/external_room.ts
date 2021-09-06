@@ -221,23 +221,25 @@ export function movethroughrooms_group_x2(invader: Creep, healer: Creep, passwor
 
 export function movethroughshards(creep: Creep) {
 	// -1: Error, 0: scheduled, 1: finished
+	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
+		creep.heal(creep);
+	}
 	console.log(creep.name, "at", Game.shard.name, JSON.stringify(creep.pos), creep.memory._move == undefined ? undefined : creep.memory._move.time);
 	let timer = new Timer("movethroughshards", false);
 	let timer_only = new Timer("movethroughshards_only", false);
 	if (global.is_main_server) {
 		let this_shardmemory = Game.InterShardMemory[Game.shard.name];
-		if (global.main_shards.includes(Game.shard.name)) {
-			if (this_shardmemory.creeps[creep.name] == undefined) {
-				// add shardmemory.creeps
-				this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
-				Game.require_update_intershardmemory = true;
-			}
-			if (this_shardmemory.all_creeps[creep.name] == undefined) {
-				// add shardmemory.all_creeps
-				this_shardmemory.all_creeps[creep.name] = { }
-				functions.copy_key(creep.memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_room_name', 'external_room_name', 'source_name'], undefined);
-				Game.require_update_intershardmemory_modify_time = true;
-			}
+		// first time moving through shards, copy creep memory to shard memory
+		if (this_shardmemory.creeps[creep.name] == undefined) {
+			// add shardmemory.creeps
+			this_shardmemory.creeps[creep.name] = _.clone(creep.memory);
+			Game.require_update_intershardmemory = true;
+		}
+		if (this_shardmemory.all_creeps[creep.name] == undefined) {
+			// add shardmemory.all_creeps
+			this_shardmemory.all_creeps[creep.name] = { }
+			functions.copy_key(creep.memory, this_shardmemory.all_creeps[creep.name], ['role', 'home_shard_name', 'home_room_name', 'external_shard', 'external_room_name', 'source_name'], undefined);
+			Game.require_update_intershardmemory_modify_time = true;
 		}
 		let cache_ok = (Game.time % 5 !== 0) || (this_shardmemory.all_creeps[creep.name].ticksToLive > creep.ticksToLive - 10);
 		if (!cache_ok) {
@@ -276,12 +278,27 @@ export function movethroughshards(creep: Creep) {
 		let this_shardmemory = Game.InterShardMemory[Game.shard.name];
 		let target_rxy = shard_move.shard_path[0];
 		let target_pos = new RoomPosition(target_rxy.x, target_rxy.y, target_rxy.roomName);
-		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 0}, {roomCallback: function(room_name: string) { return new PathFinder.CostMatrix } });
+		let path = PathFinder.search(creep.pos, {pos: target_pos, range: 1}, {roomCallback: function(room_name: string) { 
+			//if (Game.controlled_rooms.includes(room_name)) {
+			if (config.controlled_rooms.includes(room_name)) {
+				let costMatrix = functions.get_costmatrix_road(room_name, 0);
+				for (let i=0; i<50; i++) {
+					costMatrix.set(i, 0, 0);
+					costMatrix.set(i, 49, 0);
+					costMatrix.set(0, i, 0);
+					costMatrix.set(49, i, 0);
+				}
+				return costMatrix;
+			} else {
+				return new PathFinder.CostMatrix
+			}
+		} });
 		if (path.incomplete) {
 			console.log("Warning: shard path finding fail for creep", creep.name, "in room", creep.room.name, "at time", Game.time);
+			console.log(creep.pos, target_pos);
 			return -1;
 		}
-		let exits_path = functions.get_exits_from_path(path.path);
+		let exits_path = functions.get_exits_from_path(path.path, creep.room.name);
 		shard_move.rooms_path = exits_path.rooms_path;
 		shard_move.poses_path = exits_path.poses_path;
 		clear_external_moving_targets(creep, 'shard');
@@ -309,13 +326,16 @@ export function movethroughshards(creep: Creep) {
 	return 0;
 }
 
-export function general_external_move(creep: Creep) {
+export function general_external_move(creep: Creep, password: string) {
+	if (password == 'shard') {
+		throw Error("password should not be shard");
+	}
 	if (creep.memory.shard_move !== undefined) {
 		movethroughshards(creep);
 	} else {
-		if (!is_moving_target_defined(creep, 'forward')) {
-			save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, 'forward');
+		if (!is_moving_target_defined(creep, password)) {
+			save_external_moving_targets(creep, creep.memory.rooms_forwardpath, creep.memory.poses_forwardpath, password);
 		}
-		external_move(creep, 'forward');
+		external_move(creep, password);
 	}
 }

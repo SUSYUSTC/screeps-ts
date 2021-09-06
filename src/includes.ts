@@ -1,3 +1,19 @@
+interface type_general_shard_object {
+	home_shard ?: string;
+	home_room_name ?: string;
+	external_shard ?: string;
+	external_room_name ?: string;
+}
+type type_main_shards = 'shard0' | 'shard1' | 'shard2' | 'shard3';
+declare namespace Tag_shard_room {
+    const OpaqueTagSymbol: unique symbol;
+
+    class OpaqueTag {
+        private [OpaqueTagSymbol]: string;
+    }
+}
+type type_shard_room = string & Tag_shard_room.OpaqueTag;
+
 type type_xy = [number, number];
 type type_external_room_status = {
     [key: string]: { // room_name
@@ -8,7 +24,40 @@ type type_external_room_status = {
         time_last: number;
     }
 }
-type type_creep_role = "init" | "harvester" | "carrier" | "builder" | "upgrader" | "transferer" | "mineharvester" | "maincarrier" | "minecarrier" | "wall_repairer" | "externalharvester" | "externalcarrier" | "externalbuilder" | "external_init" | "reserver" | "preclaimer" | "energy_carrier" | "defender" | "invader_core_attacker" | "home_defender" | "help_harvester" | "help_carrier" | "help_builder" | "guard" | "pb_attacker" | "pb_healer" | "pb_carrier" | "depo_container_builder" | "depo_energy_carrier" | "depo_harvester" | "depo_carrier" | "enemy";
+type type_creep_role = 
+	| "init" 
+	| "harvester" 
+	| "carrier" 
+	| "builder" 
+	| "upgrader" 
+	| "transferer" 
+	| "mineharvester" 
+	| "maincarrier" 
+	| "minecarrier" 
+	| "wall_repairer" 
+	| "externalharvester" 
+	| "externalcarrier" 
+	| "externalbuilder" 
+	| "external_init" 
+	| "reserver" 
+	| "preclaimer" 
+	| "energy_carrier" 
+	| "help_transferer" 
+	| "defender" 
+	| "invader_core_attacker" 
+	| "home_defender" 
+	| "help_harvester" 
+	| "help_carrier" 
+	| "help_builder" 
+	| "guard" 
+	| "pb_attacker" 
+	| "pb_healer" 
+	| "pb_carrier" 
+	| "depo_container_builder" 
+	| "depo_energy_carrier" 
+	| "depo_harvester" 
+	| "depo_carrier" 
+	| "enemy";
 interface RoomMemory {
     storage_level ? : number;
     external_room_status ? : type_external_room_status;
@@ -114,7 +163,7 @@ type type_transport_job = {
     to: type_main_structure_names;
     amount: number;
 }
-interface CreepMemory {
+interface CreepMemory extends type_general_shard_object {
     _move ? : type_creep_move;
     movable ? : boolean;
     crossable ? : boolean;
@@ -123,7 +172,9 @@ interface CreepMemory {
 	working_status ? : string;
     source_name ? : string;
     harvesting ? : boolean;
+	home_shard ? : string;
     home_room_name ? : string;
+	external_shard ? : string;
     external_room_name ? : string;
     cost ? : number;
     defender_type ? : string;
@@ -531,6 +582,7 @@ interface Memory {
 		[key: string]: number;
 	}
 }
+
 type type_movethroughrooms_options = {
 	ignore_creep_xys ?: [number, number][],
 }
@@ -540,8 +592,7 @@ type type_shard_exit_point = {
 	roomName: string,
 	x: number,
 	y: number,
-	rooms_path ?: string[],
-	poses_path ?: string[],
+	dis: number,
 }
 type type_shard_move = {
 	shard ?: string,
@@ -549,17 +600,38 @@ type type_shard_move = {
 	rooms_path ?: string[],
 	poses_path ?: number[],
 }
+interface type_intershard_all_creeps extends type_general_shard_object {
+	role ?: type_creep_role;
+	home_shard ?: string;
+	home_room_name ?: string;
+	external_shard ?: string;
+	external_room_name ?: string;
+	source_name ?: string;
+	ticksToLive ?: number;
+}
 interface type_intershardmemory {
 	last_modify_time ? : number;
 	cleared_shards ? : string[];
-	all_creeps ?: {
+	tick_info ?: {
+		last_update_time ?: number;
+		last_update_tick ?: number;
+		tick_rate ?: number;
+	}
+	room_info ?: {
 		[key: string]: {
-			role ?: type_creep_role;
-			home_room_name ?: string;
-			external_room_name ?: string;
-			source_name ?: string;
-			ticksToLive ?: number;
+			my: boolean;
+			rcl: number;
+			container: string[];
+			link: string[];
+			spawn: string[];
+			storage: boolean;
+			terminal: boolean;
+			energyCapacity: number;
+			independent: boolean;
 		}
+	}
+	all_creeps ?: {
+		[key: string]: type_intershard_all_creeps;
 	}
 	creeps ? : {
 		[key: string]: CreepMemory;
@@ -591,23 +663,6 @@ interface type_creep_components {
 type type_rooms_ignore_pos = {
     [key: string]: type_xy[];
 };
-type type_help_list = {
-    [key: string]: {
-        [key: string]: {
-            rooms_forwardpath ?: string[];
-            poses_forwardpath ?: number[];
-			shard_path ?: type_shard_exit_point[];
-            commuting_distance: number;
-            commuting_time: number;
-            n_carrys ?: {
-                [key: string]: number;
-            }
-			n_energy_carriers: number;
-			n_heals_of_energy_carrier: number;
-			guard ?: type_body_conf;
-        }
-    }
-}
 type GeneralMineralConstant = MineralConstant | MineralCompoundConstant;
 type type_mineral_storage_room = {
     [key in string]: GeneralMineralConstant[];
@@ -778,10 +833,11 @@ type type_product_request = {
 declare module NodeJS {
     interface Global {
 		is_main_server: boolean;
-		main_shards: string[];
-		sub_shards: string[];
 		all_shards: string[];
 		my_shard_paths: {
+			[key: string]: type_shard_exit_point[];
+		}
+		my_shard_paths_full: {
 			[key: string]: type_shard_exit_point[];
 		}
 		controlled_rooms: string[];

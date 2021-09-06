@@ -514,11 +514,19 @@ export function repair_container(creep: Creep, container: StructureContainer = u
     }
     return 1;
 }
-export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options = {}) {
+export function ask_for_renew(creep: Creep, options: {force_renew ?: boolean, moveoptions ?: type_movetopos_options} = {}) {
 	//  -1: not necessary, 0: scheduled, 1: cannot find spawn
-	let time_add = Math.floor(600/creep.body.length);
-	if (creep.ticksToLive > 1500 - time_add) {
-		return -1;
+	if (options.force_renew == undefined) {
+		options.force_renew = false;
+	}
+	if (options.moveoptions == undefined) {
+		options.moveoptions = {};
+	}
+	if (!options.force_renew) {
+		let time_add = Math.floor(600/creep.body.length);
+		if (creep.ticksToLive > 1500 - time_add) {
+			return -1;
+		}
 	}
     let spawns = global.memory[creep.room.name].spawn_list.map((e) => Game.getObjectById(e)).filter((e) => !e.spawning);
 	if (spawns.length == 0) {
@@ -530,7 +538,7 @@ export function ask_for_renew(creep: Creep, moveoptions: type_movetopos_options 
     if (creep.pos.isNearTo(closest_spawn)) {
         closest_spawn.renewCreep(creep);
     } else {
-        movetopos(creep, closest_spawn.pos, 1, moveoptions);
+        movetopos(creep, closest_spawn.pos, 1, options.moveoptions);
     }
 	return 0;
 }
@@ -719,12 +727,20 @@ export function harvest_with_container(creep: Creep, source: Source, container: 
     return 0;
 }
 
-export function waiting_for_spawn(names: string[]) {
+export function waiting_for_spawn(names: string[], allowed_loss_of_time: number = 20) {
 	// 0: scheduled, 1: all spawned
 	let creeps = names.map((e) => Game.creeps[e]);
 	let spawned_creeps = creeps.filter((e) => e !== undefined && !e.spawning);
 	if (spawned_creeps.length == creeps.length) {
-		return 1;
+		let creeps_need_renew = spawned_creeps.filter((e) => e.ticksToLive < 1500 - allowed_loss_of_time);
+		if (creeps_need_renew.length > 0) {
+			for (let creep of creeps_need_renew) {
+				ask_for_renew(creep, {force_renew: true});
+			}
+			return 0;
+		} else {
+			return 1;
+		}
 	} else {
 		for (let creep of spawned_creeps) {
 			ask_for_renew(creep);
